@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Common">
+      <UniqueIdentifier>{1256b418-86c8-422b-9a06-6a9c37513c25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SimplygonLoader">
+      <UniqueIdentifier>{b79413e7-2ec4-434f-b14d-f2cece8893c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Processing">
+      <UniqueIdentifier>{7cf95aa4-f993-4f6a-b707-aa1b82b68563}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{05209d09-19cf-4707-960b-6afab8ec671d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Collectors">
+      <UniqueIdentifier>{7ce87560-0e57-4348-8556-b9950c68e6e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Cmds">
+      <UniqueIdentifier>{b8acc468-0d0f-45cc-96ed-37b8df0a328e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Pipeline">
+      <UniqueIdentifier>{3dd31d1b-866b-46ea-9e86-6e2ffef06cae}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Maya\PCH.cpp" />
+    <ClCompile Include="..\Maya\pluginMain.cpp" />
+    <ClCompile Include="..\Simplygon\SimplygonProcessingModule.cpp">
+      <Filter>Processing</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Maya\BakedMaterial.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Maya\BlindData.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Maya\MaterialNode.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Maya\MeshNode.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Maya\Scene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Maya\DataCollection.cpp">
+      <Filter>Collectors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Maya\MaterialInfoHandler.cpp">
+      <Filter>Collectors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Maya\SimplygonCmd.cpp">
+      <Filter>Cmds</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Maya\SimplygonNetworkCmd.cpp">
+      <Filter>Cmds</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Maya\SimplygonQueryCmd.cpp">
+      <Filter>Cmds</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\WorkDirectoryHandler.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\Common.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\HelperFunctions.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\Shared.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\PipelineHelper.cpp">
+      <Filter>Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Maya\SimplygonPipelineCmd.cpp">
+      <Filter>Cmds</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SIMPLYGON_9_PATH)\SimplygonLoader.cpp">
+      <Filter>SimplygonLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\SimplygonInit.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Common\CriticalSection.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Maya\PCH.h" />
+    <ClInclude Include="..\Simplygon\SimplygonProcessingModule.h">
+      <Filter>Processing</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Maya\BakedMaterial.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Maya\BlindData.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Maya\MaterialNode.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Maya\MeshNode.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Maya\Scene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Maya\ShadingNodeTable.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Maya\DataCollection.h">
+      <Filter>Collectors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Maya\MaterialInfoHandler.h">
+      <Filter>Collectors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Maya\SimplygonCmd.h">
+      <Filter>Cmds</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Maya\SimplygonNetworkCmd.h">
+      <Filter>Cmds</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Maya\SimplygonQueryCmd.h">
+      <Filter>Cmds</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\WorkDirectoryHandler.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Common.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\HelperFunctions.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Shared.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\PipelineHelper.h">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Maya\SimplygonPipelineCmd.h">
+      <Filter>Cmds</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SIMPLYGON_9_PATH)\SimplygonLoader.h">
+      <Filter>SimplygonLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\SimplygonInit.h" />
+  </ItemGroup>
+</Project>

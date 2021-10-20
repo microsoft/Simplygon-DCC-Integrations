@@ -1,0 +1,99 @@
+﻿<!--
+Copyright (c) Microsoft Corporation.
+Licensed under the MIT License.
+-->
+<UserControl x:Class="SimplygonUI.Logger"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:SimplygonUI"
+             d:DataContext="{d:DesignInstance Type=local:UILogger}"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="400">
+
+    <UserControl.Resources>
+        <local:InvertableBooleanToVisibilityConverter x:Key="InvertableVisibilityConverter"/>
+        <local:AddClampsToString x:Key="AddClampsToString"/>
+        <local:AdjustValue x:Key="AdjustValue"/>
+    </UserControl.Resources>
+
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="50"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Column="0" VerticalAlignment="Center" Name="LogHeader" Text="Log" HorizontalAlignment="Left" FontSize="12" FontWeight="Bold"></TextBlock>
+
+            <Button Name="SettingsButton" Grid.Column="2" Click="SettingsButton_Click">
+                <Image Source="pack://application:,,,/Simplygon.WPFUI;component/Settings.png" Canvas.ZIndex="1" Margin="5"/>
+            </Button>
+
+            <StackPanel Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5">
+
+                <Label Content="Filter:" VerticalAlignment="Center" Margin="4, 0, 4,0"/>
+                <ComboBox x:Name="LogFilterComboBox" Width="100" HorizontalAlignment="Center" Background="Transparent" SelectedIndex="0" SelectionChanged="LogFilterComboBox_SelectionChanged"/>
+
+                <Label Content="Sort:" VerticalAlignment="Center" Margin="4, 0, 4,0"/>
+                <ComboBox x:Name="LogSortComboBox" Width="100" HorizontalAlignment="Stretch" Background="Transparent" SelectedIndex="0" SelectionChanged="LogSortComboBox_SelectionChanged"/>
+
+            </StackPanel>
+
+            <ListBox Grid.Row="3" Grid.ColumnSpan="4"  Name="LoggerListBox" ItemsSource="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:Logger}}, Path=ItemsSource}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" 
+                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Focusable="False">
+
+                <ListBox.ContextMenu>
+                    <ContextMenu Placement="Right">
+                        <MenuItem x:Name="ClearMenuItem" Header="Clear all entries" Click="ClearMenuItem_Click"/>
+                    </ContextMenu>
+                </ListBox.ContextMenu>
+
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListBoxItem}">
+                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                        <Setter Property="Focusable" Value="False"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate>
+                                    <Grid Width="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListBox}}, Path=ActualWidth, Converter={StaticResource AdjustValue}, ConverterParameter=-5.0}" Background="Transparent">
+                                        <Grid.ToolTip>
+                                            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" MaxWidth="300"/>
+                                        </Grid.ToolTip>
+                                        <Grid.ContextMenu>
+                                            <ContextMenu Placement="Right">
+                                                <MenuItem x:Name="CopyMenuItem" Header="Copy entry" Click="CopyMenuItem_Click"/>
+                                                <MenuItem x:Name="CopyAllMenuItem" Header="Copy all entries" Click="CopyAllMenuItem_Click"/>
+                                                <MenuItem x:Name="ClearAllMenuItem" Header="Clear all entries" Click="ClearMenuItem_Click"/>
+                                            </ContextMenu>
+                                        </Grid.ContextMenu>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="10"/>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="20"/>
+                                        </Grid.RowDefinitions>
+
+                                        <Rectangle Grid.Column="0" VerticalAlignment="Stretch" HorizontalAlignment="Center" Margin="0,1,4,1" Width="5" Fill="{Binding CategoryBrush}" IsHitTestVisible="False"/>
+                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,4,0" Text="{Binding Category}" Background="Transparent" IsHitTestVisible="False"/>
+                                        <TextBlock Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="0,0,0,0" Text="{Binding Message}"  Background="Transparent" IsHitTestVisible="False" TextTrimming="CharacterEllipsis"/>
+                                    </Grid>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+        </Grid>
+    </Grid>
+</UserControl>

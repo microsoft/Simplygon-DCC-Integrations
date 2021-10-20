@@ -1,0 +1,636 @@
+﻿<!--
+Copyright (c) Microsoft Corporation.
+Licensed under the MIT License.
+-->
+<UserControl x:Class="SimplygonUI.SimplygonPipeline"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
+             xmlns:local="clr-namespace:SimplygonUI"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style x:Key="VisibleCheckBoxStyle" TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsEditEnabled}" Value="False">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsEditEnabled}" Value="True">
+                    <Setter Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="DependencyObjectGridStyle" TargetType="Grid">
+            <!--BasedOn="{StaticResource {x:Type Grid}}">-->
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DependencyObject}" Value="False">
+                    <Setter Property="IsEnabled" Value="False" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <ContextMenu x:Key="PropertyContextMenu">
+            <MenuItem Header="Set default value" Click="ResetSettingsPropertyValue" />
+        </ContextMenu>
+        <ContextMenu x:Key="PropertyGroupContextMenu">
+            <MenuItem Header="Set all default values" Click="ResetSettingsPropertyValue" />
+            <!--<Separator />
+            <MenuItem Header="All visible" />
+            <MenuItem Header="All hidden" />-->
+        </ContextMenu>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Name="LODBar"></StackPanel>
+        <StackPanel Grid.Column="1">
+            <GroupBox Name="PipelineGroupBox">
+                <GroupBox.Header>
+                    <Grid Name="PipelineToolbar" Visibility="Visible" Background="Transparent">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="35"></ColumnDefinition>
+                            <ColumnDefinition Width="35"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Name="PipelineHeaderTextBlock" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="12" FontWeight="Bold"></TextBlock>
+                        <Button Name="AddButton" Grid.Column="1" Click="AddButton_Click" >
+                            <Image Source="pack://application:,,,/Simplygon.WPFUI;component/Add.png" Canvas.ZIndex="1" Margin="5"/>
+                        </Button>
+                        <Button Name="DeleteButton" Grid.Column="2" Click="DeleteButton_Click" >
+                            <Image Source="pack://application:,,,/Simplygon.WPFUI;component/Trash.png" Canvas.ZIndex="1" Margin="5"/>
+                        </Button>
+                    </Grid>
+                </GroupBox.Header>
+                <StackPanel>
+                    <TreeView Name="PipelineTreeView" Grid.IsSharedSizeScope="true" HorizontalContentAlignment="Stretch" VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Standard" >
+                        <TreeView.ItemTemplateSelector>
+                            <local:SimplygonTreeViewDataTemplateSelector/>
+                        </TreeView.ItemTemplateSelector>
+                        <TreeView.Resources>
+                            <HierarchicalDataTemplate x:Key="SimplygonSettingsTemplate" ItemsSource="{Binding Items}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ContextMenu="{StaticResource PropertyGroupContextMenu}">
+                                    <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                            <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyTemplate" ItemsSource="{Binding Items}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </HierarchicalDataTemplate>
+                            <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyBoolTemplate" ItemsSource="{Binding Items}">
+                                <Grid ContextMenu="{StaticResource PropertyContextMenu}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="21" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center">
+                                        <TextBlock.ToolTip>
+                                            <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" MaxWidth="200"/>
+                                        </TextBlock.ToolTip>
+                                    </TextBlock>
+                                    <CheckBox Grid.Column="1" IsChecked="{Binding Path=Value, Mode=TwoWay}" VerticalAlignment="Center"></CheckBox>
+                                    <CheckBox Margin="5,0" Grid.Column="2" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </HierarchicalDataTemplate>
+                            <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyIntTemplate" ItemsSource="{Binding Items}">
+                                <Grid ContextMenu="{StaticResource PropertyContextMenu}">
+                                    <Grid.Resources>
+                                        <local:ProxyBinding x:Key="ProxyBinding" Data="{Binding}"/>
+                                    </Grid.Resources>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="21" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center">
+                                        <TextBlock.ToolTip>
+                                            <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" MaxWidth="200"/>
+                                        </TextBlock.ToolTip>
+                                    </TextBlock>
+                                    <Grid Grid.Column="1" HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider Grid.Column="0" Value="{Binding Path=Value, Mode=TwoWay}" Maximum="{Binding Path=MaxValue, Mode=OneTime}" Minimum="{Binding Path=MinValue, Mode=OneTime}" Name="slValue" TickFrequency="{Binding Path=TicksFrequencyValue, Mode=OneTime}" SmallChange="{Binding Path=TicksFrequencyValue, Mode=OneTime}" IsSnapToTickEnabled="True"/>
+                                        <TextBox Grid.Column="1" TextAlignment="Right" MouseEnter="TextBox_GotFocus" GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus" KeyUp="TextBox_KeyEnterUpdate" MinWidth="25">
+                                            <TextBox.Text>
+                                                <Binding ElementName="slValue" Path="Value">
+                                                    <Binding.ValidationRules>
+                                                        <local:IntRangeValidationRule>
+                                                            <local:IntRangeValidationRule.MinMax>
+                                                                <local:IntMinMaxValue Min="{Binding Path=Data.MinValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" Max="{Binding Path=Data.MaxValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" />
+                                                            </local:IntRangeValidationRule.MinMax>
+                                                        </local:IntRangeValidationRule>
+                                                    </Binding.ValidationRules>
+                                                </Binding>
+                                            </TextBox.Text>
+                                        </TextBox>
+                                    </Grid>
+                                    <CheckBox Margin="5,0" Grid.Column="2" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"></CheckBox>
+                                </Grid>
+                            </HierarchicalDataTemplate>
+                            <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyIntWithDependencyObjectTemplate" ItemsSource="{Binding Items}">
+                                <Grid ContextMenu="{StaticResource PropertyContextMenu}">
+                                    <Grid.Resources>
+                                        <local:ProxyBinding x:Key="ProxyBinding" Data="{Binding}"/>
+                                    </Grid.Resources>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="21" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center">
+                                        <TextBlock.ToolTip>
+                                            <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" MaxWidth="200"/>
+                                        </TextBlock.ToolTip>
+                                    </TextBlock>
+                                    <CheckBox Grid.Column="1" IsChecked="{Binding Path=DependencyObject, Mode=TwoWay}" VerticalAlignment="Center"></CheckBox>
+                                    <Grid Grid.Column="2" HorizontalAlignment="Stretch" Style="{StaticResource DependencyObjectGridStyle}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider Grid.Column="0" Value="{Binding Path=Value, Mode=TwoWay}" Maximum="{Binding Path=MaxValue, Mode=OneTime}" Minimum="{Binding Path=MinValue, Mode=OneTime}" Name="slValue" TickFrequency="{Binding Path=TicksFrequencyValue, Mode=OneTime}" SmallChange="{Binding Path=TicksFrequencyValue, Mode=OneTime}" IsSnapToTickEnabled="True"/>
+                                        <TextBox Grid.Column="1" TextAlignment="Right" MouseEnter="TextBox_GotFocus" GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus" KeyUp="TextBox_KeyEnterUpdate" MinWidth="25">
+                                            <TextBox.Text>
+                                                <Binding ElementName="slValue" Path="Value">
+                                                    <Binding.ValidationRules>
+                                                        <local:IntRangeValidationRule>
+                                                            <local:IntRangeValidationRule.MinMax>
+                                                                <local:IntMinMaxValue Min="{Binding Path=Data.MinValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" Max="{Binding Path=Data.MaxValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" />
+                                                            </local:IntRangeValidationRule.MinMax>
+                                                        </local:IntRangeValidationRule>
+                                                    </Binding.ValidationRules>
+                                                </Binding>
+                                            </TextBox.Text>
+                                        </TextBox>
+                                    </Grid>
+                                    <CheckBox Margin="5,0" Grid.Column="3" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"></CheckBox>
+                                </Grid>
+                            </HierarchicalDataTemplate>
+                            <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyFloatTemplate" ItemsSource="{Binding Items}">
+                                <Grid ContextMenu="{StaticResource PropertyContextMenu}">
+                                    <Grid.Resources>
+                                        <local:ProxyBinding x:Key="ProxyBinding" Data="{Binding}"/>
+                                    </Grid.Resources>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="21" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center">
+                                        <TextBlock.ToolTip>
+                                            <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" MaxWidth="200"/>
+                                        </TextBlock.ToolTip>
+                                    </TextBlock>
+                                    <Grid Grid.Column="1" HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider Grid.Column="0" Value="{Binding Path=Value, Mode=TwoWay}" Maximum="{Binding Path=MaxValue, Mode=OneTime}" Minimum="{Binding Path=MinValue, Mode=OneTime}" Name="slValue" TickFrequency="{Binding Path=TicksFrequencyValue, Mode=OneTime}" SmallChange="{Binding Path=TicksFrequencyValue, Mode=OneTime}" IsSnapToTickEnabled="True"/>
+                                        <TextBox Grid.Column="1" TextAlignment="Right" MouseEnter="TextBox_GotFocus" GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus" KeyUp="TextBox_KeyEnterUpdate" MinWidth="25">
+                                            <TextBox.Text>
+                                                <Binding ElementName="slValue" Path="Value" StringFormat="0.00">
+                                                    <Binding.ValidationRules>
+                                                        <local:FloatRangeValidationRule>
+                                                            <local:FloatRangeValidationRule.MinMax>
+                                                                <local:FloatMinMaxValue Min="{Binding Path=Data.MinValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" Max="{Binding Path=Data.MaxValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" />
+                                                            </local:FloatRangeValidationRule.MinMax>
+                                                        </local:FloatRangeValidationRule>
+                                                    </Binding.ValidationRules>
+                                                </Binding>
+                                            </TextBox.Text>
+                                        </TextBox>
+                                    </Grid>
+                                    <CheckBox Margin="5,0"  Grid.Column="2" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"></CheckBox>
+                                </Grid>
+                            </HierarchicalDataTemplate>
+                            <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyFloatWithDependencyObjectTemplate" ItemsSource="{Binding Items}">
+                                <Grid ContextMenu="{StaticResource PropertyContextMenu}">
+                                    <Grid.Resources>
+                                        <local:ProxyBinding x:Key="ProxyBinding" Data="{Binding}"/>
+                                    </Grid.Resources>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="21" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center">
+                                        <TextBlock.ToolTip>
+                                            <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" MaxWidth="200"/>
+                                        </TextBlock.ToolTip>
+                                    </TextBlock>
+                                    <CheckBox Grid.Column="1" IsChecked="{Binding Path=DependencyObject, Mode=TwoWay}" VerticalAlignment="Center"></CheckBox>
+                                    <Grid Grid.Column="2" HorizontalAlignment="Stretch" Style="{StaticResource DependencyObjectGridStyle}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider Grid.Column="0" Value="{Binding Path=Value, Mode=TwoWay}" Maximum="{Binding Path=MaxValue, Mode=OneTime}" Minimum="{Binding Path=MinValue, Mode=OneTime}" Name="slValue" TickFrequency="{Binding Path=TicksFrequencyValue, Mode=OneTime}" SmallChange="{Binding Path=TicksFrequencyValue, Mode=OneTime}" IsSnapToTickEnabled="True"/>
+                                        <TextBox Grid.Column="1" TextAlignment="Right" MouseEnter="TextBox_GotFocus" GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus" KeyUp="TextBox_KeyEnterUpdate" MinWidth="25">
+                                            <TextBox.Text>
+                                                <Binding ElementName="slValue" Path="Value" StringFormat="0.00">
+                                                    <Binding.ValidationRules>
+                                                        <local:FloatRangeValidationRule>
+                                                            <local:FloatRangeValidationRule.MinMax>
+                                                                <local:FloatMinMaxValue Min="{Binding Path=Data.MinValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" Max="{Binding Path=Data.MaxValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" />
+                                                            </local:FloatRangeValidationRule.MinMax>
+                                                        </local:FloatRangeValidationRule>
+                                                    </Binding.ValidationRules>
+                                                </Binding>
+                                            </TextBox.Text>
+                                        </TextBox>
+                                    </Grid>
+                                    <CheckBox Margin="5,0"  Grid.Column="3" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"></CheckBox>
+                                </Grid>
+                            </HierarchicalDataTemplate>
+                            <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyEnumTemplate" ItemsSource="{Binding Items}">
+                                <Grid ContextMenu="{StaticResource PropertyContextMenu}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="21" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center">
+                                        <TextBlock.ToolTip>
+                                            <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" MaxWidth="200"/>
+                                        </TextBlock.ToolTip>
+                                    </TextBlock>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding Path=EnumValues}" SelectedValue="{Binding Path=Value, Mode=TwoWay}" VerticalAlignment="Center"></ComboBox>
+                                    <CheckBox Margin="5,0" Grid.Column="2" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"></CheckBox>
+                                </Grid>
+                            </HierarchicalDataTemplate>
+                            <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyStringTemplate" ItemsSource="{Binding Items}">
+                                <Grid ContextMenu="{StaticResource PropertyContextMenu}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="21" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1" Text="{Binding Path=Value, Mode=TwoWay}" VerticalAlignment="Center" MouseEnter="TextBox_GotFocus" GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus" KeyUp="TextBox_KeyEnterUpdate"></TextBox>
+                                    <CheckBox Margin="5,0" Grid.Column="2" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"></CheckBox>
+                                </Grid>
+                            </HierarchicalDataTemplate>
+                            <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertySelectionSetTemplate" ItemsSource="{Binding Items}">
+                                <Grid ContextMenu="{StaticResource PropertyContextMenu}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="21" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center">
+                                        <TextBlock.ToolTip>
+                                            <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" MaxWidth="200"/>
+                                        </TextBlock.ToolTip>
+                                    </TextBlock>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding Path=Parent.Pipeline.UIMain.SelectionSets}" SelectedValue="{Binding Path=Value, Mode=TwoWay}" VerticalAlignment="Center"></ComboBox>
+                                    <CheckBox Margin="5,0" Grid.Column="2" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"></CheckBox>
+                                </Grid>
+                            </HierarchicalDataTemplate>
+                            <HierarchicalDataTemplate x:Key="SimplygonTreeViewItemTemplate" ItemsSource="{Binding Items}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Margin="5,0" Text="{Binding Name}" FontWeight="Bold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type local:SimplygonSettingsProperty}" ItemsSource="{Binding Items}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Margin="5,0" Text="{Binding Name}" FontSize="12" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.Resources>
+                    </TreeView>
+                    <GroupBox Name="MaterialCasterGroupBox">
+                        <GroupBox.Header>
+                            <Grid Name="MaterialCasterToolbar" Visibility="Visible" Background="Transparent">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"></ColumnDefinition>
+                                    <!--<ColumnDefinition Width="*"></ColumnDefinition>-->
+                                    <ColumnDefinition Width="35"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Material Casters" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="12" FontWeight="Bold"></TextBlock>
+                                <Button Name="AddMaterialCasterButton" Grid.Column="1" Click="AddMaterialCasterButton_Click" >
+                                    <Image Source="pack://application:,,,/Simplygon.WPFUI;component/Add.png" Canvas.ZIndex="1" Margin="5"/>
+                                </Button>
+                                <!--<Button Name="DeleteButton" Grid.Column="3" Click="DeleteButton_Click" >
+                                <Image Source="pack://application:,,,/Simplygon.WPFUI;component/Trash_16x.png" Canvas.ZIndex="1" Margin="5"/>
+                            </Button>-->
+                            </Grid>
+                        </GroupBox.Header>
+                        <TreeView Name="MaterialCasterTreeView" Grid.IsSharedSizeScope="true" HorizontalContentAlignment="Stretch" VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Standard" >
+                            <TreeView.ItemTemplateSelector>
+                                <local:SimplygonTreeViewDataTemplateSelector/>
+                            </TreeView.ItemTemplateSelector>
+                            <TreeView.Resources>
+                                <HierarchicalDataTemplate x:Key="SimplygonSettingsTemplate" ItemsSource="{Binding Settings.Items}">
+                                    <Grid ContextMenu="{StaticResource PropertyGroupContextMenu}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="35"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" VerticalAlignment="Center" FontWeight="Bold">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0} - {1}">
+                                                    <Binding Path="MaterialCasterName" />
+                                                    <Binding Path="Settings.MaterialChannel" />
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                        <Button Grid.Column="2" Click="DeleteMaterialCasterButton_Click" Tag="{Binding}">
+                                            <Image Source="pack://application:,,,/Simplygon.WPFUI;component/Trash.png" Canvas.ZIndex="1" Margin="5"/>
+                                        </Button>
+                                    </Grid>
+                                </HierarchicalDataTemplate>
+                                <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyTemplate" ItemsSource="{Binding Items}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </HierarchicalDataTemplate>
+                                <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyBoolTemplate" ItemsSource="{Binding Items}">
+                                    <Grid ContextMenu="{StaticResource PropertyContextMenu}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="21" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center">
+                                            <TextBlock.ToolTip>
+                                                <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" MaxWidth="200"/>
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding Path=Value, Mode=TwoWay}" VerticalAlignment="Center"></CheckBox>
+                                        <CheckBox Margin="5,0" Grid.Column="2" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </HierarchicalDataTemplate>
+                                <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyIntTemplate" ItemsSource="{Binding Items}">
+                                    <Grid ContextMenu="{StaticResource PropertyContextMenu}">
+                                        <Grid.Resources>
+                                            <local:ProxyBinding x:Key="ProxyBinding" Data="{Binding}"/>
+                                        </Grid.Resources>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="21" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center">
+                                            <TextBlock.ToolTip>
+                                                <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" MaxWidth="200"/>
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <Grid Grid.Column="1" HorizontalAlignment="Stretch">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Slider Grid.Column="0" Value="{Binding Path=Value, Mode=TwoWay}" Maximum="{Binding Path=MaxValue, Mode=OneTime}" Minimum="{Binding Path=MinValue, Mode=OneTime}" Name="slValue" TickFrequency="{Binding Path=TicksFrequencyValue, Mode=OneTime}" SmallChange="{Binding Path=TicksFrequencyValue, Mode=OneTime}" IsSnapToTickEnabled="True"/>
+                                            <TextBox Grid.Column="1" TextAlignment="Right" MouseEnter="TextBox_GotFocus" GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus" KeyUp="TextBox_KeyEnterUpdate" MinWidth="25">
+                                                <TextBox.Text>
+                                                    <Binding ElementName="slValue" Path="Value">
+                                                        <Binding.ValidationRules>
+                                                            <local:IntRangeValidationRule>
+                                                                <local:IntRangeValidationRule.MinMax>
+                                                                    <local:IntMinMaxValue Min="{Binding Path=Data.MinValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" Max="{Binding Path=Data.MaxValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" />
+                                                                </local:IntRangeValidationRule.MinMax>
+                                                            </local:IntRangeValidationRule>
+                                                        </Binding.ValidationRules>
+                                                    </Binding>
+                                                </TextBox.Text>
+                                            </TextBox>
+                                        </Grid>
+                                        <CheckBox Margin="5,0" Grid.Column="2" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"></CheckBox>
+                                    </Grid>
+                                </HierarchicalDataTemplate>
+                                <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyIntWithDependencyObjectTemplate" ItemsSource="{Binding Items}">
+                                    <Grid ContextMenu="{StaticResource PropertyContextMenu}">
+                                        <Grid.Resources>
+                                            <local:ProxyBinding x:Key="ProxyBinding" Data="{Binding}"/>
+                                        </Grid.Resources>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="21" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center">
+                                            <TextBlock.ToolTip>
+                                                <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" MaxWidth="200"/>
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding Path=DependencyObject, Mode=TwoWay}" VerticalAlignment="Center"></CheckBox>
+                                        <Grid Grid.Column="2" HorizontalAlignment="Stretch" Style="{StaticResource DependencyObjectGridStyle}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Slider Grid.Column="0" Value="{Binding Path=Value, Mode=TwoWay}" Maximum="{Binding Path=MaxValue, Mode=OneTime}" Minimum="{Binding Path=MinValue, Mode=OneTime}" Name="slValue" TickFrequency="{Binding Path=TicksFrequencyValue, Mode=OneTime}" SmallChange="{Binding Path=TicksFrequencyValue, Mode=OneTime}" IsSnapToTickEnabled="True"/>
+                                            <TextBox Grid.Column="1" TextAlignment="Right" MouseEnter="TextBox_GotFocus" GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus" KeyUp="TextBox_KeyEnterUpdate" MinWidth="25">
+                                                <TextBox.Text>
+                                                    <Binding ElementName="slValue" Path="Value">
+                                                        <Binding.ValidationRules>
+                                                            <local:IntRangeValidationRule>
+                                                                <local:IntRangeValidationRule.MinMax>
+                                                                    <local:IntMinMaxValue Min="{Binding Path=Data.MinValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" Max="{Binding Path=Data.MaxValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" />
+                                                                </local:IntRangeValidationRule.MinMax>
+                                                            </local:IntRangeValidationRule>
+                                                        </Binding.ValidationRules>
+                                                    </Binding>
+                                                </TextBox.Text>
+                                            </TextBox>
+                                        </Grid>
+                                        <CheckBox Margin="5,0" Grid.Column="3" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"></CheckBox>
+                                    </Grid>
+                                </HierarchicalDataTemplate>
+                                <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyFloatTemplate" ItemsSource="{Binding Items}">
+                                    <Grid ContextMenu="{StaticResource PropertyContextMenu}">
+                                        <Grid.Resources>
+                                            <local:ProxyBinding x:Key="ProxyBinding" Data="{Binding}"/>
+                                        </Grid.Resources>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="21" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center">
+                                            <TextBlock.ToolTip>
+                                                <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" MaxWidth="200"/>
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <Grid Grid.Column="1" HorizontalAlignment="Stretch">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Slider Grid.Column="0" Value="{Binding Path=Value, Mode=TwoWay}" Maximum="{Binding Path=MaxValue, Mode=OneTime}" Minimum="{Binding Path=MinValue, Mode=OneTime}" Name="slValue" TickFrequency="{Binding Path=TicksFrequencyValue, Mode=OneTime}" SmallChange="{Binding Path=TicksFrequencyValue, Mode=OneTime}" IsSnapToTickEnabled="True"/>
+                                            <TextBox Grid.Column="1" TextAlignment="Right" MouseEnter="TextBox_GotFocus" GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus" KeyUp="TextBox_KeyEnterUpdate" MinWidth="25">
+                                                <TextBox.Text>
+                                                    <Binding ElementName="slValue" Path="Value" StringFormat="0.00">
+                                                        <Binding.ValidationRules>
+                                                            <local:FloatRangeValidationRule>
+                                                                <local:FloatRangeValidationRule.MinMax>
+                                                                    <local:FloatMinMaxValue Min="{Binding Path=Data.MinValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" Max="{Binding Path=Data.MaxValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" />
+                                                                </local:FloatRangeValidationRule.MinMax>
+                                                            </local:FloatRangeValidationRule>
+                                                        </Binding.ValidationRules>
+                                                    </Binding>
+                                                </TextBox.Text>
+                                            </TextBox>
+                                        </Grid>
+                                        <CheckBox Margin="5,0"  Grid.Column="2" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"></CheckBox>
+                                    </Grid>
+                                </HierarchicalDataTemplate>
+                                <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyFloatWithDependencyObjectTemplate" ItemsSource="{Binding Items}">
+                                    <Grid ContextMenu="{StaticResource PropertyContextMenu}">
+                                        <Grid.Resources>
+                                            <local:ProxyBinding x:Key="ProxyBinding" Data="{Binding}"/>
+                                        </Grid.Resources>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="21" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center">
+                                            <TextBlock.ToolTip>
+                                                <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" MaxWidth="200"/>
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding Path=DependencyObject, Mode=TwoWay}" VerticalAlignment="Center"></CheckBox>
+                                        <Grid Grid.Column="2" HorizontalAlignment="Stretch" Style="{StaticResource DependencyObjectGridStyle}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Slider Grid.Column="0" Value="{Binding Path=Value, Mode=TwoWay}" Maximum="{Binding Path=MaxValue, Mode=OneTime}" Minimum="{Binding Path=MinValue, Mode=OneTime}" Name="slValue" TickFrequency="{Binding Path=TicksFrequencyValue, Mode=OneTime}" SmallChange="{Binding Path=TicksFrequencyValue, Mode=OneTime}" IsSnapToTickEnabled="True"/>
+                                            <TextBox Grid.Column="1" TextAlignment="Right" MouseEnter="TextBox_GotFocus" GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus" KeyUp="TextBox_KeyEnterUpdate" MinWidth="25">
+                                                <TextBox.Text>
+                                                    <Binding ElementName="slValue" Path="Value" StringFormat="0.00">
+                                                        <Binding.ValidationRules>
+                                                            <local:FloatRangeValidationRule>
+                                                                <local:FloatRangeValidationRule.MinMax>
+                                                                    <local:FloatMinMaxValue Min="{Binding Path=Data.MinValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" Max="{Binding Path=Data.MaxValue, Mode=OneTime, Source={StaticResource ProxyBinding}}" />
+                                                                </local:FloatRangeValidationRule.MinMax>
+                                                            </local:FloatRangeValidationRule>
+                                                        </Binding.ValidationRules>
+                                                    </Binding>
+                                                </TextBox.Text>
+                                            </TextBox>
+                                        </Grid>
+                                        <CheckBox Margin="5,0"  Grid.Column="3" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"></CheckBox>
+                                    </Grid>
+                                </HierarchicalDataTemplate>
+                                <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyEnumTemplate" ItemsSource="{Binding Items}">
+                                    <Grid ContextMenu="{StaticResource PropertyContextMenu}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="21" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center">
+                                            <TextBlock.ToolTip>
+                                                <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" MaxWidth="200"/>
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <ComboBox Grid.Column="1" ItemsSource="{Binding Path=EnumValues}" SelectedValue="{Binding Path=Value, Mode=TwoWay}" VerticalAlignment="Center"></ComboBox>
+                                        <CheckBox Margin="5,0" Grid.Column="2" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"></CheckBox>
+                                    </Grid>
+                                </HierarchicalDataTemplate>
+                                <HierarchicalDataTemplate x:Key="SimplygonSettingsPropertyStringTemplate" ItemsSource="{Binding Items}">
+                                    <Grid ContextMenu="{StaticResource PropertyContextMenu}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" MinWidth="50" SharedSizeGroup="PropertyTitleSize"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="21" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center">
+                                            <TextBlock.ToolTip>
+                                                <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" MaxWidth="200"/>
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <TextBox Grid.Column="1" Text="{Binding Path=Value, Mode=TwoWay}" VerticalAlignment="Center" MouseEnter="TextBox_GotFocus" GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus" KeyUp="TextBox_KeyEnterUpdate"></TextBox>
+                                        <CheckBox Margin="5,0" Grid.Column="2" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"></CheckBox>
+                                    </Grid>
+                                </HierarchicalDataTemplate>
+                                <HierarchicalDataTemplate x:Key="SimplygonTreeViewItemTemplate" ItemsSource="{Binding Items}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Margin="5,0" Text="{Binding Name}" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </HierarchicalDataTemplate>
+                                <HierarchicalDataTemplate DataType="{x:Type local:SimplygonSettingsProperty}" ItemsSource="{Binding Items}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Margin="5,0" Text="{Binding Name}" FontSize="12" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </HierarchicalDataTemplate>
+                            </TreeView.Resources>
+                        </TreeView>
+                    </GroupBox>
+                    <StackPanel Name="PipelinesStackPanel" Margin="25,0,0,0">
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </Grid>
+</UserControl>

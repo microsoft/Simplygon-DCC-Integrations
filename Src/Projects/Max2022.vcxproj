@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CAA21B12-4384-4C0B-BBAA-440DCBE7C41F}</ProjectGuid>
+    <RootNamespace>SimplygonMax2022</RootNamespace>
+    <ProjectName>SimplygonMax2022</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="C:\Program Files\Autodesk\3ds Max 2022 SDK\maxsdk\ProjectSettings\propertySheets\3dsmax.cpp.props" Condition="Exists('C:\Program Files\Autodesk\3ds Max 2022 SDK\maxsdk\ProjectSettings\propertySheets\3dsmax.cpp.props')" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <OutDir>$(ProjectDir)..\..\Build\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)..\..\Build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)$(Configuration)</TargetName>
+    <TargetExt>.dlu</TargetExt>
+    <GenerateManifest>true</GenerateManifest>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutDir>$(ProjectDir)..\..\Build\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)..\..\Build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <TargetExt>.dlu</TargetExt>
+    <GenerateManifest>false</GenerateManifest>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(SIMPLYGON_9_PATH);$(ProjectDir)..\Common;$(ProjectDir)..\Simplygon;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Max;C:\Program Files\Autodesk\3ds Max 2022 SDK\maxsdk\include;$(DXSDK_DIR)\include;</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>MAX_INTEGRATION;WINVER=0x0602;_WIN32_WINNT=0x0602;_WIN32_WINDOWS=0x0602;_AMD64_;WIN32;WIN64;WINDOWS;_USRDLL;MAX_EXPORTS;_CRT_SECURE_NO_WARNINGS;DBG_ASSERT_ACTIVE_IN_RELEASE_BUILD;REDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4996;4265;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <CompileAsManaged>false</CompileAsManaged>
+      <SDLCheck>false</SDLCheck>
+      <EnablePREfast>false</EnablePREfast>
+      <MinimalRebuild>
+      </MinimalRebuild>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>Iphlpapi.lib;Shlwapi.lib;Crypt32.lib;Psapi.lib;comctl32.lib;paramblk2.lib;MNMath.lib;assetmanagement.lib;bmm.lib;core.lib;geom.lib;gfx.lib;mesh.lib;maxutil.lib;maxscrpt.lib;gup.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\3ds Max 2022 SDK\maxsdk\lib\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(ProjectName).pdb</ProgramDatabaseFile>
+      <TargetMachine>MachineX64</TargetMachine>
+      <ModuleDefinitionFile>..\Max\SimplygonMax.def</ModuleDefinitionFile>
+      <SubSystem>Windows</SubSystem>
+      <StripPrivateSymbols>
+      </StripPrivateSymbols>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Full</Optimization>
+      <AdditionalIncludeDirectories>$(SIMPLYGON_9_PATH);$(ProjectDir)..\Common;$(ProjectDir)..\Simplygon;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Max;C:\Program Files\Autodesk\3ds Max 2022 SDK\maxsdk\include;$(DXSDK_DIR)\include;</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>MAX_INTEGRATION;WINVER=0x0602;_WIN32_WINNT=0x0602;_WIN32_WINDOWS=0x0602;_AMD64_;WIN32;WIN64;WINDOWS;_USRDLL;MAX_EXPORTS;_CRT_SECURE_NO_WARNINGS;DBG_ASSERT_ACTIVE_IN_RELEASE_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>4265;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <CompileAsManaged>false</CompileAsManaged>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <SDLCheck>true</SDLCheck>
+      <EnablePREfast>false</EnablePREfast>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>Iphlpapi.lib;Shlwapi.lib;Crypt32.lib;Psapi.lib;comctl32.lib;paramblk2.lib;MNMath.lib;assetmanagement.lib;bmm.lib;core.lib;geom.lib;gfx.lib;mesh.lib;maxutil.lib;maxscrpt.lib;gup.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\3ds Max 2022 SDK\maxsdk\lib\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(ProjectName).pdb</ProgramDatabaseFile>
+      <TargetMachine>MachineX64</TargetMachine>
+      <ModuleDefinitionFile>..\Max\SimplygonMax.def</ModuleDefinitionFile>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <StripPrivateSymbols>
+      </StripPrivateSymbols>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SIMPLYGON_9_PATH)\SimplygonLoader.cpp" />
+    <ClCompile Include="..\Common\Common.cpp" />
+    <ClCompile Include="..\Common\HelperFunctions.cpp" />
+    <ClCompile Include="..\Common\PipelineHelper.cpp" />
+    <ClCompile Include="..\Common\Shared.cpp" />
+    <ClCompile Include="..\Common\SimplygonInit.cpp" />
+    <ClCompile Include="..\Common\WorkDirectoryHandler.cpp" />
+    <ClCompile Include="..\Max\DllEntry.cpp" />
+    <ClCompile Include="..\Max\MaterialInfoHandler.cpp" />
+    <ClCompile Include="..\Max\MaxMaterialMap.cpp" />
+    <ClCompile Include="..\Max\MeshNode.cpp" />
+    <ClCompile Include="..\Max\NewMaterialMap.cpp" />
+    <ClCompile Include="..\Max\NormalCalculator.cpp" />
+    <ClCompile Include="..\Max\PCH.cpp" />
+    <ClCompile Include="..\Max\Scene.cpp" />
+    <ClCompile Include="..\Max\SimplygonMax.cpp" />
+    <ClCompile Include="..\Max\SimplygonMaxPerVertexData.cpp" />
+    <ClCompile Include="..\Max\SimplygonMaxScriptFuncs.cpp" />
+    <ClCompile Include="..\Simplygon\SimplygonProcessingModule.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(SIMPLYGON_9_PATH)\SimplygonLoader.h" />
+    <ClInclude Include="..\Common\Common.h" />
+    <ClInclude Include="..\Common\CriticalSection.h" />
+    <ClInclude Include="..\Common\HelperFunctions.h" />
+    <ClInclude Include="..\Common\PipelineHelper.h" />
+    <ClInclude Include="..\Common\Shared.h" />
+    <ClInclude Include="..\Common\SimplygonInit.h" />
+    <ClInclude Include="..\Common\WorkDirectoryHandler.h" />
+    <ClInclude Include="..\Max\ImportedTexture.h" />
+    <ClInclude Include="..\Max\MaterialChannelInfo.h" />
+    <ClInclude Include="..\Max\MaterialChannelTextureInfo.h" />
+    <ClInclude Include="..\Max\MaterialInfo.h" />
+    <ClInclude Include="..\Max\MaterialInfoHandler.h" />
+    <ClInclude Include="..\Max\MaxMaterialMap.h" />
+    <ClInclude Include="..\Max\MeshNode.h" />
+    <ClInclude Include="..\Max\NewMaterialMap.h" />
+    <ClInclude Include="..\Max\NormalCalculator.h" />
+    <ClInclude Include="..\Max\PCH.h" />
+    <ClInclude Include="..\Max\resource.h" />
+    <ClInclude Include="..\Max\resource_.h" />
+    <ClInclude Include="..\Max\Scene.h" />
+    <ClInclude Include="..\Max\SimplygonMax.h" />
+    <ClInclude Include="..\Max\SimplygonMaxPerVertexData.h" />
+    <ClInclude Include="..\Simplygon\SimplygonProcessingModule.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\Max\Panel.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>
