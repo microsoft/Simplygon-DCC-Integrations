@@ -1,17 +1,61 @@
 # Simplygon - DCC integrations
 
-This project include source code for the Simplygon integrations in Autodesk 3ds Max and Maya.  
-To be able to use these integration you need to have Simplygon installed.  
-You can [download Simplygon here](https://simplygon.com/Downloads).
+This project include source code for the Simplygon integrations for Autodesk 3ds Max and Maya.  
+To be able to use these integrations you need to have Simplygon installed.  
+You can [download Simplygon here](https://simplygon.com/Downloads).  
+You can find more info about these integrations in the [Simplygon documentation](https://documentation.simplygon.com/).
 
 ## How to build
 
-To build the integrations follow these steps.
+You can only build the integrations using Windows with the following Visual studio versions.
 
-1. Install the target version of Autodesk 3ds Max or Maya
-2. Download the Autodesk 3ds Max SDK or Maya SDK for selected target version and unpack it to <repo root>/Depenedencies
-3. Open <repo root>/Src/Max.sln or <repo root>/Src/Maya.sln and build your selected targer version.
-4. If successful build the .dlu or .mll files will be available in <repo root>/Build
+| DCC tool      | Build tool               |
+| ------------- |---------------------------|
+| 3ds Max 2017  | Visual studio 2015 (v140) |
+| 3ds Max 2018  | Visual studio 2015 (v140) |
+| 3ds Max 2019  | Visual studio 2015 (v140) |
+| 3ds Max 2020  | Visual studio 2017 (v141) |
+| 3ds Max 2021  | Visual studio 2017 (v141) |
+| 3ds Max 2022  | Visual studio 2017 (v141) |
+| Maya 2017     | Visual studio 2015 (v140) |
+| Maya 2018     | Visual studio 2015 (v140) |
+| Maya 2019     | Visual studio 2015 (v140) |
+| Maya 2020     | Visual studio 2017 (v141) |
+| Maya 2022     | Visual studio 2019 (v142) |
+
+All Visual studio projects are available in a Visual studio solution for each DCC tool.  
+[Max.sln](Src/Max.sln)  
+[Maya.sln](Src/Maya.sln)
+
+### SimplygonMax <_Version_>
+
+This is the main plugin and acts as a bridge between 3ds Max and Simplygon.  
+This is a C++ project and assumes 3ds Max and [3ds Max SDK](https://www.autodesk.com/developer-network/platform-technologies/3ds-max) are installed in _C:\Program Files\Autodesk_.
+
+### SimplygonMax <_Version_> UI
+
+This is the UI plugin and enables the user to create Simplygon pipelines which then can be sent to the main plugin for processing by Simplygon.  
+This is a C#/WPF project and the [WPF-DarkScheme](https://github.com/ADN-DevTech/Maya-Net-Wpf-DarkScheme) can be used to skin the UI.
+
+### SimplygonMax <_Version_> UIBootstrap
+
+This is a C# bootstrap wrapper for the UI plugin so the UI plugin can be package into a single dll file.
+
+### SimplygonMaya <_Version_>
+
+This is the main plugin and acts as a bridge between Maya and Simplygon.  
+This is a C++ project and assumes Maya is installed in _C:\Program Files\Autodesk_.
+
+### SimplygonMaya <_Version_> UI
+
+This is the UI plugin and enables the user to create Simplygon pipelines which then can be sent to the main plugin for processing by Simplygon.  
+This is a C#/WPF project and the [WPF-DarkScheme](https://github.com/ADN-DevTech/Maya-Net-Wpf-DarkScheme) can be used to skin the UI.
+
+## Support
+
+Please use the Simplygon zendesk portal when you want to submit a support request.  
+[Commercial customers](https://simplygon.zendesk.com/hc/en-us/requests/new)  
+[Free users](https://simplygon.zendesk.com/hc/en-us/community/topics)
 
 ## Data Collection
 
