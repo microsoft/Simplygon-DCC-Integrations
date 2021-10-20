@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Helpers">
+      <UniqueIdentifier>{cebc91fb-2475-48de-8136-2a6c4c7e7a98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Helpers\Common">
+      <UniqueIdentifier>{0ac18596-a43a-4e5e-83b4-5ac04b1e9e39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SimplygonLoader">
+      <UniqueIdentifier>{3393d916-e90f-4756-a361-26448dfc5976}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{7a1b3aac-2d93-4fd3-b1dd-e4965506ddef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Processing">
+      <UniqueIdentifier>{3f419a3e-122f-4dcc-a7b3-840bf7411a9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Pipeline">
+      <UniqueIdentifier>{b3d3a3b4-a264-4aa8-a70e-dbdd73693c8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Materials">
+      <UniqueIdentifier>{c4c5bc30-8f63-4fba-945f-0aad78e65dbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{6ef0de04-d8e7-4681-bd5f-e4f8b79bade5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Max\SimplygonMax.cpp" />
+    <ClCompile Include="..\Max\SimplygonMaxScriptFuncs.cpp" />
+    <ClCompile Include="..\Common\WorkDirectoryHandler.cpp">
+      <Filter>Helpers\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\HelperFunctions.cpp">
+      <Filter>Helpers\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Max\DllEntry.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Max\NormalCalculator.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\Common.cpp">
+      <Filter>Helpers\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\Shared.cpp">
+      <Filter>Helpers\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Max\SimplygonMaxPerVertexData.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Max\PCH.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Max\MeshNode.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Max\MaxMaterialMap.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Simplygon\SimplygonProcessingModule.cpp">
+      <Filter>Processing</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\PipelineHelper.cpp">
+      <Filter>Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Max\Scene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Max\MaterialInfoHandler.cpp">
+      <Filter>Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Max\NewMaterialMap.cpp">
+      <Filter>Materials</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\SimplygonInit.cpp" />
+    <ClCompile Include="$(SIMPLYGON_9_PATH)\SimplygonLoader.cpp">
+      <Filter>SimplygonLoader</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Common\CriticalSection.h">
+      <Filter>Helpers\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Max\SimplygonMax.h" />
+    <ClInclude Include="..\Common\WorkDirectoryHandler.h">
+      <Filter>Helpers\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\HelperFunctions.h">
+      <Filter>Helpers\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Max\NormalCalculator.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Common.h">
+      <Filter>Helpers\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Shared.h">
+      <Filter>Helpers\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Max\SimplygonMaxPerVertexData.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Max\PCH.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Max\MeshNode.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Max\MaxMaterialMap.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Simplygon\SimplygonProcessingModule.h">
+      <Filter>Processing</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\PipelineHelper.h">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Max\Scene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Max\ImportedTexture.h">
+      <Filter>Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Max\MaterialChannelTextureInfo.h">
+      <Filter>Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Max\MaterialChannelInfo.h">
+      <Filter>Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Max\MaterialInfoHandler.h">
+      <Filter>Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Max\MaterialInfo.h">
+      <Filter>Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Max\NewMaterialMap.h">
+      <Filter>Materials</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\SimplygonInit.h" />
+    <ClInclude Include="..\Max\resource.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Max\resource_.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SIMPLYGON_9_PATH)\SimplygonLoader.h">
+      <Filter>SimplygonLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Max\MaxMaterialNode.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\Max\Panel.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
