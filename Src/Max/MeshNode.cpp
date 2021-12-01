@@ -10,6 +10,8 @@ MeshNode::MeshNode()
 	this->Objects = nullptr;
 	this->TriObjects = nullptr;
 	this->SkinModifiers = nullptr;
+	this->MorphTargetModifier = nullptr;
+	this->MorphTargetData = nullptr;
 	this->MeshMaterials = nullptr;
 	this->sgMesh = nullptr;
 }

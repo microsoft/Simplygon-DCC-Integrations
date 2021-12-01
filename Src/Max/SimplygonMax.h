@@ -31,6 +31,8 @@ class IDxMaterial3;
 class INamedSelectionSetManager;
 class IGameModifier;
 
+class MorpherChannelSettings;
+
 // Simplygon baked vertex colors
 #define DEFAULT_VERTEXBAKED_AMBIENT_CHANNEL_SG  252
 #define DEFAULT_VERTEXBAKED_DIFFUSE_CHANNEL_SG  253
@@ -435,6 +437,136 @@ class ShadingPipelineClearInfo
 #pragma endregion
 
 #pragma region GLOBAL_MESH_MAP
+enum GlobalMorpherSettingsType
+{
+	UseLimits = 0,
+	SpinnerMin,
+	SpinnerMax,
+	UseSelection,
+	ValueIncrements,
+	AutoLoadTargets,
+	NumGlobalSettings
+};
+
+class GlobalMorpherSettings
+{
+	public:
+	bool useLimits;
+	float spinnerMin;
+	float spinnerMax;
+	bool useSelection;
+	int valueIncrements;
+	bool autoLoadTargets;
+
+	GlobalMorpherSettings()
+	{
+		this->useLimits = true;
+		this->spinnerMin = 0.f;
+		this->spinnerMax = 100.f;
+		this->useSelection = false;
+		this->valueIncrements = 1;
+		this->autoLoadTargets = false;
+	}
+};
+
+class MorphTargetMetaData
+{
+	private:
+	size_t originalMorphTargetIndex;
+	std::basic_string<TCHAR> name;
+
+	public:
+	float weight;
+
+	private:
+	void InitUIParameters() { this->weight = 100.f; }
+
+	public:
+	MorphTargetMetaData( size_t originalMorphTargetIndex, std::basic_string<TCHAR> tMorphTargetName, float progressiveWeight )
+	{
+		this->InitUIParameters();
+		this->originalMorphTargetIndex = originalMorphTargetIndex;
+		this->name = tMorphTargetName;
+		this->weight = progressiveWeight;
+	}
+
+	size_t GetIndex() const { return this->originalMorphTargetIndex; }
+	std::basic_string<TCHAR> GetName() { return this->name; }
+};
+
+class MorphChannelMetaData
+{
+	public:
+	float morphWeight;
+	float tension;
+	float minLimit;
+	float maxLimit;
+	bool useVertexSelection;
+	bool useLimits;
+
+	private:
+	size_t originalChannelIndex;
+	int channelIndex;
+
+	public:
+	std::vector<MorphTargetMetaData*> morphTargetMetaData;
+
+	size_t GetOriginalIndex() const { return this->originalChannelIndex; }
+	int GetIndex() const { return this->channelIndex; }
+
+	private:
+	void InitUIParameters()
+	{
+		this->morphWeight = 0.f;
+		this->tension = 0.5f;
+		this->minLimit = 0.f;
+		this->maxLimit = 100.f;
+		this->useVertexSelection = false;
+		this->useLimits = false;
+	}
+
+	public:
+	MorphChannelMetaData( size_t originalChannelIndex, int channelIndex )
+	{
+		this->originalChannelIndex = originalChannelIndex;
+		this->channelIndex = channelIndex;
+		this->InitUIParameters();
+	}
+
+	~MorphChannelMetaData()
+	{
+		for( MorphTargetMetaData* morphTargetMetaData : this->morphTargetMetaData )
+		{
+			delete morphTargetMetaData;
+		}
+		this->morphTargetMetaData.clear();
+	}
+
+	void AddProgressiveMorphTarget( size_t originalMorphTargetIndex, std::basic_string<TCHAR> tMorphTargetName, float progressiveWeight )
+	{
+		morphTargetMetaData.push_back( new MorphTargetMetaData( originalMorphTargetIndex, tMorphTargetName, progressiveWeight ) );
+	}
+};
+
+class MorpherMetaData
+{
+	public:
+	GlobalMorpherSettings globalSettings;
+
+	std::vector<MorphChannelMetaData*> morphTargetMetaData;
+
+	MorpherMetaData() {}
+
+	~MorpherMetaData()
+	{
+		for( MorphChannelMetaData* morphChannelMetaData : this->morphTargetMetaData )
+		{
+			delete morphChannelMetaData;
+		}
+		this->morphTargetMetaData.clear();
+	}
+};
+
 class GlobalMeshMap
 {
 	private:
@@ -442,15 +574,40 @@ class GlobalMeshMap
 	std::basic_string<TCHAR> name;
 	ULONG maxId;
 
+	MorpherMetaData* morpherMetaData;
+
 	public:
+	MorpherMetaData* CreateMorpherMetaData()
+	{
+		if( this->morpherMetaData )
+			delete this->morpherMetaData;
+
+		this->morpherMetaData = new MorpherMetaData();
+
+		return this->morpherMetaData;
+	}
+
+	bool HasMorpherMetaData() const { return this->morpherMetaData != nullptr; }
+	bool HasMorphTargets() const { return this->morpherMetaData != nullptr ? this->morpherMetaData->morphTargetMetaData.size() > 0 : false; }
+
+	MorpherMetaData* GetMorpherMetaData() const { return this->morpherMetaData; }
+
 	GlobalMeshMap( std::string sSgId, std::basic_string<TCHAR> tName, ULONG uMaxId )
 	    : sgId( sSgId )
 	    , name( tName )
 	    , maxId( uMaxId )
+	    , morpherMetaData( nullptr )
 	{
 	}
 
-	~GlobalMeshMap() {}
+	~GlobalMeshMap()
+	{
+		if( this->morpherMetaData )
+		{
+			delete this->morpherMetaData;
+			this->morpherMetaData = nullptr;
+		}
+	}
 
 	std::string GetSimplygonId() const { return this->sgId; }
 	std::basic_string<TCHAR> GetName() const { return this->name; }
@@ -460,13 +617,456 @@ class GlobalMeshMap
 
 void FindAllUpStreamTextureNodes( Simplygon::spShadingNode sgShadingNode, std::map<std::basic_string<TCHAR>, Simplygon::spShadingTextureNode>& sgTextureNodes );
 
+static void RegisterMorphScripts();
+void GetActiveMorphChannels( ulong uniqueHandle, MorpherChannelSettings* morpherSettings );
+void GetMorphChannelWeights( ulong uniqueHandle, std::vector<float>& mActiveMorphChannelWeights );
+void GetActiveMorphTargetTension( ulong uniqueHandle, MorpherChannelSettings* morpherSettings );
+void GetMorphChannelPoints( ulong uniqueHandle, std::vector<Point3>& mMorphChannelPoints, size_t channelIndex );
+bool GetMorphChannelName( ulong uniqueHandle, size_t channelIndex, std::basic_string<TCHAR>& channelName );
+void GetActiveMorphTargetProgressiveWeights( ulong uniqueHandle, size_t channelIndex, std::vector<float>& mMorphWeights );
+void GetActiveMinLimits( ulong uniqueHandle, MorpherChannelSettings* morpherSettings );
+void GetActiveMaxLimits( ulong uniqueHandle, MorpherChannelSettings* morpherSettings );
+void GetActiveUseVertexSelections( ulong uniqueHandle, MorpherChannelSettings* morpherSettings );
+void GetActiveUseLimits( ulong uniqueHandle, MorpherChannelSettings* morpherSettings );
+namespace MaterialNodes {
+
+class TextureData
+{
+	public:
+	TextureData()
+	    : mBitmap( nullptr )
+	    , mIsSRGB( false )
+	    , mUseAlphaAsTransparency( false )
+	    , mPremultipliedAlpha( true )
+	    , mHasAlpha( false )
+	{
+	}
+	~TextureData() {}
+
+	BitmapTex* mBitmap;
+
+	std::basic_string<TCHAR> mFilePath;
+	std::basic_string<TCHAR> mTexturePathWithName;
+	std::basic_string<TCHAR> mTextureName;
+	std::basic_string<TCHAR> mTextureExtension;
+	std::basic_string<TCHAR> mTextureNameWithExtension;
+
+	bool mIsSRGB;
+	bool mUseAlphaAsTransparency;
+	bool mPremultipliedAlpha;
+	bool mHasAlpha;
+};
+
+class MaterialNodeBase
+{
+	public:
+	enum MaterialNodeType
+	{
+		eNodeBase = 0,
+		eMultiplyNode,
+		eBitmapNode,
+		eTintNode,
+		eCompositeNode,
+		eColorCorrectionNode,
+		eRayTrace,
+		eColorNode
+	};
+
+	MaterialNodeBase()
+	    : type( eNodeBase )
+	{
+	}
+	MaterialNodeBase( MaterialNodeType type )
+	    : type( type )
+	{
+	}
+	const MaterialNodeType type;
+
+	virtual TextureData* GetTexture( size_t index ) = 0;
+
+	virtual size_t GetNumTextures() = 0;
+};
+
+class MultiplyNode : public MaterialNodeBase
+{
+	public:
+	enum MultiplyNodeAlphaFrom
+	{
+		AlphaFirstSource = 0,
+		AlphaSecondSource,
+		AlphaBlendSource
+	};
+
+	MultiplyNode( Texmap* Texmap )
+	    : MaterialNodeBase( eMultiplyNode )
+	    , mTexMap( Texmap )
+	    , mTexture{ TextureData(), TextureData() }
+	    , mColor{ Color( 0, 0, 0 ), Color( 0, 0, 0 ) }
+	    , mIsEnabled{ false, false }
+	    , mAlphaFrom( AlphaFirstSource )
+	{
+	}
+
+	bool Setup( long maxChannelId,
+	            const char* cMaterialName,
+	            const char* cChannelName,
+	            std::vector<MaterialTextureOverride>* materialTextureOverrides,
+	            TimeValue time );
+
+	virtual ~MultiplyNode() {}
+
+	TextureData* GetTexture( size_t index ) override;
+
+	size_t GetNumTextures() override { return 2; }
+
+	Texmap* mTexMap;
+	TextureData mTexture[ 2 ];
+	Color mColor[ 2 ];
+	bool mIsEnabled[ 2 ];
+	MultiplyNodeAlphaFrom mAlphaFrom;
+};
+
+class BitmapNode : public MaterialNodeBase
+{
+	public:
+	BitmapNode( Texmap* Texmap )
+	    : MaterialNodeBase( eBitmapNode )
+	    , mTexMap( Texmap )
+	    , mTexture( TextureData() )
+	    , mColor( 0, 0, 0 )
+	{
+	}
+
+	virtual ~BitmapNode() {}
+
+	bool Setup( long maxChannelId,
+	            const char* cMaterialName,
+	            const char* cChannelName,
+	            std::vector<MaterialTextureOverride>* materialTextureOverrides,
+	            TimeValue time );
+
+	TextureData* GetTexture( size_t index ) override;
+
+	size_t GetNumTextures() override { return 1; }
+
+	Texmap* mTexMap;
+	TextureData mTexture;
+	Color mColor;
+};
+
+class TintNode : public MaterialNodeBase
+{
+	public:
+	TintNode( Texmap* Texmap )
+	    : MaterialNodeBase( eTintNode )
+	    , mTexMap( Texmap )
+	    , mTexture( TextureData() )
+	    , mRedChannel( 0, 0, 0 )
+	    , mGreenChannel( 0, 0, 0 )
+	    , mBlueChannel( 0, 0, 0 )
+	    , mIsEnabled( false )
+	{
+	}
+
+	virtual ~TintNode() {}
+
+	bool Setup( long maxChannelId,
+	            const char* cMaterialName,
+	            const char* cChannelName,
+	            std::vector<MaterialTextureOverride>* materialTextureOverrides,
+	            TimeValue time );
+
+	TextureData* GetTexture( size_t index ) override;
+
+	size_t GetNumTextures() override { return 1; }
+
+	Texmap* mTexMap;
+	TextureData mTexture;
+	Color mRedChannel;
+	Color mGreenChannel;
+	Color mBlueChannel;
+	bool mIsEnabled;
+};
+
+class CompositeNode : public MaterialNodeBase
+{
+	public:
+	enum eMaxBlendMode
+	{
+		eNormal = 0,
+		eAverage,
+		eAddition,
+		eSubtract,
+		eDarken,
+		eMultiply,
+		eColor_Burn,
+		eLinear_Burn,
+		eLighten,
+		eScreen,
+		eColor_Dodge,
+		eLinear_Dodge,
+		eSpotlight,
+		eSpotlight_Blend,
+		eOverlay,
+		eSoft_Light,
+		eHard_Light,
+		ePin_Light,
+		eHard_Mix,
+		eDifference,
+		eExclusion,
+		eHue,
+		eSaturation,
+		eColor,
+		eValue
+	};
+
+	CompositeNode( Texmap* Texmap )
+	    : MaterialNodeBase( eCompositeNode )
+	    , mTexMap( Texmap )
+	{
+	}
+
+	bool Setup( long maxChannelId,
+	            const char* cMaterialName,
+	            const char* cChannelName,
+	            std::vector<MaterialTextureOverride>* materialTextureOverrides,
+	            TimeValue time );
+
+	virtual ~CompositeNode() {}
+
+	TextureData* GetTexture( size_t index ) override;
+
+	size_t GetNumTextures() override { return mNumTextureSlots; }
+
+	unsigned int mNumTextureSlots;
+
+	unsigned int mNumLayers;
+
+	Texmap* mTexMap;
+	std::vector<bool> mMaskEnabled;
+	std::vector<ETextureBlendType> mTextureBlendmode;
+	std::vector<std::basic_string<TCHAR>> mLayerName;
+	std::vector<float> mTextureOpacity;
+
+	std::vector<TextureData> mTextures;
+	std::vector<TextureData> mMasks;
+};
+
+const bool GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<AColor>* outValue );
+
+const bool GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<int>* outValue );
+
+const bool GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<float>* outValue );
+
+const bool GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<std::basic_string<TCHAR>>* outValue );
+
+const bool GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<Color>* outValue );
+
+const bool GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<CompositeNode::eMaxBlendMode>* outValue );
+
+template <typename T> bool GetTexMapProperty( Texmap* mTexMap, std::basic_string<TCHAR> tPropertyName, TimeValue time, T* outValue )
+{
+	const int numParamBlocks = mTexMap->NumParamBlocks();
+	for( int paramBlockIndex = 0; paramBlockIndex < numParamBlocks; ++paramBlockIndex )
+	{
+		IParamBlock2* paramBlock = mTexMap->GetParamBlock( paramBlockIndex );
+		if( paramBlock )
+		{
+			return GetStdMaterialProperty<T>( paramBlock, tPropertyName, time, outValue );
+		}
+	}
+
+	return false;
+}
+
+template <typename T> bool GetStdMaterialProperty( IParamBlock2* mParamBlock, std::basic_string<TCHAR> tPropertyName, TimeValue time, T* outValue )
+{
+	if( !mParamBlock )
+		return false;
+	else if( !outValue )
+		return false;
+
+	const int numParams = mParamBlock->NumParams();
+	for( int paramIndex = 0; paramIndex < numParams; ++paramIndex )
+	{
+		const ParamID paramId = (ParamID)mParamBlock->IDtoIndex( (ParamID)paramIndex );
+
+		if( paramId != -1 )
+		{
+			const ParamDef& paramDef = mParamBlock->GetParamDef( paramId );
+			if( paramDef.int_name == nullptr )
+				continue;
+
+			const bool bNameIsEqual = ( std::basic_string<TCHAR>( paramDef.int_name ).compare( tPropertyName ) == 0 );
+			if( bNameIsEqual )
+			{
+				// expand if needed.
+				if( typeid( T ) == typeid( AColor ) )
+				{
+					*(AColor*)outValue = mParamBlock->GetAColor( paramId, time );
+					return true;
+				}
+				else if( typeid( T ) == typeid( Color ) )
+				{
+					*(Color*)outValue = mParamBlock->GetColor( paramId, time );
+					return true;
+				}
+				else if( typeid( T ) == typeid( int ) )
+				{
+					*(int*)outValue = mParamBlock->GetInt( paramId, time );
+					return true;
+				}
+				else if( typeid( T ) == typeid( float ) )
+				{
+					*(float*)outValue = mParamBlock->GetFloat( paramId, time );
+					return true;
+				}
+				else if( typeid( T ) == typeid( std::basic_string<TCHAR> ) )
+				{
+					*(std::basic_string<TCHAR>*)outValue = mParamBlock->GetStr( paramId, time );
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+template <typename T> bool GetTexMapProperties( Texmap* mTexMap, std::basic_string<TCHAR> tPropertyName, TimeValue time, std::vector<T>* outValue )
+{
+	const int numParamBlocks = mTexMap->NumParamBlocks();
+	for( int paramBlockIndex = 0; paramBlockIndex < numParamBlocks; ++paramBlockIndex )
+	{
+		IParamBlock2* paramBlock = mTexMap->GetParamBlock( paramBlockIndex );
+
+		if( paramBlock )
+		{
+			return GetStdMaterialProperties<T>( paramBlock, tPropertyName, time, outValue );
+		}
+	}
+
+	return true;
+}
+
+template <typename T>
+bool GetStdMaterialProperties( IParamBlock2* mParamBlock, std::basic_string<TCHAR> tPropertyName, TimeValue time, std::vector<T>* outValue )
+{
+	if( !mParamBlock )
+		return false;
+	else if( !outValue )
+		return false;
+
+	const int numParams = mParamBlock->NumParams();
+	for( int paramIndex = 0; paramIndex < numParams; ++paramIndex )
+	{
+		const ParamID paramId = (ParamID)mParamBlock->IDtoIndex( (ParamID)paramIndex );
+
+		if( paramId != -1 )
+		{
+			const ParamDef& paramDef = mParamBlock->GetParamDef( paramId );
+			if( paramDef.int_name == nullptr )
+				continue;
+
+			const bool bNameIsEqual = ( std::basic_string<TCHAR>( paramDef.int_name ).compare( tPropertyName ) == 0 );
+			if( bNameIsEqual )
+			{
+				// expand if needed.
+				if( typeid( T ) == typeid( Color ) )
+				{
+					return GetData( mParamBlock, paramId, time, reinterpret_cast<std::vector<Color>*>( outValue ) );
+				}
+				else if( typeid( T ) == typeid( AColor ) )
+				{
+					return GetData( mParamBlock, paramId, time, reinterpret_cast<std::vector<AColor>*>( outValue ) );
+				}
+				else if( typeid( T ) == typeid( int ) )
+				{
+					return GetData( mParamBlock, paramId, time, reinterpret_cast<std::vector<int>*>( outValue ) );
+				}
+				else if( typeid( T ) == typeid( float ) )
+				{
+					return GetData( mParamBlock, paramId, time, reinterpret_cast<std::vector<float>*>( outValue ) );
+				}
+				else if( typeid( T ) == typeid( CompositeNode::eMaxBlendMode ) )
+				{
+					return GetData( mParamBlock, paramId, time, reinterpret_cast<std::vector<CompositeNode::eMaxBlendMode>*>( outValue ) );
+				}
+				else if( typeid( T ) == typeid( std::basic_string<TCHAR> ) )
+				{
+					return GetData( mParamBlock, paramId, time, reinterpret_cast<std::vector<std::basic_string<TCHAR>>*>( outValue ) );
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+void WriteTextureMetadata( MaterialNodes::TextureData* bitmapTex,
+                           long maxChannelId,
+                           const char* cMaterialName,
+                           const char* cChannelName,
+                           std::vector<MaterialTextureOverride>* materialTextureOverrides );
+
+spShadingNode BuildNode( MaterialNodes::MaterialNodeBase* node,
+                         long maxChannelId,
+                         std::basic_string<TCHAR>& tMaterialName,
+                         std::basic_string<TCHAR>& tChannelName,
+                         std::basic_string<TCHAR>& tMaxMappingChannel,
+                         Color& baseColor,
+                         float baseAlpha,
+                         TimeValue time );
+
+spShadingNode BuildNode( MaterialNodes::MaterialNodeBase* node,
+                         std::basic_string<TCHAR>& tMaterialName,
+                         std::basic_string<TCHAR>& tMaxMappingChannel,
+                         Color& baseColor,
+                         float baseAlpha,
+                         TimeValue& time,
+                         const float blendAmount );
+
+spShadingNode GetShadingNode( MaterialNodes::TextureData& textureData, std::basic_string<TCHAR> tMaxMappingChannel, Color& baseColor, TimeValue& time );
+
+spShadingNode SetUpShadingNodes( MaterialNodes::MultiplyNode& node,
+                                 std::basic_string<TCHAR>& tMaterialName,
+                                 std::basic_string<TCHAR>& tMaxMappingChannel,
+                                 Color& baseColor,
+                                 float baseAlpha,
+                                 TimeValue& time );
+
+spShadingNode SetUpShadingNodes( MaterialNodes::BitmapNode& node,
+                                 std::basic_string<TCHAR>& tMaterialName,
+                                 std::basic_string<TCHAR>& tMaxMappingChannel,
+                                 Color& baseColor,
+                                 float baseAlpha,
+                                 TimeValue& time );
+
+spShadingNode SetUpShadingNodes( MaterialNodes::TintNode& node,
+                                 std::basic_string<TCHAR>& tMaterialName,
+                                 std::basic_string<TCHAR>& tMaxMappingChannel,
+                                 Color& baseColor,
+                                 float baseAlpha,
+                                 TimeValue& time );
+
+spShadingNode SetUpShadingNodes( MaterialNodes::CompositeNode& node,
+                                 std::basic_string<TCHAR>& tMaterialName,
+                                 std::basic_string<TCHAR>& tMaxMappingChannel,
+                                 Color& baseColor,
+                                 float baseAlpha,
+                                 TimeValue& time );
+
+spShadingTextureNode CreateTextureNode(
+    BitmapTex* mBitmapTex, std::basic_string<TCHAR>& tMaxMappingChannel, std::basic_string<TCHAR>& tTextureName, TimeValue& time, const bool isSRGB );
+};
+
 class SimplygonMax : public SimplygonEventRelay
 {
 	public:
 	virtual void ProgressCallback( int progress );
-	virtual void ErrorCallback( const TCHAR* cErrorMessage );
+	virtual void ErrorCallback( const TCHAR* tErrorMessage );
 
-	void Callback( std::basic_string<TCHAR> tId, bool error, std::basic_string<TCHAR> tMessage, int progress );
+	void Callback( std::basic_string<TCHAR> tId, bool bIsError, std::basic_string<TCHAR> tMessage, int progress );
 
 	// Which texture coordinates to use: 0-UV 1-UW 2-VW
 	SgValueMacro( unsigned int, TextureCoordinateRemapping );
@@ -492,21 +1092,30 @@ class SimplygonMax : public SimplygonEventRelay
 	// If false, will use old material path. Should be deprecated once new material system is fully in place
 	SgValueMacro( bool, UseNewMaterialSystem );
 
-	// if true, the plugin will generate a material for the LODs
+	// If true, the plugin will generate a material for the LODs
 	SgValueMacro( bool, GenerateMaterial );
 
+	// Sets the pipeline runmode enum (int)
 	SgValueMacro( int, PipelineRunMode );
 
+	// If true, allow fallback to scene mapping during import.
+	// This is intended to allow import of Simplygon scenes into other sessions of Max,
+	// that does not include in-memory mapping.
+	SgValueMacro( bool, AllowUnsafeImport );
+
+	// Sets the LOD prefix
 	SgValueMacro( std::basic_string<TCHAR>, DefaultPrefix );
 
+	// Sets the output texture directory
 	SgValueMacro( std::basic_string<TCHAR>, TextureOutputDirectory );
 
+	// Sets the name of the settings object to use
 	SgValueMacro( std::basic_string<TCHAR>, SettingsObjectName );
 
 	// Resets all values to default values
 	void Reset();
 
-	// initializes Simplygon SDK and sets up event handlers
+	// Initializes Simplygon SDK and sets up event handlers
 	bool Initialize();
 
 	// Reduces the currently selected geometries
@@ -514,9 +1123,6 @@ class SimplygonMax : public SimplygonEventRelay
 
 	// Reduces the scene from the given file
 	bool ProcessSceneFromFile( std::basic_string<TCHAR> tImportFilePath, std::basic_string<TCHAR> tExportFilePath );
-
-	// Import scenes
-	bool ImportScenes();
 
 	// Exports selected scene to file
 	bool ExportSceneToFile( std::basic_string<TCHAR> tExportFilePath );
@@ -577,6 +1183,27 @@ class SimplygonMax : public SimplygonEventRelay
 	sg_createnode_declare( ShadingLessThanNode );
 	sg_createnode_declare( ShadingGeometryFieldNode );
 
+	static void RegisterMorphScripts();
+	void GetActiveMorphChannels( ulong uniqueHandle, MorpherChannelSettings* morpherSettings );
+	void GetMorphChannelWeights( ulong uniqueHandle, std::vector<float>& mActiveMorphChannelWeights );
+	void GetMorphChannelPoints( ulong uniqueHandle, std::vector<Point3>& mMorphChannelPoints, size_t channelIndex );
+	bool GetMorphChannelName( ulong uniqueHandle, size_t channelIndex, std::basic_string<TCHAR>& name );
+	void GetActiveMorphTargetProgressiveWeights( ulong uniqueHandle, size_t channelIndex, std::vector<float>& mActiveProgressiveWeights );
+	void GetActiveMorphTargetTension( ulong uniqueHandle, MorpherChannelSettings* morpherSettings );
+	void SetMorphChannelTension( ulong uniqueHandle, size_t channelIndex, float tension );
+	void SetMorphTarget( ulong uniqueHandle, ulong uniqueTargetHandle, size_t channelIndex );
+	void SetMorphChannelWeight( ulong uniqueHandle, size_t channelIndex, float weight );
+	void AddProgressiveMorphTarget( ulong uniqueHandle, ulong uniqueTargetHandle, size_t channelIndex );
+	void SetProgressiveMorphTargetWeight( ulong uniqueHandle, size_t channelIndex, size_t progressiveIndex, float weight );
+	void GetActiveUseVertexSelections( ulong uniqueHandle, MorpherChannelSettings* morpherSettings );
+	void SetChannelUseVertexSelection( ulong uniqueHandle, size_t channelIndex, bool bUseVertexSelection );
+	void GetActiveMinLimits( ulong uniqueHandle, MorpherChannelSettings* morpherSettings );
+	void GetActiveMaxLimits( ulong uniqueHandle, MorpherChannelSettings* morpherSettings );
+	void SetChannelMinLimit( ulong uniqueHandle, size_t channelIndex, float minLimit );
+	void SetChannelMaxLimit( ulong uniqueHandle, size_t channelIndex, float maxLimit );
+	void GetActiveUseLimits( ulong uniqueHandle, MorpherChannelSettings* morpherSettings );
+	void SetChannelUseLimits( ulong uniqueHandle, size_t channelIndex, bool bUseLimits );
+
 	public:
 	SimplygonMax();
 	virtual ~SimplygonMax();
@@ -586,6 +1213,8 @@ class SimplygonMax : public SimplygonEventRelay
 	protected:
 	Interface* MaxInterface;
 	TimeValue CurrentTime;
+
+	_locale_t MaxScriptLocale;
 
 	uint MaxNumBonesPerVertex;
 
@@ -743,6 +1372,8 @@ class SimplygonMax : public SimplygonEventRelay
 
 	std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>> LoadedTexturePathToID;
 
+	std::basic_string<TCHAR> SetupMaxMappingChannel( const char* cMaterialName, const char* cChannelName, Texmap* mTexMap );
+
 	private:
 	typedef std::pair<unsigned long, std::vector<int>> SelectionSetEdgePair;
 	std::map<std::basic_string<TCHAR>, SelectionSetEdgePair> SelectionSetEdgesMap;
@@ -766,6 +1397,7 @@ class SimplygonMax : public SimplygonEventRelay
 	MaxMaterialMap* AddMaterial( Mtl* mMaterial, Simplygon::spGeometryData sgMeshData );
 	MaxMaterialMap* GetGlobalMaterialMap( Mtl* mMaterial );
 	MaxMaterialMap* GetGlobalMaterialMap( std::string sgMaterialId );
+	MaxMaterialMap* GetGlobalMaterialMapUnsafe( Mtl* mMaterial );
 
 	WorkDirectoryHandler* workDirectoryHandler;
 	Scene* SceneHandler;
@@ -786,6 +1418,9 @@ class SimplygonMax : public SimplygonEventRelay
 
 	bool ProcessLODMeshes();
 	bool ExtractScene();
+
+	void WriteMaterialMappingAttribute();
+	void ReadMaterialMappingAttribute( Simplygon::spScene sgScene );
 
 	bool
 	CreateSceneGraph( INode* mMaxNode, Simplygon::spSceneNode sgNode, std::vector<std::pair<INode*, spSceneMesh>>& mMaxSgMeshList, Simplygon::spScene sgScene );
@@ -825,15 +1460,24 @@ class SimplygonMax : public SimplygonEventRelay
 
 	bool MaterialChannelHasShadingNetwork( Simplygon::spMaterial sgMaterial, const char* cChannelName );
 
+	public:
+	spShadingNode CreateSgMaterialPBRChannel( Texmap* mTexMap, long maxChannelId, const char* cMaterialName, const char* cChannelName );
+
+	private:
+	spShadingNode CreateShadingNetworkForPBRMaterial( long maxChannelID,
+	                                                  std::basic_string<TCHAR> tMaterialName,
+	                                                  std::basic_string<TCHAR> tMaxMappingChannel,
+	                                                  std::basic_string<TCHAR> tMappedChannelName,
+	                                                  MaterialNodes::MaterialNodeBase* node );
+
 	void CreateShadingNetworkForStdMaterial( long maxChannelID,
 	                                         StdMat2* mMaxStdMaterial,
 	                                         spMaterial sgMaterial,
+	                                         std::basic_string<TCHAR> tMaterialName,
 	                                         std::basic_string<TCHAR> tMaxMappingChannel,
 	                                         std::basic_string<TCHAR> tMappedChannelName,
-	                                         std::basic_string<TCHAR> tFilePath,
-	                                         float blendAmount,
-	                                         bool bIsSRGB,
-	                                         BitmapTex* mBitmapTex,
+	                                         MaterialNodes::MaterialNodeBase* node,
+	                                         const float blendAmount,
 	                                         bool* hasTextures );
 
 	std::pair<std::string, int> AddMaxMaterialToSgScene( Mtl* mMaxMaterial );
@@ -876,6 +1520,8 @@ class SimplygonMax : public SimplygonEventRelay
 	static INT_PTR CALLBACK AppDialogProc( HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
 	void CleanUp();
+	void RequiredCleanUp();
+	void CleanUpGlobalMaterialMappingData();
 
 	Matrix3 GetRelativeTransformation( INode* mMaxNode );
 
@@ -899,10 +1545,19 @@ class SimplygonMax : public SimplygonEventRelay
 	std::basic_string<TCHAR> ImportTexture( std::basic_string<TCHAR> tFilePath );
 
 	void LogToWindow( std::basic_string<TCHAR> tMessage, ErrorType errorType = Info, bool sleep = false );
-	void LogMaterialNodeMessage( Texmap* mTexMap, std::basic_string<TCHAR> tMaterialName, std::basic_string<TCHAR> tChannelName );
-
+	void LogMaterialNodeMessage( Texmap* mTexMap,
+	                             std::basic_string<TCHAR> tMaterialName,
+	                             std::basic_string<TCHAR> tChannelNameconst,
+	                             bool partialFail = false,
+	                             std::basic_string<TCHAR> tExtendedInformation = L"" );
 };
 
 extern SimplygonMax* SimplygonMaxInstance;
+
+void GlobalLogMaterialNodeMessage( Texmap* mTexMap,
+                                   std::basic_string<TCHAR> tMaterialName,
+                                   std::basic_string<TCHAR> tChannelName,
+                                   const bool partialFail = false,
+                                   std::basic_string<TCHAR> tExtendedInformation = L"" );
 
 #endif //__SIMPLYGONMAXPLUGIN_H__

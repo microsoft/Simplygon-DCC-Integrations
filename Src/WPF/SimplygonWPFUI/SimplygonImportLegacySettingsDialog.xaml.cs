@@ -33,6 +33,7 @@ namespace SimplygonUI
 
         private string selectedDestinationFolder;
         private bool selectedKeepFolderStructure;
+        private bool selectedIncludeUIMetadata;
 
         private int importedFileCount;
         private int failedImportedFileCount;
@@ -130,6 +131,7 @@ namespace SimplygonUI
 
             selectedDestinationFolder = DestinationFolderTextBox.Text;
             selectedKeepFolderStructure = KeepFolderStructureCheckBox.IsChecked == true;
+            selectedIncludeUIMetadata = includeUIMetadataCheckBox.IsChecked == true;
 
             SourceStackPanel.IsEnabled = false;
             ProgressBarGrid.Visibility = Visibility.Visible;
@@ -229,7 +231,7 @@ namespace SimplygonUI
                         newFilePath = SimplygonUtils.GetUniqueFilePath(newFilePath);
                     }
 
-                    File.WriteAllText(newFilePath, pipeline.SaveJson(true).ToString());
+                    File.WriteAllText(newFilePath, pipeline.SaveJson(selectedIncludeUIMetadata).ToString());
                     this.Dispatcher.Invoke(new Action(() =>
                     {
                         MainUI.Log(Category.Information, $"Imported {fileName}");

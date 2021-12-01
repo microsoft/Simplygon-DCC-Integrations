@@ -12,3 +12,4 @@ class NewMaterialMap
 
 	NewMaterialMap( int materialId, std::string materialGuid, bool inUse );
 };
+

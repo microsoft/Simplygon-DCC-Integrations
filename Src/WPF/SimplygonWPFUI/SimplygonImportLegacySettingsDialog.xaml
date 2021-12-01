@@ -63,6 +63,10 @@ Licensed under the MIT License.
                         <CheckBox Name="OverwriteFilesCheckBox" VerticalAlignment="Center" IsChecked="True"/>
                         <TextBlock VerticalAlignment="Center" Text="Overwrite settings files at destination" HorizontalAlignment="Left" Foreground="#FFC8C8C8"></TextBlock>
                     </StackPanel>
+                    <StackPanel Margin="5,10,0,0" Orientation="Horizontal">
+                        <CheckBox Name="includeUIMetadataCheckBox" VerticalAlignment="Center" IsChecked="True"/>
+                        <TextBlock VerticalAlignment="Center" Text="Include UI metadata in pipeline json" HorizontalAlignment="Left" Foreground="#FFC8C8C8"></TextBlock>
+                    </StackPanel>
                 </StackPanel>
             </Grid>
         </Border>

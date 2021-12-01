@@ -143,6 +143,7 @@ bool SimplygonInitClass::Initialize()
 #elif MAYA_INTEGRATION
 	sg->SetGlobalDefaultTangentCalculatorTypeSetting( ETangentSpaceMethod::MikkTSpace );
 #endif
+	sg->SetGlobalBoolSetting( "IgnoreCameraInExtentsCalculation", true );
 
 	// add error handler
 	sg->SetErrorHandler( this );

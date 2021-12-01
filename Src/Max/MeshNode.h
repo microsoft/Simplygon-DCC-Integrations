@@ -5,6 +5,8 @@
 #include "SimplygonMaxPerVertexData.h"
 #include "MaxMaterialMap.h"
 
+class MorpherWrapper;
+
 class MeshNode
 {
 	public:
@@ -12,6 +14,9 @@ class MeshNode
 	Object* Objects;
 	TriObject* TriObjects;
 	Modifier* SkinModifiers;
+	Modifier* MorphTargetModifier;
+	MorpherWrapper* MorphTargetData;
+
 	MaxMaterialMap* MeshMaterials;
 	Simplygon::spSceneMesh sgMesh;
 
