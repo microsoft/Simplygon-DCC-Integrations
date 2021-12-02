@@ -2,12 +2,11 @@
 // Licensed under the MIT License.
 
 #include "PCH.h"
-
+#include <locale.h>
 #include <IDxMaterial.h>
 #include <imtl.h>
 #include <RTMax.h>
 #include <scene/IPhysicalCamera.h>
-
 #include "SimplygonMax.h"
 #include <pbbitmap.h>
 #include "SimplygonMaxPerVertexData.h"
@@ -38,6 +37,8 @@
 
 #include "Common.h"
 
+#include "IColorCorrectionMgr.h"
+
 using namespace Simplygon;
 
 #if( VERSION_INT < 420 )
@@ -46,13 +47,16 @@ using namespace Simplygon;
 #endif
 #endif
 
-#define MaxNumCopyRetries 10u
+#define MaxNumCopyRetries             10u
+#define MaxNumMorphTargets            100u
+#define MaxNumProgressiveMorphTargets 25u
 
 extern HINSTANCE hInstance;
 
 SimplygonMax* SimplygonMaxInstance = nullptr;
 extern SimplygonInitClass* SimplygonInitInstance;
 
+#define MORPHER_CLASS_ID           Class_ID( 398157908L, 2781586083L )
 #define PHYSICAL_MATERIAL_CLASS_ID Class_ID( 1030429932L, 3735928833L )
 
 PBBitmap* SetupMaxTexture( std::basic_string<TCHAR> tFilePath );
@@ -61,16 +65,528 @@ float GetBitmapTextureGamma( BitmapTex* mBitmapTex );
 void GetImageFullFilePath( const TCHAR* tPath, TCHAR* tDestinationPath );
 spShadingColorNode CreateColorShadingNetwork( float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f );
 
-spShadingTextureNode CreateTextureNode(
+class ProgressiveMorphTarget
+{
+	private:
+	INode* targetNode;
+
+	public:
+	std::vector<Point3> targetDeltas;
+	float targetWeight;
+
+	ProgressiveMorphTarget( size_t vertexCount, float weight )
+	    : ProgressiveMorphTarget( nullptr, vertexCount, weight )
+	{
+	}
+
+	ProgressiveMorphTarget( INode* targetNode, size_t vertexCount, float weight )
+	{
+		this->targetNode = targetNode;
+		this->targetDeltas.resize( vertexCount );
+		this->targetWeight = weight;
+	}
+};
+
+class MorphChannel
+{
+	private:
+	IParamBlock* paramBlock;
+	bool isValid;
+
+	int localIndex;
+	int vertexCount;
+
+	MorphChannelMetaData* settings;
+	INode* sourceNode;
+	std::vector<ProgressiveMorphTarget*> morphTargets;
+
+	TSTR name;
+
+	void InitParameters( INode* mSourceNode, IParamBlock* mWeightParamBlock, int channelIndex, MorphChannelMetaData* morpherSettings, TimeValue t )
+	{
+		this->localIndex = channelIndex;
+		this->paramBlock = mWeightParamBlock;
+		this->sourceNode = mSourceNode;
+		this->vertexCount = 0;
+		this->settings = morpherSettings;
+		this->isValid = true;
+	}
+
+	public:
+	MorphChannel( INode* mSourceNode,
+	              IParamBlock* mWeightParamBlock,
+	              int channelIndex,
+	              std::vector<INode*>& mMorphTargets,
+	              MorphChannelMetaData* morpherSettings,
+	              std::vector<float>& mMorphTargetWeights,
+	              TimeValue t )
+	{
+		InitParameters( mSourceNode, mWeightParamBlock, channelIndex, morpherSettings, t );
+
+		const ObjectState& mSourceObjectState = mSourceNode->EvalWorldState( t );
+		this->vertexCount = mSourceObjectState.obj->NumPoints();
+
+		this->name = mMorphTargets.size() > 0 ? mMorphTargets.at( 0 )->GetName() : _T("ProgressiveMorph");
+
+		this->morphTargets.reserve( mMorphTargets.size() );
+
+		for( size_t progressiveMorphIndex = 0; progressiveMorphIndex < mMorphTargets.size(); ++progressiveMorphIndex )
+		{
+			INode* mMorphTargetNode = mMorphTargets.at( progressiveMorphIndex );
+			const ObjectState& mTargetObjectState = mMorphTargetNode->EvalWorldState( t );
+
+			if( this->vertexCount != mSourceObjectState.obj->NumPoints() )
+			{
+				this->isValid = false;
+				continue;
+			}
+
+			const float& weight = mMorphTargetWeights.at( progressiveMorphIndex );
+			ProgressiveMorphTarget* progressiveMorphTarget = new ProgressiveMorphTarget( mMorphTargetNode, this->vertexCount, weight );
+			for( int vertexIndex = 0; vertexIndex < this->vertexCount; ++vertexIndex )
+			{
+				const Point3& sp = mSourceObjectState.obj->GetPoint( vertexIndex );
+				const Point3& tp = mTargetObjectState.obj->GetPoint( vertexIndex );
+				const Point3& fp = tp - sp;
+				progressiveMorphTarget->targetDeltas[ vertexIndex ] = fp;
+			}
+
+			this->morphTargets.push_back( progressiveMorphTarget );
+		}
+
+		if( mWeightParamBlock )
+		{
+			const int numWeightParams = mWeightParamBlock->NumParams();
+			if( numWeightParams > 0 )
+			{
+				ParamType mParamBlockType = mWeightParamBlock->GetParameterType( 0 );
+				if( mParamBlockType == TYPE_FLOAT )
+				{
+					this->settings->morphWeight = mWeightParamBlock->GetFloat( 0 );
+				}
+			}
+		}
+	}
+
+	MorphChannel( INode* mSourceNode,
+	              IParamBlock* mWeightParamBlock,
+	              int channelIndex,
+	              std::basic_string<TCHAR> channelName,
+	              std::vector<Point3>& mMorphPoints,
+	              MorphChannelMetaData* morpherSettings,
+	              float weight,
+	              TimeValue t )
+	{
+		InitParameters( mSourceNode, mWeightParamBlock, channelIndex, morpherSettings, t );
+
+		const ObjectState& mSourceObjectState = mSourceNode->EvalWorldState( t );
+		this->vertexCount = mSourceObjectState.obj->NumPoints();
+
+		this->name = channelName.c_str();
+
+		this->morphTargets.reserve( 1 );
+		this->isValid = this->vertexCount == mMorphPoints.size();
+
+		ProgressiveMorphTarget* progressiveMorphTarget = new ProgressiveMorphTarget( this->vertexCount, weight );
+		for( int vertexIndex = 0; vertexIndex < this->vertexCount; ++vertexIndex )
+		{
+			const Point3& sp = mSourceObjectState.obj->GetPoint( vertexIndex );
+			const Point3& tp = mMorphPoints.at( vertexIndex );
+			const Point3& fp = tp - sp;
+			progressiveMorphTarget->targetDeltas[ vertexIndex ] = fp;
+		}
+
+		this->morphTargets.push_back( progressiveMorphTarget );
+
+		if( mWeightParamBlock )
+		{
+			const int numWeightParams = mWeightParamBlock->NumParams();
+			if( numWeightParams > 0 )
+			{
+				ParamType mParamBlockType = mWeightParamBlock->GetParameterType( 0 );
+				if( mParamBlockType == TYPE_FLOAT )
+				{
+					this->settings->morphWeight = mWeightParamBlock->GetFloat( 0 );
+				}
+			}
+		}
+	}
+
+	MorphChannel( INode* mSourceNode,
+	              IParamBlock* mWeightParamBlock,
+	              int channelIndex,
+	              std::basic_string<TCHAR> channelName,
+	              std::vector<std::vector<Point3>>& mMorphPointsPerTarget,
+	              MorphChannelMetaData* morpherSettings,
+	              std::vector<float> mMorphWeights,
+	              TimeValue t )
+	{
+		InitParameters( mSourceNode, mWeightParamBlock, channelIndex, morpherSettings, t );
+
+		const ObjectState& mSourceObjectState = mSourceNode->EvalWorldState( t );
+		this->vertexCount = mSourceObjectState.obj->NumPoints();
+
+		this->name = channelName.c_str();
+
+		this->morphTargets.reserve( mMorphWeights.size() );
+
+		for( size_t progressiveMorphIndex = 0; progressiveMorphIndex < mMorphPointsPerTarget.size(); ++progressiveMorphIndex )
+		{
+			const std::vector<Point3>& mMorphPoints = mMorphPointsPerTarget[ progressiveMorphIndex ];
+
+			if( this->vertexCount != mMorphPoints.size() )
+			{
+				this->isValid = false;
+				continue;
+			}
+
+			const float& weight = mMorphWeights.at( progressiveMorphIndex );
+			ProgressiveMorphTarget* progressiveMorphTarget = new ProgressiveMorphTarget( this->vertexCount, weight );
+			for( int vertexIndex = 0; vertexIndex < this->vertexCount; ++vertexIndex )
+			{
+				const Point3& sp = mSourceObjectState.obj->GetPoint( vertexIndex );
+				const Point3& tp = mMorphPoints.at( vertexIndex );
+				const Point3& fp = tp - sp;
+				progressiveMorphTarget->targetDeltas[ vertexIndex ] = fp;
+			}
+
+			this->morphTargets.push_back( progressiveMorphTarget );
+		}
+
+		if( mWeightParamBlock )
+		{
+			const int numWeightParams = mWeightParamBlock->NumParams();
+			if( numWeightParams > 0 )
+			{
+				ParamType mParamBlockType = mWeightParamBlock->GetParameterType( 0 );
+				if( mParamBlockType == TYPE_FLOAT )
+				{
+					this->settings->morphWeight = mWeightParamBlock->GetFloat( 0 );
+				}
+			}
+		}
+	}
+
+	~MorphChannel()
+	{
+		for( ProgressiveMorphTarget* progressiveMorphTarget : this->morphTargets )
+		{
+			if( progressiveMorphTarget )
+				delete progressiveMorphTarget;
+		}
+
+		this->morphTargets.clear();
+	}
+
+	MorphChannelMetaData* GetSettings() { return this->settings; }
+
+	int GetVertexCount() { return this->vertexCount; }
+
+	TSTR GetName() { return this->name; }
+	int GetIndex() { return this->localIndex; }
+
+	bool IsValid() { return this->isValid; }
+
+	size_t NumProgressiveMorphTargets() const { return morphTargets.size(); }
+	ProgressiveMorphTarget* GetProgressiveMorphTarget( size_t progressiveMorphIndex ) const
+	{
+		return progressiveMorphIndex < NumProgressiveMorphTargets() ? morphTargets.at( progressiveMorphIndex ) : nullptr;
+	}
+};
+
+class MorpherChannelSettings
+{
+	public:
+	std::vector<MorphChannelMetaData*> channels;
+};
+
+class MorpherWrapper
+{
+	public:
+	GlobalMorpherSettings globalSettings;
+
+	MorpherWrapper( Modifier* mMorphModifier, INode* mSourceNode, TimeValue t )
+	{
+		this->modifier = mMorphModifier;
+		this->sourceNode = mSourceNode;
+		this->currentTime = t;
+
+		const int numReferences = mMorphModifier->NumRefs();
+
+		if( numReferences > MaxNumMorphTargets )
+		{
+			// fetch global settings
+			ReferenceTarget* mGlobalSettingsReferenceTarget = mMorphModifier->GetReference( 0 );
+
+			if( mGlobalSettingsReferenceTarget )
+			{
+				MSTR mClassName;
+				mGlobalSettingsReferenceTarget->GetClassName( mClassName );
+				if( mClassName == L"ParamBlock" )
+				{
+					IParamBlock* mParamBlock = dynamic_cast<IParamBlock*>( mGlobalSettingsReferenceTarget );
+					if( mParamBlock )
+					{
+						const int numParams = mParamBlock->NumParams();
+
+						if( numParams == NumGlobalSettings )
+						{
+							ParamType mType = mParamBlock->GetParameterType( UseLimits );
+							if( mType == TYPE_INT )
+							{
+								this->globalSettings.useLimits = mParamBlock->GetInt( UseLimits ) > 0;
+							}
+
+							mType = mParamBlock->GetParameterType( SpinnerMin );
+							if( mType == TYPE_FLOAT )
+							{
+								this->globalSettings.spinnerMin = mParamBlock->GetFloat( SpinnerMin );
+							}
+
+							mType = mParamBlock->GetParameterType( SpinnerMax );
+							if( mType == TYPE_FLOAT )
+							{
+								this->globalSettings.spinnerMax = mParamBlock->GetFloat( SpinnerMax );
+							}
+
+							mType = mParamBlock->GetParameterType( UseSelection );
+							if( mType == TYPE_INT )
+							{
+								this->globalSettings.useSelection = mParamBlock->GetInt( UseSelection ) > 0;
+							}
+
+							mType = mParamBlock->GetParameterType( ValueIncrements );
+							if( mType == TYPE_INT )
+							{
+								this->globalSettings.valueIncrements = mParamBlock->GetInt( ValueIncrements );
+							}
+
+							mType = mParamBlock->GetParameterType( AutoLoadTargets );
+							if( mType == TYPE_INT )
+							{
+								this->globalSettings.autoLoadTargets = mParamBlock->GetInt( AutoLoadTargets ) > 0;
+							}
+
+							if( mType == TYPE_BOOL )
+							{
+								// auto b = mParamBlock->GetInt( j ) > 0;
+							}
+						}
+					}
+				}
+			}
+
+			morphTargetChannels.reserve( MaxNumMorphTargets );
+
+			const ulong uniqueHandle = mSourceNode->GetHandle();
+
+			MorpherChannelSettings morpherSettings;
+
+			// fetch active morph targets from MaxScript
+			SimplygonMaxInstance->GetActiveMorphChannels( uniqueHandle, &morpherSettings );
+			SimplygonMaxInstance->GetActiveMorphTargetTension( uniqueHandle, &morpherSettings );
+			SimplygonMaxInstance->GetActiveMinLimits( uniqueHandle, &morpherSettings );
+			SimplygonMaxInstance->GetActiveMaxLimits( uniqueHandle, &morpherSettings );
+			SimplygonMaxInstance->GetActiveUseVertexSelections( uniqueHandle, &morpherSettings );
+			SimplygonMaxInstance->GetActiveUseLimits( uniqueHandle, &morpherSettings );
+
+			for( size_t activeMorphChannelListIndex = 0; activeMorphChannelListIndex < morpherSettings.channels.size(); ++activeMorphChannelListIndex )
+			{
+				const int morphChannelIndex = morpherSettings.channels[ activeMorphChannelListIndex ]->GetIndex();
+
+				ReferenceTarget* mMorphChannelsReferenceTarget = mMorphModifier->GetReference( morphChannelIndex );
+				if( mMorphChannelsReferenceTarget )
+				{
+					// fetch target from paramblock
+					MSTR mReferenceClassName;
+					mMorphChannelsReferenceTarget->GetClassName( mReferenceClassName );
+					if( mReferenceClassName == L"ParamBlock" )
+					{
+						IParamBlock* mWeightParamBlock = dynamic_cast<IParamBlock*>( mMorphChannelsReferenceTarget );
+						if( mWeightParamBlock )
+						{
+							const int morpTargetIndex = ( morphChannelIndex + MaxNumMorphTargets );
+
+							std::basic_string<TCHAR> mMorphChannelName = _T("");
+							std::vector<std::vector<Point3>> mProgressiveMorphPoints;
+							std::vector<float> mProgressiveWeights;
+							std::vector<Point3> mTemporaryMorphPoints;
+
+							SimplygonMaxInstance->GetMorphChannelName( uniqueHandle, morphChannelIndex, mMorphChannelName );
+							SimplygonMaxInstance->GetMorphChannelPoints( uniqueHandle, mTemporaryMorphPoints, morphChannelIndex );
+							SimplygonMaxInstance->GetActiveMorphTargetProgressiveWeights( uniqueHandle, morphChannelIndex, mProgressiveWeights );
+
+							// if there are morph points,
+							// see if there are progressive morphs
+							if( mTemporaryMorphPoints.size() > 0 )
+							{
+								mProgressiveMorphPoints.push_back( mTemporaryMorphPoints );
+
+								for( uint progressiveIndex = 0; progressiveIndex < MaxNumProgressiveMorphTargets; ++progressiveIndex )
+								{
+									const int progressiveMorphTargetIndex = ( morpTargetIndex + MaxNumMorphTargets + progressiveIndex );
+
+									ReferenceTarget* mProgressiveMorphTargetReference = mMorphModifier->GetReference( progressiveMorphTargetIndex );
+									if( mProgressiveMorphTargetReference )
+									{
+										INode* mProgressiveMorphTarget = dynamic_cast<INode*>( mProgressiveMorphTargetReference );
+										if( mProgressiveMorphTarget )
+										{
+											std::vector<Point3> mTemporaryProgressiveMorphMoints;
+											const ObjectState& mTargetObjectState = mProgressiveMorphTarget->EvalWorldState( t );
+
+											const int numVertices = mTargetObjectState.obj->NumPoints();
+											if( numVertices > 0 )
+											{
+												mTemporaryProgressiveMorphMoints.resize( numVertices );
+
+												for( uint vid = 0; vid < numVertices; ++vid )
+												{
+													const Point3& mMorphPoint = mTargetObjectState.obj->GetPoint( vid );
+													mTemporaryProgressiveMorphMoints[ vid ] = mMorphPoint;
+												}
+
+												mProgressiveMorphPoints.push_back( mTemporaryProgressiveMorphMoints );
+											}
+										}
+									}
+								}
+
+								MorphChannelMetaData* morphChannelMetaData = morpherSettings.channels[ activeMorphChannelListIndex ];
+								morphTargetChannels.push_back( new MorphChannel( mSourceNode,
+								                                                 mWeightParamBlock,
+								                                                 morphChannelIndex,
+								                                                 mMorphChannelName,
+								                                                 mProgressiveMorphPoints,
+								                                                 morphChannelMetaData,
+								                                                 mProgressiveWeights,
+								                                                 this->currentTime ) );
+							}
+							else
+							{
+								// if morph channel has data, but no target reference
+								std::vector<Point3> mMorphPoints;
+								SimplygonMaxInstance->GetMorphChannelPoints( uniqueHandle, mMorphPoints, morphChannelIndex );
+
+								if( mMorphPoints.size() > 0 )
+								{
+									std::basic_string<TCHAR> channelName = _T("");
+									SimplygonMaxInstance->GetMorphChannelName( uniqueHandle, morphChannelIndex, channelName );
+
+									MorphChannelMetaData* morphChannelMetaData = morpherSettings.channels[ activeMorphChannelListIndex ];
+									const float weight = mProgressiveWeights.at( 0 );
+
+									morphTargetChannels.push_back( new MorphChannel( mSourceNode,
+									                                                 mWeightParamBlock,
+									                                                 morphChannelIndex,
+									                                                 channelName,
+									                                                 mMorphPoints,
+									                                                 morphChannelMetaData,
+									                                                 weight,
+									                                                 this->currentTime ) );
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	~MorpherWrapper()
+	{
+		for( MorphChannel* morphChannel : this->morphTargetChannels )
+		{
+			if( morphChannel )
+				delete morphChannel;
+		}
+
+		this->morphTargetChannels.clear();
+	}
+
+	static void ApplyGlobalSettings( Modifier* mMorphModifier, GlobalMorpherSettings settings, TimeValue t )
+	{
+		const int numReferences = mMorphModifier->NumRefs();
+		if( numReferences > MaxNumMorphTargets )
+		{
+			// fetch global settings
+			ReferenceTarget* mGlobalSettingsReferenceTarget = mMorphModifier->GetReference( 0 );
+
+			if( mGlobalSettingsReferenceTarget )
+			{
+				MSTR mClassName;
+				mGlobalSettingsReferenceTarget->GetClassName( mClassName );
+				if( mClassName == L"ParamBlock" )
+				{
+					IParamBlock* mParamBlock = dynamic_cast<IParamBlock*>( mGlobalSettingsReferenceTarget );
+					if( mParamBlock )
+					{
+						const int numParams = mParamBlock->NumParams();
+
+						if( numParams == NumGlobalSettings )
+						{
+							ParamType mType = mParamBlock->GetParameterType( UseLimits );
+							if( mType == TYPE_INT )
+							{
+								mParamBlock->SetValue( UseLimits, t, (int)settings.useLimits );
+							}
+
+							mType = mParamBlock->GetParameterType( SpinnerMin );
+							if( mType == TYPE_FLOAT )
+							{
+								mParamBlock->SetValue( SpinnerMin, t, settings.spinnerMin );
+							}
+
+							mType = mParamBlock->GetParameterType( SpinnerMax );
+							if( mType == TYPE_FLOAT )
+							{
+								mParamBlock->SetValue( SpinnerMax, t, settings.spinnerMax );
+							}
+
+							mType = mParamBlock->GetParameterType( UseSelection );
+							if( mType == TYPE_INT )
+							{
+								mParamBlock->SetValue( UseSelection, t, (int)settings.useSelection );
+							}
+
+							mType = mParamBlock->GetParameterType( ValueIncrements );
+							if( mType == TYPE_INT )
+							{
+								mParamBlock->SetValue( ValueIncrements, t, settings.valueIncrements );
+							}
+
+							mType = mParamBlock->GetParameterType( AutoLoadTargets );
+							if( mType == TYPE_INT )
+							{
+								mParamBlock->SetValue( AutoLoadTargets, t, (int)settings.autoLoadTargets );
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	size_t NumChannels() const { return morphTargetChannels.size(); };
+
+	MorphChannel* GetChannel( size_t morpTargetIndex ) const { return morpTargetIndex < NumChannels() ? morphTargetChannels.at( morpTargetIndex ) : nullptr; }
+
+	private:
+	INode* sourceNode;
+	Modifier* modifier;
+	std::vector<MorphChannel*> morphTargetChannels;
+	TimeValue currentTime;
+};
+
+spShadingTextureNode MaterialNodes::CreateTextureNode(
     BitmapTex* mBitmapTex, std::basic_string<TCHAR>& tMaxMappingChannel, std::basic_string<TCHAR>& tTextureName, TimeValue& time, const bool isSRGB )
 {
-	// create a basic shading network
 	spShadingTextureNode sgTextureNode = sg->CreateShadingTextureNode();
 	sgTextureNode->SetTextureName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
 	sgTextureNode->SetTexCoordName( LPCTSTRToConstCharPtr( tMaxMappingChannel.c_str() ) );
 	sgTextureNode->SetUseSRGB( isSRGB );
 
-	if( mBitmapTex != nullptr)
+	if( mBitmapTex != nullptr )
 	{
 		StdUVGen* mUVObject = mBitmapTex->GetUVGen();
 		float uScale = mUVObject->GetUScl( time );
@@ -93,6 +609,1030 @@ spShadingTextureNode CreateTextureNode(
 		sgTextureNode->SetOffsetV( 0 );
 	}
 	return sgTextureNode;
+}
+
+spShadingNode
+MaterialNodes::GetShadingNode( MaterialNodes::TextureData& textureData, std::basic_string<TCHAR> tMaxMappingChannel, Color& baseColor, TimeValue& time )
+{
+	if( textureData.mBitmap == nullptr )
+	{
+		spShadingColorNode sgReplacementNode = sg->CreateShadingColorNode();
+		sgReplacementNode->SetColor( baseColor.r, baseColor.g, baseColor.b, 1.0f );
+		return sgReplacementNode;
+	}
+	else
+	{
+		spShadingNode sgFinalizedTextureNode;
+		spShadingTextureNode sgTextureNode = CreateTextureNode( textureData.mBitmap, tMaxMappingChannel, textureData.mTextureName, time, textureData.mIsSRGB );
+
+		spShadingColorNode sgOne = sg->CreateShadingColorNode();
+		sgOne->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
+
+		int alphaMode = textureData.mBitmap->GetAlphaSource();
+		if( alphaMode == ALPHA_RGB )
+		{
+			spShadingSwizzlingNode sgRedSwizzleNode = sg->CreateShadingSwizzlingNode();
+			sgRedSwizzleNode->SetInput( 0, sgTextureNode );
+			sgRedSwizzleNode->SetInput( 1, sgTextureNode );
+			sgRedSwizzleNode->SetInput( 2, sgTextureNode );
+			sgRedSwizzleNode->SetInput( 3, sgTextureNode );
+
+			sgRedSwizzleNode->SetRedComponent( 0 );
+			sgRedSwizzleNode->SetGreenComponent( 0 );
+			sgRedSwizzleNode->SetBlueComponent( 0 );
+			sgRedSwizzleNode->SetAlphaComponent( 0 );
+
+			spShadingSwizzlingNode sgGreenSwizzleNode = sg->CreateShadingSwizzlingNode();
+			sgGreenSwizzleNode->SetInput( 0, sgTextureNode );
+			sgGreenSwizzleNode->SetInput( 1, sgTextureNode );
+			sgGreenSwizzleNode->SetInput( 2, sgTextureNode );
+			sgGreenSwizzleNode->SetInput( 3, sgTextureNode );
+
+			sgGreenSwizzleNode->SetRedComponent( 1 );
+			sgGreenSwizzleNode->SetGreenComponent( 1 );
+			sgGreenSwizzleNode->SetBlueComponent( 1 );
+			sgGreenSwizzleNode->SetAlphaComponent( 1 );
+
+			spShadingSwizzlingNode sgBlueSwizzleNode = sg->CreateShadingSwizzlingNode();
+			sgBlueSwizzleNode->SetInput( 0, sgTextureNode );
+			sgBlueSwizzleNode->SetInput( 1, sgTextureNode );
+			sgBlueSwizzleNode->SetInput( 2, sgTextureNode );
+			sgBlueSwizzleNode->SetInput( 3, sgTextureNode );
+
+			sgBlueSwizzleNode->SetRedComponent( 2 );
+			sgBlueSwizzleNode->SetGreenComponent( 2 );
+			sgBlueSwizzleNode->SetBlueComponent( 2 );
+			sgBlueSwizzleNode->SetAlphaComponent( 2 );
+
+			spShadingAddNode sgAddRGNode = sg->CreateShadingAddNode();
+			sgAddRGNode->SetInput( 0, sgRedSwizzleNode );
+			sgAddRGNode->SetInput( 1, sgGreenSwizzleNode );
+
+			spShadingAddNode sgAddRGBNode = sg->CreateShadingAddNode();
+			sgAddRGBNode->SetInput( 0, sgAddRGNode );
+			sgAddRGBNode->SetInput( 1, sgBlueSwizzleNode );
+
+			spShadingColorNode sg1Through3Node = sg->CreateShadingColorNode();
+			sg1Through3Node->SetDefaultParameter( 0, 3, 3, 3, 3 );
+
+			spShadingDivideNode sgDivideNode = sg->CreateShadingDivideNode();
+			sgDivideNode->SetInput( 0, sgAddRGBNode );
+			sgDivideNode->SetInput( 1, sg1Through3Node );
+
+			spShadingSwizzlingNode sgFinalSwizzleNode = sg->CreateShadingSwizzlingNode();
+			sgFinalSwizzleNode->SetInput( 0, sgTextureNode );
+			sgFinalSwizzleNode->SetInput( 1, sgTextureNode );
+			sgFinalSwizzleNode->SetInput( 2, sgTextureNode );
+			sgFinalSwizzleNode->SetInput( 3, sgDivideNode );
+
+			sgFinalSwizzleNode->SetRedComponent( 0 );
+			sgFinalSwizzleNode->SetGreenComponent( 1 );
+			sgFinalSwizzleNode->SetBlueComponent( 2 );
+			sgFinalSwizzleNode->SetAlphaComponent( 3 );
+
+			sgFinalizedTextureNode = sgFinalSwizzleNode;
+		}
+		else if( alphaMode == ALPHA_NONE )
+		{
+			spShadingSwizzlingNode sgTextureColorSwizzleNode = sg->CreateShadingSwizzlingNode();
+			sgTextureColorSwizzleNode->SetInput( 0, sgTextureNode );
+			sgTextureColorSwizzleNode->SetInput( 1, sgTextureNode );
+			sgTextureColorSwizzleNode->SetInput( 2, sgTextureNode );
+			sgTextureColorSwizzleNode->SetInput( 3, sgOne );
+
+			sgTextureColorSwizzleNode->SetRedComponent( 0 );
+			sgTextureColorSwizzleNode->SetGreenComponent( 1 );
+			sgTextureColorSwizzleNode->SetBlueComponent( 2 );
+			sgTextureColorSwizzleNode->SetAlphaComponent( 3 );
+
+			sgFinalizedTextureNode = sgTextureColorSwizzleNode;
+		}
+		else
+		{
+			sgFinalizedTextureNode = sgTextureNode;
+		}
+
+		if( textureData.mPremultipliedAlpha == false )
+		{
+			spShadingSwizzlingNode sgAlphaSource = sg->CreateShadingSwizzlingNode();
+			sgAlphaSource->SetInput( 0, sgFinalizedTextureNode );
+			sgAlphaSource->SetInput( 1, sgFinalizedTextureNode );
+			sgAlphaSource->SetInput( 2, sgFinalizedTextureNode );
+			sgAlphaSource->SetInput( 3, sgFinalizedTextureNode );
+
+			sgAlphaSource->SetRedComponent( 3 );
+			sgAlphaSource->SetGreenComponent( 3 );
+			sgAlphaSource->SetBlueComponent( 3 );
+			sgAlphaSource->SetAlphaComponent( 3 );
+
+			spShadingMultiplyNode sgMultiply = sg->CreateShadingMultiplyNode();
+			sgMultiply->SetInput( 0, sgFinalizedTextureNode );
+			sgMultiply->SetInput( 1, sgAlphaSource );
+
+			sgFinalizedTextureNode = sgMultiply;
+		}
+
+		return sgFinalizedTextureNode;
+	}
+}
+
+spShadingNode MaterialNodes::SetUpShadingNodes( MaterialNodes::MultiplyNode& node,
+                                                std::basic_string<TCHAR>& tMaterialName,
+                                                std::basic_string<TCHAR>& tMaxMappingChannel,
+                                                Color& baseColor,
+                                                float baseAlpha,
+                                                TimeValue& time )
+{
+	// incase the node is fully or partially inactive
+	spShadingNode shadingNode[ 2 ];
+	for( size_t i = 0; i < 2; ++i )
+	{
+		if( node.mIsEnabled[ i ] && node.mTexture[ i ].mBitmap != nullptr )
+		{
+			// i == 1 for two alpha textures?
+			shadingNode[ i ] = GetShadingNode( node.mTexture[ i ], tMaxMappingChannel, Color( 0.0f, 0.0f, 0.0f ), time );
+		}
+		else
+		{
+			spShadingColorNode sgColorNode = sg->CreateShadingColorNode();
+			sgColorNode->SetColor( node.mColor[ i ].r, node.mColor[ i ].g, node.mColor[ i ].b, baseAlpha );
+			shadingNode[ i ] = sgColorNode;
+		}
+	}
+
+	spShadingNode sgSelectedAlphaSource = sg->CreateShadingSwizzlingNode();
+	if( node.mAlphaFrom == MaterialNodes::MultiplyNode::MultiplyNodeAlphaFrom::AlphaFirstSource )
+	{
+		spShadingSwizzlingNode sgSelectedAlpha = sg->CreateShadingSwizzlingNode();
+		sgSelectedAlpha->SetInput( 0, shadingNode[ 0 ] );
+		sgSelectedAlpha->SetInput( 1, shadingNode[ 0 ] );
+		sgSelectedAlpha->SetInput( 2, shadingNode[ 0 ] );
+		sgSelectedAlpha->SetInput( 3, shadingNode[ 0 ] );
+
+		sgSelectedAlpha->SetRedComponent( 3 );
+		sgSelectedAlpha->SetGreenComponent( 3 );
+		sgSelectedAlpha->SetBlueComponent( 3 );
+		sgSelectedAlpha->SetAlphaComponent( 3 );
+
+		sgSelectedAlphaSource = sgSelectedAlpha;
+	}
+	else if( node.mAlphaFrom == MaterialNodes::MultiplyNode::MultiplyNodeAlphaFrom::AlphaSecondSource )
+	{
+		spShadingSwizzlingNode sgSelectedAlpha = sg->CreateShadingSwizzlingNode();
+		sgSelectedAlpha->SetInput( 0, shadingNode[ 1 ] );
+		sgSelectedAlpha->SetInput( 1, shadingNode[ 1 ] );
+		sgSelectedAlpha->SetInput( 2, shadingNode[ 1 ] );
+		sgSelectedAlpha->SetInput( 3, shadingNode[ 1 ] );
+
+		sgSelectedAlpha->SetRedComponent( 3 );
+		sgSelectedAlpha->SetGreenComponent( 3 );
+		sgSelectedAlpha->SetBlueComponent( 3 );
+		sgSelectedAlpha->SetAlphaComponent( 3 );
+
+		sgSelectedAlphaSource = sgSelectedAlpha;
+	}
+	else // if( node.mAlphaFrom == MultiplyNode::MultiplyNodeAlphaFrom::AlphaBlendSource )
+	{
+		spShadingSwizzlingNode sgTexture0Alpha = sg->CreateShadingSwizzlingNode();
+		sgTexture0Alpha->SetInput( 0, shadingNode[ 0 ] );
+		sgTexture0Alpha->SetInput( 1, shadingNode[ 0 ] );
+		sgTexture0Alpha->SetInput( 2, shadingNode[ 0 ] );
+		sgTexture0Alpha->SetInput( 3, shadingNode[ 0 ] );
+
+		sgTexture0Alpha->SetRedComponent( 3 );
+		sgTexture0Alpha->SetGreenComponent( 3 );
+		sgTexture0Alpha->SetBlueComponent( 3 );
+		sgTexture0Alpha->SetAlphaComponent( 3 );
+
+		spShadingSwizzlingNode sgTexture1Alpha = sg->CreateShadingSwizzlingNode();
+		sgTexture1Alpha->SetInput( 0, shadingNode[ 1 ] );
+		sgTexture1Alpha->SetInput( 1, shadingNode[ 1 ] );
+		sgTexture1Alpha->SetInput( 2, shadingNode[ 1 ] );
+		sgTexture1Alpha->SetInput( 3, shadingNode[ 1 ] );
+
+		sgTexture1Alpha->SetRedComponent( 3 );
+		sgTexture1Alpha->SetGreenComponent( 3 );
+		sgTexture1Alpha->SetBlueComponent( 3 );
+		sgTexture1Alpha->SetAlphaComponent( 3 );
+
+		spShadingMultiplyNode sgMultAlpha = sg->CreateShadingMultiplyNode();
+		sgMultAlpha->SetInput( 0, sgTexture0Alpha );
+		sgMultAlpha->SetInput( 1, sgTexture1Alpha );
+
+		sgSelectedAlphaSource = sgMultAlpha;
+	}
+
+	spShadingColorNode sgOne = sg->CreateShadingColorNode();
+	sgOne->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
+
+	spShadingColorNode sgZero = sg->CreateShadingColorNode();
+	sgZero->SetColor( 0.0f, 0.0f, 0.0f, 1.0f );
+
+	spShadingColorNode sgDestination = sg->CreateShadingColorNode();
+	sgDestination->SetColor( baseColor.r, baseColor.g, baseColor.b, 1 );
+
+	spShadingMultiplyNode sgMultipliedTextures = sg->CreateShadingMultiplyNode();
+	sgMultipliedTextures->SetInput( 0, shadingNode[ 0 ] );
+	sgMultipliedTextures->SetInput( 1, shadingNode[ 1 ] );
+
+	spShadingSubtractNode sgOneMinusTextureAlpha = sg->CreateShadingSubtractNode();
+	sgOneMinusTextureAlpha->SetInput( 0, sgOne );
+	sgOneMinusTextureAlpha->SetInput( 1, sgSelectedAlphaSource );
+
+	spShadingMultiplyNode sgDestination_x_InvertedTextureAlpha = sg->CreateShadingMultiplyNode();
+	sgDestination_x_InvertedTextureAlpha->SetInput( 0, sgDestination );
+	sgDestination_x_InvertedTextureAlpha->SetInput( 1, sgOneMinusTextureAlpha );
+
+	spShadingAddNode sgAddNode = sg->CreateShadingAddNode();
+	sgAddNode->SetInput( 0, sgMultipliedTextures );
+	sgAddNode->SetInput( 1, sgDestination_x_InvertedTextureAlpha );
+
+	spShadingSwizzlingNode sgAlphaOneSwizzle = sg->CreateShadingSwizzlingNode();
+	sgAlphaOneSwizzle->SetInput( 0, sgAddNode );
+	sgAlphaOneSwizzle->SetInput( 1, sgAddNode );
+	sgAlphaOneSwizzle->SetInput( 2, sgAddNode );
+	sgAlphaOneSwizzle->SetInput( 3, sgOne );
+
+	sgAlphaOneSwizzle->SetRedComponent( 0 );
+	sgAlphaOneSwizzle->SetGreenComponent( 1 );
+	sgAlphaOneSwizzle->SetBlueComponent( 2 );
+	sgAlphaOneSwizzle->SetAlphaComponent( 3 );
+
+	return sgAlphaOneSwizzle;
+}
+
+spShadingNode MaterialNodes::SetUpShadingNodes( MaterialNodes::TintNode& node,
+                                                std::basic_string<TCHAR>& tMaterialName,
+                                                std::basic_string<TCHAR>& tMaxMappingChannel,
+                                                Color& baseColor,
+                                                float baseAlpha,
+                                                TimeValue& time )
+{
+	spShadingColorNode sgOne = sg->CreateShadingColorNode();
+	sgOne->SetColor( 1.f, 1.f, 1.f, 1.f );
+
+	spShadingColorNode sgZero = sg->CreateShadingColorNode();
+	sgZero->SetColor( 0.f, 0.f, 0.f, 0.f );
+
+	spShadingNode sgTextureChannelNode;
+	if( node.mIsEnabled )
+	{
+		sgTextureChannelNode = GetShadingNode( node.mTexture, tMaxMappingChannel, baseColor, time );
+	}
+	else
+	{
+		spShadingColorNode sgColorNode = sg->CreateShadingColorNode();
+		sgColorNode->SetColor( 1, 1, 1, 1 );
+		sgTextureChannelNode = sgColorNode;
+	}
+
+	spShadingSwizzlingNode sgSrcRed = sg->CreateShadingSwizzlingNode();
+	sgSrcRed->SetInput( 0, sgTextureChannelNode );
+	sgSrcRed->SetInput( 1, sgTextureChannelNode );
+	sgSrcRed->SetInput( 2, sgTextureChannelNode );
+	sgSrcRed->SetInput( 3, sgOne );
+	sgSrcRed->SetRedComponent( 0 );
+	sgSrcRed->SetGreenComponent( 0 );
+	sgSrcRed->SetBlueComponent( 0 );
+	sgSrcRed->SetAlphaComponent( 0 );
+
+	spShadingSwizzlingNode sgSrcGreen = sg->CreateShadingSwizzlingNode();
+	sgSrcGreen->SetInput( 0, sgTextureChannelNode );
+	sgSrcGreen->SetInput( 1, sgTextureChannelNode );
+	sgSrcGreen->SetInput( 2, sgTextureChannelNode );
+	sgSrcGreen->SetInput( 3, sgOne );
+	sgSrcGreen->SetRedComponent( 1 );
+	sgSrcGreen->SetGreenComponent( 1 );
+	sgSrcGreen->SetBlueComponent( 1 );
+	sgSrcGreen->SetAlphaComponent( 1 );
+
+	spShadingSwizzlingNode sgSrcBlue = sg->CreateShadingSwizzlingNode();
+	sgSrcBlue->SetInput( 0, sgTextureChannelNode );
+	sgSrcBlue->SetInput( 1, sgTextureChannelNode );
+	sgSrcBlue->SetInput( 2, sgTextureChannelNode );
+	sgSrcBlue->SetInput( 3, sgOne );
+	sgSrcBlue->SetRedComponent( 2 );
+	sgSrcBlue->SetGreenComponent( 2 );
+	sgSrcBlue->SetBlueComponent( 2 );
+	sgSrcBlue->SetAlphaComponent( 2 );
+
+	spShadingColorNode sgTintChannel0 = sg->CreateShadingColorNode();
+	sgTintChannel0->SetDefaultParameter( 0, node.mRedChannel.r, node.mRedChannel.g, node.mRedChannel.b, 1 );
+
+	spShadingColorNode sgTintChannel1 = sg->CreateShadingColorNode();
+	sgTintChannel1->SetDefaultParameter( 0, node.mGreenChannel.r, node.mGreenChannel.g, node.mGreenChannel.b, 1 );
+
+	spShadingColorNode sgTintChannel2 = sg->CreateShadingColorNode();
+	sgTintChannel2->SetDefaultParameter( 0, node.mBlueChannel.r, node.mBlueChannel.g, node.mBlueChannel.b, 1 );
+
+	/*
+	    The MAX's tint formula is:
+	    if our texture color is SRC and R, G, B colors are TRG0, TRG1, TRG2 the formula looks as:
+
+	    COL.R = SRC.R *TRG0.R + SRC.G *TRG1.R + SRC.B *TRG2.R
+	    COL.G = SRC.R *TRG0.G + SRC.G *TRG1.G + SRC.B *TRG2.G
+	    COL.B = SRC.R *TRG0.B + SRC.G *TRG1.B + SRC.B *TRG2.B
+
+	    if with have just clear R, G, B colors it changes to
+
+	    COL.R = SRC.R *R
+	    COL.G = SRC.G *G
+	    COL.B = SRC.B *B
+	*/
+
+	spShadingMultiplyNode sgSrcRed_x_Tint0 = sg->CreateShadingMultiplyNode();
+	sgSrcRed_x_Tint0->SetInput( 0, sgSrcRed );
+	sgSrcRed_x_Tint0->SetInput( 1, sgTintChannel0 );
+
+	spShadingMultiplyNode sgSrcGreen_x_Tint1 = sg->CreateShadingMultiplyNode();
+	sgSrcGreen_x_Tint1->SetInput( 0, sgSrcGreen );
+	sgSrcGreen_x_Tint1->SetInput( 1, sgTintChannel1 );
+
+	spShadingMultiplyNode sgSrcBlue_x_Tint2 = sg->CreateShadingMultiplyNode();
+	sgSrcBlue_x_Tint2->SetInput( 0, sgSrcBlue );
+	sgSrcBlue_x_Tint2->SetInput( 1, sgTintChannel2 );
+
+	spShadingAddNode sgAddColumn0 = sg->CreateShadingAddNode();
+	sgAddColumn0->SetInput( 0, sgSrcRed_x_Tint0 );
+	sgAddColumn0->SetInput( 1, sgSrcGreen_x_Tint1 );
+
+	spShadingAddNode sgAddColumn1 = sg->CreateShadingAddNode();
+	sgAddColumn1->SetInput( 0, sgAddColumn0 );
+	sgAddColumn1->SetInput( 1, sgSrcBlue_x_Tint2 );
+
+	spShadingSwizzlingNode sgAlphaSwizzle = sg->CreateShadingSwizzlingNode();
+	sgAlphaSwizzle->SetInput( 0, sgAddColumn1 );
+	sgAlphaSwizzle->SetInput( 1, sgAddColumn1 );
+	sgAlphaSwizzle->SetInput( 2, sgAddColumn1 );
+	sgAlphaSwizzle->SetInput( 3, sgTextureChannelNode );
+	sgAlphaSwizzle->SetRedComponent( 0 );
+	sgAlphaSwizzle->SetGreenComponent( 1 );
+	sgAlphaSwizzle->SetBlueComponent( 2 );
+	sgAlphaSwizzle->SetAlphaComponent( 3 );
+
+	spShadingClampNode sgClampNode = sg->CreateShadingClampNode();
+	sgClampNode->SetInput( 0, sgAlphaSwizzle );
+	sgClampNode->SetInput( 1, sgZero );
+	sgClampNode->SetInput( 2, sgOne );
+
+	spShadingColorNode sgDestination = sg->CreateShadingColorNode();
+	sgDestination->SetColor( baseColor.r, baseColor.g, baseColor.b, 1 );
+
+	spShadingSwizzlingNode sgTextureAlpha = sg->CreateShadingSwizzlingNode();
+	sgTextureAlpha->SetInput( 0, sgClampNode );
+	sgTextureAlpha->SetInput( 1, sgClampNode );
+	sgTextureAlpha->SetInput( 2, sgClampNode );
+	sgTextureAlpha->SetInput( 3, sgClampNode );
+
+	sgTextureAlpha->SetRedComponent( 3 );
+	sgTextureAlpha->SetGreenComponent( 3 );
+	sgTextureAlpha->SetBlueComponent( 3 );
+	sgTextureAlpha->SetAlphaComponent( 3 );
+
+	spShadingSubtractNode sgOneMinusTextureAlpha = sg->CreateShadingSubtractNode();
+	sgOneMinusTextureAlpha->SetInput( 0, sgOne );
+	sgOneMinusTextureAlpha->SetInput( 1, sgTextureAlpha );
+
+	spShadingMultiplyNode sgDestination_x_InvertedTextureAlpha = sg->CreateShadingMultiplyNode();
+	sgDestination_x_InvertedTextureAlpha->SetInput( 0, sgDestination );
+	sgDestination_x_InvertedTextureAlpha->SetInput( 1, sgOneMinusTextureAlpha );
+
+	spShadingAddNode sgAddNode = sg->CreateShadingAddNode();
+	sgAddNode->SetInput( 0, sgClampNode );
+	sgAddNode->SetInput( 1, sgDestination_x_InvertedTextureAlpha );
+
+	spShadingSwizzlingNode sgAlphaOneSwizzle = sg->CreateShadingSwizzlingNode();
+	sgAlphaOneSwizzle->SetInput( 0, sgAddNode );
+	sgAlphaOneSwizzle->SetInput( 1, sgAddNode );
+	sgAlphaOneSwizzle->SetInput( 2, sgAddNode );
+	sgAlphaOneSwizzle->SetInput( 3, sgOne );
+
+	sgAlphaOneSwizzle->SetRedComponent( 0 );
+	sgAlphaOneSwizzle->SetGreenComponent( 1 );
+	sgAlphaOneSwizzle->SetBlueComponent( 2 );
+	sgAlphaOneSwizzle->SetAlphaComponent( 3 );
+
+	return sgAlphaOneSwizzle;
+}
+
+spShadingNode MaterialNodes::SetUpShadingNodes( MaterialNodes::BitmapNode& node,
+                                                std::basic_string<TCHAR>& tMaterialName,
+                                                std::basic_string<TCHAR>& tMaxMappingChannel,
+                                                Color& baseColor,
+                                                float baseAlpha,
+                                                TimeValue& time )
+{
+	spShadingColorNode sgDestinationNode = sg->CreateShadingColorNode();
+	sgDestinationNode->SetColor( baseColor.r, baseColor.g, baseColor.b, 1.0f );
+
+	spShadingColorNode sgBlendAmountNode = sg->CreateShadingColorNode();
+	sgBlendAmountNode->SetColor( baseAlpha, baseAlpha, baseAlpha, 1.0f );
+
+	spShadingNode sgShadingNode = GetShadingNode( node.mTexture, tMaxMappingChannel, baseColor, time );
+
+	spShadingInterpolateNode sgInterpolationNode = sg->CreateShadingInterpolateNode();
+	sgInterpolationNode->SetInput( 0, sgDestinationNode );
+	sgInterpolationNode->SetInput( 1, sgShadingNode );
+	sgInterpolationNode->SetInput( 2, sgBlendAmountNode );
+
+	return (spShadingNode)sgInterpolationNode;
+}
+
+spShadingNode MaterialNodes::SetUpShadingNodes( MaterialNodes::CompositeNode& node,
+                                                std::basic_string<TCHAR>& tMaterialName,
+                                                std::basic_string<TCHAR>& tMaxMappingChannel,
+                                                Color& baseColor,
+                                                float baseAlpha,
+                                                TimeValue& time )
+{
+	spShadingColorNode sgDestinationNode = sg->CreateShadingColorNode();
+	sgDestinationNode->SetColor( baseColor.r, baseColor.g, baseColor.b, 1 );
+
+	spShadingColorNode sgOne = sg->CreateShadingColorNode();
+	sgOne->SetColor( 1.f, 1.f, 1.f, 1.f );
+
+	spShadingColorNode sgZero = sg->CreateShadingColorNode();
+	sgZero->SetColor( 0.f, 0.f, 0.f, 0.f );
+
+	spShadingLayeredBlendNode sgLayeredBlendNode = sg->CreateShadingLayeredBlendNode();
+	sgLayeredBlendNode->SetInputCount( node.mNumLayers + 1 );
+	sgLayeredBlendNode->SetInput( 0, sgDestinationNode );
+	sgLayeredBlendNode->SetPerInputBlendType( 0, ETextureBlendType::Replace );
+	for( int index = 0; index < node.mNumLayers; ++index )
+	{
+		spShadingNode sgTextureChannelNode;
+		if( node.mTextures[ index ].mBitmap != nullptr )
+		{
+			sgTextureChannelNode = GetShadingNode( node.mTextures[ index ], tMaxMappingChannel, baseColor, time );
+		}
+		else
+		{
+			spShadingColorNode sgColorNode = sg->CreateShadingColorNode();
+			sgColorNode->SetColor( 1, 1, 1, 1 );
+			sgTextureChannelNode = sgColorNode;
+		}
+
+		spShadingNode sgMaskChannelNode;
+		if( node.mMaskEnabled[ index ] && node.mMasks[ index ].mBitmap != nullptr )
+		{
+			node.mMasks[ index ].mIsSRGB = false;
+			sgMaskChannelNode = GetShadingNode( node.mMasks[ index ], tMaxMappingChannel, baseColor, time );
+		}
+		else
+		{
+			spShadingColorNode sgBColorNode = sg->CreateShadingColorNode();
+			sgBColorNode->SetColor( 1, 1, 1, 1 );
+			sgMaskChannelNode = sgBColorNode;
+		}
+
+		spShadingNode sgMaskAlpha;
+		if( node.mMaskEnabled[ index ] && node.mMasks[ index ].mBitmap != nullptr )
+		{
+			// Extract Mask
+			////////////////////////////////////////////////////////////////////////////////////////////////////
+			spShadingSwizzlingNode sgRedExtract = sg->CreateShadingSwizzlingNode();
+			sgRedExtract->SetInput( 0, sgMaskChannelNode );
+			sgRedExtract->SetInput( 1, sgMaskChannelNode );
+			sgRedExtract->SetInput( 2, sgMaskChannelNode );
+			sgRedExtract->SetInput( 3, sgOne );
+			sgRedExtract->SetRedComponent( 0 );
+			sgRedExtract->SetGreenComponent( 0 );
+			sgRedExtract->SetBlueComponent( 0 );
+			sgRedExtract->SetAlphaComponent( 0 );
+
+			spShadingSwizzlingNode sgGreenExtract = sg->CreateShadingSwizzlingNode();
+			sgGreenExtract->SetInput( 0, sgMaskChannelNode );
+			sgGreenExtract->SetInput( 1, sgMaskChannelNode );
+			sgGreenExtract->SetInput( 2, sgMaskChannelNode );
+			sgGreenExtract->SetInput( 3, sgOne );
+			sgGreenExtract->SetRedComponent( 1 );
+			sgGreenExtract->SetGreenComponent( 1 );
+			sgGreenExtract->SetBlueComponent( 1 );
+			sgGreenExtract->SetAlphaComponent( 1 );
+
+			spShadingSwizzlingNode sgBlueExtract = sg->CreateShadingSwizzlingNode();
+			sgBlueExtract->SetInput( 0, sgMaskChannelNode );
+			sgBlueExtract->SetInput( 1, sgMaskChannelNode );
+			sgBlueExtract->SetInput( 2, sgMaskChannelNode );
+			sgBlueExtract->SetInput( 3, sgOne );
+			sgBlueExtract->SetRedComponent( 2 );
+			sgBlueExtract->SetGreenComponent( 2 );
+			sgBlueExtract->SetBlueComponent( 2 );
+			sgBlueExtract->SetAlphaComponent( 2 );
+
+			spShadingAddNode sgRedGreenAdd = sg->CreateShadingAddNode();
+			sgRedGreenAdd->SetInput( 0, sgRedExtract );
+			sgRedGreenAdd->SetInput( 1, sgGreenExtract );
+
+			spShadingAddNode sgRGBlueAdd = sg->CreateShadingAddNode();
+			sgRGBlueAdd->SetInput( 0, sgRedGreenAdd );
+			sgRGBlueAdd->SetInput( 1, sgBlueExtract );
+
+			spShadingColorNode sgOneThruThree = sg->CreateShadingColorNode();
+			sgOneThruThree->SetColor( 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f, 1.f );
+
+			spShadingMultiplyNode sgRGB_x_3 = sg->CreateShadingMultiplyNode();
+			sgRGB_x_3->SetInput( 0, sgRGBlueAdd );
+			sgRGB_x_3->SetInput( 1, sgOneThruThree );
+			////////////////////////////////////////////////////////////////////////////////////////////////////
+
+			spShadingSwizzlingNode sgMono = sg->CreateShadingSwizzlingNode();
+			sgMono->SetInput( 0, sgRGB_x_3 );
+			sgMono->SetInput( 1, sgRGB_x_3 );
+			sgMono->SetInput( 2, sgRGB_x_3 );
+			sgMono->SetInput( 3, sgRGB_x_3 );
+			sgMono->SetRedComponent( 0 );
+			sgMono->SetGreenComponent( 0 );
+			sgMono->SetBlueComponent( 0 );
+			sgMono->SetAlphaComponent( 0 );
+
+			sgMaskAlpha = sgMono;
+		}
+		else
+		{
+			sgMaskAlpha = sgOne;
+		}
+
+		const float nodeAlpha = node.mTextureOpacity[ index ] / 100.0f;
+
+		spShadingColorNode sgOpacityFactor = sg->CreateShadingColorNode();
+		sgOpacityFactor->SetColor( nodeAlpha, nodeAlpha, nodeAlpha, nodeAlpha );
+
+		spShadingMultiplyNode sMono_x_OpacityFactor = sg->CreateShadingMultiplyNode();
+		sMono_x_OpacityFactor->SetInput( 0, sgMaskAlpha );
+		sMono_x_OpacityFactor->SetInput( 1, sgOpacityFactor );
+
+		// Extract Texture Alpha
+		////////////////////////////////////////////////////////////////////////////////////////////////////
+		spShadingSwizzlingNode sgAlphaExtractFromTexture = sg->CreateShadingSwizzlingNode();
+		sgAlphaExtractFromTexture->SetInput( 0, sgTextureChannelNode );
+		sgAlphaExtractFromTexture->SetInput( 1, sgTextureChannelNode );
+		sgAlphaExtractFromTexture->SetInput( 2, sgTextureChannelNode );
+		sgAlphaExtractFromTexture->SetInput( 3, sgTextureChannelNode );
+		sgAlphaExtractFromTexture->SetRedComponent( 3 );
+		sgAlphaExtractFromTexture->SetGreenComponent( 3 );
+		sgAlphaExtractFromTexture->SetBlueComponent( 3 );
+		sgAlphaExtractFromTexture->SetAlphaComponent( 3 );
+
+		spShadingMultiplyNode sgTexAlpha_x_Mono = sg->CreateShadingMultiplyNode();
+		sgTexAlpha_x_Mono->SetInput( 0, sgAlphaExtractFromTexture );
+		sgTexAlpha_x_Mono->SetInput( 1, sMono_x_OpacityFactor );
+		////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		if( node.mTextureBlendmode[ index ] == ETextureBlendType::Alpha )
+		{
+			spShadingSwizzlingNode sgSwizzleOpacity = sg->CreateShadingSwizzlingNode();
+			sgSwizzleOpacity->SetInput( 0, sgTextureChannelNode );
+			sgSwizzleOpacity->SetInput( 1, sgTextureChannelNode );
+			sgSwizzleOpacity->SetInput( 2, sgTextureChannelNode );
+			sgSwizzleOpacity->SetInput( 3, sgTexAlpha_x_Mono );
+			sgSwizzleOpacity->SetRedComponent( 0 );
+			sgSwizzleOpacity->SetGreenComponent( 1 );
+			sgSwizzleOpacity->SetBlueComponent( 2 );
+			sgSwizzleOpacity->SetAlphaComponent( 3 );
+
+			sgLayeredBlendNode->SetInput( index + 1, sgSwizzleOpacity );
+			sgLayeredBlendNode->SetPerInputBlendType( index + 1, node.mTextureBlendmode[ index ] );
+		}
+		else if( node.mTextureBlendmode[ index ] == ETextureBlendType::Add || node.mTextureBlendmode[ index ] == ETextureBlendType::Subtract )
+		{
+			spShadingInterpolateNode sgInterpolateNode = sg->CreateShadingInterpolateNode();
+			sgInterpolateNode->SetInput( 0, sgOne );
+			sgInterpolateNode->SetInput( 1, sgTextureChannelNode );
+			sgInterpolateNode->SetInput( 2, sgTexAlpha_x_Mono );
+
+			sgLayeredBlendNode->SetInput( index + 1, sgInterpolateNode );
+			sgLayeredBlendNode->SetPerInputBlendType( index + 1, node.mTextureBlendmode[ index ] );
+		}
+		else if( node.mTextureBlendmode[ index ] == ETextureBlendType::Multiply )
+		{
+			spShadingInterpolateNode sgInterpolateNode = sg->CreateShadingInterpolateNode();
+			sgInterpolateNode->SetInput( 0, sgZero );
+			sgInterpolateNode->SetInput( 1, sgTextureChannelNode );
+			sgInterpolateNode->SetInput( 2, sgTexAlpha_x_Mono );
+
+			sgLayeredBlendNode->SetInput( index + 1, sgInterpolateNode );
+			sgLayeredBlendNode->SetPerInputBlendType( index + 1, node.mTextureBlendmode[ index ] );
+		}
+	}
+	return sgLayeredBlendNode;
+}
+
+const bool MaterialNodes::GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<AColor>* outValue )
+{
+	int itemCount = mParamBlock->Count( paramId );
+	for( int i = 0; i < itemCount; ++i )
+	{
+		outValue->emplace_back( mParamBlock->GetAColor( paramId, time, i ) );
+	}
+	return itemCount != 0;
+}
+
+const bool MaterialNodes::GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<int>* outValue )
+{
+	int itemCount = mParamBlock->Count( paramId );
+	for( int i = 0; i < itemCount; ++i )
+	{
+		outValue->emplace_back( mParamBlock->GetInt( paramId, time, i ) );
+	}
+	return itemCount != 0;
+}
+
+const bool MaterialNodes::GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<float>* outValue )
+{
+	int itemCount = mParamBlock->Count( paramId );
+	for( int i = 0; i < itemCount; ++i )
+	{
+		outValue->emplace_back( mParamBlock->GetFloat( paramId, time, i ) );
+	}
+	return itemCount != 0;
+}
+
+const bool MaterialNodes::GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<std::basic_string<TCHAR>>* outValue )
+{
+	int itemCount = mParamBlock->Count( paramId );
+	for( int i = 0; i < itemCount; ++i )
+	{
+		outValue->emplace_back( mParamBlock->GetStr( paramId, time, i ) );
+	}
+	return itemCount != 0;
+}
+
+const bool MaterialNodes::GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<Color>* outValue )
+{
+	int itemCount = mParamBlock->Count( paramId );
+	for( int i = 0; i < itemCount; ++i )
+	{
+		outValue->emplace_back( mParamBlock->GetColor( paramId, time, i ) );
+	}
+	return itemCount != 0;
+}
+
+const bool MaterialNodes::GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<CompositeNode::eMaxBlendMode>* outValue )
+{
+	int itemCount = mParamBlock->Count( paramId );
+	for( int i = 0; i < itemCount; ++i )
+	{
+		outValue->emplace_back( static_cast<CompositeNode::eMaxBlendMode>( mParamBlock->GetInt( paramId, time, i ) ) );
+	}
+	return itemCount != 0;
+}
+
+spShadingNode MaterialNodes::BuildNode( MaterialNodes::MaterialNodeBase* node,
+                                        std::basic_string<TCHAR>& tMaterialName,
+                                        std::basic_string<TCHAR>& tMaxMappingChannel,
+                                        Color& baseColor,
+                                        float baseAlpha,
+                                        TimeValue& time,
+                                        const float blendAmount )
+{
+	spShadingNode sgShadingNode;
+
+	switch( node->type )
+	{
+		case MaterialNodes::CompositeNode::eMultiplyNode:
+		{
+			sgShadingNode =
+			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::MultiplyNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
+			break;
+		}
+		case MaterialNodes::CompositeNode::eBitmapNode:
+		{
+			sgShadingNode =
+			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::BitmapNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
+			break;
+		}
+		case MaterialNodes::CompositeNode::eTintNode:
+		{
+			sgShadingNode =
+			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::TintNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
+			break;
+		}
+		case MaterialNodes::CompositeNode::eCompositeNode:
+		{
+			sgShadingNode =
+			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::CompositeNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
+			break;
+		}
+	}
+
+	spShadingColorNode sgColorNodeNode = sg->CreateShadingColorNode();
+	sgColorNodeNode->SetColor( baseColor.r, baseColor.g, baseColor.b, 1 );
+
+	spShadingColorNode sgBlendAmountNode = sg->CreateShadingColorNode();
+	sgBlendAmountNode->SetColor( blendAmount, blendAmount, blendAmount, 1 );
+
+	spShadingInterpolateNode sgBlendInterpolationNode = sg->CreateShadingInterpolateNode();
+	sgBlendInterpolationNode->SetInput( 0, sgColorNodeNode );
+	sgBlendInterpolationNode->SetInput( 1, sgShadingNode );
+	sgBlendInterpolationNode->SetInput( 2, sgBlendAmountNode );
+
+	return sgBlendInterpolationNode;
+}
+
+spShadingNode MaterialNodes::BuildNode( MaterialNodes::MaterialNodeBase* node,
+                                        long maxChannelId,
+                                        std::basic_string<TCHAR>& tMaterialName,
+                                        std::basic_string<TCHAR>& tChannelName,
+                                        std::basic_string<TCHAR>& tMaxMappingChannel,
+                                        Color& baseColor,
+                                        float baseAlpha,
+                                        TimeValue time )
+{
+	spShadingNode sgShadingNode = nullptr;
+
+	switch( node->type )
+	{
+		case MaterialNodes::CompositeNode::eMultiplyNode:
+		{
+			sgShadingNode =
+			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::MultiplyNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
+			break;
+		}
+		case MaterialNodes::CompositeNode::eBitmapNode:
+		{
+			sgShadingNode =
+			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::BitmapNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
+			break;
+		}
+		case MaterialNodes::CompositeNode::eTintNode:
+		{
+			sgShadingNode =
+			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::TintNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
+			break;
+		}
+		case MaterialNodes::CompositeNode::eCompositeNode:
+		{
+			sgShadingNode =
+			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::CompositeNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
+			break;
+		}
+	}
+
+	return sgShadingNode;
+}
+
+bool MaterialNodes::CompositeNode::Setup(
+    long maxChannelId, const char* cMaterialName, const char* cChannelName, std::vector<MaterialTextureOverride>* materialTextureOverrides, TimeValue time )
+{
+	std::vector<int> textureEnableFlags;
+	std::vector<int> maskEnableFlags;
+	std::vector<eMaxBlendMode> maxBlendMode;
+	std::vector<std::basic_string<TCHAR>> layerName;
+	std::vector<float> textureOpacity;
+
+	MaterialNodes::GetTexMapProperties<int>( mTexMap, _T("mapEnabled"), time, &textureEnableFlags );
+	MaterialNodes::GetTexMapProperties<int>( mTexMap, _T("maskEnabled"), time, &maskEnableFlags );
+	MaterialNodes::GetTexMapProperties<eMaxBlendMode>( mTexMap, _T("blendMode"), time, &maxBlendMode );
+	MaterialNodes::GetTexMapProperties<std::basic_string<TCHAR>>( mTexMap, _T("layerName"), time, &layerName );
+	MaterialNodes::GetTexMapProperties<float>( mTexMap, _T("opacity"), time, &textureOpacity );
+
+	for( int i = 0, j = 0; i < textureEnableFlags.size() * 2; i += 2, ++j )
+	{
+		// skip inactive layers
+		if( !textureEnableFlags[ j ] )
+		{
+			continue;
+		}
+
+		MaterialNodes::TextureData tex;
+		if( mTexMap->GetSubTexmap( i ) && mTexMap->GetSubTexmap( i )->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) )
+		{
+			tex.mBitmap = (BitmapTex*)mTexMap->GetSubTexmap( i );
+			MaterialNodes::WriteTextureMetadata( &tex, maxChannelId, cMaterialName, cChannelName, nullptr );
+		}
+
+		MaterialNodes::TextureData mask;
+		if( mTexMap->GetSubTexmap( i + 1 ) && mTexMap->GetSubTexmap( i + 1 )->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) )
+		{
+			mask.mBitmap = (BitmapTex*)mTexMap->GetSubTexmap( i + 1 );
+			MaterialNodes::WriteTextureMetadata( &mask, maxChannelId, cMaterialName, cChannelName, nullptr );
+		}
+
+		mMaskEnabled.emplace_back( maskEnableFlags[ j ] > 0 );
+		mLayerName.emplace_back( layerName[ j ] );
+		mTextureOpacity.emplace_back( textureOpacity[ j ] );
+		mTextures.emplace_back( tex );
+		mMasks.emplace_back( mask );
+
+		switch( maxBlendMode[ j ] )
+		{
+			case eMaxBlendMode::eNormal:
+			{
+				mTextureBlendmode.emplace_back( ETextureBlendType::Alpha );
+				break;
+			}
+			// case eMaxBlendMode::eAddition:
+			//{
+			//	mTextureBlendmode.emplace_back( ETextureBlendType::Add );
+			//	break;
+			//}
+			// case eMaxBlendMode::eSubtract:
+			//{
+			//	mTextureBlendmode.emplace_back( ETextureBlendType::Subtract );
+			//	break;
+			//}
+			// case eMaxBlendMode::eMultiply:
+			//{
+			//	mTextureBlendmode.emplace_back( ETextureBlendType::Multiply );
+			//	break;
+			//}
+			default:
+			{
+				std::basic_string<TCHAR> tMaterialName = ConstCharPtrToLPCTSTR( cMaterialName );
+				std::basic_string<TCHAR> tChannelName = ConstCharPtrToLPCTSTR( cChannelName );
+
+				// not supported
+				GlobalLogMaterialNodeMessage(
+				    mTexMap, tMaterialName, tChannelName, true, L"Blending mode unsupported, " + mLayerName[ j ] + L" defaulting to Normal blending mode." );
+				mTextureBlendmode.emplace_back( ETextureBlendType::Alpha );
+				break;
+			}
+		}
+	}
+	mNumLayers = static_cast<unsigned int>( mTextures.size() );
+	mNumTextureSlots = mNumLayers * 2;
+
+	// max ignores the first layer blendmode imitates max behavior
+	if( mNumLayers )
+	{
+		mTextureBlendmode[ 0 ] = ETextureBlendType::Alpha;
+	}
+
+	return true;
+}
+
+MaterialNodes::TextureData* MaterialNodes::CompositeNode::GetTexture( size_t index )
+{
+	size_t aIndex = index / 2;
+	if( aIndex < mMasks.size() && 1 & index )
+	{
+		return &mMasks[ aIndex ];
+	}
+	else if( aIndex < mTextures.size() )
+	{
+		return &mTextures[ aIndex ];
+	}
+	return nullptr;
+}
+
+bool MaterialNodes::TintNode::Setup(
+    long maxChannelId, const char* cMaterialName, const char* cChannelName, std::vector<MaterialTextureOverride>* materialTextureOverrides, TimeValue time )
+{
+	GetTexMapProperty<Color>( mTexMap, _T("red"), time, &mRedChannel );
+	GetTexMapProperty<Color>( mTexMap, _T("green"), time, &mGreenChannel );
+	GetTexMapProperty<Color>( mTexMap, _T("blue"), time, &mBlueChannel );
+
+	int isEnabled = 0;
+	const bool bEnableMapsFound = GetTexMapProperty<int>( mTexMap, _T("map1Enabled"), time, &isEnabled );
+	mIsEnabled = isEnabled == 1;
+
+	if( mTexMap->GetSubTexmap( 0 ) && mTexMap->GetSubTexmap( 0 )->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) )
+	{
+		mTexture.mBitmap = (BitmapTex*)mTexMap->GetSubTexmap( 0 );
+		MaterialNodes::WriteTextureMetadata( &mTexture, maxChannelId, cMaterialName, cChannelName, materialTextureOverrides );
+	}
+	return true;
+}
+
+MaterialNodes::TextureData* MaterialNodes::TintNode::GetTexture( size_t index )
+{
+	if( index == 0 )
+	{
+		return &mTexture;
+	}
+	return nullptr;
+}
+
+bool MaterialNodes::BitmapNode::Setup(
+    long maxChannelId, const char* cMaterialName, const char* cChannelName, std::vector<MaterialTextureOverride>* materialTextureOverrides, TimeValue time )
+{
+	mTexture.mBitmap = (BitmapTex*)mTexMap;
+
+	WriteTextureMetadata( &mTexture, maxChannelId, cMaterialName, cChannelName, materialTextureOverrides );
+
+	return true;
+}
+
+MaterialNodes::TextureData* MaterialNodes::BitmapNode::GetTexture( size_t index )
+{
+	if( index == 0 )
+	{
+		return &mTexture;
+	}
+	return nullptr;
+}
+
+bool MaterialNodes::MultiplyNode::Setup(
+    long maxChannelId, const char* cMaterialName, const char* cChannelName, std::vector<MaterialTextureOverride>* materialTextureOverrides, TimeValue time )
+{
+	const bool bHasColor[ 2 ] = { GetTexMapProperty<Color>( mTexMap, _T("color1"), time, &mColor[ 0 ] ),
+	                              GetTexMapProperty<Color>( mTexMap, _T("color2"), time, &mColor[ 1 ] ) };
+
+	int isEnabled[ 2 ] = { 0, 0 };
+	const bool bEnableMapsFound[ 2 ] = { GetTexMapProperty<int>( mTexMap, _T("map1Enabled"), time, &isEnabled[ 0 ] ),
+	                                     GetTexMapProperty<int>( mTexMap, _T("map2Enabled"), time, &isEnabled[ 1 ] ) };
+
+	int alphaFrom;
+	const bool alphaFromFound = GetTexMapProperty<int>( mTexMap, _T("alphaFrom"), time, &alphaFrom );
+
+	mAlphaFrom = (MultiplyNodeAlphaFrom)alphaFrom;
+	for( int i = 0; i < 2; ++i )
+	{
+		mIsEnabled[ i ] = isEnabled[ i ] == 1;
+		if( mTexMap->GetSubTexmap( i ) && mTexMap->GetSubTexmap( i )->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) )
+		{
+			mTexture[ i ].mBitmap = (BitmapTex*)mTexMap->GetSubTexmap( i );
+
+			WriteTextureMetadata( &mTexture[ i ], maxChannelId, cMaterialName, cChannelName, materialTextureOverrides );
+		}
+	}
+	return true;
+}
+
+MaterialNodes::TextureData* MaterialNodes::MultiplyNode::GetTexture( size_t index )
+{
+	return &mTexture[ index ];
+}
+
+void MaterialNodes::WriteTextureMetadata( MaterialNodes::TextureData* bitmapTex,
+                                          long maxChannelId,
+                                          const char* cMaterialName,
+                                          const char* cChannelName,
+                                          std::vector<MaterialTextureOverride>* materialTextureOverrides )
+{
+	TCHAR tTexturePath[ MAX_PATH ] = { 0 };
+	bool bIsSRGB = false;
+
+	// change sRGB based on gamma
+	const float gamma = GetBitmapTextureGamma( bitmapTex->mBitmap );
+	if( gamma <= 2.21000000f && gamma >= 2.19000000f )
+	{
+		bIsSRGB = true;
+	}
+	GetImageFullFilePath( bitmapTex->mBitmap->GetMapName(), tTexturePath );
+
+	if( _tcslen( tTexturePath ) > 0 )
+	{
+		// if normal map, disable sRGB
+		if( maxChannelId == ID_BU )
+		{
+			bIsSRGB = false;
+		}
+
+		if( materialTextureOverrides )
+		{
+			std::basic_string<TCHAR> tTexturePathOverride = _T("");
+			for( size_t channelIndex = 0; channelIndex < materialTextureOverrides->size(); ++channelIndex )
+			{
+				const MaterialTextureOverride& textureOverride = ( *materialTextureOverrides )[ channelIndex ];
+				if( strcmp( cMaterialName, LPCTSTRToConstCharPtr( textureOverride.MaterialName.c_str() ) ) == 0 )
+				{
+					if( strcmp( cChannelName, LPCTSTRToConstCharPtr( textureOverride.MappingChannelName.c_str() ) ) == 0 )
+					{
+						tTexturePathOverride = textureOverride.TextureFileName;
+						break;
+					}
+				}
+			}
+
+			if( tTexturePathOverride.length() > 0 )
+			{
+				_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
+			}
+		}
+
+		if( bIsSRGB )
+		{
+			IColorCorrectionMgr* idispGamMgr = (IColorCorrectionMgr*)GetCOREInterface( COLORCORRECTIONMGR_INTERFACE );
+			if( idispGamMgr )
+			{
+				auto mode = idispGamMgr->GetColorCorrectionMode();
+
+				if( mode == IColorCorrectionMgr::CorrectionMode::kNONE )
+				{
+					bIsSRGB = false;
+				}
+				else if( mode == IColorCorrectionMgr::CorrectionMode::kGAMMA )
+				{
+					float gammasetting = idispGamMgr->GetGamma();
+					if( !( gammasetting < 2.3f && gammasetting > 2.1f ) )
+					{
+						bIsSRGB = false;
+					}
+				}
+			}
+		}
+
+		bitmapTex->mTexturePathWithName = tTexturePath;
+		bitmapTex->mTextureName = GetTitleOfFile( bitmapTex->mTexturePathWithName );
+		bitmapTex->mTextureExtension = GetExtensionOfFile( bitmapTex->mTexturePathWithName );
+		bitmapTex->mTextureNameWithExtension = bitmapTex->mTextureName + bitmapTex->mTextureExtension;
+		bitmapTex->mIsSRGB = bIsSRGB;
+		bitmapTex->mUseAlphaAsTransparency = bitmapTex->mBitmap->GetAlphaAsRGB( TRUE ) == TRUE;
+		bitmapTex->mHasAlpha = TextureHasAlpha( LPCTSTRToConstCharPtr( bitmapTex->mTextureNameWithExtension.c_str() ) );
+		bitmapTex->mPremultipliedAlpha = bitmapTex->mBitmap->GetPremultAlpha( TRUE ) == TRUE;
+	}
 }
 
 class PhysicalMaterial
@@ -186,11 +1726,37 @@ class PhysicalMaterial
 
 	bool HasValidTexMap( Texmap* mTexMap, bool bIsEnabled )
 	{
-		if( bIsEnabled && mTexMap && ( mTexMap->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) ) )
+		if( bIsEnabled && mTexMap )
 		{
 			return true;
 		}
 
+		return false;
+	}
+
+	bool TexmapHasValidAlpha( Texmap* mTexMap )
+	{
+		if( mTexMap == nullptr )
+		{
+			return false;
+		}
+		else if( mTexMap->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) )
+		{
+			TCHAR tTexturepath[ MAX_PATH ];
+			BitmapTex* mBitmapTex = (BitmapTex*)mTexMap->GetSubTexmap( 0 );
+
+			if( mBitmapTex )
+			{
+				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturepath );
+
+				const bool bUseAlphaAsTransparency = mBitmapTex->GetAlphaAsRGB( TRUE ) == TRUE;
+
+				if( bUseAlphaAsTransparency && _tcslen( tTexturepath ) > 0 )
+				{
+					return TextureHasAlpha( LPCTSTRToConstCharPtr( tTexturepath ) );
+				}
+			}
+		}
 		return false;
 	}
 
@@ -227,7 +1793,10 @@ class PhysicalMaterial
 	bool ConvertToSimplygonMaterial( spMaterial sgMaterial, TimeValue& time )
 	{
 		spString rMaterialName = sgMaterial->GetName();
+		const char* cMaterialName = rMaterialName.c_str();
 		std::basic_string<TCHAR> tMaterialName = ConstCharPtrToLPCTSTR( rMaterialName.c_str() );
+
+		const long int maxChannelID = -1;
 
 		// save stack memory, declare once
 		TCHAR tTexturePath[ MAX_PATH ] = { 0 };
@@ -330,7 +1899,8 @@ class PhysicalMaterial
 									std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
 
 									// create a basic shading network
-									spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMappingChannel, tTextureName, time, bSRGB );
+									spShadingTextureNode sgTextureNode =
+									    MaterialNodes::CreateTextureNode( mBitmapTex, tMappingChannel, tTextureName, time, bSRGB );
 
 									// assign mapping channel if not already set
 									if( !( !sgTextureNode->GetTexCoordName().IsNullOrEmpty() && !sgTextureNode->GetTexCoordName().c_str() == NULL ) )
@@ -462,64 +2032,8 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mBaseWeightMap, mBaseWeightMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mBaseWeightMap;
-
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// fetch mapping channel
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mBaseWeightMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mBaseWeightMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else
 			{
@@ -537,7 +2051,7 @@ class PhysicalMaterial
 		if( !sgMaterial->HasMaterialChannel( "base_color" ) )
 		{
 			const char* cChannelName = "base_color";
-			const TCHAR* tChannelName = ConstCharPtrToLPCTSTR( cChannelName );
+			std::basic_string<TCHAR> tChannelName = ConstCharPtrToLPCTSTR( cChannelName );
 
 			this->CreateMaterialChannel( sgMaterial, tChannelName );
 
@@ -547,63 +2061,8 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mBaseColorMap, mBaseColorMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mBaseColorMap;
-
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// fetch mapping channel
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mBaseColorMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-					
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mBaseColorMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else if( mBaseColor )
 			{
@@ -641,67 +2100,9 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mReflectivityMap, mReflectivityMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mReflectivityMap;
-
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mReflectivityMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mReflectivityMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
-
 			else
 			{
 				// if there is a texmap of unsupported type enabled, output warning
@@ -728,65 +2129,8 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mReflColorMap, mReflColorMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mReflColorMap;
-
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mReflColorMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mReflColorMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else if( mReflColor )
 			{
@@ -823,89 +2167,33 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mRougnessMap, mRoughnessMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mRougnessMap;
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mRougnessMap, maxChannelID, cMaterialName, cChannelName );
 
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
+				spShadingNode sgExitNode = nullptr;
+				if( mRoughnessInv )
 				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mRougnessMap );
+					spShadingColorNode sgNegativeNode = sg->CreateShadingColorNode();
+					sgNegativeNode->SetColor( -1.0f, -1.0f, -1.0f, 1.0f );
 
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
+					spShadingColorNode sgPositiveNode = sg->CreateShadingColorNode();
+					sgPositiveNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
 
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
+					spShadingMultiplyNode sgMultiplyNode = sg->CreateShadingMultiplyNode();
+					sgMultiplyNode->SetInput( 0, sgNegativeNode );
+					sgMultiplyNode->SetInput( 1, sgShadingNode );
 
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
+					spShadingAddNode sgAddNode = sg->CreateShadingAddNode();
+					sgAddNode->SetInput( 0, sgMultiplyNode );
+					sgAddNode->SetInput( 1, sgPositiveNode );
 
-					spShadingNode sgExitNode = nullptr;
-					if( mRoughnessInv )
-					{
-						spShadingColorNode sgNegativeNode = sg->CreateShadingColorNode();
-						sgNegativeNode->SetColor( -1.0f, -1.0f, -1.0f, 1.0f );
-
-						spShadingColorNode sgPositiveNode = sg->CreateShadingColorNode();
-						sgPositiveNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
-
-						spShadingMultiplyNode sgMultiplyNode = sg->CreateShadingMultiplyNode();
-						sgMultiplyNode->SetInput( 0, sgNegativeNode );
-						sgMultiplyNode->SetInput( 1, sgTextureNode );
-
-						spShadingAddNode sgAddNode = sg->CreateShadingAddNode();
-						sgAddNode->SetInput( 0, sgMultiplyNode );
-						sgAddNode->SetInput( 1, sgPositiveNode );
-
-						sgExitNode = (spShadingNode)sgAddNode;
-					}
-					else
-					{
-						sgExitNode = (spShadingNode)sgTextureNode;
-					}
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgExitNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
+					sgExitNode = (spShadingNode)sgAddNode;
 				}
+				else
+				{
+					sgExitNode = (spShadingNode)sgShadingNode;
+				}
+
+				sgMaterial->SetShadingNetwork( cChannelName, sgExitNode );
 			}
 			else
 			{
@@ -941,65 +2229,8 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mDiffRoughMap, mDiffRoughMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mDiffRoughMap;
-
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mDiffRoughMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mDiffRoughMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else
 			{
@@ -1027,65 +2258,8 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mMetalnessMap, mMetalnessMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mMetalnessMap;
-
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mMetalnessMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mMetalnessMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else
 			{
@@ -1113,65 +2287,8 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mTransIORMap, mTransIORMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mTransIORMap;
-
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mTransIORMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mTransIORMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else
 			{
@@ -1205,43 +2322,18 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mTransparencyMap, mTransparencyMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mTransparencyMap;
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mTransparencyMap, maxChannelID, cMaterialName, cChannelName );
 
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-				const bool bUseAlphaAsTransparency = mBitmapTex->GetAlphaAsRGB( TRUE ) == TRUE;
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
+				if( mTransparencyMap->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) )
 				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mTransparencyMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
+					const bool bTextureHasAlpha = TexmapHasValidAlpha( mTransparencyMap );
 
 					spShadingSwizzlingNode sgSwizzleNode = sg->CreateShadingSwizzlingNode();
-					sgSwizzleNode->SetInput( 0, sgTextureNode );
-					sgSwizzleNode->SetInput( 1, sgTextureNode );
-					sgSwizzleNode->SetInput( 2, sgTextureNode );
-					sgSwizzleNode->SetInput( 3, sgTextureNode );
-
-					const bool bTextureHasAlpha = TextureHasAlpha( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-					if( bTextureHasAlpha && bUseAlphaAsTransparency )
+					sgSwizzleNode->SetInput( 0, sgShadingNode );
+					sgSwizzleNode->SetInput( 1, sgShadingNode );
+					sgSwizzleNode->SetInput( 2, sgShadingNode );
+					sgSwizzleNode->SetInput( 3, sgShadingNode );
+					if( bTextureHasAlpha )
 					{
 						sgSwizzleNode->SetRedComponent( 3 );
 						sgSwizzleNode->SetGreenComponent( 3 );
@@ -1257,36 +2349,10 @@ class PhysicalMaterial
 					}
 
 					sgMaterial->SetShadingNetwork( cChannelName, sgSwizzleNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
+				}
+				else
+				{
+					sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 				}
 			}
 			else
@@ -1315,65 +2381,8 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mTransColorMap, mTransColorMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mTransColorMap;
-
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mTransColorMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mTransColorMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else if( mTransColor )
 			{
@@ -1443,65 +2452,8 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mTransRoughMap, mTransRoughMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mTransRoughMap;
-
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mTransRoughMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mTransRoughMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else
 			{
@@ -1539,65 +2491,8 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mScatteringMap, mScatteringMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mScatteringMap;
-
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mScatteringMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mScatteringMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else
 			{
@@ -1625,65 +2520,8 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mSSSColorMap, mSSSColorMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mSSSColorMap;
-
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mSSSColorMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mSSSColorMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else if( mSSSColor )
 			{
@@ -1737,81 +2575,23 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mSSSScaleMap, mSSSScaleMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mSSSScaleMap;
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mSSSScaleMap, maxChannelID, cMaterialName, cChannelName );
 
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
+				// not sure if combining is preferred?!
+				spShadingColorNode sgScaleColorNode = sg->CreateShadingColorNode();
 
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
+				// fit depth of 0 - 1000 into 0.0 - 1.0, truncate everything larger than 1000
+				// combine depth and scale into same texture
+				float correctedDepth = clamp( mSSSDepth / 1000.0f, 0.0f, 1.0f );
+				float combinedScaleAndDepth = mSSSScale * correctedDepth;
 
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mSSSScaleMap );
+				sgScaleColorNode->SetColor( combinedScaleAndDepth, combinedScaleAndDepth, combinedScaleAndDepth, 1.0f );
 
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
+				spShadingMultiplyNode sgMultiplyNode = sg->CreateShadingMultiplyNode();
+				sgMultiplyNode->SetInput( 0, sgScaleColorNode );
+				sgMultiplyNode->SetInput( 1, sgShadingNode );
 
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					// not sure if combining is preferred?!
-					spShadingColorNode sgScaleColorNode = sg->CreateShadingColorNode();
-
-					// fit depth of 0 - 1000 into 0.0 - 1.0, truncate everything larger than 1000
-					// combine depth and scale into same texture
-					float correctedDepth = clamp( mSSSDepth / 1000.0f, 0.0f, 1.0f );
-					float combinedScaleAndDepth = mSSSScale * correctedDepth;
-
-					sgScaleColorNode->SetColor( combinedScaleAndDepth, combinedScaleAndDepth, combinedScaleAndDepth, 1.0f );
-
-					spShadingMultiplyNode sgMultiplyNode = sg->CreateShadingMultiplyNode();
-					sgMultiplyNode->SetInput( 0, sgScaleColorNode );
-					sgMultiplyNode->SetInput( 1, sgTextureNode );
-
-					spShadingNode sgExitNode = (spShadingNode)sgMultiplyNode;
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgExitNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				sgMaterial->SetShadingNetwork( cChannelName, sgMultiplyNode );
 			}
 			else
 			{
@@ -1846,64 +2626,8 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mEmissionMap, mEmissionMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mEmissionMap;
-
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// fetch mapping channel
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mEmissionMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mEmissionMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else
 			{
@@ -1931,64 +2655,8 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mEmitColorMap, mEmitColorMapOn ) )
 			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mEmitColorMap;
-
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// fetch mapping channel
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mEmitColorMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mEmitColorMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else if( mEmitColor )
 			{
@@ -2051,76 +2719,10 @@ class PhysicalMaterial
 			float mBumpMapAmt = this->GetFloat( _T("bump_map_amt") );
 			bool mBumpMapOn = this->GetBool( _T("bump_map_on") );
 
-			if( HasValidTexMap( mBumpMap, mBumpMapOn ) || ( mBumpMap && mBumpMapOn && mBumpMap->ClassID() == GNORMAL_CLASS_ID && mBumpMap->GetSubTexmap( 0 ) ) )
+			if( HasValidTexMap( mBumpMap, mBumpMapOn ) )
 			{
-				this->CreateMaterialChannel( sgMaterial, tChannelName );
-
-				// retrieve the texture file path
-				BitmapTex* mBitmapTex = (BitmapTex*)mBumpMap;
-
-				if( mBumpMap->ClassID() == GNORMAL_CLASS_ID )
-				{
-					mBumpMap = mBumpMap->GetSubTexmap( 0 );
-					mBitmapTex = (BitmapTex*)mBumpMap;
-				}
-
-				const bool bIsSRGB = false;
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mBumpMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mBumpMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else
 			{
@@ -2140,77 +2742,10 @@ class PhysicalMaterial
 			float mClearCoatBumpMapAmt = true ? 1.0f : this->GetFloat( _T("clearcoat_bump_map_amt") );
 			bool mCoatBumpMapOn = this->GetBool( _T("coat_bump_map_on") );
 
-			if( HasValidTexMap( mCoatBumpMap, mCoatBumpMapOn ) ||
-			    ( mCoatBumpMap && mCoatBumpMapOn && mCoatBumpMap->ClassID() == GNORMAL_CLASS_ID && mCoatBumpMap->GetSubTexmap( 0 ) ) )
+			if( HasValidTexMap( mCoatBumpMap, mCoatBumpMapOn ) )
 			{
-				this->CreateMaterialChannel( sgMaterial, tChannelName );
-
-				// retrieve the texture file path
-				BitmapTex* mBitmapTex = (BitmapTex*)mCoatBumpMap;
-
-				if( mCoatBumpMap->ClassID() == GNORMAL_CLASS_ID )
-				{
-					mCoatBumpMap = mCoatBumpMap->GetSubTexmap( 0 );
-					mBitmapTex = (BitmapTex*)mCoatBumpMap;
-				}
-
-				const bool bIsSRGB = false;
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mCoatBumpMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mCoatBumpMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else
 			{
@@ -2232,75 +2767,16 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mDisplacementMap, mDisplacementMapOn ) )
 			{
-				this->CreateMaterialChannel( sgMaterial, tChannelName );
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mDisplacementMap, maxChannelID, cMaterialName, cChannelName );
 
-				// retrieve the texture file path
-				BitmapTex* mBitmapTex = (BitmapTex*)mDisplacementMap;
+				spShadingColorNode sgColorNode = sg->CreateShadingColorNode();
+				sgColorNode->SetColor( mDisplacementMapAmt, mDisplacementMapAmt, mDisplacementMapAmt, 1.0f );
 
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
+				spShadingMultiplyNode sgMultiplyNode = sg->CreateShadingMultiplyNode();
+				sgMultiplyNode->SetInput( 0, sgColorNode );
+				sgMultiplyNode->SetInput( 1, sgShadingNode );
 
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mDisplacementMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					spShadingColorNode sgColorNode = sg->CreateShadingColorNode();
-					sgColorNode->SetColor( mDisplacementMapAmt, mDisplacementMapAmt, mDisplacementMapAmt, 1.0f );
-
-					spShadingMultiplyNode sgMultiplyNode = sg->CreateShadingMultiplyNode();
-					sgMultiplyNode->SetInput( 0, sgColorNode );
-					sgMultiplyNode->SetInput( 1, sgTextureNode );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgMultiplyNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				sgMaterial->SetShadingNetwork( cChannelName, sgMultiplyNode );
 			}
 			else
 			{
@@ -2323,66 +2799,8 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mCutoutMap, mCutoutMapOn ) )
 			{
-				// retrieve the texture file path
-				BitmapTex* mBitmapTex = (BitmapTex*)mCutoutMap;
-
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mCutoutMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mCutoutMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else
 			{
@@ -2412,66 +2830,8 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mCoatMap, mCoatMapOn ) )
 			{
-				// retrieve the texture file path
-				BitmapTex* mBitmapTex = (BitmapTex*)mCoatMap;
-
-				bool bIsSRGB = IsSRGB( mBitmapTex );
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mCoatMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mCoatMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else
 			{
@@ -2499,66 +2859,8 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mCoatColorMap, mCoatColorMapOn ) )
 			{
-				// retrieve the texture file path
-				BitmapTex* mBitmapTex = (BitmapTex*)mCoatColorMap;
-
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
-				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mCoatColorMap );
-
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
-
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
-
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
-				}
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mCoatColorMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else if( mCoatColor )
 			{
@@ -2595,90 +2897,33 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mCoatRoughMap, mCoatRoughMapOn ) )
 			{
-				// retrieve the texture file path
-				BitmapTex* mBitmapTex = (BitmapTex*)mCoatRoughMap;
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mCoatRoughMap, maxChannelID, cMaterialName, cChannelName );
 
-				const bool bIsSRGB = IsSRGB( mBitmapTex );
-
-				GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-				// if the texture path was found
-				if( _tcslen( tTexturePath ) > 0 )
+				spShadingNode sgExitNode = nullptr;
+				if( mCoatRoughnessInv )
 				{
-					// set mapping channel to 1
-					std::basic_string<TCHAR> tMaxMappingChannel = GetMappingChannelAsString( mCoatRoughMap );
+					spShadingColorNode sgNegativeNode = sg->CreateShadingColorNode();
+					sgNegativeNode->SetColor( -1.0f, -1.0f, -1.0f, 1.0f );
 
-					std::basic_string<TCHAR> tTexturePathOverride = _T("");
-					if( tTexturePathOverride.length() > 0 )
-					{
-						_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-					}
+					spShadingColorNode sgPositiveNode = sg->CreateShadingColorNode();
+					sgPositiveNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
 
-					// import texture
-					std::basic_string<TCHAR> tTexturePathWithName = MaxReference->ImportTexture( std::basic_string<TCHAR>( tTexturePath ) );
-					std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
+					spShadingMultiplyNode sgMultiplyNode = sg->CreateShadingMultiplyNode();
+					sgMultiplyNode->SetInput( 0, sgNegativeNode );
+					sgMultiplyNode->SetInput( 1, sgShadingNode );
 
-					// create a basic shading network
-					spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, time, bIsSRGB );
+					spShadingAddNode sgAddNode = sg->CreateShadingAddNode();
+					sgAddNode->SetInput( 0, sgMultiplyNode );
+					sgAddNode->SetInput( 1, sgPositiveNode );
 
-					spShadingNode sgExitNode = nullptr;
-					if( mCoatRoughnessInv )
-					{
-						spShadingColorNode sgNegativeNode = sg->CreateShadingColorNode();
-						sgNegativeNode->SetColor( -1.0f, -1.0f, -1.0f, 1.0f );
-
-						spShadingColorNode sgPositiveNode = sg->CreateShadingColorNode();
-						sgPositiveNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
-
-						spShadingMultiplyNode sgMultiplyNode = sg->CreateShadingMultiplyNode();
-						sgMultiplyNode->SetInput( 0, sgNegativeNode );
-						sgMultiplyNode->SetInput( 1, sgTextureNode );
-
-						spShadingAddNode sgAddNode = sg->CreateShadingAddNode();
-						sgAddNode->SetInput( 0, sgMultiplyNode );
-						sgAddNode->SetInput( 1, sgPositiveNode );
-
-						sgExitNode = (spShadingNode)sgAddNode;
-					}
-					else
-					{
-						sgExitNode = (spShadingNode)sgTextureNode;
-					}
-
-					sgMaterial->SetShadingNetwork( cChannelName, sgExitNode );
-
-					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
-
-					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-					    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
-					bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
-
-					if( bTextureInUse )
-					{
-						sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
-						    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-					}
-					else
-					{
-						sgTexture = sg->CreateTexture();
-						sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-						sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-						MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->AddTexture( sgTexture );
-					}
-
-					// if the texture was not already in scene, copy it to local work folder
-					if( !bTextureInUse )
-					{
-						const spString rTexturePathWithName = sgTexture->GetFilePath();
-						MaxReference->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-						    tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-					}
+					sgExitNode = (spShadingNode)sgAddNode;
 				}
+				else
+				{
+					sgExitNode = (spShadingNode)sgShadingNode;
+				}
+
+				sgMaterial->SetShadingNetwork( cChannelName, sgExitNode );
 			}
 			else
 			{
@@ -2844,6 +3089,8 @@ SimplygonMax::SimplygonMax()
 	this->MaxInterface = nullptr;
 	this->CurrentTime = 0;
 
+	this->MaxScriptLocale = _create_locale( LC_ALL, "en-US" );
+
 	this->extractionType = BATCH_PROCESSOR;
 	this->TextureCoordinateRemapping = 0;
 	this->LockSelectedVertices = false;
@@ -2870,6 +3117,8 @@ SimplygonMax::SimplygonMax()
 	this->RunDebugger = false;
 
 	this->PipelineRunMode = 1;
+
+	this->AllowUnsafeImport = false;
 
 	this->ShowProgress = true;
 
@@ -2922,6 +3171,8 @@ SimplygonMax::~SimplygonMax()
 	this->GlobalMaxToSgMaterialMap.clear();
 	this->GlobalSgToMaxMaterialMap.clear();
 	this->GlobalExportedMaterialMap.clear();
+
+	_free_locale( this->MaxScriptLocale );
 }
 
 void SimplygonMax::Reset()
@@ -2951,6 +3202,8 @@ void SimplygonMax::Reset()
 
 	this->PipelineRunMode = 1;
 
+	this->AllowUnsafeImport = false;
+
 	this->TextureCoordinateRemapping = 0;
 	this->MaxNumBonesPerVertex = Simplygon::SG_NUM_SUPPORTED_BONES_PER_VERTEX;
 	this->LockSelectedVertices = false;
@@ -2972,12 +3225,6 @@ void SimplygonMax::Reset()
 
 	this->CachedMaterialInfos.clear();
 
-	this->MaxBoneToSgBone.clear();
-	this->SgBoneToMaxBone.clear();
-	this->SgBoneIdToIndex.clear();
-
-	this->MaxSgNodeMap.clear();
-	this->SgMaxNodeMap.clear();
 	this->GlobalExportedMaterialMap.clear();
 	this->GlobalMaxToSgMaterialMap.clear();
 
@@ -2986,10 +3233,6 @@ void SimplygonMax::Reset()
 	this->SelectionSetEdgesMap.clear();
 
 	this->DefaultPrefix = std::basic_string<TCHAR>( _T("_LOD") );
-
-	this->LoadedTexturePathToID.clear();
-
-	this->ImportedTextures.clear();
 
 	this->ClearShadingNetworkInfo( true );
 
@@ -3000,9 +3243,9 @@ void SimplygonMax::Reset()
 
 	this->SetUseNewMaterialSystem( false );
 
-	this->ImportedMaxIndexToUv.clear();
-	this->ImportedUvNameToMaxIndex.clear();
 	this->GlobalGuidToMaxNodeMap.clear();
+
+	this->RequiredCleanUp();
 }
 
 bool SimplygonMax::Initialize()
@@ -3096,6 +3339,8 @@ bool SimplygonMax::ExportSceneToFile( std::basic_string<TCHAR> tExportFilePath )
 	{
 		return false;
 	}
+	// store mapping in scene, for cross session import
+	this->WriteMaterialMappingAttribute();
 
 	const bool bSceneSaved = this->SceneHandler->sgScene->SaveToFile( LPCTSTRToConstCharPtr( tExportFilePath.c_str() ) );
 
@@ -3356,6 +3601,9 @@ bool SimplygonMax::CreateSceneGraph( INode* mMaxNode, spSceneNode sgNode, std::v
 	const char* cNodeName = LPCTSTRToConstCharPtr( mMaxNode->GetName() );
 	sgCreatedNode->SetName( cNodeName );
 
+	ULONG mUniquehandle = mMaxNode->GetHandle();
+	sgCreatedNode->SetUserData( "MAX_UniqueHandle", &mUniquehandle, sizeof( ULONG ) );
+
 	sgCreatedNode->SetIsFrozen( mMaxNode->IsFrozen() > 0 );
 
 	sgNode->AddChild( sgCreatedNode );
@@ -3471,6 +3719,175 @@ void SimplygonMax::PopulateActiveSets()
 	}
 }
 
+void SimplygonMax::WriteMaterialMappingAttribute()
+{
+	// calculate required memory for "MAX_MaterialMappingData" attribute
+	uint attributeDataSize = 0;
+
+	const size_t numMaterials = this->GlobalExportedMaterialMap.size();
+	attributeDataSize += sizeof( size_t ); // numMaterials
+
+	for( size_t materialIndex = 0; materialIndex < numMaterials; ++materialIndex )
+	{
+		MaxMaterialMap* materialMap = this->GlobalExportedMaterialMap[ materialIndex ];
+
+		// sgMaterialName
+		const size_t numSubMaterials = materialMap->SGToMaxMapping.size();
+		const char* cMaterialName = LPCTSTRToConstCharPtr( materialMap->sgMaterialName.c_str() );
+		const size_t numMaterialNameChars = strlen( cMaterialName ) + 1; // trailing zero is always included in string
+
+		// sgMaterialId
+		const char* cMaterialId = materialMap->sgMaterialId.c_str();
+		const size_t numMaterialIdChars = strlen( cMaterialId ) + 1;
+
+		attributeDataSize += sizeof( ULONG );                                                  // uniqueHandle
+		attributeDataSize += sizeof( size_t );                                                 // materialId length
+		attributeDataSize += sizeof( char ) * (uint)numMaterialIdChars;                        // materialId
+		attributeDataSize += sizeof( size_t );                                                 // materialName length
+		attributeDataSize += sizeof( char ) * (uint)numMaterialNameChars;                      // materialName
+		attributeDataSize += sizeof( size_t );                                                 // numSubMaterials
+		attributeDataSize += (uint)materialMap->SGToMaxMapping.size() * ( sizeof( int ) * 2 ); // numSubMaterials * <int, int>
+	}
+
+	// write data to attibute memory
+	uchar* attributeData = new uchar[ attributeDataSize ];
+	uint attributeDataOffset = 0;
+
+	// write numMaterials
+	memcpy_s( &attributeData[ attributeDataOffset ], sizeof( size_t ), &numMaterials, sizeof( size_t ) );
+	attributeDataOffset += sizeof( size_t );
+
+	// write materials and sub-material indices
+	for( size_t materialIndex = 0; materialIndex < numMaterials; ++materialIndex )
+	{
+		MaxMaterialMap* mMap = this->GlobalExportedMaterialMap[ materialIndex ];
+		const size_t numSubMaterials = mMap->SGToMaxMapping.size();
+
+		// write uniqueHandle
+		const ULONG uniqueHandle = mMap->mMaxMaterialHandle;
+		memcpy_s( &attributeData[ attributeDataOffset ], sizeof( ULONG ), &uniqueHandle, sizeof( ULONG ) );
+		attributeDataOffset += sizeof( ULONG );
+
+		// write sgMaterialId
+		const char* cMaterialId = mMap->sgMaterialId.c_str();
+		const size_t numMaterialIdChars = strlen( cMaterialId ) + 1;
+		const size_t materialIdSize = sizeof( char ) * numMaterialIdChars;
+
+		memcpy_s( &attributeData[ attributeDataOffset ], sizeof( size_t ), &materialIdSize, sizeof( size_t ) );
+		attributeDataOffset += sizeof( size_t );
+
+		memcpy_s( &attributeData[ attributeDataOffset ], materialIdSize, cMaterialId, materialIdSize );
+		attributeDataOffset += (uint)materialIdSize;
+
+		// write sgMaterialName
+		const char* cMaterialName = LPCTSTRToConstCharPtr( mMap->sgMaterialName.c_str() );
+		const size_t numMaterialNameChars = strlen( cMaterialName ) + 1;
+		const size_t materialNameSize = sizeof( char ) * numMaterialNameChars;
+
+		memcpy_s( &attributeData[ attributeDataOffset ], sizeof( size_t ), &materialNameSize, sizeof( size_t ) );
+		attributeDataOffset += sizeof( size_t );
+
+		memcpy_s( &attributeData[ attributeDataOffset ], materialNameSize, cMaterialName, materialNameSize );
+		attributeDataOffset += (uint)materialNameSize;
+
+		// write numSubMaterials
+		memcpy_s( &attributeData[ attributeDataOffset ], sizeof( size_t ), &numSubMaterials, sizeof( size_t ) );
+		attributeDataOffset += sizeof( size_t );
+
+		// write subMaterial mapping indices
+		for( std::map<int, int>::const_iterator& subIndexmap = mMap->MaxToSGMapping.begin(); subIndexmap != mMap->MaxToSGMapping.end(); subIndexmap++ )
+		{
+			// first
+			memcpy_s( &attributeData[ attributeDataOffset ], sizeof( int ), &subIndexmap->first, sizeof( int ) );
+			attributeDataOffset += sizeof( int );
+
+			// second
+			memcpy_s( &attributeData[ attributeDataOffset ], sizeof( int ), &subIndexmap->second, sizeof( int ) );
+			attributeDataOffset += sizeof( int );
+		}
+	}
+
+	// write attribute to sgScene
+	spScene sgScene = this->SceneHandler->sgScene;
+	sgScene->SetUserData( "MAX_MaterialMappingData", attributeData, attributeDataSize );
+
+	delete[] attributeData;
+}
+
+void SimplygonMax::ReadMaterialMappingAttribute( spScene sgScene )
+{
+	// make sure mapping data is cleared
+	this->CleanUpGlobalMaterialMappingData();
+
+	spUnsignedCharData sgMappingData = sgScene->GetUserData( "MAX_MaterialMappingData" );
+	if( sgMappingData.IsNullOrEmpty() )
+		return;
+
+	uint dataOffset = 0;
+	const unsigned char* cData = sgMappingData.Data();
+
+	// read numMaterials
+	size_t numMaterials = 0;
+	memcpy_s( &numMaterials, sizeof( size_t ), &cData[ dataOffset ], sizeof( size_t ) );
+	dataOffset += sizeof( size_t );
+
+	for( size_t materialIndex = 0; materialIndex < numMaterials; ++materialIndex )
+	{
+		// read uniqueHandle
+		ULONG uniqueHandle = 0;
+		memcpy_s( &uniqueHandle, sizeof( ULONG ), &cData[ dataOffset ], sizeof( ULONG ) );
+		dataOffset += sizeof( ULONG );
+
+		// read sgMaterialId
+		size_t materialIdLength = 0;
+		memcpy_s( &materialIdLength, sizeof( size_t ), &cData[ dataOffset ], sizeof( size_t ) );
+		dataOffset += sizeof( size_t );
+
+		size_t materialIdSize = sizeof( char ) * materialIdLength;
+		char* cMaterialIdBuffer = new char[ materialIdLength ];
+		memcpy_s( cMaterialIdBuffer, materialIdSize, &cData[ dataOffset ], materialIdSize );
+		dataOffset += (uint)materialIdSize;
+
+		// read sgMaterialName
+		size_t nameLength = 0;
+		memcpy_s( &nameLength, sizeof( size_t ), &cData[ dataOffset ], sizeof( size_t ) );
+		dataOffset += sizeof( size_t );
+
+		size_t nameSize = sizeof( char ) * nameLength;
+		char* cMaterialNameBuffer = new char[ nameLength ];
+		memcpy_s( cMaterialNameBuffer, nameSize, &cData[ dataOffset ], nameSize );
+		dataOffset += (uint)nameSize;
+
+		// read numSubMaterials
+		size_t numSubMaterials = 0;
+		memcpy_s( &numSubMaterials, sizeof( size_t ), &cData[ dataOffset ], sizeof( size_t ) );
+		dataOffset += sizeof( size_t );
+
+		const TCHAR* tMaterialName = ConstCharPtrToLPCTSTR( cMaterialNameBuffer );
+
+		MaxMaterialMap* mMap = new MaxMaterialMap( uniqueHandle, tMaterialName, cMaterialIdBuffer );
+		delete[] cMaterialNameBuffer;
+		delete[] cMaterialIdBuffer;
+
+		// read sub-material map
+		for( size_t subMaterialIndex = 0; subMaterialIndex < numSubMaterials; ++subMaterialIndex )
+		{
+			// read first
+			int first = 0;
+			memcpy_s( &first, sizeof( int ), &cData[ dataOffset ], sizeof( int ) );
+			dataOffset += sizeof( int );
+
+			int second = 0;
+			memcpy_s( &second, sizeof( int ), &cData[ dataOffset ], sizeof( int ) );
+			dataOffset += sizeof( int );
+
+			mMap->AddSubMaterialMapping( first, second );
+		}
+
+		this->GlobalExportedMaterialMap.push_back( mMap );
+	}
+}
+
 // Optimize geometries
 bool SimplygonMax::ProcessLODMeshes()
 {
@@ -3545,6 +3962,9 @@ bool SimplygonMax::ProcessLODMeshes()
 		return false;
 	}
 
+	// store mapping in scene, for cross session import
+	this->WriteMaterialMappingAttribute();
+
 	// run Simplygon
 	this->LogToWindow( _T("Execute process...") );
 
@@ -3592,6 +4012,9 @@ bool SimplygonMax::ExtractScene()
 	// correct number of bones per vertex
 	this->MaxNumBonesPerVertex =
 	    this->MaxNumBonesPerVertex > Simplygon::SG_NUM_SUPPORTED_BONES_PER_VERTEX ? Simplygon::SG_NUM_SUPPORTED_BONES_PER_VERTEX : this->MaxNumBonesPerVertex;
+
+	// make sure previous mappings are cleared
+	this->RequiredCleanUp();
 
 	// create Simplygon scene
 	this->SceneHandler = new Scene();
@@ -4215,6 +4638,902 @@ void SimplygonMax::AddToObjectSelectionSet( INode* mMaxNode )
 	}     // end set loop
 }
 
+#pragma region MORPHER
+void SimplygonMax::RegisterMorphScripts()
+{
+	static BOOL bMorphScriptInitialized = FALSE;
+
+	if( bMorphScriptInitialized )
+		return;
+
+	std::basic_string<TCHAR> tMorphScript = _T("");
+
+	tMorphScript += _T("fn Simplygon_GetActiveMorphChannels nodeHandle =																				   \n");
+	tMorphScript += _T("(																																   \n");
+	// tMorphScript += _T("	print \"\nSimplygon_GetActiveMorphChannels()\"																				   \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle																						   \n");
+	tMorphScript += _T("	activeMorphChannels = #()																									   \n");
+	tMorphScript += _T("	for channelIndex = 1 to 100 do																								   \n");
+	tMorphScript += _T("	(																															   \n");
+	tMorphScript += _T("		if WM3_MC_HasData obj.morpher channelIndex then																			   \n");
+	tMorphScript += _T("		(																														   \n");
+	tMorphScript += _T("			if WM3_MC_IsValid obj.morpher channelIndex and WM3_MC_IsActive obj.morpher channelIndex then						   \n");
+	tMorphScript += _T("			(																													   \n");
+	tMorphScript += _T("				append activeMorphChannels channelIndex																			   \n");
+	tMorphScript += _T("			)																													   \n");
+	tMorphScript += _T("		)																														   \n");
+	tMorphScript += _T("	)																															   \n");
+	tMorphScript += _T("	activeMorphChannels																											   \n");
+	tMorphScript += _T(")																																   \n");
+	tMorphScript += _T("fn Simplygon_GetProgressiveWeights nodeHandle channelIndex =																	   \n");
+	tMorphScript += _T("(																																   \n");
+	// tMorphScript += _T("	print \"\nSimplygon_GetProgressiveWeights()\"																				   \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle																						   \n");
+	tMorphScript += _T("	progressiveMorphTargetWeights = #()																							   \n");
+	tMorphScript += _T("	if WM3_MC_HasData obj.morpher channelIndex then																				   \n");
+	tMorphScript += _T("	(																															   \n");
+	tMorphScript += _T("		if WM3_MC_IsValid obj.morpher channelIndex and WM3_MC_IsActive obj.morpher channelIndex then							   \n");
+	tMorphScript += _T("		(																														   \n");
+	tMorphScript += _T("			numProgressiveMorphTargets = WM3_NumberOfProgressiveMorphs obj.morpher channelIndex									   \n");
+	tMorphScript += _T("			for progressiveIndex = 1 to numProgressiveMorphTargets do															   \n");
+	tMorphScript += _T("			(																													   \n");
+	tMorphScript += _T("				progressiveMorphTarget = WM3_GetProgressiveMorphNode obj.morpher channelIndex progressiveIndex					   \n");
+	tMorphScript += _T("				if progressiveMorphTarget != undefined then																		   \n");
+	tMorphScript += _T("				(																												   \n");
+	tMorphScript += _T("					progressiveMorphTargetWeight = WM3_GetProgressiveMorphWeight obj.morpher channelIndex progressiveMorphTarget   \n");
+	tMorphScript += _T("					append progressiveMorphTargetWeights progressiveMorphTargetWeight					 						   \n");
+	tMorphScript += _T("				)																												   \n");
+	tMorphScript += _T("				else																											   \n");
+	tMorphScript += _T("				(																												   \n");
+	tMorphScript += _T("					append progressiveMorphTargetWeights ( 100.0 as float )														   \n");
+	tMorphScript += _T("				)																												   \n");
+	tMorphScript += _T("			)																													   \n");
+	tMorphScript += _T("		)																														   \n");
+	tMorphScript += _T("	)																															   \n");
+	tMorphScript += _T("	progressiveMorphTargetWeights																								   \n");
+	tMorphScript += _T(")																																   \n");
+	tMorphScript += _T("fn Simplygon_SetProgressiveWeights nodeHandle channelIndex progressiveIndex progressiveWeight =									   \n");
+	tMorphScript += _T("(																																   \n");
+	// tMorphScript += _T("	print \"\nSimplygon_SetProgressiveWeights()\"																				   \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle																						   \n");
+	tMorphScript += _T("	returnValue = False																											   \n");
+	tMorphScript += _T("	if WM3_MC_HasData obj.morpher channelIndex then																				   \n");
+	tMorphScript += _T("	(																															   \n");
+	tMorphScript += _T("		if WM3_MC_IsValid obj.morpher channelIndex then																			   \n");
+	tMorphScript += _T("		(																														   \n");
+	tMorphScript += _T("			numProgressiveMorphTargets = WM3_NumberOfProgressiveMorphs obj.morpher channelIndex									   \n");
+	tMorphScript += _T("			if progressiveIndex <= numProgressiveMorphTargets then																   \n");
+	tMorphScript += _T("			(																													   \n");
+	tMorphScript += _T("				progressiveMorphTarget = WM3_GetProgressiveMorphNode obj.morpher channelIndex progressiveIndex					   \n");
+	tMorphScript += _T("				WM3_SetProgressiveMorphWeight obj.morpher channelIndex progressiveMorphTarget progressiveWeight					   \n");
+	tMorphScript += _T("				returnValue = True																								   \n");
+	tMorphScript += _T("			)																													   \n");
+	tMorphScript += _T("		)																														   \n");
+	tMorphScript += _T("	)																															   \n");
+	tMorphScript += _T("	returnValue																													   \n");
+	tMorphScript += _T(")																																   \n");
+	tMorphScript += _T("fn Simplygon_GetMorphTensions nodeHandle =																						   \n");
+	tMorphScript += _T("(																																   \n");
+	// tMorphScript += _T("	print \"\nSimplygon_GetMorphTension()\"																						   \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle																						   \n");
+	tMorphScript += _T("	morphChannelTensions = #()																									   \n");
+	tMorphScript += _T("	for channelIndex = 1 to 100 do																								   \n");
+	tMorphScript += _T("	(																															   \n");
+	tMorphScript += _T("		if WM3_MC_HasData obj.morpher channelIndex then																			   \n");
+	tMorphScript += _T("		(																														   \n");
+	tMorphScript += _T("			if WM3_MC_IsValid obj.morpher channelIndex and WM3_MC_IsActive obj.morpher channelIndex then						   \n");
+	tMorphScript += _T("			(																													   \n");
+	tMorphScript += _T("				morphChannelTension = WM3_GetProgressiveMorphTension obj.morpher channelIndex									   \n");
+	tMorphScript += _T("				append morphChannelTensions morphChannelTension																	   \n");
+	tMorphScript += _T("			)																													   \n");
+	tMorphScript += _T("		)																														   \n");
+	tMorphScript += _T("	)																															   \n");
+	tMorphScript += _T("	morphChannelTensions																										   \n");
+	tMorphScript += _T(")																																   \n");
+	tMorphScript += _T("fn Simplygon_SetMorphTension nodeHandle channelIndex morphChannelTension =														   \n");
+	tMorphScript += _T("(																																   \n");
+	// tMorphScript += _T("	print \"\nSimplygon_SetMorphTension()\"																						   \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle																						   \n");
+	tMorphScript += _T("	returnValue = False																											   \n");
+	tMorphScript += _T("	if WM3_MC_HasData obj.morpher channelIndex then																				   \n");
+	tMorphScript += _T("	(																															   \n");
+	tMorphScript += _T("		if WM3_MC_IsValid obj.morpher channelIndex then																			   \n");
+	tMorphScript += _T("		(																														   \n");
+	tMorphScript += _T("			WM3_SetProgressiveMorphTension obj.morpher channelIndex morphChannelTension											   \n");
+	tMorphScript += _T("			returnValue = True																									   \n");
+	tMorphScript += _T("		)																														   \n");
+	tMorphScript += _T("	)																															   \n");
+	tMorphScript += _T("	returnValue																													   \n");
+	tMorphScript += _T(")																																   \n");
+	tMorphScript += _T("fn Simplygon_GetMorpChannelWeights nodeHandle =																					   \n");
+	tMorphScript += _T("(																																   \n");
+	// tMorphScript += _T("	print \"\nSimplygon_GetMorpChannelWeights()\"																				   \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle																						   \n");
+	tMorphScript += _T("	morphChannelWeights = #()																									   \n");
+	tMorphScript += _T("	for channelIndex = 1 to 100 do																								   \n");
+	tMorphScript += _T("	(																															   \n");
+	tMorphScript += _T("		if WM3_MC_HasData obj.morpher channelIndex then																			   \n");
+	tMorphScript += _T("		(																														   \n");
+	tMorphScript += _T("			if WM3_MC_IsValid obj.morpher channelIndex and WM3_MC_IsActive obj.morpher channelIndex then						   \n");
+	tMorphScript += _T("			(																													   \n");
+	tMorphScript += _T("				morphChannelWeight = WM3_MC_GetValue  obj.morpher channelIndex													   \n");
+	tMorphScript += _T("				append morphChannelWeights morphChannelWeight																	   \n");
+	tMorphScript += _T("			)																													   \n");
+	tMorphScript += _T("		)																														   \n");
+	tMorphScript += _T("	)																															   \n");
+	tMorphScript += _T("	morphChannelWeights																											   \n");
+	tMorphScript += _T(")																																   \n");
+	tMorphScript += _T("fn Simplygon_SetMorphTarget nodeHandle geometryHandle channelIndex =															   \n");
+	tMorphScript += _T("( 																																   \n");
+	// tMorphScript += _T("	print \"\nSimplygon_SetMorphTarget()\"																    					   \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle																						   \n");
+	tMorphScript += _T("	target = maxOps.getNodeByHandle geometryHandle 																				   \n");
+	tMorphScript += _T("	WM3_MC_BuildFromNode obj.morpher channelIndex target							   											   \n");
+	tMorphScript += _T(")																																   \n");
+	tMorphScript += _T("fn Simplygon_SetMorpChannelWeights nodeHandle channelIndex weight =																   \n");
+	tMorphScript += _T("(																																   \n");
+	// tMorphScript += _T("	print \"\nSimplygon_SetMorpChannelWeights()\"																				   \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle																						   \n");
+	tMorphScript += _T("    if WM3_MC_IsValid obj.morpher channelIndex then																				   \n");
+	tMorphScript += _T("	( 																															   \n");
+	tMorphScript += _T("		WM3_MC_SetValue obj.morpher channelIndex weight 																		   \n");
+	tMorphScript += _T("	)																															   \n");
+	tMorphScript += _T(")			   																													   \n");
+	tMorphScript += _T("fn Simplygon_AddProgressiveMorphTarget nodeHandle channelIndex geometryHandle =													   \n");
+	tMorphScript += _T("( 																																   \n");
+	// tMorphScript += _T("	print \"\nSimplygon_SetProgressiveMorphTarget()\" 																			   \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle 																					   \n");
+	tMorphScript += _T("	target = maxOps.getNodeByHandle geometryHandle																				   \n");
+	tMorphScript += _T("    if WM3_MC_HasData obj.morpher channelIndex then																				   \n");
+	tMorphScript += _T("	(																															   \n");
+	tMorphScript += _T("        if WM3_MC_IsValid obj.morpher channelIndex then																			   \n");
+	tMorphScript += _T("		( 																														   \n");
+	tMorphScript += _T("			WM3_AddProgressiveMorphNode obj.morpher channelIndex target 														   \n");
+	tMorphScript += _T("		) 																														   \n");
+	tMorphScript += _T("	) 																															   \n");
+	tMorphScript += _T(")																																   \n");
+	tMorphScript += _T("fn Simplygon_GetMorphPoints nodeHandle channelIndex =																			   \n");
+	tMorphScript += _T("(																																   \n");
+	// tMorphScript += _T("	print \"\nSimplygon_GetMorphPoints()\"																						   \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle																						   \n");
+	tMorphScript += _T("																																   \n");
+	tMorphScript += _T("	morphPoints = #()																											   \n");
+	tMorphScript += _T("	if WM3_MC_HasData obj.morpher channelIndex and WM3_MC_IsValid obj.morpher channelIndex then									   \n");
+	tMorphScript += _T("	(																															   \n");
+	tMorphScript += _T("		numVerts = WM3_MC_NumPts obj.morpher channelIndex																		   \n");
+	tMorphScript += _T("		morphPoints.count = numVerts																							   \n");
+	tMorphScript += _T("		for v = 1 to numVerts do																								   \n");
+	tMorphScript += _T("		(																														   \n");
+	tMorphScript += _T("			morphPoints[v] = WM3_MC_GetMorphPoint obj.morpher channelIndex (v - 1)												   \n");
+	tMorphScript += _T("		)																														   \n");
+	tMorphScript += _T("	)																															   \n");
+	tMorphScript += _T("	morphPoints																												       \n");
+	tMorphScript += _T(")																																   \n");
+	tMorphScript += _T("fn Simplygon_GetChannelName nodeHandle channelIndex =																			   \n");
+	tMorphScript += _T("(																																   \n");
+	// tMorphScript += _T("	print \"\nSimplygon_GetChannelName()\" 																						   \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle																						   \n");
+	tMorphScript += _T("	name = undefined 																											   \n");
+	tMorphScript += _T("	if WM3_MC_HasData obj.morpher channelIndex and WM3_MC_IsValid obj.morpher channelIndex then									   \n");
+	tMorphScript += _T("	(																															   \n");
+	tMorphScript += _T("		name = WM3_MC_GetName obj.morpher channelIndex																			   \n");
+	tMorphScript += _T("	) 																															   \n");
+	tMorphScript += _T("	name 																														   \n");
+	tMorphScript += _T(")																																   \n");
+	tMorphScript += _T("fn Simplygon_GetChannelUseVertexSelection nodeHandle channelIndex =                                   							   \n");
+	tMorphScript += _T("(                                                                                                     							   \n");
+	// tMorphScript += _T( "	print \"\nSimplygon_GetChannelUseVertexSelection() \" \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle                                                           							   \n");
+	tMorphScript += _T("                                                                                                      							   \n");
+	tMorphScript += _T("	bUseVertexSelection = False                                                                       							   \n");
+	tMorphScript += _T("	if WM3_MC_HasData obj.morpher channelIndex and WM3_MC_IsValid obj.morpher channelIndex then       							   \n");
+	tMorphScript += _T("	(                                                                                                 							   \n");
+	tMorphScript += _T("		bUseVertexSelection = WM3_MC_GetUseVertexSel obj.morpher channelIndex                         							   \n");
+	tMorphScript += _T("	)                                                                                                 							   \n");
+	tMorphScript += _T("	bUseVertexSelection                                                                               							   \n");
+	tMorphScript += _T(")                                                                                                     							   \n");
+	tMorphScript += _T("fn Simplygon_SetChannelUseVertexSelection nodeHandle channelIndex bUseVertexSelection =               							   \n");
+	tMorphScript += _T("(                                                                                                     							   \n");
+	// tMorphScript += _T( "	print \"\nSimplygon_SetChannelUseVertexSelection() \" \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle                                                           							   \n");
+	tMorphScript += _T("                                                                                                      							   \n");
+	tMorphScript += _T("	if WM3_MC_HasData obj.morpher channelIndex and WM3_MC_IsValid obj.morpher channelIndex then       							   \n");
+	tMorphScript += _T("	(                                                                                                 							   \n");
+	tMorphScript += _T("		WM3_MC_SetUseVertexSel obj.morpher channelIndex bUseVertexSelection                           							   \n");
+	tMorphScript += _T("	)                                                                                                 							   \n");
+	tMorphScript += _T(")                                                                                                     							   \n");
+	tMorphScript += _T("fn Simplygon_GetChannelMinLimit nodeHandle channelIndex =                                             							   \n");
+	tMorphScript += _T("(                                                                                                     							   \n");
+	// tMorphScript += _T( "	print \"\nSimplygon_GetChannelMinLimit() \" \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle                                                           							   \n");
+	tMorphScript += _T("                                                                                                      							   \n");
+	tMorphScript += _T("	minLimit = 0.0                                                                                    							   \n");
+	tMorphScript += _T("	if WM3_MC_HasData obj.morpher channelIndex and WM3_MC_IsValid obj.morpher channelIndex then       							   \n");
+	tMorphScript += _T("	(                                                                                                 							   \n");
+	tMorphScript += _T("		minLimit = WM3_MC_GetLimitMIN obj.morpher channelIndex                                        							   \n");
+	tMorphScript += _T("	)                                                                                                 							   \n");
+	tMorphScript += _T("	minLimit                                                                                          							   \n");
+	tMorphScript += _T(")                                                                                                     							   \n");
+	tMorphScript += _T("fn Simplygon_SetChannelMinLimit nodeHandle channelIndex minLimit =                                    							   \n");
+	tMorphScript += _T("(                                                                                                     							   \n");
+	// tMorphScript += _T( "	print \"\nSimplygon_SetChannelMinLimit() \" \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle                                                           							   \n");
+	tMorphScript += _T("                                                                                                      							   \n");
+	tMorphScript += _T("	if WM3_MC_HasData obj.morpher channelIndex and WM3_MC_IsValid obj.morpher channelIndex then       							   \n");
+	tMorphScript += _T("	(                                                                                                 							   \n");
+	tMorphScript += _T("		WM3_MC_SetLimitMIN obj.morpher channelIndex minLimit                                          							   \n");
+	tMorphScript += _T("	)                                                                                                 							   \n");
+	tMorphScript += _T(")                                                                                                     							   \n");
+	tMorphScript += _T("fn Simplygon_GetChannelMaxLimit nodeHandle channelIndex =                                             							   \n");
+	tMorphScript += _T("(                                                                                                     							   \n");
+	// tMorphScript += _T( "	print \"\nSimplygon_GetChannelMaxLimit() \" \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle                                                           							   \n");
+	tMorphScript += _T("                                                                                                      							   \n");
+	tMorphScript += _T("	maxLimit = 0.0                                                                                    							   \n");
+	tMorphScript += _T("	if WM3_MC_HasData obj.morpher channelIndex and WM3_MC_IsValid obj.morpher channelIndex then       							   \n");
+	tMorphScript += _T("	(                                                                                                 							   \n");
+	tMorphScript += _T("		maxLimit = WM3_MC_GetLimitMAX obj.morpher channelIndex                                        							   \n");
+	tMorphScript += _T("	)                                                                                                 							   \n");
+	tMorphScript += _T("	maxLimit                                                                                          							   \n");
+	tMorphScript += _T(")                                                                                                     							   \n");
+	tMorphScript += _T("fn Simplygon_SetChannelMaxLimit nodeHandle channelIndex maxLimit =                                    							   \n");
+	tMorphScript += _T("(                                                                                                     							   \n");
+	// tMorphScript += _T( "	print \"\nSimplygon_SetChannelMaxLimit() \" \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle                                                           							   \n");
+	tMorphScript += _T("                                                                                                      							   \n");
+	tMorphScript += _T("	if WM3_MC_HasData obj.morpher channelIndex and WM3_MC_IsValid obj.morpher channelIndex then       							   \n");
+	tMorphScript += _T("	(                                                                                                 							   \n");
+	tMorphScript += _T("		WM3_MC_SetLimitMAX obj.morpher channelIndex maxLimit                                          							   \n");
+	tMorphScript += _T("	)                                                                                                 							   \n");
+	tMorphScript += _T(")                                                                                                     							   \n");
+	tMorphScript += _T("fn Simplygon_GetChannelUseLimits nodeHandle channelIndex =                                            							   \n");
+	tMorphScript += _T("(                                                                                                     							   \n");
+	// tMorphScript += _T( "	print \"\nSimplygon_GetChannelUseLimits() \" \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle                                                           							   \n");
+	tMorphScript += _T("                                                                                                      							   \n");
+	tMorphScript += _T("	bUseLimits = False                                                                                							   \n");
+	tMorphScript += _T("	if WM3_MC_HasData obj.morpher channelIndex and WM3_MC_IsValid obj.morpher channelIndex then       							   \n");
+	tMorphScript += _T("	(                                                                                                 							   \n");
+	tMorphScript += _T("		bUseLimits = WM3_MC_GetUseLimits obj.morpher channelIndex                                     							   \n");
+	tMorphScript += _T("	)                                                                                                 							   \n");
+	tMorphScript += _T("	bUseLimits                                                                                        							   \n");
+	tMorphScript += _T(")                                                                                                     							   \n");
+	tMorphScript += _T("fn Simplygon_SetChannelUseLimits nodeHandle channelIndex bUseLimits =                                 							   \n");
+	tMorphScript += _T("(                                                                                                     							   \n");
+	// tMorphScript += _T( "	print \"\nSimplygon_SetChannelUseLimits() \" \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle                                                           							   \n");
+	tMorphScript += _T("                                                                                                      							   \n");
+	tMorphScript += _T("	if WM3_MC_HasData obj.morpher channelIndex and WM3_MC_IsValid obj.morpher channelIndex then       							   \n");
+	tMorphScript += _T("	(                                                                                                 							   \n");
+	tMorphScript += _T("		WM3_MC_SetUseLimits obj.morpher channelIndex bUseLimits                                       							   \n");
+	tMorphScript += _T("	)                                                                                                 							   \n");
+	tMorphScript += _T(")                                                                                                     							   \n");
+	tMorphScript += _T("fn Simplygon_GetUseVertexSelections nodeHandle =                                                            					   \n");
+	tMorphScript += _T("(                                                                                                           					   \n");
+	// tMorphScript += _T( "	print \"\nSimplygon_GetUseVertexSelections() \" \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle                                                                 					   \n");
+	tMorphScript += _T("	bUseVertexSelectionArray = #()                                                                          					   \n");
+	tMorphScript += _T("	for channelIndex = 1 to 100 do                                                                          					   \n");
+	tMorphScript += _T("	(                                                                                                       					   \n");
+	tMorphScript += _T("		if WM3_MC_HasData obj.morpher channelIndex then                                                     					   \n");
+	tMorphScript += _T("		(                                                                                                   					   \n");
+	tMorphScript += _T("			if WM3_MC_IsValid obj.morpher channelIndex and WM3_MC_IsActive obj.morpher channelIndex then    					   \n");
+	tMorphScript += _T("			(                                                                                               					   \n");
+	tMorphScript += _T("				bUseVertexSelection = WM3_MC_GetUseVertexSel  obj.morpher channelIndex                      					   \n");
+	tMorphScript += _T("				append bUseVertexSelectionArray bUseVertexSelection                                         					   \n");
+	tMorphScript += _T("			)                                                                                               					   \n");
+	tMorphScript += _T("		)                                                                                                   					   \n");
+	tMorphScript += _T("	)                                                                                                       					   \n");
+	tMorphScript += _T("	bUseVertexSelectionArray                                                                                					   \n");
+	tMorphScript += _T(")                                                                                                           					   \n");
+	tMorphScript += _T("fn Simplygon_GetMinLimits nodeHandle =                                                                      					   \n");
+	tMorphScript += _T("(                                                                                                           					   \n");
+	// tMorphScript += _T("	print \"\nSimplygon_GetMinLimits() \"                                                                   					   \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle                                                                 					   \n");
+	tMorphScript += _T("	minLimitsArray = #()                                                                                    					   \n");
+	tMorphScript += _T("	for channelIndex = 1 to 100 do                                                                          					   \n");
+	tMorphScript += _T("	(                                                                                                       					   \n");
+	tMorphScript += _T("		if WM3_MC_HasData obj.morpher channelIndex then                                                     					   \n");
+	tMorphScript += _T("		(                                                                                                   					   \n");
+	tMorphScript += _T("			if WM3_MC_IsValid obj.morpher channelIndex and WM3_MC_IsActive obj.morpher channelIndex then    					   \n");
+	tMorphScript += _T("			(                                                                                               					   \n");
+	tMorphScript += _T("				minLimit = WM3_MC_GetLimitMIN obj.morpher channelIndex                                      					   \n");
+	tMorphScript += _T("				append minLimitsArray minLimit                                                              					   \n");
+	tMorphScript += _T("			)                                                                                               					   \n");
+	tMorphScript += _T("		)                                                                                                   					   \n");
+	tMorphScript += _T("	)                                                                                                       					   \n");
+	tMorphScript += _T("	minLimitsArray                                                                                          					   \n");
+	tMorphScript += _T(")                                                                                                           					   \n");
+	tMorphScript += _T("fn Simplygon_GetMaxLimits nodeHandle =                                                                      					   \n");
+	tMorphScript += _T("(                                                                                                           					   \n");
+	// tMorphScript += _T( "	print \"\nSimplygon_GetMaxLimits() \" \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle                                                                 					   \n");
+	tMorphScript += _T("	maxLimitsArray = #()                                                                                    					   \n");
+	tMorphScript += _T("	for channelIndex = 1 to 100 do                                                                          					   \n");
+	tMorphScript += _T("	(                                                                                                       					   \n");
+	tMorphScript += _T("		if WM3_MC_HasData obj.morpher channelIndex then                                                     					   \n");
+	tMorphScript += _T("		(                                                                                                   					   \n");
+	tMorphScript += _T("			if WM3_MC_IsValid obj.morpher channelIndex and WM3_MC_IsActive obj.morpher channelIndex then    					   \n");
+	tMorphScript += _T("			(                                                                                               					   \n");
+	tMorphScript += _T("				maxLimit = WM3_MC_GetLimitMAX obj.morpher channelIndex                                      					   \n");
+	tMorphScript += _T("				append maxLimitsArray maxLimit                                                              					   \n");
+	tMorphScript += _T("			)                                                                                               					   \n");
+	tMorphScript += _T("		)                                                                                                   					   \n");
+	tMorphScript += _T("	)                                                                                                       					   \n");
+	tMorphScript += _T("	maxLimitsArray                                                                                          					   \n");
+	tMorphScript += _T(")                                                                                                           					   \n");
+	tMorphScript += _T("fn Simplygon_GetUseLimits nodeHandle =                                                                      					   \n");
+	tMorphScript += _T("(                                                                                                           					   \n");
+	// tMorphScript += _T( "	print \"\nSimplygon_GetUseLimits() \" \n");
+	tMorphScript += _T("	obj = maxOps.getNodeByHandle nodeHandle                                                                 					   \n");
+	tMorphScript += _T("	bUseLimitsArray = #()                                                                                   					   \n");
+	tMorphScript += _T("	for channelIndex = 1 to 100 do                                                                          					   \n");
+	tMorphScript += _T("	(                                                                                                       					   \n");
+	tMorphScript += _T("		if WM3_MC_HasData obj.morpher channelIndex then                                                     					   \n");
+	tMorphScript += _T("		(                                                                                                   					   \n");
+	tMorphScript += _T("			if WM3_MC_IsValid obj.morpher channelIndex and WM3_MC_IsActive obj.morpher channelIndex then    					   \n");
+	tMorphScript += _T("			(                                                                                               					   \n");
+	tMorphScript += _T("				bUseLimits = WM3_MC_GetUseLimits  obj.morpher channelIndex                                  					   \n");
+	tMorphScript += _T("				append bUseLimitsArray bUseLimits                                                           					   \n");
+	tMorphScript += _T("			)                                                                                               					   \n");
+	tMorphScript += _T("		)                                                                                                   					   \n");
+	tMorphScript += _T("	)                                                                                                       					   \n");
+	tMorphScript += _T("	bUseLimitsArray                                                                                         					   \n");
+	tMorphScript += _T(")                                                                                                           					   \n");
+
+	BOOL bQuietErrors = FALSE;
+	const TSTR tRegisterMorphFunctionScript( tMorphScript.c_str() );
+
+// register script
+#if MAX_VERSION_MAJOR < 24
+	bMorphScriptInitialized = ExecuteMAXScriptScript( tRegisterMorphFunctionScript.data(), bQuietErrors );
+#else
+	bMorphScriptInitialized = ExecuteMAXScriptScript( tRegisterMorphFunctionScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors );
+#endif
+}
+
+void SimplygonMax::GetActiveMorphChannels( ulong uniqueHandle, MorpherChannelSettings* morpherSettings )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_stprintf_s( tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_GetActiveMorphChannels %u"), uniqueHandle );
+
+	const TSTR tGetActiveMorphChannelsScript( tExecuteMorphTargetQueryScript );
+	FPValue mActiveMorphTargetList;
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tGetActiveMorphChannelsScript.data(), bQuietErrors, &mActiveMorphTargetList );
+#else
+	const BOOL bExecutedMorphTargetScript =
+	    ExecuteMAXScriptScript( tGetActiveMorphChannelsScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors, &mActiveMorphTargetList );
+#endif
+
+	if( !bExecutedMorphTargetScript )
+		return;
+
+	// if result is of correct type, loop content
+	if( mActiveMorphTargetList.type == TYPE_INT_TAB )
+	{
+		morpherSettings->channels.clear();
+		morpherSettings->channels.resize( mActiveMorphTargetList.i_tab->Count() );
+
+		for( int i = 0; i < mActiveMorphTargetList.i_tab->Count(); ++i )
+		{
+			const int index = ( *mActiveMorphTargetList.i_tab )[ i ];
+			morpherSettings->channels[ i ] = new MorphChannelMetaData( index - 1, index );
+		}
+	}
+	else
+	{
+		morpherSettings->channels.resize( 0 );
+	}
+}
+
+void SimplygonMax::GetMorphChannelWeights( ulong uniqueHandle, std::vector<float>& mActiveMorphChannelWeights )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_stprintf_s( tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_GetMorpChannelWeights %u"), uniqueHandle );
+
+	const TSTR tGetActiveMorphChannelWeightsScript( tExecuteMorphTargetQueryScript );
+	FPValue mActiveMorphTargetWeightsList;
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tGetActiveMorphChannelWeightsScript.data(), bQuietErrors, &mActiveMorphTargetWeightsList );
+#else
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript(
+	    tGetActiveMorphChannelWeightsScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors, &mActiveMorphTargetWeightsList );
+#endif
+
+	if( !bExecutedMorphTargetScript )
+		return;
+
+	// if result is of correct type, loop content
+	if( mActiveMorphTargetWeightsList.type == TYPE_FLOAT_TAB )
+	{
+		mActiveMorphChannelWeights.resize( mActiveMorphTargetWeightsList.f_tab->Count() );
+
+		for( int i = 0; i < mActiveMorphTargetWeightsList.f_tab->Count(); ++i )
+		{
+			const float weight = ( *mActiveMorphTargetWeightsList.f_tab )[ i ];
+			mActiveMorphChannelWeights[ i ] = weight;
+		}
+	}
+	else
+	{
+		mActiveMorphChannelWeights.resize( 0 );
+	}
+}
+
+void SimplygonMax::GetMorphChannelPoints( ulong uniqueHandle, std::vector<Point3>& mMorphChannelPoints, size_t channelIndex )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_stprintf_s( tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_GetMorphPoints %u %zu"), uniqueHandle, channelIndex );
+
+	const TSTR tGetActiveMorphChannelPointsScript( tExecuteMorphTargetQueryScript );
+	FPValue mActiveMorphTargetPointsList;
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tGetActiveMorphChannelPointsScript.data(), bQuietErrors, &mActiveMorphTargetPointsList );
+#else
+	const BOOL bExecutedMorphTargetScript =
+	    ExecuteMAXScriptScript( tGetActiveMorphChannelPointsScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors, &mActiveMorphTargetPointsList );
+#endif
+
+	if( !bExecutedMorphTargetScript )
+		return;
+
+	// if result is of correct type, loop content
+	if( mActiveMorphTargetPointsList.type == TYPE_POINT3_TAB_BV )
+	{
+		mMorphChannelPoints.resize( mActiveMorphTargetPointsList.p_tab->Count() );
+
+		for( int i = 0; i < mActiveMorphTargetPointsList.p_tab->Count(); ++i )
+		{
+			const Point3* mPoint = ( *mActiveMorphTargetPointsList.p_tab )[ i ];
+			mMorphChannelPoints[ i ] = *mPoint;
+		}
+	}
+	else
+	{
+		mMorphChannelPoints.resize( 0 );
+	}
+}
+
+bool SimplygonMax::GetMorphChannelName( ulong uniqueHandle, size_t channelIndex, std::basic_string<TCHAR>& name )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_stprintf_s( tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_GetChannelName %u %zu"), uniqueHandle, channelIndex );
+
+	const TSTR tGetActiveMorphChannelNameScript( tExecuteMorphTargetQueryScript );
+	FPValue mActiveChannelName;
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tGetActiveMorphChannelNameScript.data(), bQuietErrors, &mActiveChannelName );
+#else
+	const BOOL bExecutedMorphTargetScript =
+	    ExecuteMAXScriptScript( tGetActiveMorphChannelNameScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors, &mActiveChannelName );
+#endif
+
+	if( !bExecutedMorphTargetScript )
+		return false;
+
+	// if result is of correct type, loop content
+	if( mActiveChannelName.type == TYPE_STRING )
+	{
+		name = mActiveChannelName.s;
+		return true;
+	}
+
+	return false;
+}
+
+void SimplygonMax::GetActiveMorphTargetProgressiveWeights( ulong uniqueHandle, size_t channelIndex, std::vector<float>& mActiveProgressiveWeights )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_stprintf_s( tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_GetProgressiveWeights %u %zu"), uniqueHandle, channelIndex );
+
+	const TSTR tGetActiveProgressiveWeightsScript( tExecuteMorphTargetQueryScript );
+	FPValue mActiveMorphTargetTensionsList;
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tGetActiveProgressiveWeightsScript.data(), bQuietErrors, &mActiveMorphTargetTensionsList );
+#else
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript(
+	    tGetActiveProgressiveWeightsScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors, &mActiveMorphTargetTensionsList );
+#endif
+
+	if( !bExecutedMorphTargetScript )
+		return;
+
+	// if result is of correct type, loop content
+	if( mActiveMorphTargetTensionsList.type == TYPE_FLOAT_TAB )
+	{
+		mActiveProgressiveWeights.resize( mActiveMorphTargetTensionsList.f_tab->Count() );
+
+		for( int i = 0; i < mActiveMorphTargetTensionsList.f_tab->Count(); ++i )
+		{
+			const float tension = ( *mActiveMorphTargetTensionsList.f_tab )[ i ];
+			mActiveProgressiveWeights[ i ] = tension;
+		}
+	}
+	else
+	{
+		mActiveProgressiveWeights.resize( 0 );
+	}
+}
+
+void SimplygonMax::GetActiveMorphTargetTension( ulong uniqueHandle, MorpherChannelSettings* morpherSettings )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_stprintf_s( tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_GetMorphTensions %u"), uniqueHandle );
+
+	const TSTR tGetActiveMorphChannelTensionScript( tExecuteMorphTargetQueryScript );
+	FPValue mActiveMorphTargetTensionsList;
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tGetActiveMorphChannelTensionScript.data(), bQuietErrors, &mActiveMorphTargetTensionsList );
+#else
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript(
+	    tGetActiveMorphChannelTensionScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors, &mActiveMorphTargetTensionsList );
+#endif
+
+	if( !bExecutedMorphTargetScript )
+		return;
+
+	// if result is of correct type, loop content
+	if( mActiveMorphTargetTensionsList.type == TYPE_FLOAT_TAB )
+	{
+		for( int i = 0; i < mActiveMorphTargetTensionsList.f_tab->Count(); ++i )
+		{
+			const float tension = ( *mActiveMorphTargetTensionsList.f_tab )[ i ];
+			morpherSettings->channels[ i ]->tension = tension;
+		}
+	}
+}
+
+void SimplygonMax::SetMorphChannelTension( ulong uniqueHandle, size_t channelIndex, float tension )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_sntprintf_l(
+	    tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_SetMorphTension %u %zu %f"), this->MaxScriptLocale, uniqueHandle, channelIndex, tension );
+
+	const TSTR tSetMorphTensionScript( tExecuteMorphTargetQueryScript );
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTensionScript.data(), bQuietErrors );
+#else
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTensionScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors );
+#endif
+}
+
+void SimplygonMax::SetMorphTarget( ulong uniqueHandle, ulong uniqueTargetHandle, size_t channelIndex )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_stprintf_s( tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_SetMorphTarget %u %u %zu"), uniqueHandle, uniqueTargetHandle, channelIndex );
+
+	const TSTR tSetMorphTargetScript( tExecuteMorphTargetQueryScript );
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTargetScript.data(), bQuietErrors );
+#else
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTargetScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors );
+#endif
+}
+
+void SimplygonMax::SetMorphChannelWeight( ulong uniqueHandle, size_t channelIndex, float weight )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_sntprintf_l(
+	    tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_SetMorpChannelWeights %u %zu %f"), this->MaxScriptLocale, uniqueHandle, channelIndex, weight );
+
+	const TSTR tSetMorphChannelWeightScript( tExecuteMorphTargetQueryScript );
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphChannelWeightScript.data(), bQuietErrors );
+#else
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphChannelWeightScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors );
+#endif
+}
+
+void SimplygonMax::AddProgressiveMorphTarget( ulong uniqueHandle, ulong uniqueTargetHandle, size_t channelIndex )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_stprintf_s(
+	    tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_AddProgressiveMorphTarget %u %zu %u"), uniqueHandle, channelIndex, uniqueTargetHandle );
+
+	const TSTR tSetMorphTargetScript( tExecuteMorphTargetQueryScript );
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTargetScript.data(), bQuietErrors );
+#else
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTargetScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors );
+#endif
+}
+
+void SimplygonMax::SetProgressiveMorphTargetWeight( ulong uniqueHandle, size_t channelIndex, size_t progressiveIndex, float weight )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_sntprintf_l( tExecuteMorphTargetQueryScript,
+	              MAX_PATH,
+	              _T("Simplygon_SetProgressiveWeights %u %zu %zu %f"),
+	              this->MaxScriptLocale,
+	              uniqueHandle,
+	              channelIndex,
+	              progressiveIndex,
+	              weight );
+
+	const TSTR tSetMorphTargetScript( tExecuteMorphTargetQueryScript );
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTargetScript.data(), bQuietErrors );
+#else
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTargetScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors );
+#endif
+}
+
+void SimplygonMax::GetActiveUseVertexSelections( ulong uniqueHandle, MorpherChannelSettings* morpherSettings )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_stprintf_s( tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_GetUseVertexSelections %u"), uniqueHandle );
+
+	const TSTR tGetActiveVertexSelectionScript( tExecuteMorphTargetQueryScript );
+	FPValue mActiveVertexSelectionList;
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tGetActiveVertexSelectionScript.data(), bQuietErrors, &mActiveVertexSelectionList );
+#else
+	const BOOL bExecutedMorphTargetScript =
+	    ExecuteMAXScriptScript( tGetActiveVertexSelectionScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors, &mActiveVertexSelectionList );
+#endif
+
+	if( !bExecutedMorphTargetScript )
+		return;
+
+	// if result is of correct type, loop content
+	if( mActiveVertexSelectionList.type == TYPE_BOOL_TAB )
+	{
+		for( int i = 0; i < mActiveVertexSelectionList.b_tab->Count(); ++i )
+		{
+			const bool bVertexSelection = ( *mActiveVertexSelectionList.b_tab )[ i ];
+			morpherSettings->channels.at( i )->useVertexSelection = bVertexSelection;
+		}
+	}
+}
+
+void SimplygonMax::SetChannelUseVertexSelection( ulong uniqueHandle, size_t channelIndex, bool bUseVertexSelection )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_stprintf_s( tExecuteMorphTargetQueryScript,
+	             MAX_PATH,
+	             _T("Simplygon_SetChannelUseVertexSelection %u %zu %s"),
+	             uniqueHandle,
+	             channelIndex,
+	             bUseVertexSelection ? _T("True") : _T ("False") );
+
+	const TSTR tSetMorphTargetScript( tExecuteMorphTargetQueryScript );
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTargetScript.data(), bQuietErrors );
+#else
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTargetScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors );
+#endif
+}
+
+void SimplygonMax::GetActiveMinLimits( ulong uniqueHandle, MorpherChannelSettings* morpherSettings )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_stprintf_s( tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_GetMinLimits %u"), uniqueHandle );
+
+	const TSTR tGetActiveMorphChannelMinLimitsScript( tExecuteMorphTargetQueryScript );
+	FPValue mActiveMorphTargetMinLimitList;
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript =
+	    ExecuteMAXScriptScript( tGetActiveMorphChannelMinLimitsScript.data(), bQuietErrors, &mActiveMorphTargetMinLimitList );
+#else
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript(
+	    tGetActiveMorphChannelMinLimitsScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors, &mActiveMorphTargetMinLimitList );
+#endif
+
+	if( !bExecutedMorphTargetScript )
+		return;
+
+	// if result is of correct type, loop content
+	if( mActiveMorphTargetMinLimitList.type == TYPE_FLOAT_TAB )
+	{
+		for( int i = 0; i < mActiveMorphTargetMinLimitList.f_tab->Count(); ++i )
+		{
+			const float minLimit = ( *mActiveMorphTargetMinLimitList.f_tab )[ i ];
+			morpherSettings->channels.at( i )->minLimit = minLimit;
+		}
+	}
+}
+
+void SimplygonMax::SetChannelMinLimit( ulong uniqueHandle, size_t channelIndex, float minLimit )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_sntprintf_l(
+	    tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_SetChannelMinLimit %u %zu %f"), this->MaxScriptLocale, uniqueHandle, channelIndex, minLimit );
+
+	const TSTR tSetMorphTargetScript( tExecuteMorphTargetQueryScript );
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTargetScript.data(), bQuietErrors );
+#else
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTargetScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors );
+#endif
+}
+
+void SimplygonMax::GetActiveMaxLimits( ulong uniqueHandle, MorpherChannelSettings* morpherSettings )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_stprintf_s( tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_GetMaxLimits %u"), uniqueHandle );
+
+	const TSTR tGetActiveMorphChannelMaxLimitsScript( tExecuteMorphTargetQueryScript );
+	FPValue mActiveMorphTargetMaxLimitList;
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript =
+	    ExecuteMAXScriptScript( tGetActiveMorphChannelMaxLimitsScript.data(), bQuietErrors, &mActiveMorphTargetMaxLimitList );
+#else
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript(
+	    tGetActiveMorphChannelMaxLimitsScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors, &mActiveMorphTargetMaxLimitList );
+#endif
+
+	if( !bExecutedMorphTargetScript )
+		return;
+
+	// if result is of correct type, loop content
+	if( mActiveMorphTargetMaxLimitList.type == TYPE_FLOAT_TAB )
+	{
+		for( int i = 0; i < mActiveMorphTargetMaxLimitList.f_tab->Count(); ++i )
+		{
+			const float maxLimit = ( *mActiveMorphTargetMaxLimitList.f_tab )[ i ];
+			morpherSettings->channels.at( i )->maxLimit = maxLimit;
+		}
+	}
+}
+
+void SimplygonMax::SetChannelMaxLimit( ulong uniqueHandle, size_t channelIndex, float maxLimit )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_sntprintf_l(
+	    tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_SetChannelMaxLimit %u %zu %f"), this->MaxScriptLocale, uniqueHandle, channelIndex, maxLimit );
+
+	const TSTR tSetMorphTargetScript( tExecuteMorphTargetQueryScript );
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTargetScript.data(), bQuietErrors );
+#else
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTargetScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors );
+#endif
+}
+
+void SimplygonMax::GetActiveUseLimits( ulong uniqueHandle, MorpherChannelSettings* morpherSettings )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_stprintf_s( tExecuteMorphTargetQueryScript, MAX_PATH, _T("Simplygon_GetUseLimits %u"), uniqueHandle );
+
+	const TSTR tGetActiveUseLimitsScript( tExecuteMorphTargetQueryScript );
+	FPValue mActiveUseLimitsList;
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tGetActiveUseLimitsScript.data(), bQuietErrors, &mActiveUseLimitsList );
+#else
+	const BOOL bExecutedMorphTargetScript =
+	    ExecuteMAXScriptScript( tGetActiveUseLimitsScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors, &mActiveUseLimitsList );
+#endif
+
+	if( !bExecutedMorphTargetScript )
+		return;
+
+	// if result is of correct type, loop content
+	if( mActiveUseLimitsList.type == TYPE_BOOL_TAB )
+	{
+		for( int i = 0; i < mActiveUseLimitsList.b_tab->Count(); ++i )
+		{
+			const bool bUseLimit = ( *mActiveUseLimitsList.b_tab )[ i ];
+			morpherSettings->channels.at( i )->useLimits = bUseLimit;
+		}
+	}
+}
+
+void SimplygonMax::SetChannelUseLimits( ulong uniqueHandle, size_t channelIndex, bool bUseLimits )
+{
+	// construct morph target query script
+	TCHAR tExecuteMorphTargetQueryScript[ MAX_PATH ] = { 0 };
+	_stprintf_s( tExecuteMorphTargetQueryScript,
+	             MAX_PATH,
+	             _T("Simplygon_SetChannelUseLimits %u %zu %s"),
+	             uniqueHandle,
+	             channelIndex,
+	             bUseLimits ? _T("True") : _T ("False") );
+
+	const TSTR tSetMorphTargetScript( tExecuteMorphTargetQueryScript );
+
+	BOOL bQuietErrors = FALSE;
+
+	// execute morph target query script
+#if MAX_VERSION_MAJOR < 24
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTargetScript.data(), bQuietErrors );
+#else
+	const BOOL bExecutedMorphTargetScript = ExecuteMAXScriptScript( tSetMorphTargetScript.data(), MAXScript::ScriptSource::NotSpecified, bQuietErrors );
+#endif
+}
+
+#pragma endregion
+
 // Creates Simplygon geometry from Max geometry
 bool SimplygonMax::ExtractGeometry( size_t meshIndex )
 {
@@ -4244,11 +5563,32 @@ bool SimplygonMax::ExtractGeometry( size_t meshIndex )
 			Modifier* mModifier = mMaxDerivedObject->GetModifier( modifierIndex );
 			if( mModifier != nullptr && mModifier->ClassID() == SKIN_CLASSID )
 			{
-				// found a skin, use it
 				meshNode->SkinModifiers = mModifier;
 				break;
 			}
 		}
+
+		// derived object, look through the modifier list for a morph modifier
+		for( int modifierIndex = 0; modifierIndex < mMaxDerivedObject->NumModifiers(); ++modifierIndex )
+		{
+			Modifier* mModifier = mMaxDerivedObject->GetModifier( modifierIndex );
+			if( mModifier != nullptr && mModifier->ClassID() == MORPHER_CLASS_ID && mModifier->IsEnabled() )
+			{
+				RegisterMorphScripts();
+				meshNode->MorphTargetModifier = mModifier;
+				break;
+			}
+		}
+	}
+
+	// if there is a morph modifier, temporarily disable if enabled, and store current state
+	BOOL bMorphTargetModifier = FALSE;
+	if( meshNode->MorphTargetModifier != nullptr )
+	{
+		bMorphTargetModifier = meshNode->MorphTargetModifier->IsEnabled();
+		meshNode->MorphTargetModifier->DisableMod();
+
+		meshNode->MorphTargetData = new MorpherWrapper( meshNode->MorphTargetModifier, mMaxNode, this->CurrentTime );
 	}
 
 	// if there is a skinning modifier, temporarily disable if enabled, and store current state
@@ -4540,6 +5880,61 @@ bool SimplygonMax::ExtractGeometry( size_t meshIndex )
 		}
 	}
 
+	// morph targets
+	if( meshNode->MorphTargetData )
+	{
+		const ulong uniqueHandle = mMaxNode->GetHandle();
+		const spString rSgMeshId = sgMesh->GetNodeGUID();
+		const char* cSgMeshId = rSgMeshId.c_str();
+
+		const std::map<std::string, GlobalMeshMap>::iterator& meshMap = this->GlobalGuidToMaxNodeMap.find( cSgMeshId );
+
+		MorpherMetaData* morpherMetaData = meshMap->second.CreateMorpherMetaData();
+		morpherMetaData->globalSettings = meshNode->MorphTargetData->globalSettings;
+
+		std::vector<MorphChannelMetaData*>& morphTargetMetaData = morpherMetaData->morphTargetMetaData;
+
+		TCHAR tTargetVertexFieldName[ MAX_PATH ] = { 0 };
+		for( size_t activeChannelIndex = 0; activeChannelIndex < meshNode->MorphTargetData->NumChannels(); ++activeChannelIndex )
+		{
+			MorphChannel* morphChannel = meshNode->MorphTargetData->GetChannel( activeChannelIndex );
+			if( morphChannel && morphChannel->IsValid() )
+			{
+				const int morphChannelIndex = morphChannel->GetIndex() - 1;
+
+				MorphChannelMetaData* morphChannelMetaData = morphChannel->GetSettings();
+
+				for( size_t progressiveIndex = 0; progressiveIndex < morphChannel->NumProgressiveMorphTargets(); ++progressiveIndex )
+				{
+					ProgressiveMorphTarget* progressiveMorphTarget = morphChannel->GetProgressiveMorphTarget( progressiveIndex );
+
+					_stprintf_s( tTargetVertexFieldName, MAX_PATH, _T("%s%u_%zu"), _T("BlendShapeTargetVertexField"), morphChannelIndex, progressiveIndex );
+					const char* cTargetVertexFieldName = LPCTSTRToConstCharPtr( tTargetVertexFieldName );
+
+					spRealArray sgMorphTargetDeltas =
+					    spRealArray::SafeCast( sgMeshData->AddBaseTypeUserVertexField( Simplygon::EBaseTypes::TYPES_ID_REAL, cTargetVertexFieldName, 3 ) );
+
+					const TSTR tMorphTargetName = morphChannel->GetName();
+					const char* cMorphTargetName = LPCTSTRToConstCharPtr( tMorphTargetName );
+					sgMorphTargetDeltas->SetAlternativeName( cMorphTargetName );
+
+					std::vector<Point3>& morphTargetVertices = progressiveMorphTarget->targetDeltas;
+					for( uint vid = 0; vid < morphChannel->GetVertexCount(); ++vid )
+					{
+						const Point3& mCoord = morphTargetVertices[ vid ];
+						const float coord[ 3 ] = { mCoord.x, mCoord.y, mCoord.z };
+						sgMorphTargetDeltas->SetTuple( vid, coord );
+					}
+
+					morphChannelMetaData->AddProgressiveMorphTarget(
+					    progressiveIndex, std::basic_string<TCHAR>( tMorphTargetName ), progressiveMorphTarget->targetWeight );
+				}
+
+				morphTargetMetaData.push_back( morphChannelMetaData );
+			}
+		}
+	}
+
 	// loop through the map of selected sets
 	this->LogToWindow( _T("Loop through selection sets...") );
 
@@ -4547,10 +5942,20 @@ bool SimplygonMax::ExtractGeometry( size_t meshIndex )
 	this->AddToObjectSelectionSet( mMaxNode );
 	this->AddEdgeCollapse( mMaxNode, sgMeshData );
 
+	// re-enable morph in the original geometry
+	if( bMorphTargetModifier )
+	{
+		meshNode->MorphTargetModifier->EnableMod();
+	}
+
 	// re-enable skinning in the original geometry
 	if( bSkinModifierEnabled )
 	{
 		meshNode->SkinModifiers->EnableMod();
+	}
+
+	if( bMorphTargetModifier || bSkinModifierEnabled )
+	{
 		mMaxNode->EvalWorldState( this->CurrentTime );
 	}
 
@@ -4817,6 +6222,10 @@ void CollectSceneMeshes( spSceneNode sgNode, std::vector<spSceneMesh>& sgSceneMe
 
 bool SimplygonMax::ImportProcessedScenes()
 {
+	// only use this fallback on user request (sgsdk_AllowUnsafeImport()),
+	// may result in unexpected behavior if used incorrectly.
+	const bool bAllowFallbackToSceneMapping = this->AllowUnsafeImport ? this->GlobalExportedMaterialMap.size() == 0 : false;
+
 	std::vector<spScene>& sgScenes = this->SceneHandler->sgProcessedScenes;
 
 	// early out
@@ -4831,6 +6240,13 @@ bool SimplygonMax::ImportProcessedScenes()
 
 		// load the processed scene from file
 		spScene sgProcessedScene = sgScenes[ physicalLodIndex ];
+
+		// if there isn't any in-memory material mapping data,
+		// and AllowUnsafeImport is true, fetch mapping from scene.
+		if( bAllowFallbackToSceneMapping )
+		{
+			ReadMaterialMappingAttribute( sgProcessedScene );
+		}
 
 		std::vector<spSceneMesh> sgProcessedMeshes;
 		const spSceneNode sgRootNode = sgProcessedScene->GetRootNode();
@@ -5133,6 +6549,17 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 			mMappedMaxNode = bHasMeshMap ? this->MaxInterface->GetINodeByName( meshMap->second.GetName().c_str() ) : nullptr;
 		}
 	}
+	// only use this fallback on user request (sgsdk_AllowUnsafeImport()),
+	// may result in unexpected behavior if used incorrectly.
+	else if( this->AllowUnsafeImport )
+	{
+		spUnsignedCharData sgUniqueHandleData = sgProcessedMesh->GetUserData( "MAX_UniqueHandle" );
+		if( !sgUniqueHandleData.IsNullOrEmpty() )
+		{
+			const ULONG* mUniquehandle = (const ULONG*)sgUniqueHandleData.Data();
+			mMappedMaxNode = this->MaxInterface->GetINodeByHandle( *mUniquehandle );
+		}
+	}
 
 	bHasMeshMap = mMappedMaxNode != nullptr;
 
@@ -5144,7 +6571,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 
 	if( sgMeshData->GetTriangleCount() == 0 )
 	{
-		std::basic_string<TCHAR> tWarningMessage = _T("Warning - Zero triangle mesh detected when importing node: ");
+		std::basic_string<TCHAR> tWarningMessage = _T("Zero triangle mesh detected when importing node: ");
 		tWarningMessage += tMaxOriginalNodeName;
 		this->LogToWindow( tWarningMessage, Warning );
 		return true;
@@ -5163,13 +6590,20 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 	{
 		INode* mOriginalMaxNode = mMappedMaxNode;
 		tMaxOriginalNodeName = mOriginalMaxNode->GetName();
+
 		mNewMaxNode->SetMtl( mOriginalMaxNode->GetMtl() );
 		mOriginalMaxMaterial = mOriginalMaxNode->GetMtl();
 
-		// only use material map if we want to map original materials
 		if( mOriginalMaxMaterial )
 		{
+			// only use material map if we want to map original materials
 			globalMaterialMap = this->mapMaterials ? this->GetGlobalMaterialMap( mOriginalMaxMaterial ) : nullptr;
+
+			// allow unsafe mapping, if enabled
+			if( !globalMaterialMap && this->AllowUnsafeImport )
+			{
+				globalMaterialMap = this->mapMaterials ? this->GetGlobalMaterialMapUnsafe( mOriginalMaxMaterial ) : nullptr;
+			}
 		}
 
 		INode* mOriginalMaxParentNode = mOriginalMaxNode->GetParentNode();
@@ -5367,8 +6801,8 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 
 			if( mid >= sgMaterialTable->GetMaterialsCount() )
 			{
-				std::basic_string<TCHAR> tErrorMessage = _T("Error - Writeback of material(s) failed due to an out-of-range material id when importing node ");
-				tErrorMessage += tMaxOriginalNodeName;
+				std::basic_string<TCHAR> tErrorMessage = _T("Writeback of material(s) failed due to an out-of-range material id when importing node ");
+				tErrorMessage += tIndexedNodeName;
 				tErrorMessage += _T("!");
 				this->LogToWindow( tErrorMessage, Error );
 				return false;
@@ -5555,25 +6989,44 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 
 					const spString rMaterialName = sgMaterial->GetName();
 					const char* cMaterialName = rMaterialName.c_str();
+					const TCHAR* tMaterialName = ConstCharPtrToLPCTSTR( cMaterialName );
 
 					// fetch global guid map
 					globalMaterialMap = this->GetGlobalMaterialMap( sMaterialId );
 					if( !globalMaterialMap )
-						return false;
+					{
+						std::basic_string<TCHAR> tWarningMessage = _T("Multi-material '");
+						tWarningMessage += tIndexedMaterialName + _T( "', sub-material '" );
+						tWarningMessage += tMaterialName;
+						tWarningMessage += _T("' - Could not find a material map between Simplygon and 3ds Max, ignoring material.");
+						this->LogToWindow( tWarningMessage, Warning );
 
-					// get mapped material from guid map
-					Mtl* mGlobalMaxMaterial = GetExistingMappedMaterial( globalMaterialMap->sgMaterialId );
+						continue;
+					}
+
+					Mtl* mGlobalMaxMaterial = nullptr;
+
+					// get mapped material from in-memory guid map
+					mGlobalMaxMaterial = GetExistingMappedMaterial( globalMaterialMap->sgMaterialId );
 					if( !mGlobalMaxMaterial )
 					{
 						// if not there, fallback to name based fetch
 						mGlobalMaxMaterial = GetExistingMaterial( globalMaterialMap->sgMaterialName );
 						if( !mGlobalMaxMaterial )
 						{
-							return false;
+							std::basic_string<TCHAR> tWarningMessage = _T("Multi-material '");
+							tWarningMessage += tIndexedMaterialName + _T( "', sub-material '" );
+							tWarningMessage += tMaterialName;
+							tWarningMessage +=
+							    _T("' - There is mapping data that indicates that the current scene should contain original materials, are you importing the ")
+							    _T("asset into an empty (or incorrect) scene? For multi-materials to get reused properly the original mesh has to exist ")
+							    _T("in the current scene. Without the original mesh the sub-materials will get assigned to a generated multi-material, as ")
+							    _T("long as there isn't any mapping data that indicates something else. Ignoring material.");
+							this->LogToWindow( tWarningMessage, Warning );
 						}
 					}
 
-					if( globalMaterialMap )
+					if( mGlobalMaxMaterial )
 					{
 						( (MultiMtl*)mOriginalMaxMaterial )->SetSubMtlAndName( mid, mGlobalMaxMaterial, mGlobalMaxMaterial->GetName() );
 					}
@@ -5601,13 +7054,37 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 
 				const spString rMaterialName = sgMaterial->GetName();
 				const char* cMaterialName = rMaterialName.c_str();
+				const TCHAR* tMaterialName = ConstCharPtrToLPCTSTR( cMaterialName );
 
 				globalMaterialMap = this->GetGlobalMaterialMap( sMaterialId );
 
 				if( globalMaterialMap )
 				{
-					Mtl* mGlobalMaxMaterial = GetExistingMaterial( globalMaterialMap->sgMaterialName );
+					// get mapped material from in-memory guid map
+					Mtl* mGlobalMaxMaterial = GetExistingMappedMaterial( globalMaterialMap->sgMaterialId );
+					if( !mGlobalMaxMaterial )
+					{
+						// if not there, fallback to name based fetch
+						mGlobalMaxMaterial = GetExistingMaterial( globalMaterialMap->sgMaterialName );
+
+						if( !mGlobalMaxMaterial )
+						{
+							std::basic_string<TCHAR> tWarningMessage =
+							    _T("There is mapping data that indicates that the current scene should contain original materials, are you importing the ")
+							    _T("asset into an empty (or incorrect) scene? For multi-materials to get reused properly the original mesh has to exist ")
+							    _T("in the current scene. Without the original mesh the sub-materials will get assigned to a generated multi-material, as ")
+							    _T("long as there isn't any mapping data that indicates something else. Ignoring single-material...");
+							this->LogToWindow( tWarningMessage, Warning );
+						}
+					}
 					mOriginalMaxMaterial = mGlobalMaxMaterial;
+				}
+				else
+				{
+					std::basic_string<TCHAR> tWarningMessage = _T( "Single-material '" );
+					tWarningMessage += tMaterialName;
+					tWarningMessage += _T("' - Could not find a material map between Simplygon and 3ds Max, ignoring material.");
+					this->LogToWindow( tWarningMessage, Warning );
 				}
 			}
 		}
@@ -5645,6 +7122,157 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 		}
 	}
 
+	// if the original object had morph targets, add a morph modifier
+	// after the new mesh in the modifier stack
+	if( bHasMeshMap && meshMap->second.HasMorpherMetaData() )
+	{
+		RegisterMorphScripts();
+
+		const ulong uniqueHandle = mNewMaxNode->GetHandle();
+
+		const MorpherMetaData* morpherMetaData = meshMap->second.GetMorpherMetaData();
+		const std::vector<MorphChannelMetaData*>& morphChannelMetaData = morpherMetaData->morphTargetMetaData;
+
+		Modifier* mNewMorpherModifier = (Modifier*)this->MaxInterface->CreateInstance( OSM_CLASS_ID, MORPHER_CLASS_ID );
+
+		// make the object into a derived object
+		IDerivedObject* mDerivedObject = CreateDerivedObject();
+		mDerivedObject->TransferReferences( mNewMaxTriObject );
+		mDerivedObject->ReferenceObject( mNewMaxTriObject );
+
+		mDerivedObject->AddModifier( mNewMorpherModifier );
+
+		TCHAR tTargetVertexFieldNameBuffer[ MAX_PATH ] = { 0 };
+		TCHAR tMorphTargetNameBuffer[ MAX_PATH ] = { 0 };
+
+		for( const MorphChannelMetaData* morphChannelMetaData : morphChannelMetaData )
+		{
+			const size_t originalMorphChannelIndex = morphChannelMetaData->GetOriginalIndex();
+			const size_t maxMorphChannelIndex = originalMorphChannelIndex + 1;
+
+			SetMorphChannelWeight( uniqueHandle, maxMorphChannelIndex, morphChannelMetaData->morphWeight );
+
+			std::map<size_t, float> logicalProgressiveIndexToWeight;
+			size_t numValidProgressiveMorphTargets = 0;
+
+			for( const MorphTargetMetaData* morphTargetMetaData : morphChannelMetaData->morphTargetMetaData )
+			{
+				const size_t originalMorphTargetIndex = morphTargetMetaData->GetIndex();
+
+				_stprintf_s( tTargetVertexFieldNameBuffer,
+				             MAX_PATH,
+				             _T("%s%zu_%zu"),
+				             _T("BlendShapeTargetVertexField"),
+				             originalMorphChannelIndex,
+				             originalMorphTargetIndex );
+				const char* cTargetVertexFieldName = LPCTSTRToConstCharPtr( tTargetVertexFieldNameBuffer );
+
+				spRealArray sgMorphTargetDeltas = spRealArray::SafeCast( sgMeshData->GetUserVertexField( cTargetVertexFieldName ) );
+				if( sgMorphTargetDeltas.NonNull() )
+				{
+					spString sgMorphTargetName = sgMorphTargetDeltas->GetAlternativeName();
+					std::basic_string<TCHAR> tMorphTargetName = ConstCharPtrToLPCTSTR( sgMorphTargetName.c_str() );
+					_stprintf_s( tMorphTargetNameBuffer,
+					             MAX_PATH,
+					             _T("%s_MorphTarget_%s_%zu_%zu"),
+					             tMeshName.c_str(),
+					             tMorphTargetName.c_str(),
+					             originalMorphChannelIndex,
+					             originalMorphTargetIndex );
+
+					std::basic_string<TCHAR> tFormattedMorphTargetName = GenerateFormattedName(
+					    this->meshFormatString, tMorphTargetNameBuffer, ConstCharPtrToLPCTSTR( std::to_string( logicalLodIndex ).c_str() ) );
+
+					TSTR tIndexedMorphTargetName = GetNonCollidingMeshName( tFormattedMorphTargetName.c_str() );
+
+					// create new max node and assign the same material as before
+					TriObject* mMorphTargetTriObject = CreateNewTriObject();
+					INode* mMorpTargetNode = this->MaxInterface->CreateObjectNode( mMorphTargetTriObject );
+					Mesh& mMorphTargetMesh = mMorphTargetTriObject->GetMesh();
+
+					mMorphTargetMesh.setNumVerts( vertexCount );
+					mMorphTargetMesh.setNumFaces( triangleCount );
+
+					// setup vertices
+					for( uint vid = 0; vid < vertexCount; ++vid )
+					{
+						spRealData sgCoord = sgCoords->GetTuple( vid );
+						spRealData sgMorphDelta = sgMorphTargetDeltas->GetTuple( vid );
+
+						const Point3 mMorphVertex( sgCoord[ 0 ] + sgMorphDelta[ 0 ], sgCoord[ 1 ] + sgMorphDelta[ 1 ], sgCoord[ 2 ] + sgMorphDelta[ 2 ] );
+						mMorphTargetMesh.setVert( vid, mMorphVertex );
+					}
+
+					for( uint tid = 0; tid < triangleCount; ++tid )
+					{
+						for( uint c = 0; c < 3; ++c )
+						{
+							mMorphTargetMesh.faces[ tid ].v[ c ] = sgVertexIds->GetItem( tid * 3 + c );
+						}
+
+						mMorphTargetMesh.faces[ tid ].flags |= EDGE_ALL;
+					}
+
+					INode* mOriginalMaxNode = mMappedMaxNode;
+					INode* mOriginalMaxParentNode = mOriginalMaxNode->GetParentNode();
+
+					mMorpTargetNode->SetName( tIndexedMorphTargetName );
+
+					if( !mOriginalMaxParentNode->IsRootNode() )
+					{
+						mOriginalMaxParentNode->AttachChild( mMorpTargetNode );
+					}
+
+					// Set the transform
+					mMorpTargetNode->SetNodeTM( this->CurrentTime, mOriginalMaxNode->GetNodeTM( this->CurrentTime ) );
+
+					// set the same wire-frame color
+					mMorpTargetNode->SetWireColor( mOriginalMaxNode->GetWireColor() );
+
+					// Set the other node properties:
+					mMorpTargetNode->FlagForeground( this->CurrentTime, FALSE );
+					mMorpTargetNode->SetObjOffsetPos( mOriginalMaxNode->GetObjOffsetPos() );
+					mMorpTargetNode->SetObjOffsetRot( mOriginalMaxNode->GetObjOffsetRot() );
+					mMorpTargetNode->SetObjOffsetScale( mOriginalMaxNode->GetObjOffsetScale() );
+
+					// set as regular morph target
+					if( numValidProgressiveMorphTargets == 0 )
+					{
+						SetMorphTarget( uniqueHandle, mMorpTargetNode->GetHandle(), originalMorphChannelIndex + 1 );
+					}
+
+					// set as progressive morph target
+					else
+					{
+						AddProgressiveMorphTarget( uniqueHandle, mMorpTargetNode->GetHandle(), originalMorphChannelIndex + 1 );
+					}
+
+					// store indices for later
+					logicalProgressiveIndexToWeight.insert( std::pair<size_t, float>( numValidProgressiveMorphTargets + 1, morphTargetMetaData->weight ) );
+					numValidProgressiveMorphTargets++;
+				}
+			}
+
+			// progressive morph target parameter update for the specific morph channel,
+			// must be done when all progressive targets have been written,
+			// or the weights will be recalculated.
+			for( const std::pair<size_t, float>& progressiveIndexWeightPair : logicalProgressiveIndexToWeight )
+			{
+				SetProgressiveMorphTargetWeight( uniqueHandle, maxMorphChannelIndex, progressiveIndexWeightPair.first, progressiveIndexWeightPair.second );
+			}
+
+			// apply per-channel settings (some of these are order dependent!)
+			SetMorphChannelTension( uniqueHandle, maxMorphChannelIndex, morphChannelMetaData->tension );
+			SetChannelUseLimits( uniqueHandle, maxMorphChannelIndex, morphChannelMetaData->useLimits );
+			SetChannelMinLimit( uniqueHandle, maxMorphChannelIndex, morphChannelMetaData->minLimit );
+			SetChannelMaxLimit( uniqueHandle, maxMorphChannelIndex, morphChannelMetaData->maxLimit );
+			SetChannelUseVertexSelection( uniqueHandle, maxMorphChannelIndex, morphChannelMetaData->useVertexSelection );
+		}
+
+		// apply global settings
+		MorpherWrapper::ApplyGlobalSettings( mNewMorpherModifier, morpherMetaData->globalSettings, 0 );
+	}
+
 	// if the original object had skinning, add a skinning modifier
 	// after the new mesh in the modifier stack
 	spSceneBoneTable sgBoneTable = sgProcessedScene->GetBoneTable();
@@ -5672,6 +7300,8 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 		mDerivedObject->AddModifier( mNewSkinModifier, mSkinModContext );
 		ISkinImportData* mSkinImportData = (ISkinImportData*)mNewSkinModifier->GetInterface( I_SKINIMPORTDATA );
 
+		bool bHasInvalidBoneReference = false;
+
 		std::map<INode*, int> boneToIdInUseMap;
 		std::map<int, INode*> boneIdToBoneInUseMap;
 
@@ -5698,6 +7328,11 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 					const char* cBoneName = rBoneName.c_str();
 
 					INode* mBone = this->MaxInterface->GetINodeByName( ConstCharPtrToLPCTSTR( cBoneName ) );
+					if( !mBone )
+					{
+						bHasInvalidBoneReference = true;
+						break;
+					}
 
 					boneToIdInUseMap.insert( std::pair<INode*, int>( mBone, globalBoneIndex ) );
 					boneIdToBoneInUseMap.insert( std::pair<int, INode*>( globalBoneIndex, mBone ) );
@@ -5705,74 +7340,24 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 			}
 		}
 
-		if( bHasMeshMap )
+		if( bHasInvalidBoneReference )
 		{
-			INode* mOriginalMaxNode = mMappedMaxNode;
+			boneToIdInUseMap.clear();
+			boneIdToBoneInUseMap.clear();
 
-			Modifier* skinModifier = nullptr;
-			Object* mMaxObject = mOriginalMaxNode->GetObjectRef();
+			std::basic_string<TCHAR> tWarningMessage = tIndexedNodeName;
+			tWarningMessage +=
+			    _T(" - Mapping data indicates reuse of existing bone hierarchy but was unable to get a valid bone reference. Ignoring skinning...");
 
-			// check if the object has a skinning modifier
-			// start by checking if it is a derived object
-			if( mMaxObject != nullptr && mMaxObject->SuperClassID() == GEN_DERIVOB_CLASS_ID )
-			{
-				IDerivedObject* mMaxDerivedObject = dynamic_cast<IDerivedObject*>( mMaxObject );
-
-				// derived object, look through the modifier list for a skinning modifier
-				for( int modifierIndex = 0; modifierIndex < mMaxDerivedObject->NumModifiers(); ++modifierIndex )
-				{
-					Modifier* mModifier = mMaxDerivedObject->GetModifier( modifierIndex );
-					if( mModifier != nullptr && mModifier->ClassID() == SKIN_CLASSID )
-					{
-						// found a skin, use it
-						skinModifier = mModifier;
-						break;
-					}
-				}
-			}
-
-			if( skinModifier )
-			{
-				// add all bones from the original mesh
-				ISkin* mSkin = (ISkin*)skinModifier->GetInterface( I_SKIN );
-				for( int boneIndex = 0; boneIndex < mSkin->GetNumBones(); ++boneIndex )
-				{
-					INode* mBone = mSkin->GetBone( boneIndex );
-					if( boneToIdInUseMap.find( mBone ) != boneToIdInUseMap.end() )
-					{
-						mSkinImportData->AddBoneEx( mBone, FALSE );
-
-						Matrix3 mTransformation;
-						mSkin->GetBoneInitTM( mBone, mTransformation, false );
-						mSkinImportData->SetBoneTm( mBone, mTransformation, mTransformation );
-					}
-				}
-			}
+			this->LogToWindow( tWarningMessage, Warning );
 		}
 		else
 		{
-			// copy bone transformations for every bone
-			for( std::map<std::string, GlobalMeshMap>::const_iterator& nodeIterator = this->GlobalGuidToMaxNodeMap.begin();
-			     nodeIterator != this->GlobalGuidToMaxNodeMap.end();
-			     nodeIterator++ )
+			if( bHasMeshMap )
 			{
-				INode* mOriginalMaxNode = this->MaxInterface->GetINodeByHandle( nodeIterator->second.GetMaxId() );
-				if( mOriginalMaxNode )
-				{
-					// if the name does not match, try to get Max mesh by name (fallback)
-					if( mOriginalMaxNode->GetName() != nodeIterator->second.GetName() )
-					{
-						mOriginalMaxNode = this->MaxInterface->GetINodeByName( nodeIterator->second.GetName().c_str() );
-					}
-				}
+				INode* mOriginalMaxNode = mMappedMaxNode;
 
-				// if null, possible root node
-				if( !mOriginalMaxNode )
-					continue;
-
-				Modifier* mCurrentSkinModifier = nullptr;
-
-				// skinning modifiers
+				Modifier* skinModifier = nullptr;
 				Object* mMaxObject = mOriginalMaxNode->GetObjectRef();
 
 				// check if the object has a skinning modifier
@@ -5788,86 +7373,155 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 						if( mModifier != nullptr && mModifier->ClassID() == SKIN_CLASSID )
 						{
 							// found a skin, use it
-							mCurrentSkinModifier = mModifier;
+							skinModifier = mModifier;
 							break;
 						}
 					}
 				}
 
-				if( mCurrentSkinModifier == nullptr )
-					continue;
-
-				// add all bones from the original mesh
-				ISkin* mSkin = (ISkin*)mCurrentSkinModifier->GetInterface( I_SKIN );
-				for( int boneIndex = 0; boneIndex < mSkin->GetNumBones(); ++boneIndex )
+				if( skinModifier )
 				{
-					INode* mBone = mSkin->GetBone( boneIndex );
-
-					std::map<INode*, int>::iterator& boneInUseIterator = boneToIdInUseMap.find( mBone );
-					if( boneInUseIterator != boneToIdInUseMap.end() )
+					// add all bones from the original mesh
+					ISkin* mSkin = (ISkin*)skinModifier->GetInterface( I_SKIN );
+					for( int boneIndex = 0; boneIndex < mSkin->GetNumBones(); ++boneIndex )
 					{
-						mSkinImportData->AddBoneEx( mBone, FALSE );
+						INode* mBone = mSkin->GetBone( boneIndex );
+						if( boneToIdInUseMap.find( mBone ) != boneToIdInUseMap.end() )
+						{
+							mSkinImportData->AddBoneEx( mBone, FALSE );
 
-						Matrix3 mTransformation;
-						mSkin->GetBoneInitTM( mBone, mTransformation, false );
-						mSkinImportData->SetBoneTm( mBone, mTransformation, mTransformation );
-
-						boneToIdInUseMap.erase( boneInUseIterator );
+							Matrix3 mTransformation;
+							mSkin->GetBoneInitTM( mBone, mTransformation, false );
+							mSkinImportData->SetBoneTm( mBone, mTransformation, mTransformation );
+						}
 					}
 				}
 			}
-		}
-
-		// update the derived object. this is needed to create a context data
-		ObjectState MObjectState = mDerivedObject->Eval( 0 );
-
-		spRealArray sgBoneWeights = sgMeshData->GetBoneWeights();
-
-		// set the bone weights per-vertex
-		for( uint vid = 0; vid < vertexCount; ++vid )
-		{
-			Tab<INode*> mBonesArray;
-			Tab<float> mWeightsArray;
-			mBonesArray.SetCount( numBonesPerVertex );
-			mWeightsArray.SetCount( numBonesPerVertex );
-
-			// get the tuple data
-			spRidData sgBoneId = sgBoneIds->GetTuple( vid );
-			spRealData sgBoneWeight = sgBoneWeights->GetTuple( vid );
-
-			uint boneCount = 0;
-			for( uint boneIndex = 0; boneIndex < numBonesPerVertex; ++boneIndex )
+			else
 			{
-				const int globalBoneIndex = sgBoneId[ boneIndex ];
-
-				if( globalBoneIndex >= 0 )
+				// copy bone transformations for every bone
+				for( std::map<std::string, GlobalMeshMap>::const_iterator& nodeIterator = this->GlobalGuidToMaxNodeMap.begin();
+				     nodeIterator != this->GlobalGuidToMaxNodeMap.end();
+				     nodeIterator++ )
 				{
-					spSceneBone sgBone = sgBoneTable->GetBone( globalBoneIndex );
+					INode* mOriginalMaxNode = this->MaxInterface->GetINodeByHandle( nodeIterator->second.GetMaxId() );
+					if( mOriginalMaxNode )
+					{
+						// if the name does not match, try to get Max mesh by name (fallback)
+						if( mOriginalMaxNode->GetName() != nodeIterator->second.GetName() )
+						{
+							mOriginalMaxNode = this->MaxInterface->GetINodeByName( nodeIterator->second.GetName().c_str() );
+						}
+					}
 
-					const std::map<int, INode*>::const_iterator& boneIterator = boneIdToBoneInUseMap.find( globalBoneIndex );
-					if( boneIterator == boneIdToBoneInUseMap.end() )
+					// if null, possible root node
+					if( !mOriginalMaxNode )
 						continue;
 
-					INode* mBone = boneIterator->second;
+					Modifier* mCurrentSkinModifier = nullptr;
 
-					mBonesArray[ boneCount ] = mBone;
-					mWeightsArray[ boneCount ] = sgBoneWeight[ boneIndex ];
-					++boneCount;
+					// skinning modifiers
+					Object* mMaxObject = mOriginalMaxNode->GetObjectRef();
+
+					// check if the object has a skinning modifier
+					// start by checking if it is a derived object
+					if( mMaxObject != nullptr && mMaxObject->SuperClassID() == GEN_DERIVOB_CLASS_ID )
+					{
+						IDerivedObject* mMaxDerivedObject = dynamic_cast<IDerivedObject*>( mMaxObject );
+
+						// derived object, look through the modifier list for a skinning modifier
+						for( int modifierIndex = 0; modifierIndex < mMaxDerivedObject->NumModifiers(); ++modifierIndex )
+						{
+							Modifier* mModifier = mMaxDerivedObject->GetModifier( modifierIndex );
+							if( mModifier != nullptr && mModifier->ClassID() == SKIN_CLASSID )
+							{
+								// found a skin, use it
+								mCurrentSkinModifier = mModifier;
+								break;
+							}
+						}
+					}
+
+					if( mCurrentSkinModifier == nullptr )
+						continue;
+
+					// add all bones from the original mesh
+					ISkin* mSkin = (ISkin*)mCurrentSkinModifier->GetInterface( I_SKIN );
+					for( int boneIndex = 0; boneIndex < mSkin->GetNumBones(); ++boneIndex )
+					{
+						INode* mBone = mSkin->GetBone( boneIndex );
+
+						std::map<INode*, int>::iterator& boneInUseIterator = boneToIdInUseMap.find( mBone );
+						if( boneInUseIterator != boneToIdInUseMap.end() )
+						{
+							mSkinImportData->AddBoneEx( mBone, FALSE );
+
+							Matrix3 mTransformation;
+							mSkin->GetBoneInitTM( mBone, mTransformation, false );
+							mSkinImportData->SetBoneTm( mBone, mTransformation, mTransformation );
+
+							boneToIdInUseMap.erase( boneInUseIterator );
+						}
+					}
 				}
 			}
 
-			// resize arrays to actual count of bones added
-			mBonesArray.SetCount( boneCount );
-			mWeightsArray.SetCount( boneCount );
+			// update the derived object. this is needed to create a context data
+			ObjectState MObjectState = mDerivedObject->Eval( 0 );
 
-			// set the vertex weights
-			// TODO: set all in same call!
-			const bool bWeightAdded = mSkinImportData->AddWeights( mNewMaxNode, vid, mBonesArray, mWeightsArray ) == TRUE;
-			if( !bWeightAdded )
-				return false;
+			spRealArray sgBoneWeights = sgMeshData->GetBoneWeights();
+
+			// set the bone weights per-vertex
+			for( uint vid = 0; vid < vertexCount; ++vid )
+			{
+				Tab<INode*> mBonesArray;
+				Tab<float> mWeightsArray;
+				mBonesArray.SetCount( numBonesPerVertex );
+				mWeightsArray.SetCount( numBonesPerVertex );
+
+				// get the tuple data
+				spRidData sgBoneId = sgBoneIds->GetTuple( vid );
+				spRealData sgBoneWeight = sgBoneWeights->GetTuple( vid );
+
+				uint boneCount = 0;
+				for( uint boneIndex = 0; boneIndex < numBonesPerVertex; ++boneIndex )
+				{
+					const int globalBoneIndex = sgBoneId[ boneIndex ];
+
+					if( globalBoneIndex >= 0 )
+					{
+						spSceneBone sgBone = sgBoneTable->GetBone( globalBoneIndex );
+
+						const std::map<int, INode*>::const_iterator& boneIterator = boneIdToBoneInUseMap.find( globalBoneIndex );
+						if( boneIterator == boneIdToBoneInUseMap.end() )
+							continue;
+
+						INode* mBone = boneIterator->second;
+
+						mBonesArray[ boneCount ] = mBone;
+						mWeightsArray[ boneCount ] = sgBoneWeight[ boneIndex ];
+						++boneCount;
+					}
+				}
+
+				// resize arrays to actual count of bones added
+				mBonesArray.SetCount( boneCount );
+				mWeightsArray.SetCount( boneCount );
+
+				// set the vertex weights
+				// TODO: set all in same call!
+				const bool bWeightAdded = mSkinImportData->AddWeights( mNewMaxNode, vid, mBonesArray, mWeightsArray ) == TRUE;
+				if( !bWeightAdded )
+				{
+					std::basic_string<TCHAR> tWarningMessage = tIndexedNodeName;
+					tWarningMessage += _T(" - Could not add bone weights to the given node, ignoring weights.");
+
+					this->LogToWindow( tWarningMessage, Warning );
+					return false;
+				}
+			}
 		}
 	}
-
 	// clear shading network info
 	this->ClearShadingNetworkInfo();
 
@@ -6576,11 +8230,13 @@ bool SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 
 				if( !sgTexture->GetImageData().IsNull() )
 				{
+					std::basic_string<TCHAR> tNewTexturePath = Combine( tBakedTextureDirectory, tTextureName );
+
 					// Embedded data, should be written to file
-					sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePath.c_str() ) );
+					sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tNewTexturePath.c_str() ) );
 					if( sgTexture->ExportImageData() )
 					{
-						tTexturePath = ConstCharPtrToLPCTSTR( sgTexture->GetFilePath().c_str() );
+						tTargetFilePath = ConstCharPtrToLPCTSTR( sgTexture->GetFilePath().c_str() );
 						sgTexture->SetImageData( nullptr );
 					}
 				}
@@ -7216,30 +8872,28 @@ bool SimplygonMax::RunSimplygonProcess()
 	return bResult;
 }
 
-// cleanup function
-void SimplygonMax::CleanUp()
+// cleanup functions
+void SimplygonMax::CleanUpGlobalMaterialMappingData()
 {
-	// Note: If users are using exporting scene using distributed processing and importing the scnee. We want to kepe the mapping around to hook back to soruce
-	// materail ids.
-	if( this->extractionType != ExtractionType::EXPORT_TO_FILE )
+	// remove materials
+	for( size_t metaDataIndex = 0; metaDataIndex < this->GlobalExportedMaterialMap.size(); ++metaDataIndex )
 	{
-		// remove materials
-		for( size_t metaDataIndex = 0; metaDataIndex < this->GlobalExportedMaterialMap.size(); ++metaDataIndex )
+		if( this->GlobalExportedMaterialMap[ metaDataIndex ] != nullptr )
 		{
-			if( this->GlobalExportedMaterialMap[ metaDataIndex ] != nullptr )
-			{
-				delete this->GlobalExportedMaterialMap[ metaDataIndex ];
-				this->GlobalExportedMaterialMap[ metaDataIndex ] = nullptr;
-			}
+			delete this->GlobalExportedMaterialMap[ metaDataIndex ];
+			this->GlobalExportedMaterialMap[ metaDataIndex ] = nullptr;
 		}
-
-		this->GlobalExportedMaterialMap.clear();
 	}
 
+	this->GlobalExportedMaterialMap.clear();
+}
+
+void SimplygonMax::RequiredCleanUp()
+{
+	this->SelectedMeshCount = 0;
 	this->SelectedMeshNodes.clear();
 	this->ImportedUvNameToMaxIndex.clear();
 	this->ImportedMaxIndexToUv.clear();
-	this->LoadedTexturePathToID.clear();
 
 	this->MaxBoneToSgBone.clear();
 	this->SgBoneToMaxBone.clear();
@@ -7248,6 +8902,20 @@ void SimplygonMax::CleanUp()
 	this->MaxSgNodeMap.clear();
 	this->SgMaxNodeMap.clear();
 	this->ImportedTextures.clear();
+	this->LoadedTexturePathToID.clear();
+}
+
+void SimplygonMax::CleanUp()
+{
+	// Note: If users are using exporting scene using distributed processing and importing the scnee.
+	// We want to kepe the mapping around to hook back to source material ids.
+	if( this->extractionType != ExtractionType::EXPORT_TO_FILE )
+	{
+		this->CleanUpGlobalMaterialMappingData();
+	}
+
+	this->RequiredCleanUp();
+
 	this->ShadingTextureNodeToPath.clear();
 
 	// remove handlers
@@ -7285,6 +8953,23 @@ MaxMaterialMap* SimplygonMax::GetGlobalMaterialMap( Mtl* mMaxMaterial )
 		MaxMaterialMap* mMap = this->GlobalExportedMaterialMap[ materialIndex ];
 
 		if( mMap->sgMaterialName == tMaterialName && mMap->mMaxMaterialHandle == mMaxMaterialHandle )
+		{
+			return mMap;
+		}
+	}
+
+	return nullptr;
+}
+
+// Gets the material map for the given Max material
+MaxMaterialMap* SimplygonMax::GetGlobalMaterialMapUnsafe( Mtl* mMaxMaterial )
+{
+	std::basic_string<TCHAR> tMaterialName = mMaxMaterial->GetName();
+	for( size_t materialIndex = 0; materialIndex < this->GlobalExportedMaterialMap.size(); ++materialIndex )
+	{
+		MaxMaterialMap* mMap = this->GlobalExportedMaterialMap[ materialIndex ];
+
+		if( mMap->sgMaterialName == tMaterialName && mMap->NumSubMaterials == mMaxMaterial->NumSubMtls() )
 		{
 			return mMap;
 		}
@@ -7796,284 +9481,273 @@ bool SimplygonMax::MaterialChannelHasShadingNetwork( spMaterial sgMaterial, cons
 	return true;
 }
 
-void SimplygonMax::CreateShadingNetworkForStdMaterial( long maxChannelId,
-                                                       StdMat2* mMaxStdMaterial,
-                                                       spMaterial sgMaterial,
-                                                       std::basic_string<TCHAR> tMaxMappingChannel,
-                                                       std::basic_string<TCHAR> tMappedChannelName,
-                                                       std::basic_string<TCHAR> tFilePath,
-                                                       float blendAmount,
-                                                       bool bIsSRGB,
-                                                       BitmapTex* mBitmapTex,
-                                                       bool* hasTextures )
+spShadingNode SimplygonMax::CreateShadingNetworkForPBRMaterial( long maxChannelID,
+                                                                std::basic_string<TCHAR> tMaterialName,
+                                                                std::basic_string<TCHAR> tMaxMappingChannel,
+                                                                std::basic_string<TCHAR> tMappedChannelName,
+                                                                MaterialNodes::MaterialNodeBase* node )
 {
 	const char* cChannelName = LPCTSTRToConstCharPtr( tMappedChannelName.c_str() );
 
-	// import texture
-	std::basic_string<TCHAR> tTexturePathWithName = this->ImportTexture( std::basic_string<TCHAR>( tFilePath ) );
-	std::basic_string<TCHAR> tTextureName = GetTitleOfFile( tTexturePathWithName );
-	std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
-	std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
+	// MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &MaterialColorOverrides, mMaxStdMaterial, tMappedChannelName );
 
-	Color mBaseColor( 1.0f, 1.0f, 1.0f );
-	
-	spShadingTextureNode sgTextureNode = CreateTextureNode( mBitmapTex, tMaxMappingChannel, tTextureName, this->CurrentTime, bIsSRGB );
+	Color mBaseColor = Color( 0, 0, 0 );
 
-	spShadingColorNode sgColorNode = sg->CreateShadingColorNode();
-	sgColorNode->SetColor( mBaseColor.r, mBaseColor.g, mBaseColor.b, 1.0f );
+	spShadingNode sgExitNode = BuildNode( node, maxChannelID, tMaterialName, tMappedChannelName, tMaxMappingChannel, mBaseColor, 1.0f, CurrentTime );
 
-	spShadingColorNode sgBlendAmountNode = sg->CreateShadingColorNode();
-	sgBlendAmountNode->SetColor( blendAmount, blendAmount, blendAmount, 1.0f );
+	// export xml string from shading network material
+	// if( sgExitNode != nullptr )
+	//{
+	//	sgMaterial->SetShadingNetwork( cChannelName, sgExitNode );
+	//}
+
+	for( uint32_t i = 0; i < node->GetNumTextures(); ++i )
+	{
+		// create texture and add it to scene
+		spTexture sgTexture = nullptr;
+
+		MaterialNodes::TextureData* sgInternalTextureData = node->GetTexture( i );
+		if( sgInternalTextureData && sgInternalTextureData->mBitmap )
+		{
+			// do lookup in case this texture is already in use
+			std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
+			    this->LoadedTexturePathToID.find( sgInternalTextureData->mTexturePathWithName );
+			const bool bTextureInUse = ( tTextureIterator != this->LoadedTexturePathToID.end() );
+
+			if( bTextureInUse )
+			{
+				sgTexture = this->SceneHandler->sgScene->GetTextureTable()->FindTextureUsingPath(
+				    LPCTSTRToConstCharPtr( sgInternalTextureData->mTexturePathWithName.c_str() ) );
+			}
+			else
+			{
+				sgTexture = sg->CreateTexture();
+				sgTexture->SetName( LPCTSTRToConstCharPtr( sgInternalTextureData->mTextureName.c_str() ) );
+				sgTexture->SetFilePath( LPCTSTRToConstCharPtr( sgInternalTextureData->mTexturePathWithName.c_str() ) );
+
+				this->SceneHandler->sgScene->GetTextureTable()->AddTexture( sgTexture );
+			}
+
+			// if the texture was not already in scene, copy it to local work folder
+			if( !bTextureInUse )
+			{
+				const spString rTexturePathWithName = sgTexture->GetFilePath();
+				this->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
+				    sgInternalTextureData->mTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
+			}
+		}
+	}
+
+	// hasTextures[ maxChannelId ] = true;
+
+	return sgExitNode;
+}
+
+void SimplygonMax::CreateShadingNetworkForStdMaterial( long maxChannelId,
+                                                       StdMat2* mMaxStdMaterial,
+                                                       spMaterial sgMaterial,
+                                                       std::basic_string<TCHAR> tMaterialName,
+                                                       std::basic_string<TCHAR> tMaxMappingChannel,
+                                                       std::basic_string<TCHAR> tMappedChannelName,
+                                                       MaterialNodes::MaterialNodeBase* node,
+                                                       const float blendAmount,
+                                                       bool* hasTextures )
+{
+	const char* cChannelName = LPCTSTRToConstCharPtr( tMappedChannelName.c_str() );
 
 	spShadingNode sgExitNode = nullptr;
 
 	MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &MaterialColorOverrides, mMaxStdMaterial, tMappedChannelName );
 
+	Color mBaseColor = Color( 1, 1, 1 );
+
 	// copy material colors
-	if( maxChannelId == ID_AM )
+	switch( maxChannelId )
 	{
-		mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetAmbient( this->MaxInterface->GetTime() );
-		float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
-
-		sgColorNode->SetColor( mBaseColor.r, mBaseColor.g, mBaseColor.b, alpha );
-
-		spShadingInterpolateNode sgInterpolationNode = sg->CreateShadingInterpolateNode();
-		sgInterpolationNode->SetInput( 0, sgColorNode );
-		sgInterpolationNode->SetInput( 1, sgTextureNode );
-		sgInterpolationNode->SetInput( 2, sgBlendAmountNode );
-
-		sgExitNode = (spShadingNode)sgInterpolationNode;
-	}
-	else if( maxChannelId == ID_DI )
-	{
-		mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetDiffuse( this->MaxInterface->GetTime() );
-		float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
-
-		sgColorNode->SetColor( mBaseColor.r, mBaseColor.g, mBaseColor.b, alpha );
-
-		spShadingInterpolateNode sgInterpolationNode = sg->CreateShadingInterpolateNode();
-		sgInterpolationNode->SetInput( 0, sgColorNode );
-		sgInterpolationNode->SetInput( 1, sgTextureNode );
-		sgInterpolationNode->SetInput( 2, sgBlendAmountNode );
-
-		sgExitNode = (spShadingNode)sgInterpolationNode;
-	}
-	else if( maxChannelId == ID_SP )
-	{
-		mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetSpecular( this->MaxInterface->GetTime() );
-		float shininess = colorOverride ? colorOverride->ColorValue[ 3 ] : mMaxStdMaterial->GetShininess( this->MaxInterface->GetTime() ) * 128.f;
-
-		sgColorNode->SetColor( mBaseColor.r, mBaseColor.g, mBaseColor.b, shininess );
-
-		spShadingInterpolateNode sgInterpolationNode = sg->CreateShadingInterpolateNode();
-		sgInterpolationNode->SetInput( 0, sgColorNode );
-		sgInterpolationNode->SetInput( 1, sgTextureNode );
-		sgInterpolationNode->SetInput( 2, sgBlendAmountNode );
-
-		sgExitNode = (spShadingNode)sgInterpolationNode;
-	}
-	else if( maxChannelId == ID_SH )
-	{
-		mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
-		float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
-
-		sgColorNode->SetColor( mBaseColor.r, mBaseColor.g, mBaseColor.b, alpha );
-
-		spShadingInterpolateNode sgInterpolationNode = sg->CreateShadingInterpolateNode();
-		sgInterpolationNode->SetInput( 0, sgColorNode );
-		sgInterpolationNode->SetInput( 1, sgTextureNode );
-		sgInterpolationNode->SetInput( 2, sgBlendAmountNode );
-
-		sgExitNode = (spShadingNode)sgInterpolationNode;
-	}
-	else if( maxChannelId == ID_SS )
-	{
-		mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
-		float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
-
-		sgColorNode->SetColor( mBaseColor.r, mBaseColor.g, mBaseColor.b, alpha );
-
-		spShadingInterpolateNode sgInterpolationNode = sg->CreateShadingInterpolateNode();
-		sgInterpolationNode->SetInput( 0, sgColorNode );
-		sgInterpolationNode->SetInput( 1, sgTextureNode );
-		sgInterpolationNode->SetInput( 2, sgBlendAmountNode );
-
-		sgExitNode = (spShadingNode)sgInterpolationNode;
-	}
-	else if( maxChannelId == ID_SI )
-	{
-		mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetSelfIllumColor( this->MaxInterface->GetTime() );
-		float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : mMaxStdMaterial->GetSelfIllum( this->MaxInterface->GetTime() );
-
-		sgColorNode->SetColor( mBaseColor.r, mBaseColor.g, mBaseColor.b, alpha );
-
-		spShadingInterpolateNode sgInterpolationNode = sg->CreateShadingInterpolateNode();
-		sgInterpolationNode->SetInput( 0, sgColorNode );
-		sgInterpolationNode->SetInput( 1, sgTextureNode );
-		sgInterpolationNode->SetInput( 2, sgBlendAmountNode );
-
-		sgExitNode = (spShadingNode)sgInterpolationNode;
-	}
-	else if( maxChannelId == ID_OP )
-	{
-		float opacity = mMaxStdMaterial->GetOpacity( this->MaxInterface->GetTime() );
-
-		mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : Color( opacity, opacity, opacity );
-		float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : opacity;
-
-		sgColorNode->SetColor( mBaseColor.r, mBaseColor.g, mBaseColor.b, alpha );
-		spShadingInterpolateNode sgInterpolationNode = sg->CreateShadingInterpolateNode();
-		sgInterpolationNode->SetInput( 0, sgColorNode );
-		sgInterpolationNode->SetInput( 1, sgTextureNode );
-		sgInterpolationNode->SetInput( 2, sgBlendAmountNode );
-
-		spShadingSwizzlingNode sgSwizzleNode = sg->CreateShadingSwizzlingNode();
-		sgSwizzleNode->SetInput( 0, sgInterpolationNode );
-		sgSwizzleNode->SetInput( 1, sgInterpolationNode );
-		sgSwizzleNode->SetInput( 2, sgInterpolationNode );
-		sgSwizzleNode->SetInput( 3, sgInterpolationNode );
-
-		bool bUseAlphaAsTransparency = false;
-		Texmap* mTexMap = mMaxStdMaterial->GetSubTexmap( mMaxStdMaterial->StdIDToChannel( maxChannelId ) );
-		if( mTexMap )
+		case ID_AM:
 		{
-			BitmapTex* mBitmapTex = (BitmapTex*)mTexMap;
-			if( mBitmapTex )
+			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetAmbient( this->MaxInterface->GetTime() );
+			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
+
+			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
+			break;
+		}
+		case ID_DI:
+		{
+			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetDiffuse( this->MaxInterface->GetTime() );
+			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
+
+			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
+			break;
+		}
+		case ID_SP:
+		{
+			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetSpecular( this->MaxInterface->GetTime() );
+			float shininess = colorOverride ? colorOverride->ColorValue[ 3 ] : mMaxStdMaterial->GetShininess( this->MaxInterface->GetTime() ) * 128.f;
+
+			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, shininess, this->CurrentTime, blendAmount );
+			break;
+		}
+		case ID_SH:
+		{
+			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
+			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
+
+			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
+			break;
+		}
+		case ID_SS:
+		{
+			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
+			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
+
+			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
+			break;
+		}
+		case ID_SI:
+		{
+			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetSelfIllumColor( this->MaxInterface->GetTime() );
+			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : mMaxStdMaterial->GetSelfIllum( this->MaxInterface->GetTime() );
+
+			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
+			break;
+		}
+		case ID_OP:
+		{
+			float opacity = mMaxStdMaterial->GetOpacity( this->MaxInterface->GetTime() );
+
+			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : Color( opacity, opacity, opacity );
+			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : opacity;
+
+			auto sgInterpolationNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
+
+			spShadingSwizzlingNode sgSwizzleNode = sg->CreateShadingSwizzlingNode();
+			sgSwizzleNode->SetInput( 0, sgInterpolationNode );
+			sgSwizzleNode->SetInput( 1, sgInterpolationNode );
+			sgSwizzleNode->SetInput( 2, sgInterpolationNode );
+			sgSwizzleNode->SetInput( 3, sgInterpolationNode );
+
+			bool bUseAlphaAsTransparency = false;
+			Texmap* mTexMap = mMaxStdMaterial->GetSubTexmap( mMaxStdMaterial->StdIDToChannel( maxChannelId ) );
+			if( mTexMap )
 			{
-				bUseAlphaAsTransparency = mBitmapTex->GetAlphaAsRGB( TRUE ) == TRUE;
+				BitmapTex* mBitmapTex = (BitmapTex*)mTexMap;
+				if( mBitmapTex )
+				{
+					bUseAlphaAsTransparency = mBitmapTex->GetAlphaAsRGB( TRUE ) == TRUE;
+				}
 			}
+
+			// pick first texture
+			MaterialNodes::TextureData* texture = node->GetTexture( 0 );
+			if( texture && texture->mBitmap )
+			{
+				const bool bTextureHasAlpha = TextureHasAlpha( LPCTSTRToConstCharPtr( texture->mTexturePathWithName.c_str() ) );
+
+				if( bTextureHasAlpha && bUseAlphaAsTransparency )
+				{
+					sgSwizzleNode->SetRedComponent( 3 );
+					sgSwizzleNode->SetGreenComponent( 3 );
+					sgSwizzleNode->SetBlueComponent( 3 );
+					sgSwizzleNode->SetAlphaComponent( 3 );
+				}
+				else
+				{
+					sgSwizzleNode->SetRedComponent( 0 );
+					sgSwizzleNode->SetGreenComponent( 0 );
+					sgSwizzleNode->SetBlueComponent( 0 );
+					sgSwizzleNode->SetAlphaComponent( 0 );
+				}
+
+				sgExitNode = (spShadingNode)sgSwizzleNode;
+			}
+			break;
 		}
-
-		const bool bTextureHasAlpha = TextureHasAlpha( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-		if( bTextureHasAlpha && bUseAlphaAsTransparency )
+		case ID_FI:
 		{
-			sgSwizzleNode->SetRedComponent( 3 );
-			sgSwizzleNode->SetGreenComponent( 3 );
-			sgSwizzleNode->SetBlueComponent( 3 );
-			sgSwizzleNode->SetAlphaComponent( 3 );
+			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
+			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
+
+			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
+			break;
 		}
-		else
+		case ID_BU:
 		{
-			sgSwizzleNode->SetRedComponent( 0 );
-			sgSwizzleNode->SetGreenComponent( 0 );
-			sgSwizzleNode->SetBlueComponent( 0 );
-			sgSwizzleNode->SetAlphaComponent( 0 );
+			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, Color( 1, 1, 1 ), 1.0f, this->CurrentTime, 1.0f );
+			break;
 		}
+		case ID_RL:
+		{
+			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
+			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
 
-		sgExitNode = (spShadingNode)sgSwizzleNode;
-	}
-	else if( maxChannelId == ID_FI )
-	{
-		mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
-		float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
+			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
+			break;
+		}
+		case ID_RR:
+		{
+			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
+			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
 
-		sgColorNode->SetColor( mBaseColor.r, mBaseColor.g, mBaseColor.b, alpha );
+			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
+			break;
+		}
+		case ID_DP:
+		{
+			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
+			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
 
-		spShadingInterpolateNode sgInterpolationNode = sg->CreateShadingInterpolateNode();
-		sgInterpolationNode->SetInput( 0, sgColorNode );
-		sgInterpolationNode->SetInput( 1, sgTextureNode );
-		sgInterpolationNode->SetInput( 2, sgBlendAmountNode );
-
-		sgExitNode = (spShadingNode)sgInterpolationNode;
-	}
-	else if( maxChannelId == ID_BU )
-	{
-		// ignore for now
-	}
-	else if( maxChannelId == ID_RL )
-	{
-		mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
-		float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
-
-		sgColorNode->SetColor( mBaseColor.r, mBaseColor.g, mBaseColor.b, alpha );
-
-		spShadingInterpolateNode sgInterpolationNode = sg->CreateShadingInterpolateNode();
-		sgInterpolationNode->SetInput( 0, sgColorNode );
-		sgInterpolationNode->SetInput( 1, sgTextureNode );
-		sgInterpolationNode->SetInput( 2, sgBlendAmountNode );
-
-		sgExitNode = (spShadingNode)sgInterpolationNode;
-	}
-	else if( maxChannelId == ID_RR )
-	{
-		mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
-		float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
-
-		sgColorNode->SetColor( mBaseColor.r, mBaseColor.g, mBaseColor.b, alpha );
-
-		spShadingInterpolateNode sgInterpolationNode = sg->CreateShadingInterpolateNode();
-		sgInterpolationNode->SetInput( 0, sgColorNode );
-		sgInterpolationNode->SetInput( 1, sgTextureNode );
-		sgInterpolationNode->SetInput( 2, sgBlendAmountNode );
-
-		sgExitNode = (spShadingNode)sgInterpolationNode;
-	}
-	else if( maxChannelId == ID_DP )
-	{
-		mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
-		float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
-
-		sgColorNode->SetColor( mBaseColor.r, mBaseColor.g, mBaseColor.b, alpha );
-
-		spShadingInterpolateNode sgInterpolationNode = sg->CreateShadingInterpolateNode();
-		sgInterpolationNode->SetInput( 0, sgColorNode );
-		sgInterpolationNode->SetInput( 1, sgTextureNode );
-		sgInterpolationNode->SetInput( 2, sgBlendAmountNode );
-
-		sgExitNode = (spShadingNode)sgInterpolationNode;
-	}
-	else
-	{
-		sgColorNode->SetColor( mBaseColor.r, mBaseColor.g, mBaseColor.b, 1.0f );
-
-		spShadingInterpolateNode sgInterpolationNode = sg->CreateShadingInterpolateNode();
-		sgInterpolationNode->SetInput( 0, sgColorNode );
-		sgInterpolationNode->SetInput( 1, sgTextureNode );
-		sgInterpolationNode->SetInput( 2, sgBlendAmountNode );
-
-		sgExitNode = (spShadingNode)sgInterpolationNode;
+			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
+			break;
+		}
+		default:
+		{
+			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, 1, this->CurrentTime, blendAmount );
+			break;
+		}
 	}
 
 	// export xml string from shading network material
-	if( maxChannelId == ID_BU )
+	if( sgExitNode != nullptr )
 	{
-		sgMaterial->SetShadingNetwork( cChannelName, sgTextureNode );
+		sgMaterial->SetShadingNetwork( cChannelName, sgExitNode );
 	}
-	else
+
+	for( uint32_t i = 0; i < node->GetNumTextures(); ++i )
 	{
-		if( sgExitNode != nullptr )
+		// create texture and add it to scene
+		spTexture sgTexture = nullptr;
+
+		MaterialNodes::TextureData* sgInternalTextureData = node->GetTexture( i );
+		if( sgInternalTextureData && sgInternalTextureData->mBitmap )
 		{
-			sgMaterial->SetShadingNetwork( cChannelName, sgExitNode );
+			// do lookup in case this texture is already in use
+			std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
+			    this->LoadedTexturePathToID.find( sgInternalTextureData->mTexturePathWithName );
+			const bool bTextureInUse = ( tTextureIterator != this->LoadedTexturePathToID.end() );
+
+			if( bTextureInUse )
+			{
+				sgTexture = this->SceneHandler->sgScene->GetTextureTable()->FindTextureUsingPath(
+				    LPCTSTRToConstCharPtr( sgInternalTextureData->mTexturePathWithName.c_str() ) );
+			}
+			else
+			{
+				sgTexture = sg->CreateTexture();
+				sgTexture->SetName( LPCTSTRToConstCharPtr( sgInternalTextureData->mTextureName.c_str() ) );
+				sgTexture->SetFilePath( LPCTSTRToConstCharPtr( sgInternalTextureData->mTexturePathWithName.c_str() ) );
+
+				this->SceneHandler->sgScene->GetTextureTable()->AddTexture( sgTexture );
+			}
+
+			// if the texture was not already in scene, copy it to local work folder
+			if( !bTextureInUse )
+			{
+				const spString rTexturePathWithName = sgTexture->GetFilePath();
+				this->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
+				    sgInternalTextureData->mTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
+			}
 		}
-	}
-
-	// create texture and add it to scene
-	spTexture sgTexture = nullptr;
-
-	// do lookup in case this texture is already in use
-	std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator = this->LoadedTexturePathToID.find( tTexturePathWithName );
-	const bool bTextureInUse = ( tTextureIterator != this->LoadedTexturePathToID.end() );
-
-	if( bTextureInUse )
-	{
-		sgTexture = this->SceneHandler->sgScene->GetTextureTable()->FindTextureUsingPath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-	}
-	else
-	{
-		sgTexture = sg->CreateTexture();
-		sgTexture->SetName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
-		sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
-
-		this->SceneHandler->sgScene->GetTextureTable()->AddTexture( sgTexture );
-	}
-
-	// if the texture was not already in scene, copy it to local work folder
-	if( !bTextureInUse )
-	{
-		const spString rTexturePathWithName = sgTexture->GetFilePath();
-		this->LoadedTexturePathToID.insert(
-		    std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>( tTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
 	}
 
 	if( maxChannelId == ID_BU )
@@ -8084,7 +9758,11 @@ void SimplygonMax::CreateShadingNetworkForStdMaterial( long maxChannelId,
 	hasTextures[ maxChannelId ] = true;
 }
 
-void SimplygonMax::LogMaterialNodeMessage( Texmap* mTexMap, std::basic_string<TCHAR> tMaterialName, std::basic_string<TCHAR> tChannelName )
+void SimplygonMax::LogMaterialNodeMessage( Texmap* mTexMap,
+                                           std::basic_string<TCHAR> tMaterialName,
+                                           std::basic_string<TCHAR> tChannelName,
+                                           const bool partialFail,
+                                           std::basic_string<TCHAR> tExtendedInformation )
 {
 	if( !mTexMap )
 		return;
@@ -8103,9 +9781,127 @@ void SimplygonMax::LogMaterialNodeMessage( Texmap* mTexMap, std::basic_string<TC
 	}
 	else
 	{
-		LogToWindow( tMaterialName + _T(" (") + tChannelName + _T(") - ") + std::basic_string<TCHAR>( nodeClassName ) + _T(" texture node is not supported."),
-		             Warning );
+		if( partialFail != true )
+		{
+			LogToWindow( tMaterialName + _T(" (") + tChannelName + _T(") - ") + std::basic_string<TCHAR>( nodeClassName ) +
+			                 _T(" texture node is not supported."),
+			             Warning );
+		}
+		else
+		{
+			LogToWindow( tMaterialName + _T(" (") + tChannelName + _T(") - ") + std::basic_string<TCHAR>( nodeClassName ) + _T(" ") + tExtendedInformation,
+			             Warning );
+		}
 	}
+}
+
+std::basic_string<TCHAR> SimplygonMax::SetupMaxMappingChannel( const char* cMaterialName, const char* cChannelName, Texmap* mTexMap )
+{
+	// set mapping channel to 1
+	std::basic_string<TCHAR> tMaxMappingChannel;
+	tMaxMappingChannel = _T("1");
+
+	// check for uv overrides
+	if( this->MaterialChannelOverrides.size() > 0 )
+	{
+		for( size_t channelIndex = 0; channelIndex < this->MaterialChannelOverrides.size(); ++channelIndex )
+		{
+			const MaterialTextureMapChannelOverride& mappingChannelOverride = this->MaterialChannelOverrides[ channelIndex ];
+			if( strcmp( cMaterialName, LPCTSTRToConstCharPtr( mappingChannelOverride.MaterialName.c_str() ) ) == 0 )
+			{
+				if( strcmp( cChannelName, LPCTSTRToConstCharPtr( mappingChannelOverride.MappingChannelName.c_str() ) ) == 0 )
+				{
+					TCHAR tMappingChannelBuffer[ MAX_PATH ] = { 0 };
+					_stprintf_s( tMappingChannelBuffer, _T("%d"), mappingChannelOverride.MappingChannel );
+
+					tMaxMappingChannel = tMappingChannelBuffer;
+					break;
+				}
+			}
+		}
+	}
+	// or explicit channels
+	else if( mTexMap->GetUVWSource() == UVWSRC_EXPLICIT )
+	{
+		const int maxMappingChannel = mTexMap->GetMapChannel();
+		TCHAR tMappingChannelBuffer[ MAX_PATH ] = { 0 };
+		_stprintf_s( tMappingChannelBuffer, _T("%d"), maxMappingChannel );
+
+		tMaxMappingChannel = tMappingChannelBuffer;
+	}
+	return tMaxMappingChannel;
+}
+
+spShadingNode SimplygonMax::CreateSgMaterialPBRChannel( Texmap* mTexMap, long maxChannelId, const char* cMaterialName, const char* cChannelName )
+{
+	spShadingNode shadingNode = nullptr;
+	std::string sMaterialName = cMaterialName;
+	std::basic_string<TCHAR> tMaterialName = ConstCharPtrToLPCTSTR( cMaterialName );
+	std::basic_string<TCHAR> tChannelName = ConstCharPtrToLPCTSTR( cChannelName );
+
+	if( mTexMap && ( mTexMap->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) || ( mTexMap->ClassID() == GNORMAL_CLASS_ID ) ||
+	                 ( mTexMap->ClassID() == Class_ID( RGBMULT_CLASS_ID, 0 ) ) || ( mTexMap->ClassID() == Class_ID( TINT_CLASS_ID, 0 ) ) ||
+	                 ( mTexMap->ClassID() == Class_ID( COMPOSITE_CLASS_ID, 0 ) ) ) )
+	{
+		std::basic_string<TCHAR> tMaxMappingChannel = SetupMaxMappingChannel( cMaterialName, cChannelName, mTexMap );
+
+		// see if there are nodes in between slot and texture
+		if( mTexMap->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) )
+		{
+			MaterialNodes::BitmapNode sgBitmapNode( mTexMap );
+			sgBitmapNode.Setup( maxChannelId, cMaterialName, cChannelName, nullptr, CurrentTime );
+
+			shadingNode = CreateShadingNetworkForPBRMaterial( maxChannelId, tMaterialName, tMaxMappingChannel, tChannelName, &sgBitmapNode );
+		}
+		else if( mTexMap->ClassID() == GNORMAL_CLASS_ID )
+		{
+			// get first texmap of the normal node
+			mTexMap = mTexMap->GetSubTexmap( 0 );
+
+			if( mTexMap )
+			{
+				// check that the texmap is a bitmaptex,
+				// if so, use it for this material channel
+				Class_ID normalNodeClassId = mTexMap->ClassID();
+				if( normalNodeClassId == Class_ID( BMTEX_CLASS_ID, 0 ) )
+				{
+					MaterialNodes::BitmapNode sgBitmapNode( mTexMap );
+					sgBitmapNode.Setup( maxChannelId, cMaterialName, cChannelName, nullptr, CurrentTime );
+
+					// turn off SRGB
+					sgBitmapNode.mTexture.mIsSRGB = false;
+					shadingNode = CreateShadingNetworkForPBRMaterial( maxChannelId, tMaterialName, tMaxMappingChannel, tChannelName, &sgBitmapNode );
+				}
+				else
+				{
+					LogMaterialNodeMessage( mTexMap, tMaterialName, tChannelName );
+				}
+			}
+		}
+		else if( mTexMap->ClassID() == Class_ID( RGBMULT_CLASS_ID, 0 ) )
+		{
+			MaterialNodes::MultiplyNode sgMultiplyNode( mTexMap );
+			sgMultiplyNode.Setup( maxChannelId, cMaterialName, cChannelName, nullptr, CurrentTime );
+
+			shadingNode = CreateShadingNetworkForPBRMaterial( maxChannelId, tMaterialName, tMaxMappingChannel, tChannelName, &sgMultiplyNode );
+		}
+		else if( mTexMap->ClassID() == Class_ID( TINT_CLASS_ID, 0 ) )
+		{
+			MaterialNodes::TintNode sgTintNode( mTexMap );
+			sgTintNode.Setup( maxChannelId, cMaterialName, cChannelName, nullptr, CurrentTime );
+
+			shadingNode = CreateShadingNetworkForPBRMaterial( maxChannelId, tMaterialName, tMaxMappingChannel, tChannelName, &sgTintNode );
+		}
+		else if( mTexMap->ClassID() == Class_ID( COMPOSITE_CLASS_ID, 0 ) )
+		{
+			MaterialNodes::CompositeNode sgCompositeNode( mTexMap );
+			sgCompositeNode.Setup( maxChannelId, cMaterialName, cChannelName, nullptr, CurrentTime );
+
+			shadingNode = CreateShadingNetworkForPBRMaterial( maxChannelId, tMaterialName, tMaxMappingChannel, tChannelName, &sgCompositeNode );
+		}
+	}
+
+	return shadingNode;
 }
 
 // creates Simplygon material channels based on the channels in the Max StdMaterial
@@ -8131,21 +9927,25 @@ void SimplygonMax::CreateSgMaterialChannel( long maxChannelId, StdMat2* mMaxStdM
 	Texmap* mTexMap = mMaxStdMaterial->GetSubTexmap( maxChannel );
 	const float blendAmount = mMaxStdMaterial->GetTexmapAmt( maxChannel, this->MaxInterface->GetTime() );
 
-	if( mTexMap && ( mTexMap->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) || ( mTexMap->ClassID() == GNORMAL_CLASS_ID && mTexMap->GetSubTexmap( 0 ) ) ) )
+	if( mTexMap && ( mTexMap->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) || ( mTexMap->ClassID() == GNORMAL_CLASS_ID ) ||
+	                 ( mTexMap->ClassID() == Class_ID( RGBMULT_CLASS_ID, 0 ) ) || ( mTexMap->ClassID() == Class_ID( TINT_CLASS_ID, 0 ) ) ||
+	                 ( mTexMap->ClassID() == Class_ID( COMPOSITE_CLASS_ID, 0 ) ) ) )
 	{
-		BitmapTex* mBitmapTex = nullptr;
-		Class_ID nodeClassId = mTexMap->ClassID();
+		std::basic_string<TCHAR> tMaxMappingChannel = SetupMaxMappingChannel( cMaterialName, cChannelName, mTexMap );
 
 		// see if there are nodes in between slot and texture
-		if( nodeClassId == Class_ID( BMTEX_CLASS_ID, 0 ) )
+		if( mTexMap->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) )
 		{
-			mBitmapTex = (BitmapTex*)mTexMap;
+			MaterialNodes::BitmapNode sgBitmapNode( mTexMap );
+			sgBitmapNode.Setup( maxChannelId, cMaterialName, cChannelName, &this->MaterialTextureOverrides, this->CurrentTime );
+
+			CreateShadingNetworkForStdMaterial(
+			    maxChannelId, mMaxStdMaterial, sgMaterial, tMaterialName, tMaxMappingChannel, tChannelName, &sgBitmapNode, blendAmount, hasTextures );
 		}
-		else if( nodeClassId == GNORMAL_CLASS_ID )
+		else if( mTexMap->ClassID() == GNORMAL_CLASS_ID )
 		{
 			// get first texmap of the normal node
 			mTexMap = mTexMap->GetSubTexmap( 0 );
-			mBitmapTex = nullptr;
 
 			if( mTexMap )
 			{
@@ -8154,7 +9954,11 @@ void SimplygonMax::CreateSgMaterialChannel( long maxChannelId, StdMat2* mMaxStdM
 				Class_ID normalNodeClassId = mTexMap->ClassID();
 				if( normalNodeClassId == Class_ID( BMTEX_CLASS_ID, 0 ) )
 				{
-					mBitmapTex = (BitmapTex*)mTexMap;
+					MaterialNodes::BitmapNode sgBitmapNode( mTexMap );
+					sgBitmapNode.Setup( maxChannelId, cMaterialName, cChannelName, &this->MaterialTextureOverrides, this->CurrentTime );
+
+					CreateShadingNetworkForStdMaterial(
+					    maxChannelId, mMaxStdMaterial, sgMaterial, tMaterialName, tMaxMappingChannel, tChannelName, &sgBitmapNode, blendAmount, hasTextures );
 				}
 				else
 				{
@@ -8162,101 +9966,37 @@ void SimplygonMax::CreateSgMaterialChannel( long maxChannelId, StdMat2* mMaxStdM
 				}
 			}
 		}
+		else if( mTexMap->ClassID() == Class_ID( RGBMULT_CLASS_ID, 0 ) )
+		{
+			MaterialNodes::MultiplyNode sgMultiplyNode( mTexMap );
+			sgMultiplyNode.Setup( maxChannelId, cMaterialName, cChannelName, &this->MaterialTextureOverrides, this->CurrentTime );
+
+			CreateShadingNetworkForStdMaterial(
+			    maxChannelId, mMaxStdMaterial, sgMaterial, tMaterialName, tMaxMappingChannel, tChannelName, &sgMultiplyNode, blendAmount, hasTextures );
+		}
+		else if( mTexMap->ClassID() == Class_ID( TINT_CLASS_ID, 0 ) )
+		{
+			MaterialNodes::TintNode sgTintNode( mTexMap );
+			sgTintNode.Setup( maxChannelId, cMaterialName, cChannelName, &this->MaterialTextureOverrides, this->CurrentTime );
+
+			CreateShadingNetworkForStdMaterial(
+			    maxChannelId, mMaxStdMaterial, sgMaterial, tMaterialName, tMaxMappingChannel, tChannelName, &sgTintNode, blendAmount, hasTextures );
+		}
+		else if( mTexMap->ClassID() == Class_ID( COMPOSITE_CLASS_ID, 0 ) )
+		{
+			MaterialNodes::CompositeNode sgCompositeNode( mTexMap );
+			sgCompositeNode.Setup( maxChannelId, cMaterialName, cChannelName, &this->MaterialTextureOverrides, this->CurrentTime );
+
+			CreateShadingNetworkForStdMaterial(
+			    maxChannelId, mMaxStdMaterial, sgMaterial, tMaterialName, tMaxMappingChannel, tChannelName, &sgCompositeNode, blendAmount, hasTextures );
+		}
 		else
 		{
-			LogMaterialNodeMessage( mTexMap, tMaterialName, tChannelName );
-		}
+			MaterialNodes::BitmapNode sgBitmapNode( mTexMap );
+			sgBitmapNode.Setup( maxChannelId, cMaterialName, cChannelName, &this->MaterialTextureOverrides, this->CurrentTime );
 
-		// if we have an actual texture node,
-		// fetch gama, texture path, mapping channel,
-		// and create representing shading network.
-		if( mBitmapTex )
-		{
-			bool bIsSRGB = false;
-
-			// change sRGB based on gamma
-			const float gamma = GetBitmapTextureGamma( mBitmapTex );
-			if( gamma <= 2.21000000f && gamma >= 2.19000000f )
-			{
-				bIsSRGB = true;
-			}
-
-			// retrieve the texture file path
-			TCHAR tTexturePath[ MAX_PATH ] = { 0 };
-			GetImageFullFilePath( mBitmapTex->GetMapName(), tTexturePath );
-
-			// if the texture path was found
-			if( _tcslen( tTexturePath ) > 0 )
-			{
-				// if normal map, disable sRGB
-				if( maxChannelId == ID_BU )
-				{
-					bIsSRGB = false;
-				}
-
-				// set mapping channel to 1
-				std::basic_string<TCHAR> tMaxMappingChannel = _T("1");
-
-				// check for uv overrides
-				if( this->MaterialChannelOverrides.size() > 0 )
-				{
-					for( size_t channelIndex = 0; channelIndex < this->MaterialChannelOverrides.size(); ++channelIndex )
-					{
-						const MaterialTextureMapChannelOverride& mappingChannelOverride = this->MaterialChannelOverrides[ channelIndex ];
-						if( strcmp( cMaterialName, LPCTSTRToConstCharPtr( mappingChannelOverride.MaterialName.c_str() ) ) == 0 )
-						{
-							if( strcmp( cChannelName, LPCTSTRToConstCharPtr( mappingChannelOverride.MappingChannelName.c_str() ) ) == 0 )
-							{
-								TCHAR tMappingChannelBuffer[ MAX_PATH ] = { 0 };
-								_stprintf_s( tMappingChannelBuffer, _T("%d"), mappingChannelOverride.MappingChannel );
-
-								tMaxMappingChannel = tMappingChannelBuffer;
-								break;
-							}
-						}
-					}
-				}
-
-				// or explicit channels
-				else if( mTexMap->GetUVWSource() == UVWSRC_EXPLICIT )
-				{
-					const int maxMappingChannel = mTexMap->GetMapChannel();
-					TCHAR tMappingChannelBuffer[ MAX_PATH ] = { 0 };
-					_stprintf_s( tMappingChannelBuffer, _T("%d"), maxMappingChannel );
-
-					tMaxMappingChannel = tMappingChannelBuffer;
-				}
-
-				std::basic_string<TCHAR> tTexturePathOverride = _T("");
-				for( size_t channelIndex = 0; channelIndex < this->MaterialTextureOverrides.size(); ++channelIndex )
-				{
-					const MaterialTextureOverride& textureOverride = this->MaterialTextureOverrides[ channelIndex ];
-					if( strcmp( cMaterialName, LPCTSTRToConstCharPtr( textureOverride.MaterialName.c_str() ) ) == 0 )
-					{
-						if( strcmp( cChannelName, LPCTSTRToConstCharPtr( textureOverride.MappingChannelName.c_str() ) ) == 0 )
-						{
-							tTexturePathOverride = textureOverride.TextureFileName;
-							break;
-						}
-					}
-				}
-
-				if( tTexturePathOverride.length() > 0 )
-				{
-					_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-				}
-
-				CreateShadingNetworkForStdMaterial( maxChannelId,
-				                                    mMaxStdMaterial,
-				                                    sgMaterial,
-				                                    tMaxMappingChannel,
-				                                    tChannelName,
-				                                    tTexturePath,
-				                                    blendAmount,
-				                                    bIsSRGB,
-				                                    mBitmapTex,
-				                                    hasTextures );
-			}
+			CreateShadingNetworkForStdMaterial(
+			    maxChannelId, mMaxStdMaterial, sgMaterial, tMaterialName, tMaxMappingChannel, tChannelName, &sgBitmapNode, blendAmount, hasTextures );
 		}
 	}
 	else
@@ -8315,7 +10055,6 @@ void SimplygonMax::CreateSgMaterialChannel( long maxChannelId, StdMat2* mMaxStdM
 					}
 				}
 			}
-
 			// else, use standard channel
 			else
 			{
@@ -8328,8 +10067,11 @@ void SimplygonMax::CreateSgMaterialChannel( long maxChannelId, StdMat2* mMaxStdM
 
 			_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
 
+			MaterialNodes::BitmapNode sgBitmapNode( mTexMap );
+			sgBitmapNode.Setup( maxChannelId, cMaterialName, cChannelName, &this->MaterialTextureOverrides, this->CurrentTime );
+
 			CreateShadingNetworkForStdMaterial(
-			    maxChannelId, mMaxStdMaterial, sgMaterial, tMaxMappingChannel, tChannelName, tTexturePath, blendAmount, bIsSRGB, nullptr, hasTextures );
+			    maxChannelId, mMaxStdMaterial, sgMaterial, tMaterialName, tMaxMappingChannel, tChannelName, &sgBitmapNode, blendAmount, hasTextures );
 		}
 	}
 
@@ -10074,6 +11816,18 @@ void FindAllUpStreamTextureNodes( spShadingNode sgShadingNode, std::map<std::bas
 	}
 }
 
+void GlobalLogMaterialNodeMessage( Texmap* mTexMap,
+                                   std::basic_string<TCHAR> tMaterialName,
+                                   std::basic_string<TCHAR> tChannelName,
+                                   const bool partialFail,
+                                   std::basic_string<TCHAR> tExtendedInformation )
+{
+	if( SimplygonMaxInstance )
+	{
+		SimplygonMaxInstance->LogMaterialNodeMessage( mTexMap, tMaterialName, tChannelName, partialFail, tExtendedInformation );
+	}
+}
+
 // gets upstream shading texture node in the specified shading-network
 spShadingTextureNode SimplygonMax::FindUpstreamTextureNode( spShadingNode sgShadingNode )
 {
@@ -10303,13 +12057,18 @@ Mtl* SimplygonMax::SetupPhysicalMaterial( spScene sgProcessedScene, std::basic_s
 		const bool bResult = this->ImportMaterialTexture(
 		    sgProcessedScene, sgMaterial, tNodeName, tChannelName.c_str(), bIsNormalChannel ? ID_BU : -1, &mBitmapTex, tMeshName, tLodName );
 
-		if( !bResult || !mBitmapTex )
+		if( !bResult )
 		{
 			std::basic_string<TCHAR> tErrorMessage = _T("SetupPhysicalMaterial: Failed to import a texture for ");
 			tErrorMessage += tChannelName;
 			tErrorMessage += _T(" channel.");
 
 			this->LogToWindow( tErrorMessage, Warning );
+		}
+		else if( !mBitmapTex )
+		{
+			// skip warning if there aren't any textures on this channel (most likely due to non-baked channels)
+			continue;
 		}
 
 		if( tChannelName == _T("base_weight") )

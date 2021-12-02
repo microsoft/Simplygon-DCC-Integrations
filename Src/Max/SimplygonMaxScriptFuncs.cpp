@@ -81,6 +81,7 @@ sgsdk_bool_variable( LockSelectedVertices );
 sgsdk_bool_variable( CanUndo );
 sgsdk_int_variable( TextureCoordinateRemapping );
 sgsdk_int_variable( PipelineRunMode );
+sgsdk_bool_variable( AllowUnsafeImport );
 
 // new setting pipeline
 def_visible_primitive( sgsdk_CreatePipeline, "sgsdk_CreatePipeline" ); // 8.3
