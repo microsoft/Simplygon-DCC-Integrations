@@ -65,7 +65,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <DisableSpecificWarnings>4996;4265;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
       <CompileAsManaged>false</CompileAsManaged>
       <SDLCheck>false</SDLCheck>
@@ -78,6 +78,7 @@
       <AdditionalLibraryDirectories>C:\Program Files\Autodesk\3ds Max 2022 SDK\maxsdk\lib\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)$(ProjectName).pdb</ProgramDatabaseFile>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <TargetMachine>MachineX64</TargetMachine>
       <ModuleDefinitionFile>..\Max\SimplygonMax.def</ModuleDefinitionFile>
       <SubSystem>Windows</SubSystem>
@@ -90,7 +91,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj %(AdditionalOptions) /we4018 /we4244</AdditionalOptions>
       <Optimization>Full</Optimization>
       <AdditionalIncludeDirectories>$(SIMPLYGON_9_PATH);$(ProjectDir)..\Common;$(ProjectDir)..\Simplygon;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Max;C:\Program Files\Autodesk\3ds Max 2022 SDK\maxsdk\include;$(DXSDK_DIR)\include;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>MAX_INTEGRATION;WINVER=0x0602;_WIN32_WINNT=0x0602;_WIN32_WINDOWS=0x0602;_AMD64_;WIN32;WIN64;WINDOWS;_USRDLL;MAX_EXPORTS;_CRT_SECURE_NO_WARNINGS;DBG_ASSERT_ACTIVE_IN_RELEASE_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -101,7 +102,7 @@
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <DisableSpecificWarnings>4265;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -116,6 +117,7 @@
       <AdditionalLibraryDirectories>C:\Program Files\Autodesk\3ds Max 2022 SDK\maxsdk\lib\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)$(ProjectName).pdb</ProgramDatabaseFile>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <TargetMachine>MachineX64</TargetMachine>
       <ModuleDefinitionFile>..\Max\SimplygonMax.def</ModuleDefinitionFile>
       <SubSystem>Windows</SubSystem>

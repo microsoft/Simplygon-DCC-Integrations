@@ -342,16 +342,16 @@ Licensed under the MIT License.
                             <Grid Name="MaterialCasterToolbar" Visibility="Visible" Background="Transparent">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"></ColumnDefinition>
-                                    <!--<ColumnDefinition Width="*"></ColumnDefinition>-->
+                                    <ColumnDefinition Width="35"></ColumnDefinition>
                                     <ColumnDefinition Width="35"></ColumnDefinition>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Material Casters" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="12" FontWeight="Bold"></TextBlock>
                                 <Button Name="AddMaterialCasterButton" Grid.Column="1" Click="AddMaterialCasterButton_Click" >
                                     <Image Source="pack://application:,,,/Simplygon.WPFUI;component/Add.png" Canvas.ZIndex="1" Margin="5"/>
                                 </Button>
-                                <!--<Button Name="DeleteButton" Grid.Column="3" Click="DeleteButton_Click" >
-                                <Image Source="pack://application:,,,/Simplygon.WPFUI;component/Trash_16x.png" Canvas.ZIndex="1" Margin="5"/>
-                            </Button>-->
+                                <Button Name="DeleteAllMaterialCasterButton" Grid.Column="2" Click="DeleteAllMaterialCasterButton_Click" >
+                                    <Image Source="pack://application:,,,/Simplygon.WPFUI;component/Trash.png" Canvas.ZIndex="1" Margin="5"/>
+                                </Button>
                             </Grid>
                         </GroupBox.Header>
                         <TreeView Name="MaterialCasterTreeView" Grid.IsSharedSizeScope="true" HorizontalContentAlignment="Stretch" VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Standard" >

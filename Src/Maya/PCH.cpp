@@ -148,11 +148,19 @@ void SelectDAGPath( MDagPath node, bool add_to_list )
 {
 	if( add_to_list )
 	{
+		// Required for BinSkim compat
+		// TODO: Deprecated method, should be replaced!
+		SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 		MGlobal::select( node, MObject::kNullObj, MGlobal::kAddToList );
+		SG_DISABLE_SPECIFIC_END
 	}
 	else
 	{
+		// Required for BinSkim compat
+		// TODO: Deprecated method, should be replaced!
+		SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 		MGlobal::select( node, MObject::kNullObj, MGlobal::kReplaceList );
+		SG_DISABLE_SPECIFIC_END
 	}
 }
 
@@ -202,10 +210,18 @@ MStatus DuplicateNodeWithShape( MDagPath node, MDagPath& resultNode, MStringArra
 	MDagPath shapeNode = node;
 	if( shapeNode.extendToShape() )
 	{
+		// Required for BinSkim compat
+		// TODO: Deprecated method, should be replaced!
+		SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 		bool selected = MGlobal::select( node, MObject::kNullObj, MGlobal::kReplaceList );
+		SG_DISABLE_SPECIFIC_END
 		if( alternative_duplicate )
 		{
+			// Required for BinSkim compat
+			// TODO: Deprecated method, should be replaced!
+			SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 			selected &= MGlobal::select( shapeNode, MObject::kNullObj, MGlobal::kAddToList );
+			SG_DISABLE_SPECIFIC_END
 		}
 
 		// select the node and mesh to duplicate
@@ -275,10 +291,14 @@ MStatus ExecuteSelectedObjectCommand( MString cmd, MDagPath node, MObject compon
 {
 	MStatusAssert( node.isValid(), "ExecuteSelectedObjectCommand: invalid node" );
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	if( !MGlobal::select( node, component, MGlobal::kReplaceList ) )
 	{
 		return MStatus::kFailure;
 	}
+	SG_DISABLE_SPECIFIC_END
 
 	if( !MGlobal::executeCommand( cmd, dest, false ) )
 	{
@@ -291,10 +311,14 @@ MStatus ExecuteSelectedObjectCommand( MString cmd, MDagPath node, MObject compon
 {
 	MStatusAssert( node.isValid(), "ExecuteSelectedObjectCommand: invalid node" );
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	if( !MGlobal::select( node, component, MGlobal::kReplaceList ) )
 	{
 		return MStatus::kFailure;
 	}
+	SG_DISABLE_SPECIFIC_END
 
 	if( !MGlobal::executeCommand( cmd, dest, false ) )
 	{
@@ -307,10 +331,14 @@ MStatus ExecuteSelectedObjectCommand( MString cmd, MDagPath node, MObject compon
 {
 	MStatusAssert( node.isValid(), "ExecuteSelectedObjectCommand: invalid node" );
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	if( !MGlobal::select( node, component, MGlobal::kReplaceList ) )
 	{
 		return MStatus::kFailure;
 	}
+	SG_DISABLE_SPECIFIC_END
 
 	if( !MGlobal::executeCommand( cmd, false ) )
 	{
@@ -344,8 +372,12 @@ MStatus DeleteSkinningJointsOfNode( MDagPath node )
 	MSanityCheck( node.isValid() );
 	MStatus mStatus;
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	// select the object
 	mStatus = MGlobal::select( node, MObject::kNullObj, MGlobal::kReplaceList );
+	SG_DISABLE_SPECIFIC_END
 	MCheckStatus( mStatus, "DeleteSkinningJointsOfNode: Node selection failed" );
 
 	// select the skin cluster of the object
@@ -373,9 +405,13 @@ MString GetSkinClusterNodeName( MDagPath mMeshDagPath )
 	MString mSkinClusterName;
 	MFnDagNode mMeshDagNode( mMeshDagPath ); // path to the visible mesh
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	// the deformed mesh comes into the visible mesh
 	// through its "inmesh" plug
 	MPlug mInMeshPlug = mMeshDagNode.findPlug( "inMesh", &mStatus );
+	SG_DISABLE_SPECIFIC_END
 
 	if( mStatus == MStatus::kSuccess && mInMeshPlug.isConnected() )
 	{
@@ -389,7 +425,11 @@ MString GetSkinClusterNodeName( MDagPath mMeshDagPath )
 
 			for( ; !mDependencyIterator.isDone(); mDependencyIterator.next() )
 			{
+				// Required for BinSkim compat
+				// TODO: Deprecated method, should be replaced!
+				SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 				MObject mNodeObject = mDependencyIterator.thisNode();
+				SG_DISABLE_SPECIFIC_END
 
 				// go until we find a skinCluster
 				if( mNodeObject.apiType() == MFn::kSkinClusterFilter )

@@ -63,6 +63,9 @@ namespace SimplygonUI
 
     public class UILogger : INotifyPropertyChanged, IDisposable
     {
+        private static readonly Lazy<UILogger> lazy = new Lazy<UILogger>(() => new UILogger());
+        public static UILogger Instance { get { return lazy.Value; } }
+
         protected readonly uint MaxNumEntries = 100u;
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -89,7 +92,7 @@ namespace SimplygonUI
             }
         }
 
-        public UILogger()
+        private UILogger()
         {
             (CollectionViewSource.GetDefaultView(LogEntries) as CollectionView).Filter = ItemFilter;
 

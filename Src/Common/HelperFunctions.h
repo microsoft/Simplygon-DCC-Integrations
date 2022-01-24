@@ -89,4 +89,8 @@ template <typename T> void ClearArray( T* targetArray, T value, uint length )
 	}
 }
 
+
+std::basic_string<wchar_t> AppendInt( const std::basic_string<wchar_t>& str, int value );
+std::basic_string<char> AppendInt( const std::basic_string<char>& str, int value );
+
 #endif

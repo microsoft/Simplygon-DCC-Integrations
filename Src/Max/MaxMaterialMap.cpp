@@ -44,6 +44,28 @@ int MaxMaterialMap::GetSimplygonMaterialId( int maxMaterialId ) const
 	{
 		return materialIterator->second;
 	}
+
+	// there is a case of where a geometry can reuse a material that is part of a multi-material,
+	// a "sub-material" can in that case have a material index != 0. Reusing that same material (as non-submaterial)
+	// using the old code would always result in invalid lookup (defaulting to material index 0) which is incorrect.
+
+	// if material to reuse is a "single" material, try to use the first material index in the lookup,
+	// this index should be the only index in the list, otherwise it should be marked as multi-material.
+	// if the lookup for some reason is empty, default to material index 0, as earlier
+	else if( this->NumSubMaterials == 0 )
+	{
+		std::map<int, int>::const_iterator& firstMaterialIterator = this->MaxToSGMapping.begin();
+		if( firstMaterialIterator != MaxToSGMapping.end() )
+		{
+			return firstMaterialIterator->second;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	// last resort; default to material id 0
 	else
 	{
 		return 0;
@@ -66,7 +88,7 @@ void MaxMaterialMap::AddSubMaterialMapping( int first, int second )
 
 // note: this function's purpose is to allow manual population of the material map,
 // currently used for "AllowUnsafeImport".
-MaxMaterialMap::MaxMaterialMap( ULONG uniqueHandle, std::basic_string<TCHAR> materialName, std::string materialId )
+MaxMaterialMap::MaxMaterialMap( AnimHandle uniqueHandle, std::basic_string<TCHAR> materialName, std::string materialId )
     : MaxMaterialMap()
 {
 	this->mMaxMaterialHandle = uniqueHandle;

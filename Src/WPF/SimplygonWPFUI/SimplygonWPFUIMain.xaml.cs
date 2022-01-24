@@ -23,7 +23,7 @@ namespace SimplygonUI
     /// </summary>
     public partial class SimplygonWPFUIMain : UserControl, ISimplygonPipelineContextMenuCallback, INotifyPropertyChanged, SimplygonUIExternalAccess
     {
-        public UILogger uiLogger { get; private set; } = new UILogger();
+        public UILogger uiLogger { get { return UILogger.Instance; } }
         public static int LODIndex = 1;
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
@@ -70,7 +70,7 @@ namespace SimplygonUI
 
         public void Log(Category category, string message)
         {
-            uiLogger.Log(category, message);
+            UILogger.Instance.Log(category, message);
         }
 
         public void SetIntegrationType(SimplygonIntegrationType integrationType)
@@ -409,9 +409,25 @@ namespace SimplygonUI
         {
             try
             {
-                dynamic jsonData = JObject.Parse(System.IO.File.ReadAllText(fileName));
+                SimplygonPipeline pipeline = null;
 
-                var pipeline = new SimplygonPipeline(jsonData);
+                if (System.IO.Path.GetExtension(fileName).ToLower() == ".spl")
+                {
+#if LEGACYSETTINGSSUPPORT
+                    pipeline = SimplygonUI.SPL.Importer.Import(fileName);
+#endif
+                }
+                else if (System.IO.Path.GetExtension(fileName).ToLower() == ".ini")
+                {
+#if LEGACYSETTINGSSUPPORT
+                    pipeline = SimplygonUI.INI.Importer.Import(fileName);
+#endif
+                }
+                else
+                {
+                    dynamic jsonData = JObject.Parse(System.IO.File.ReadAllText(fileName));
+                    pipeline = new SimplygonPipeline(fileName, jsonData);
+                }
 
                 if (pipeline != null)
                 {
@@ -434,11 +450,12 @@ namespace SimplygonUI
                         AddPipeline(pipeline);
                         IntegrationParent.SetTangentCalculatorTypeSetting(pipeline.GlobalSettings.DefaultTangentCalculatorType);
                     }
+                    Log(Category.Information, $"Pipeline '{fileName}' loaded.");
                 }
             }
             catch (Exception ex)
             {
-                Log(Category.Error, "Could not load the following pipeline (" + fileName + ") due to an error.\n\n Details: " + ex);
+                Log(Category.Error, $"Could not load pipeline '{fileName}' due to an error. Details: {ex.Message}");
             }
         }
 
@@ -464,10 +481,10 @@ namespace SimplygonUI
 
         private void ExportPipelineContextMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            SavePipeline(null, false);
+            SavePipeline(null, false, true);
         }
 
-        public void SavePipeline(string filePath, bool serializeUICompontents = false)
+        public void SavePipeline(string filePath, bool serializeUICompontents = false, bool showFileDialog = false)
         {
             try
             {
@@ -488,7 +505,7 @@ namespace SimplygonUI
                     outputPipeline = Pipelines[0];
                 }
 
-                if (string.IsNullOrEmpty(filePath))
+                if (string.IsNullOrEmpty(filePath) && !showFileDialog)
                 {
                     filePath = outputPipeline.FilePath;
                 }
@@ -514,6 +531,7 @@ namespace SimplygonUI
                         Directory.CreateDirectory(Path.GetDirectoryName(pipelinePath));
                         File.WriteAllText(dialog.FileName, outputPipeline.SaveJson(serializeUICompontents).ToString());
                         SimplygonPipelineDatabase.Refresh();
+                        Log(Category.Information, $"Pipeline saved to {dialog.FileName}.");
                     }
                 }
                 else
@@ -522,6 +540,7 @@ namespace SimplygonUI
                     Directory.CreateDirectory(Path.GetDirectoryName(filePath));
                     File.WriteAllText(filePath, outputPipeline.SaveJson(serializeUICompontents).ToString());
                     SimplygonPipelineDatabase.Refresh();
+                    Log(Category.Information, $"Pipeline saved to {filePath}.");
                 }
             }
             catch (Exception ex)
@@ -617,7 +636,7 @@ namespace SimplygonUI
 
         private void StatusBar_ClearLogEntries_Click(object sender, RoutedEventArgs e)
         {
-            uiLogger.Clear();
+            UILogger.Instance.Clear();
         }
     }
 }

@@ -24,4 +24,16 @@ __pragma(warning(disable : ALL_CODE_ANALYSIS_WARNINGS))
 
 
 #define SG_THIRDPARTY_END \
-__pragma(warning(pop)) 
+__pragma(warning(pop))
+
+
+/*
+Disable specific warning
+*/
+#define SG_DISABLE_SPECIFIC_BEGIN(x) \
+__pragma(warning(push)) \
+__pragma(warning(disable : x))
+
+
+#define SG_DISABLE_SPECIFIC_END \
+__pragma(warning(pop))

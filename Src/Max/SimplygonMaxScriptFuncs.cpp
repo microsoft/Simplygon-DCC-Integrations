@@ -87,6 +87,7 @@ sgsdk_bool_variable( AllowUnsafeImport );
 def_visible_primitive( sgsdk_CreatePipeline, "sgsdk_CreatePipeline" ); // 8.3
 def_visible_primitive( sgsdk_DeletePipeline, "sgsdk_DeletePipeline" ); // 8.3
 def_visible_primitive( sgsdk_ClearPipelines, "sgsdk_ClearPipelines" ); // 8.3
+def_visible_primitive( sgsdk_ClonePipeline, "sgsdk_ClonePipeline" );   // 9.2
 
 def_visible_primitive( sgsdk_LoadPipeline, "sgsdk_LoadPipeline" ); // 8.3
 def_visible_primitive( sgsdk_SavePipeline, "sgsdk_SavePipeline" ); // 8.3
@@ -1114,6 +1115,29 @@ Value* sgsdk_SavePipeline_cf( Value** arg_list, int count )
 	}
 
 	return bSaved ? &true_value : &false_value;
+}
+
+Value* sgsdk_ClonePipeline_cf( Value** arg_list, int count )
+{
+	check_arg_count( "sgsdk_ClonePipeline", 1, count );
+
+	const INT64 pipelineId = arg_list[ 0 ]->to_int64();
+	INT64 clonedPipelineId = -1;
+
+	try
+	{
+		clonedPipelineId = PipelineHelper::Instance()->CloneSettingsPipeline( pipelineId );
+	}
+	catch( std::exception ex )
+	{
+		std::basic_string<TCHAR> tErrorMessage = _T("sgsdk_ClonePipeline: Failed to clone pipeline (");
+		tErrorMessage += pipelineId;
+		tErrorMessage += _T(") - ");
+		tErrorMessage += ConstCharPtrToLPCTSTR( ex.what() );
+		throw UserThrownError( tErrorMessage.c_str(), TRUE );
+	}
+
+	return Integer::intern( clonedPipelineId );
 }
 
 Value* sgsdk_GetPipelines_cf( Value** arg_list, int count )

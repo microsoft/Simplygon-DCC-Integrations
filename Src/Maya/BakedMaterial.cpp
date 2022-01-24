@@ -135,7 +135,7 @@ MStatus StandardMaterial::ImportMaterialTextureFile( const char* cChannelName,
 				if( sgTexture->ExportImageData() )
 				{
 					tSourceFilePath = sgTexture->GetFilePath().c_str();
-					sgTexture->SetImageData( nullptr );
+					sgTexture->SetImageData( Simplygon::NullPtr );
 				}
 			}
 

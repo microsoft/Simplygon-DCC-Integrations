@@ -101,6 +101,22 @@ namespace SimplygonUI
             return bPipelineLoaded;
         }
 
+        public static bool SavePipelineToFile(string pipelineFilePath)
+        {
+            bool bPipelineSaved = false;
+            try
+            {
+                UI?.SavePipeline(pipelineFilePath, true, false);
+                bPipelineSaved = true;
+            }
+            catch (Exception ex)
+            {
+                GlobalInterface.Instance.TheListener.EditStream.Puts("[Error] UIAccessor.SavePipelineToFile: " + ex.Message + "\n");
+            }
+
+            return bPipelineSaved;
+        }
+
         public static void AssemblyLoad() { }
         public static void AssemblyMain() { }
     }

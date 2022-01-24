@@ -53,7 +53,7 @@ SimplygonCmd::SimplygonCmd()
 	this->workDirectoryHandler = new WorkDirectoryHandler();
 	this->materialHandler = new MaterialHandler( this );
 
-	this->sgPipeline = nullptr;
+	this->sgPipeline = Simplygon::NullPtr;
 
 	this->listSettings = false;
 	this->creaseValues = false;
@@ -106,7 +106,7 @@ SimplygonCmd::~SimplygonCmd()
 		this->materialHandler = nullptr;
 	}
 
-	this->sgPipeline = nullptr;
+	this->sgPipeline = Simplygon::NullPtr;
 
 	if( SimplygonInitInstance )
 		SimplygonInitInstance->SetRelay( nullptr );
@@ -1855,7 +1855,7 @@ MStatus SimplygonCmd::AddNodesToSelectionSet( std::string sgNodeType )
 						// if exists
 						if( sNodeName == sSetNodeName )
 						{
-							spSelectionSet sgSelectionSetList = nullptr;
+							spSelectionSet sgSelectionSetList = Simplygon::NullPtr;
 							bool bAddSetToScene = false;
 
 							// does the set exists in scene to be exported?
@@ -2846,7 +2846,7 @@ spShadingNode FindUpstreamNodeByName( spShadingNode sgShadingNode, std::basic_st
 static spShadingNode FindUpstreamNodeByName( spShadingNode sgShadingNode, std::basic_string<TCHAR> tNodeName )
 {
 	if( sgShadingNode.IsNull() )
-		return nullptr;
+		return Simplygon::NullPtr;
 
 	if( strcmp( sgShadingNode->GetName(), tNodeName.c_str() ) == 0 )
 	{
@@ -2869,7 +2869,7 @@ static spShadingNode FindUpstreamNodeByName( spShadingNode sgShadingNode, std::b
 			}
 		}
 	}
-	return nullptr;
+	return Simplygon::NullPtr;
 }
 
 Globals::Globals()

@@ -440,7 +440,7 @@ class MorpherWrapper
 											{
 												mTemporaryProgressiveMorphMoints.resize( numVertices );
 
-												for( uint vid = 0; vid < numVertices; ++vid )
+												for( int vid = 0; vid < numVertices; ++vid )
 												{
 													const Point3& mMorphPoint = mTargetObjectState.obj->GetPoint( vid );
 													mTemporaryProgressiveMorphMoints[ vid ] = mMorphPoint;
@@ -578,10 +578,13 @@ class MorpherWrapper
 	TimeValue currentTime;
 };
 
-spShadingTextureNode MaterialNodes::CreateTextureNode(
-    BitmapTex* mBitmapTex, std::basic_string<TCHAR>& tMaxMappingChannel, std::basic_string<TCHAR>& tTextureName, TimeValue& time, const bool isSRGB )
+void MaterialNodes::PopulateTextureNode( spShadingTextureNode sgTextureNode,
+                                         BitmapTex* mBitmapTex,
+                                         std::basic_string<TCHAR>& tMaxMappingChannel,
+                                         std::basic_string<TCHAR>& tTextureName,
+                                         TimeValue& time,
+                                         const bool isSRGB )
 {
-	spShadingTextureNode sgTextureNode = sg->CreateShadingTextureNode();
 	sgTextureNode->SetTextureName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
 	sgTextureNode->SetTexCoordName( LPCTSTRToConstCharPtr( tMaxMappingChannel.c_str() ) );
 	sgTextureNode->SetUseSRGB( isSRGB );
@@ -608,6 +611,15 @@ spShadingTextureNode MaterialNodes::CreateTextureNode(
 		sgTextureNode->SetOffsetU( 0 );
 		sgTextureNode->SetOffsetV( 0 );
 	}
+}
+
+spShadingTextureNode MaterialNodes::CreateTextureNode(
+    BitmapTex* mBitmapTex, std::basic_string<TCHAR>& tMaxMappingChannel, std::basic_string<TCHAR>& tTextureName, TimeValue& time, const bool isSRGB )
+{
+	spShadingTextureNode sgTextureNode = sg->CreateShadingTextureNode();
+
+	PopulateTextureNode( sgTextureNode, mBitmapTex, tMaxMappingChannel, tTextureName, time, isSRGB );
+
 	return sgTextureNode;
 }
 
@@ -1058,7 +1070,7 @@ spShadingNode MaterialNodes::SetUpShadingNodes( MaterialNodes::CompositeNode& no
 	sgLayeredBlendNode->SetInputCount( node.mNumLayers + 1 );
 	sgLayeredBlendNode->SetInput( 0, sgDestinationNode );
 	sgLayeredBlendNode->SetPerInputBlendType( 0, ETextureBlendType::Replace );
-	for( int index = 0; index < node.mNumLayers; ++index )
+	for( uint index = 0; index < node.mNumLayers; ++index )
 	{
 		spShadingNode sgTextureChannelNode;
 		if( node.mTextures[ index ].mBitmap != nullptr )
@@ -1339,7 +1351,7 @@ spShadingNode MaterialNodes::BuildNode( MaterialNodes::MaterialNodeBase* node,
                                         float baseAlpha,
                                         TimeValue time )
 {
-	spShadingNode sgShadingNode = nullptr;
+	spShadingNode sgShadingNode;
 
 	switch( node->type )
 	{
@@ -1898,9 +1910,8 @@ class PhysicalMaterial
 									std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
 									std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
 
-									// create a basic shading network
-									spShadingTextureNode sgTextureNode =
-									    MaterialNodes::CreateTextureNode( mBitmapTex, tMappingChannel, tTextureName, time, bSRGB );
+									// update texture node properties
+									MaterialNodes::PopulateTextureNode( sgTextureNode, mBitmapTex, tMappingChannel, tTextureName, time, bSRGB );
 
 									// assign mapping channel if not already set
 									if( !( !sgTextureNode->GetTexCoordName().IsNullOrEmpty() && !sgTextureNode->GetTexCoordName().c_str() == NULL ) )
@@ -1940,7 +1951,7 @@ class PhysicalMaterial
 									}
 
 									// create texture and add it to scene
-									spTexture sgTexture = nullptr;
+									spTexture sgTexture;
 
 									// do lookup in case this texture is already in use
 									std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
@@ -2169,7 +2180,7 @@ class PhysicalMaterial
 			{
 				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mRougnessMap, maxChannelID, cMaterialName, cChannelName );
 
-				spShadingNode sgExitNode = nullptr;
+				spShadingNode sgExitNode;
 				if( mRoughnessInv )
 				{
 					spShadingColorNode sgNegativeNode = sg->CreateShadingColorNode();
@@ -2203,7 +2214,7 @@ class PhysicalMaterial
 					MaxReference->LogMaterialNodeMessage( mRougnessMap, tMaterialName, tChannelName );
 				}
 
-				spShadingColorNode sgColorNode = nullptr;
+				spShadingColorNode sgColorNode;
 				if( mRoughnessInv )
 				{
 					sgColorNode = CreateColorShadingNetwork( 1.0f - mRoughness, 1.0f - mRoughness, 1.0f - mRoughness, 1.0f );
@@ -2463,7 +2474,7 @@ class PhysicalMaterial
 					MaxReference->LogMaterialNodeMessage( mTransRoughMap, tMaterialName, tChannelName );
 				}
 
-				spShadingColorNode sgColorNode = nullptr;
+				spShadingColorNode sgColorNode;
 				if( mTransRoughnessInv )
 				{
 					sgColorNode = CreateColorShadingNetwork( 1.0f - mTransRoughness, 1.0f - mTransRoughness, 1.0f - mTransRoughness, 1.0f );
@@ -2899,7 +2910,7 @@ class PhysicalMaterial
 			{
 				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mCoatRoughMap, maxChannelID, cMaterialName, cChannelName );
 
-				spShadingNode sgExitNode = nullptr;
+				spShadingNode sgExitNode;
 				if( mCoatRoughnessInv )
 				{
 					spShadingColorNode sgNegativeNode = sg->CreateShadingColorNode();
@@ -2933,7 +2944,7 @@ class PhysicalMaterial
 					MaxReference->LogMaterialNodeMessage( mCoatRoughMap, tMaterialName, tChannelName );
 				}
 
-				spShadingColorNode sgColorNode = nullptr;
+				spShadingColorNode sgColorNode;
 
 				if( mCoatRoughnessInv )
 				{
@@ -3095,7 +3106,7 @@ SimplygonMax::SimplygonMax()
 	this->TextureCoordinateRemapping = 0;
 	this->LockSelectedVertices = false;
 
-	this->sgPipeline = nullptr;
+	this->sgPipeline = Simplygon::NullPtr;
 
 	this->SettingsObjectName = _T("");
 
@@ -3188,7 +3199,7 @@ void SimplygonMax::Reset()
 	this->TextureCoordinateRemapping = 0;
 	this->LockSelectedVertices = false;
 
-	this->sgPipeline = nullptr;
+	this->sgPipeline = Simplygon::NullPtr;
 	this->inputSceneFile = _T("");
 	this->outputSceneFile = _T("");
 
@@ -3261,11 +3272,6 @@ bool SimplygonMax::Initialize()
 	}
 
 	this->MaxInterface = GetCOREInterface();
-
-	sg->SetGlobalBoolSetting( "UseCustomBillboardCloudUpVector", true );
-	sg->SetGlobalFloatSetting( "BillboardCloudUpVectorX", 0.0f );
-	sg->SetGlobalFloatSetting( "BillboardCloudUpVectorY", 0.0f );
-	sg->SetGlobalFloatSetting( "BillboardCloudUpVectorZ", 1.0f );
 
 	return true;
 }
@@ -3558,7 +3564,7 @@ bool SimplygonMax::NodeExistsInActiveSets( INode* mMaxNode )
 bool SimplygonMax::CreateSceneGraph( INode* mMaxNode, spSceneNode sgNode, std::vector<std::pair<INode*, spSceneMesh>>& mMaxSgMeshList, spScene sgScene )
 {
 	// create a new scene node at the same level as the maxNode
-	spSceneNode sgCreatedNode = nullptr;
+	spSceneNode sgCreatedNode = Simplygon::NullPtr;
 	bool bPostAddCameraToSelectionSet = false;
 
 	// is this node a mesh?
@@ -3764,9 +3770,9 @@ void SimplygonMax::WriteMaterialMappingAttribute()
 		const size_t numSubMaterials = mMap->SGToMaxMapping.size();
 
 		// write uniqueHandle
-		const ULONG uniqueHandle = mMap->mMaxMaterialHandle;
-		memcpy_s( &attributeData[ attributeDataOffset ], sizeof( ULONG ), &uniqueHandle, sizeof( ULONG ) );
-		attributeDataOffset += sizeof( ULONG );
+		const AnimHandle uniqueHandle = mMap->mMaxMaterialHandle;
+		memcpy_s( &attributeData[ attributeDataOffset ], sizeof( AnimHandle ), &uniqueHandle, sizeof( AnimHandle ) );
+		attributeDataOffset += sizeof( AnimHandle );
 
 		// write sgMaterialId
 		const char* cMaterialId = mMap->sgMaterialId.c_str();
@@ -3834,9 +3840,9 @@ void SimplygonMax::ReadMaterialMappingAttribute( spScene sgScene )
 	for( size_t materialIndex = 0; materialIndex < numMaterials; ++materialIndex )
 	{
 		// read uniqueHandle
-		ULONG uniqueHandle = 0;
-		memcpy_s( &uniqueHandle, sizeof( ULONG ), &cData[ dataOffset ], sizeof( ULONG ) );
-		dataOffset += sizeof( ULONG );
+		AnimHandle uniqueHandle = 0;
+		memcpy_s( &uniqueHandle, sizeof( AnimHandle ), &cData[ dataOffset ], sizeof( AnimHandle ) );
+		dataOffset += sizeof( AnimHandle );
 
 		// read sgMaterialId
 		size_t materialIdLength = 0;
@@ -4608,7 +4614,7 @@ void SimplygonMax::AddToObjectSelectionSet( INode* mMaxNode )
 		{
 			if( meshHandle == mMaxNode->GetHandle() )
 			{
-				spSelectionSet sgSelectionSetList = nullptr;
+				spSelectionSet sgSelectionSetList;
 				bool bAddSetToScene = false;
 
 				// does the set exists in scene to be exported?
@@ -5673,7 +5679,7 @@ bool SimplygonMax::ExtractGeometry( size_t meshIndex )
 	if( materialMap != nullptr && materialMap->NumActiveMaterials > 0 )
 	{
 		spRidArray sgMaterialIds = sgMeshData->GetMaterialIds();
-		spRidArray sgParentMaterialIds = nullptr;
+		spRidArray sgParentMaterialIds;
 
 		if( sgMaterialIds.IsNull() )
 		{
@@ -5771,7 +5777,7 @@ bool SimplygonMax::ExtractGeometry( size_t meshIndex )
 			float* boneWeights = new float[ maxBonesPerVertex ];
 
 			// get the data, place into array
-			for( int vid = 0; vid < vertexCount; ++vid )
+			for( uint vid = 0; vid < vertexCount; ++vid )
 			{
 				const int numAssignedBones = mSkinContextData->GetNumAssignedBones( vid ); // number of bones affecting the vertex
 				skinning_bone_set vtx_bones;
@@ -5790,7 +5796,7 @@ bool SimplygonMax::ExtractGeometry( size_t meshIndex )
 				}
 
 				// extract the most important bones
-				int boneIndex = 0;
+				uint boneIndex = 0;
 				for( ; boneIndex < maxBonesPerVertex; ++boneIndex )
 				{
 					// look through the list, find the largest weight value
@@ -5919,7 +5925,7 @@ bool SimplygonMax::ExtractGeometry( size_t meshIndex )
 					sgMorphTargetDeltas->SetAlternativeName( cMorphTargetName );
 
 					std::vector<Point3>& morphTargetVertices = progressiveMorphTarget->targetDeltas;
-					for( uint vid = 0; vid < morphChannel->GetVertexCount(); ++vid )
+					for( int vid = 0; vid < morphChannel->GetVertexCount(); ++vid )
 					{
 						const Point3& mCoord = morphTargetVertices[ vid ];
 						const float coord[ 3 ] = { mCoord.x, mCoord.y, mCoord.z };
@@ -6453,14 +6459,14 @@ Mtl* SimplygonMax::GetExistingMaterial( std::basic_string<TCHAR> tMaterialName )
 	if( materialIndex == -1 )
 	{
 		// look for sub materials
-		for( uint mid = 0; mid < numMaterials; ++mid )
+		for( int mid = 0; mid < numMaterials; ++mid )
 		{
 			MtlBase* mMaxMaterial = static_cast<MtlBase*>( ( *mSceneMaterials )[ mid ] );
 			if( mMaxMaterial && mMaxMaterial->IsMultiMtl() )
 			{
 				MultiMtl* mMaxMultiMaterial = (MultiMtl*)mMaxMaterial;
 
-				for( uint smid = 0; smid < mMaxMultiMaterial->NumSubMtls(); ++smid )
+				for( int smid = 0; smid < mMaxMultiMaterial->NumSubMtls(); ++smid )
 				{
 					MtlBase* mMaxSubMaterial = mMaxMultiMaterial->GetSubMtl( smid );
 					if( !mMaxSubMaterial )
@@ -6691,14 +6697,15 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 			const int mid = globalMaterialMap->GetMaxMaterialId( sgMaterialIds->GetItem( tid ) );
 
 			// if material id is valid, assign, otherwise 0
-			mNewMaxMesh.setFaceMtlIndex( tid, mid >= 0 ? mid : 0 );
+			mNewMaxMesh.setFaceMtlIndex( tid, static_cast<MtlID>(mid >= 0 ? mid : 0) );
 		}
 		else if( !sgMaterialIds.IsNull() )
 		{
 			const int mid = sgMaterialIds->GetItem( tid );
 
 			// if material id is valid, assign, otherwise 0
-			mNewMaxMesh.setFaceMtlIndex( tid, mid >= 0 ? mid + 0 : 0 );
+			
+			mNewMaxMesh.setFaceMtlIndex( tid, static_cast<MtlID>(mid >= 0 ? mid + 0 : 0) );
 		}
 		else
 		{
@@ -6799,7 +6806,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 
 			sgMIds.insert( mid );
 
-			if( mid >= sgMaterialTable->GetMaterialsCount() )
+			if( mid >= static_cast<int>(sgMaterialTable->GetMaterialsCount()) )
 			{
 				std::basic_string<TCHAR> tErrorMessage = _T("Writeback of material(s) failed due to an out-of-range material id when importing node ");
 				tErrorMessage += tIndexedNodeName;
@@ -7824,7 +7831,7 @@ bool SimplygonMax::WritebackMapping( size_t lodIndex, Mesh& newMaxMesh, spSceneM
 	}
 
 	// write unmapped vertex colors
-	uint targetVertexColorMaxChannel = 0;
+	int targetVertexColorMaxChannel = 0;
 	for( std::map<std::string, int>::const_iterator& vertexColorIterator = unNamedVertexColorFieldMap.begin();
 	     vertexColorIterator != unNamedVertexColorFieldMap.end();
 	     vertexColorIterator++ )
@@ -7876,9 +7883,9 @@ Mtl* SimplygonMax::CreateMaterial( spScene sgProcessedScene,
 	if( sgMaterialIds.IsNull() )
 	{
 #if MAX_VERSION_MAJOR < 23
-		return SetupMaxStdMaterial( sgProcessedScene, sgMeshName, nullptr, tsMaterialName, tNewMaterialName );
+		return SetupMaxStdMaterial( sgProcessedScene, sgMeshName, Simplygon::NullPtr, tsMaterialName, tNewMaterialName );
 #else
-		return SetupPhysicalMaterial( sgProcessedScene, sgMeshName, nullptr, tsMaterialName, tNewMaterialName );
+		return SetupPhysicalMaterial( sgProcessedScene, sgMeshName, Simplygon::NullPtr, tsMaterialName, tNewMaterialName );
 #endif
 	}
 
@@ -8237,7 +8244,7 @@ bool SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 					if( sgTexture->ExportImageData() )
 					{
 						tTargetFilePath = ConstCharPtrToLPCTSTR( sgTexture->GetFilePath().c_str() );
-						sgTexture->SetImageData( nullptr );
+						sgTexture->SetImageData( Simplygon::NullPtr );
 					}
 				}
 
@@ -8439,7 +8446,7 @@ PBBitmap* SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 					if( sgTexture->ExportImageData() )
 					{
 						tTexturePath = ConstCharPtrToLPCTSTR( sgTexture->GetFilePath().c_str() );
-						sgTexture->SetImageData( nullptr );
+						sgTexture->SetImageData( Simplygon::NullPtr );
 					}
 				}
 
@@ -9062,6 +9069,8 @@ MaxMaterialMap* SimplygonMax::AddMaterial( Mtl* mMaxMaterial, spGeometryData sgM
 				materialMap->SGToMaxMapping.insert( std::pair<int, int>( mMap.second, materialIndex ) );
 				subMaterialMap->SGToMaxMapping.insert( std::pair<int, int>( mMap.second, materialIndex ) );
 
+				subMaterialMap->NumActiveMaterials++;
+
 				this->GlobalExportedMaterialMap.push_back( subMaterialMap );
 			}
 
@@ -9322,7 +9331,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 			}
 
 			// shading network
-			return nullptr;
+			return Simplygon::NullPtr;
 		}
 
 		case ID_OP:
@@ -9351,13 +9360,13 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 			}
 
 			// shading network
-			return nullptr;
+			return Simplygon::NullPtr;
 		}
 
 		case ID_BU:
 		{
 			// shading network
-			return nullptr;
+			return Simplygon::NullPtr;
 		}
 
 		case ID_RL:
@@ -9371,7 +9380,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 			}
 
 			// shading network
-			return nullptr;
+			return Simplygon::NullPtr;
 		}
 
 		case ID_RR:
@@ -9385,7 +9394,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 			}
 
 			// shading network
-			return nullptr;
+			return Simplygon::NullPtr;
 		}
 
 		case ID_DP:
@@ -9399,7 +9408,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 			}
 
 			// shading network
-			return nullptr;
+			return Simplygon::NullPtr;
 		}
 
 		default:
@@ -9415,7 +9424,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 				return CreateColorShadingNetwork( colorOverride->GetR(), colorOverride->GetG(), colorOverride->GetB() );
 			}
 			// unsupported color, just set color components to one for now...
-			return nullptr;
+			return Simplygon::NullPtr;
 		}
 	}
 }
@@ -9504,7 +9513,7 @@ spShadingNode SimplygonMax::CreateShadingNetworkForPBRMaterial( long maxChannelI
 	for( uint32_t i = 0; i < node->GetNumTextures(); ++i )
 	{
 		// create texture and add it to scene
-		spTexture sgTexture = nullptr;
+		spTexture sgTexture;
 
 		MaterialNodes::TextureData* sgInternalTextureData = node->GetTexture( i );
 		if( sgInternalTextureData && sgInternalTextureData->mBitmap )
@@ -9555,7 +9564,7 @@ void SimplygonMax::CreateShadingNetworkForStdMaterial( long maxChannelId,
 {
 	const char* cChannelName = LPCTSTRToConstCharPtr( tMappedChannelName.c_str() );
 
-	spShadingNode sgExitNode = nullptr;
+	spShadingNode sgExitNode;
 
 	MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &MaterialColorOverrides, mMaxStdMaterial, tMappedChannelName );
 
@@ -9716,7 +9725,7 @@ void SimplygonMax::CreateShadingNetworkForStdMaterial( long maxChannelId,
 	for( uint32_t i = 0; i < node->GetNumTextures(); ++i )
 	{
 		// create texture and add it to scene
-		spTexture sgTexture = nullptr;
+		spTexture sgTexture;
 
 		MaterialNodes::TextureData* sgInternalTextureData = node->GetTexture( i );
 		if( sgInternalTextureData && sgInternalTextureData->mBitmap )
@@ -9834,7 +9843,7 @@ std::basic_string<TCHAR> SimplygonMax::SetupMaxMappingChannel( const char* cMate
 
 spShadingNode SimplygonMax::CreateSgMaterialPBRChannel( Texmap* mTexMap, long maxChannelId, const char* cMaterialName, const char* cChannelName )
 {
-	spShadingNode shadingNode = nullptr;
+	spShadingNode shadingNode;
 	std::string sMaterialName = cMaterialName;
 	std::basic_string<TCHAR> tMaterialName = ConstCharPtrToLPCTSTR( cMaterialName );
 	std::basic_string<TCHAR> tChannelName = ConstCharPtrToLPCTSTR( cChannelName );
@@ -10416,7 +10425,7 @@ std::pair<std::string, int> SimplygonMax::AddMaxMaterialToSgScene( Mtl* mMaxMate
 					const uint sgsdkParamCount = sgTextureNode->GetParameterCount();
 
 					// create texture and add it to scene
-					spTexture sgTexture = nullptr;
+					spTexture sgTexture;
 
 					// do lookup in case this texture is already in use
 					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& textureIterator =
@@ -10565,16 +10574,16 @@ bool WriteStandinTexture( const TCHAR* tOutputFilePath )
 	{
 		for( int x = 0; x < TEXTURE_WIDTH; ++x )
 		{
-			textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 0 ] = ( x * 0xff ) / TEXTURE_WIDTH;
+			textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 0 ] = static_cast<unsigned char>(( x * 0xff ) / TEXTURE_WIDTH);
 			if( ( ( ( x >> 3 ) & 0x1 ) ^ ( ( y >> 3 ) & 0x1 ) ) )
 			{
-				textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 1 ] = 0;
+				textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 1 ] = static_cast < unsigned char>(0);
 			}
 			else
 			{
-				textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 1 ] = 0xff;
+				textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 1 ] = static_cast < unsigned char>(0xff);
 			}
-			textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 2 ] = ( y * 0xff ) / TEXTURE_HEIGHT;
+			textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 2 ] = static_cast < unsigned char>(( y * 0xff ) / TEXTURE_HEIGHT);
 		}
 	}
 
@@ -11295,7 +11304,7 @@ spShadingNode SimplygonMax::CreateSGMaterialNode( NodeProxyType nodeType )
 	else if( nodeType == ShadingGeometryFieldNode )
 		return spShadingNode( sg->CreateShadingGeometryFieldNode() );
 
-	return nullptr;
+	return Simplygon::NullPtr;
 }
 
 // gets shading texture nodes from table
@@ -11349,7 +11358,7 @@ spShadingNode SimplygonMax::GetSpShadingNodeFromTable( std::basic_string<TCHAR> 
 		}
 	}
 
-	return nullptr;
+	return Simplygon::NullPtr;
 }
 
 // gets node-proxy from table, by name
@@ -11566,7 +11575,7 @@ void SimplygonMax::SetupMaxDXTexture( spScene sgProcessedScene,
 	const std::basic_string<TCHAR> tMaxBitmapDirectory = mPathManager->GetDir( APP_IMAGE_DIR );
 
 	spTextureTable sgTextureTable = sgProcessedScene->GetTextureTable();
-	spTexture sgTexture = nullptr;
+	spTexture sgTexture = Simplygon::NullPtr;
 
 	// if channel exists
 	if( sgMaterial->HasMaterialChannel( cChannelName ) )
@@ -11591,7 +11600,7 @@ void SimplygonMax::SetupMaxDXTexture( spScene sgProcessedScene,
 			if( sgTexture->ExportImageData() )
 			{
 				tTexturePath = ConstCharPtrToLPCTSTR( sgTexture->GetFilePath().c_str() );
-				sgTexture->SetImageData( nullptr );
+				sgTexture->SetImageData( Simplygon::NullPtr );
 			}
 		}
 
@@ -11832,7 +11841,7 @@ void GlobalLogMaterialNodeMessage( Texmap* mTexMap,
 spShadingTextureNode SimplygonMax::FindUpstreamTextureNode( spShadingNode sgShadingNode )
 {
 	if( sgShadingNode.IsNull() )
-		return nullptr;
+		return Simplygon::NullPtr;
 
 	spShadingTextureNode sgTextureNode = Simplygon::spShadingTextureNode::SafeCast( sgShadingNode );
 	if( !sgTextureNode.IsNull() )
@@ -11859,14 +11868,14 @@ spShadingTextureNode SimplygonMax::FindUpstreamTextureNode( spShadingNode sgShad
 		}
 	}
 
-	return nullptr;
+	return Simplygon::NullPtr;
 }
 
 // gets upstream shading color node in the specified shading-network
 spShadingColorNode SimplygonMax::FindUpstreamColorNode( spShadingNode sgShadingNode )
 {
 	if( sgShadingNode.IsNull() )
-		return nullptr;
+		return Simplygon::NullPtr;
 
 	spShadingColorNode sgColorNode = Simplygon::spShadingColorNode::SafeCast( sgShadingNode );
 	if( !sgColorNode.IsNull() )
@@ -11893,7 +11902,7 @@ spShadingColorNode SimplygonMax::FindUpstreamColorNode( spShadingNode sgShadingN
 		}
 	}
 
-	return nullptr;
+	return Simplygon::NullPtr;
 }
 
 // initializes nodes in node table
@@ -12304,8 +12313,8 @@ double SimplygonMax::GetLODSwitchCameraDistance( int pixelSize )
 
 		const int screenwidth = graphics_window->getWinSizeX();
 		const int screenheight = graphics_window->getWinSizeY();
-		const float fov_horizontal = active_viewport.GetFOV();
-		const float fov_verticle = 2 * atan( tan( RAD2DEG( fov_horizontal ) / 2 ) * ( screenwidth / screenheight ) );
+		const double fov_horizontal = active_viewport.GetFOV();
+		const double fov_verticle = 2. * atan( tan( RAD2DEG( fov_horizontal ) / 2. ) * ( screenwidth / screenheight ) );
 
 		const double screen_ratio = double( pixelSize ) / (double)screenheight;
 
@@ -12372,8 +12381,8 @@ double SimplygonMax::GetLODSwitchPixelSize( double distance )
 
 		int screenwidth = graphics_window->getWinSizeX();
 		int screenheight = graphics_window->getWinSizeY();
-		float fov_horizontal = active_viewport.GetFOV();
-		float fov_verticle = 2 * atan( tan( RAD2DEG( fov_horizontal ) / 2 ) * ( screenwidth / screenheight ) );
+		double fov_horizontal = active_viewport.GetFOV();
+		double fov_verticle = 2 * atan( tan( RAD2DEG( fov_horizontal ) / 2 ) * ( screenwidth / screenheight ) );
 
 		// the view-angle of the bounding sphere rendered on-screen.
 		double bsphere_angle = asin( radius / distance );

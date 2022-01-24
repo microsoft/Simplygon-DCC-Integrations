@@ -628,6 +628,7 @@ void GetActiveMinLimits( ulong uniqueHandle, MorpherChannelSettings* morpherSett
 void GetActiveMaxLimits( ulong uniqueHandle, MorpherChannelSettings* morpherSettings );
 void GetActiveUseVertexSelections( ulong uniqueHandle, MorpherChannelSettings* morpherSettings );
 void GetActiveUseLimits( ulong uniqueHandle, MorpherChannelSettings* morpherSettings );
+
 namespace MaterialNodes {
 
 class TextureData
@@ -1055,6 +1056,13 @@ spShadingNode SetUpShadingNodes( MaterialNodes::CompositeNode& node,
                                  Color& baseColor,
                                  float baseAlpha,
                                  TimeValue& time );
+
+void PopulateTextureNode( spShadingTextureNode sgTextureNode,
+                          BitmapTex* mBitmapTex,
+                          std::basic_string<TCHAR>& tMaxMappingChannel,
+                          std::basic_string<TCHAR>& tTextureName,
+                          TimeValue& time,
+                          const bool isSRGB );
 
 spShadingTextureNode CreateTextureNode(
     BitmapTex* mBitmapTex, std::basic_string<TCHAR>& tMaxMappingChannel, std::basic_string<TCHAR>& tTextureName, TimeValue& time, const bool isSRGB );

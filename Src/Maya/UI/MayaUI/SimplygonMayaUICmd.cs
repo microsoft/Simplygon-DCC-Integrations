@@ -29,6 +29,12 @@ namespace SimplygonUI.MayaUI
                 return;
             }
 
+            if(argl.length > 0)
+            {
+                ExecuteScriptCommands(argl);
+                return;
+            }
+
 #if SIMPLYGONMAYA2017UI
             if (ui != null)
             {
@@ -143,6 +149,57 @@ namespace SimplygonUI.MayaUI
         {
             UpdateSelection();
             UpdateSelectionSets();
+        }
+
+        private void ExecuteScriptCommands(MArgList argl)
+        {
+            var scriptCommand = argl.asString(0);
+
+            if (!string.IsNullOrEmpty(scriptCommand) && ui != null)
+            {
+                scriptCommand = scriptCommand.ToLower();
+                if (scriptCommand == "-loadpipelinefromfile")
+                {
+                    if (argl.length > 1)
+                    {
+                        string filepath = argl.asString(1);
+                        ui.MainUI.LoadPipelineFromFile(filepath);
+                    }
+                    else
+                    {
+                        MGlobal.displayInfo(@"
+Missing file path
+Usage:
+SimplygonUI -LoadPipelineFromFile ""<file path>""
+""");
+                    }
+                }
+                else if (scriptCommand == "-savepipelinetofile")
+                {
+                    if (argl.length > 1)
+                    {
+                        string filepath = argl.asString(1);
+                        ui.MainUI.SavePipeline(filepath, true);
+                    }
+                    else
+                    {
+                        MGlobal.displayInfo(@"
+Missing file path
+Usage:
+SimplygonUI -SavePipelineToFile ""<file path>""
+""");
+                    }
+                }
+                else
+                {
+                    MGlobal.displayInfo(@"
+Unknown script command: {scriptCommand}
+Usage:
+SimplygonUI -SavePipelineToFile ""<file path>""
+SimplygonUI -LoadPipelineFromFile ""<file path>""
+""");
+                }
+            }
         }
     }
 }
