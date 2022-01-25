@@ -40,7 +40,7 @@ INT64 PipelineHelper::CreateSettingsPipeline( std::basic_string<TCHAR> tPipeline
 {
 	const INT64 currentCounter = pipelineCounter++;
 
-	spPipeline sgPipeline = nullptr;
+	spPipeline sgPipeline = Simplygon::NullPtr;
 
 	// strip "Pipeline" if any
 	const size_t index = tPipelineType.find( _T("Pipeline") );
@@ -167,6 +167,28 @@ bool PipelineHelper::SaveSettingsPipeline( const INT64 pipelineId, std::basic_st
 	sgSerializer->SavePipelineToFile( LPCTSTRToConstCharPtr( tPipelineFilePath.c_str() ), sgPipeline );
 
 	return true;
+}
+
+INT64 PipelineHelper::CloneSettingsPipeline( const INT64 pipelineId )
+{
+	const std::map<INT64, spPipeline>::const_iterator& pipelineIterator = this->nameToSettingsPipeline.find( pipelineId );
+	if( pipelineIterator == this->nameToSettingsPipeline.end() )
+	{
+		throw std::exception( "The pipeline id was not found." );
+	}
+
+	spPipeline sgPipeline = pipelineIterator->second;
+	spPipeline sgClonedPipeline = sgPipeline->NewCopy();
+
+	if( sgClonedPipeline.IsNull() )
+	{
+		throw std::exception( "Could not clone the given pipeline, NewCopy returned NULL." );
+	}
+
+	const INT64 currentCounter = pipelineCounter++;
+	this->nameToSettingsPipeline.insert( std::pair<INT64, spPipeline>( currentCounter, sgClonedPipeline ) );
+
+	return currentCounter;
 }
 
 bool PipelineHelper::GetPipelineSetting( const INT64 pipelineId, std::basic_string<TCHAR> tSettingsPath, bool& bValue )

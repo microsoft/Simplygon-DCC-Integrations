@@ -7,13 +7,13 @@
 
 Scene::Scene()
 {
-	this->sgScene = nullptr;
+	this->sgScene = Simplygon::NullPtr;
 }
 
 spSceneNode Scene::FindSceneNode( INode* mMaxNode )
 {
 	if( mMaxNode == nullptr )
-		return nullptr;
+		return Simplygon::NullPtr;
 
 	const TCHAR* tNodeName = mMaxNode->GetName();
 	INode* mMaxParentNode = mMaxNode->GetParentNode();
@@ -39,14 +39,14 @@ spSceneNode Scene::FindSceneNode( INode* mMaxNode )
 		}
 
 		// wasn't found
-		return nullptr;
+		return Simplygon::NullPtr;
 	}
 
 	// we have a parent, find this parent in the simplygon scene, recursively
 	spSceneNode sgParentNode = this->FindSceneNode( mMaxParentNode );
 	if( sgParentNode.IsNull() )
 	{
-		return nullptr;
+		return Simplygon::NullPtr;
 	}
 
 	// we have found our parent, find us in our parent's list
@@ -60,5 +60,5 @@ spSceneNode Scene::FindSceneNode( INode* mMaxNode )
 		}
 	}
 
-	return nullptr;
+	return Simplygon::NullPtr;
 }

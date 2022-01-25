@@ -14,6 +14,7 @@ extern SimplygonInitClass* SimplygonInitInstance;
 
 const char* cPipeline_Create = "c";                      // 9.0
 const char* cPipeline_Delete = "d";                      // 9.0
+const char* cPipeline_Clone = "cln";                     // 9.2
 const char* cPipeline_Load = "l";                        // 9.0
 const char* cPipeline_Save = "s";                        // 9.0
 const char* cPipeline_Clear = "cl";                      // 9.0
@@ -115,6 +116,8 @@ MSyntax SimplygonPipelineCmd::createSyntax()
 	mStatus = mSyntax.addFlag( cPipeline_Create, "Create", MSyntax::kString );
 
 	mStatus = mSyntax.addFlag( cPipeline_Delete, "Delete" );
+
+	mStatus = mSyntax.addFlag( cPipeline_Clone, "Clone" );
 
 	mStatus = mSyntax.addFlag( cPipeline_Load, "Load", MSyntax::kString );
 
@@ -287,6 +290,37 @@ MStatus SimplygonPipelineCmd::ParseArguments( const MArgList& mArgs )
 			}
 
 			this->setResult( bSaved );
+		}
+	}
+
+	// clone pipeline
+	if( mArgData.isFlagSet( cPipeline_Clone ) )
+	{
+		const uint flagCount = mArgData.numberOfFlagUses( cPipeline_Clone );
+		if( flagCount > 0 )
+		{
+			int pipelineId = 0;
+			mStatus = mArgData.getCommandArgument( 0, pipelineId );
+			if( !mStatus )
+				return mStatus;
+
+			int clonedPipelineId = -1;
+			try
+			{
+				clonedPipelineId = (int)PipelineHelper::Instance()->CloneSettingsPipeline( pipelineId );
+			}
+			catch( std::exception ex )
+			{
+				MGlobal::displayError( MString( "ParseArguments::Clone failed with an error: " ) + ex.what() );
+				mStatus = MStatus::kFailure;
+			}
+			catch( ... )
+			{
+				MGlobal::displayError( MString( "ParseArguments::Clone failed with an unknown error." ) );
+				mStatus = MStatus::kFailure;
+			}
+
+			this->setResult( clonedPipelineId );
 		}
 	}
 

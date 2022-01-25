@@ -106,11 +106,31 @@ namespace SimplygonUI
             }
         }
 
+        private void DeleteAllMaterialCasterButton_Click(object sender, RoutedEventArgs e)
+        {
+            Button target = sender as Button;
+            ContextMenu cm = new ContextMenu();
+            cm.PlacementTarget = target;
+            cm.Placement = PlacementMode.Bottom;
+            cm.Width = target.Width;
+            cm.IsOpen = true;
+
+            var deleteAllMenuItem = new MenuItem() { Header = "Remove all", ToolTip = "Remove all added material casters" };
+            deleteAllMenuItem.IsEnabled = MaterialCasterTreeView.Items.Count > 0;
+            deleteAllMenuItem.Click += (s, se) => 
+            {
+                MaterialCasters.Clear();
+                MaterialCasterTreeView.Items.Clear();
+            };
+            cm.Items.Add(deleteAllMenuItem);
+
+        }
+
         public void OnNewPipelineSelected(SimplygonPipeline pipeline)
         {
             if (!string.IsNullOrEmpty(pipeline.FilePath))
             {
-                var newPipeline = new SimplygonPipeline(JObject.Parse(System.IO.File.ReadAllText(pipeline.FilePath)));
+                var newPipeline = new SimplygonPipeline(pipeline.FilePath, JObject.Parse(System.IO.File.ReadAllText(pipeline.FilePath)));
 
                 if (newPipeline != null)
                 {

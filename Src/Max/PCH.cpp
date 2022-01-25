@@ -117,3 +117,5 @@ float _log2( float n )
 {
 	return log( n ) / log( 2.f );
 }
+
+

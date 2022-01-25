@@ -146,7 +146,7 @@ MStatus MaterialNode::SetupFromName( MString mMaterialName )
 spShadingNode MaterialNode::FindUpstreamNode( spShadingNode sgShadingNode, const char* cNodeName )
 {
 	if( sgShadingNode.IsNull() )
-		return nullptr;
+		return Simplygon::NullPtr;
 
 	if( !sgShadingNode.IsNull() && strcmp( sgShadingNode->GetName(), cNodeName ) )
 	{
@@ -169,7 +169,7 @@ spShadingNode MaterialNode::FindUpstreamNode( spShadingNode sgShadingNode, const
 			}
 		}
 	}
-	return nullptr;
+	return Simplygon::NullPtr;
 }
 
 inline MPlug GetConnectedUpstreamPlug( const MPlug& mPlug )
@@ -271,7 +271,11 @@ MStatus MaterialNode::InternalSetupConnectNetworkNodes()
 					}
 
 					MFnDependencyNode mFileTextureNode( mPlugObject );
+					// Required for BinSkim compat
+					// TODO: Deprecated method, should be replaced!
+					SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 					MPlug mTexFilePlug = mFileTextureNode.findPlug( "fileTextureName" );
+					SG_DISABLE_SPECIFIC_END
 					MString mFileName;
 
 					// if the plug is not null extract the file name
@@ -279,14 +283,22 @@ MStatus MaterialNode::InternalSetupConnectNetworkNodes()
 					{
 						mTexFilePlug.getValue( mFileName );
 
+						// Required for BinSkim compat
+						// TODO: Deprecated method, should be replaced!
+						SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 						MPlug mUVSetPlug = mFileTextureNode.findPlug( "uvCoord" );
+						SG_DISABLE_SPECIFIC_END
 						if( !mUVSetPlug.isNull() )
 						{
 							MObject mPlace2dTexture = ::GetConnectedUpstreamNode( mUVSetPlug );
 							if( !mPlace2dTexture.isNull() )
 							{
 								MFnDependencyNode mPlace2dTextureNode( mPlace2dTexture );
+								// Required for BinSkim compat
+								// TODO: Deprecated method, should be replaced!
+								SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 								mUVSetPlug = mPlace2dTextureNode.findPlug( "uvCoord" );
+								SG_DISABLE_SPECIFIC_END
 
 								MObject mUVChooser = ::GetConnectedUpstreamNode( mUVSetPlug );
 
@@ -294,8 +306,12 @@ MStatus MaterialNode::InternalSetupConnectNetworkNodes()
 								{
 									MFnDependencyNode uvChooserFn( mUVChooser );
 
+									// Required for BinSkim compat
+									// TODO: Deprecated method, should be replaced!
+									SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 									// get the uvSets plug, which is an array of connected nodes
 									MPlug mUVSetsPlug = uvChooserFn.findPlug( "uvSets" );
+									SG_DISABLE_SPECIFIC_END
 									if( !mUVSetsPlug.isNull() )
 									{
 										for( uint i = 0; i < mUVSetsPlug.numElements(); ++i )
@@ -310,8 +326,12 @@ MStatus MaterialNode::InternalSetupConnectNetworkNodes()
 								{
 									MFnDependencyNode mUVSetNode( mUVSetPlug );
 
+									// Required for BinSkim compat
+									// TODO: Deprecated method, should be replaced!
+									SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 									// get the uvSets plug, which is an array of connected nodes
 									MPlug mUVSetsPlug = mUVSetNode.findPlug( "uvSets" );
+									SG_DISABLE_SPECIFIC_END
 									if( !mUVSetsPlug.isNull() )
 									{
 										for( uint i = 0; i < mUVSetsPlug.numElements(); ++i )
@@ -359,7 +379,11 @@ MStatus MaterialNode::InternalSetupConnectNetworkNodes()
 							{
 								int bumpType = 0;
 
+								// Required for BinSkim compat
+								// TODO: Deprecated method, should be replaced!
+								SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 								MPlug mBumpInterpPlug = mBumpNode.findPlug( "bumpInterp" );
+								SG_DISABLE_SPECIFIC_END
 								if( !mBumpInterpPlug.isNull() )
 								{
 									const MStatus mHasIndex = mBumpInterpPlug.getValue( bumpType );
@@ -394,7 +418,11 @@ MStatus MaterialNode::InternalSetupConnectNetworkNodes()
 								}
 
 								MFnDependencyNode mFileTextureNode( mBumpObject );
+								// Required for BinSkim compat
+								// TODO: Deprecated method, should be replaced!
+								SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 								MPlug mTexFilePlug = mFileTextureNode.findPlug( "fileTextureName" );
+								SG_DISABLE_SPECIFIC_END
 
 								MString mFileName;
 
@@ -403,14 +431,22 @@ MStatus MaterialNode::InternalSetupConnectNetworkNodes()
 								{
 									mTexFilePlug.getValue( mFileName );
 
+									// Required for BinSkim compat
+									// TODO: Deprecated method, should be replaced!
+									SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 									MPlug mUVSetPlug = mFileTextureNode.findPlug( "uvCoord" );
+									SG_DISABLE_SPECIFIC_END
 									if( !mUVSetPlug.isNull() )
 									{
 										MObject mPlace2dTexture = ::GetConnectedUpstreamNode( mUVSetPlug );
 										if( !mPlace2dTexture.isNull() )
 										{
 											MFnDependencyNode mPlace2dTextureNode( mPlace2dTexture );
+											// Required for BinSkim compat
+											// TODO: Deprecated method, should be replaced!
+											SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 											mUVSetPlug = mPlace2dTextureNode.findPlug( "uvCoord" );
+											SG_DISABLE_SPECIFIC_END
 
 											MObject mUVChooser = ::GetConnectedUpstreamNode( mUVSetPlug );
 
@@ -418,8 +454,12 @@ MStatus MaterialNode::InternalSetupConnectNetworkNodes()
 											{
 												MFnDependencyNode uvChooserFn( mUVChooser );
 
+												// Required for BinSkim compat
+												// TODO: Deprecated method, should be replaced!
+												SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 												// get the uvSets plug, which is an array of connected nodes
 												MPlug mUVSetsPlug = uvChooserFn.findPlug( "uvSets" );
+												SG_DISABLE_SPECIFIC_END
 												if( !mUVSetsPlug.isNull() )
 												{
 													for( uint j = 0; j < mUVSetsPlug.numElements(); ++j )
@@ -434,8 +474,12 @@ MStatus MaterialNode::InternalSetupConnectNetworkNodes()
 											{
 												MFnDependencyNode mUVSetNode( mUVSetPlug );
 
+												// Required for BinSkim compat
+												// TODO: Deprecated method, should be replaced!
+												SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 												// get the uvSets plug, which is an array of connected nodes
 												MPlug mUVSetsPlug = mUVSetNode.findPlug( "uvSets" );
+												SG_DISABLE_SPECIFIC_END
 												if( !mUVSetsPlug.isNull() )
 												{
 													for( uint j = 0; j < mUVSetsPlug.numElements(); ++j )
@@ -491,7 +535,11 @@ MStatus MaterialNode::InternalSetupConnectNetworkNodes()
 			// if shader has color attribute
 			if( mShaderNode.hasAttribute( mColorPlugName ) )
 			{
+				// Required for BinSkim compat
+				// TODO: Deprecated method, should be replaced!
+				SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 				MPlug mColorPlug = mShaderNode.findPlug( mColorPlugName );
+				SG_DISABLE_SPECIFIC_END
 				if( !mColorPlug.isNull() )
 				{
 					// get attribute object
@@ -637,7 +685,11 @@ MStatus MaterialNode::InternalSetup()
 
 	// get the color plug, check if it has a texture or color value
 	real colorFactor[ 3 ] = { 0.8f, 0.8f, 0.8f };
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	MPlug mMaterialPlug = mShaderDependencyNode.findPlug( MAYA_MATERIAL_CHANNEL_COLOR );
+	SG_DISABLE_SPECIFIC_END
 
 	if( !mMaterialPlug.isNull() )
 	{
@@ -662,8 +714,12 @@ MStatus MaterialNode::InternalSetup()
 		}
 	}
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	// get the diffuse plug, multiply the value by the diffuse color of the material
 	mMaterialPlug = mShaderDependencyNode.findPlug( "diffuse" );
+	SG_DISABLE_SPECIFIC_END
 	if( !mMaterialPlug.isNull() )
 	{
 		float diffuseFactor = 0.8f;
@@ -680,7 +736,11 @@ MStatus MaterialNode::InternalSetup()
 
 	// get the ambient color plug
 	real ambientFactor[ 3 ] = { 0.f, 0.f, 0.f };
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	mMaterialPlug = mShaderDependencyNode.findPlug( MAYA_MATERIAL_CHANNEL_AMBIENTCOLOR );
+	SG_DISABLE_SPECIFIC_END
 	if( !mMaterialPlug.isNull() )
 	{
 		// get the texture if one exists
@@ -709,7 +769,11 @@ MStatus MaterialNode::InternalSetup()
 
 	// get the specularColor plug
 	real specularColorFactor[ 3 ] = { 0.f, 0.f, 0.f };
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	mMaterialPlug = mShaderDependencyNode.findPlug( MAYA_MATERIAL_CHANNEL_SPECULARCOLOR );
+	SG_DISABLE_SPECIFIC_END
 	if( !mMaterialPlug.isNull() )
 	{
 		// get the texture if one exists
@@ -735,7 +799,11 @@ MStatus MaterialNode::InternalSetup()
 
 	// get the transparency plug
 	real transparencyFactor[ 3 ] = { 0.f, 0.f, 0.f };
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	mMaterialPlug = mShaderDependencyNode.findPlug( MAYA_MATERIAL_CHANNEL_TRANSPARENCY );
+	SG_DISABLE_SPECIFIC_END
 	if( !mMaterialPlug.isNull() )
 	{
 		if( this->GetFileTexture( ::GetConnectedUpstreamNode( mMaterialPlug ), this->TransparencyTextures ) )
@@ -760,7 +828,11 @@ MStatus MaterialNode::InternalSetup()
 
 	// get the translucence plug
 	real translucenceFactor = 0.f;
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	mMaterialPlug = mShaderDependencyNode.findPlug( MAYA_MATERIAL_CHANNEL_TRANSLUECENCE );
+	SG_DISABLE_SPECIFIC_END
 	if( !mMaterialPlug.isNull() )
 	{
 		if( this->GetFileTexture( ::GetConnectedUpstreamNode( mMaterialPlug ), this->TranslucenceTextures ) )
@@ -777,7 +849,11 @@ MStatus MaterialNode::InternalSetup()
 
 	// get the translucence depth plug
 	real translucenceDepth = 0.5f;
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	mMaterialPlug = mShaderDependencyNode.findPlug( MAYA_MATERIAL_CHANNEL_TRANSLUECENCE_DEPTH );
+	SG_DISABLE_SPECIFIC_END
 	if( !mMaterialPlug.isNull() )
 	{
 		if( this->GetFileTexture( ::GetConnectedUpstreamNode( mMaterialPlug ), this->TranslucenceDepthTextures ) )
@@ -794,7 +870,11 @@ MStatus MaterialNode::InternalSetup()
 
 	// get the translucence focus plug
 	real translucenceFocus = 0.5f;
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	mMaterialPlug = mShaderDependencyNode.findPlug( MAYA_MATERIAL_CHANNEL_TRANSLUECENCE_FOCUS );
+	SG_DISABLE_SPECIFIC_END
 	if( !mMaterialPlug.isNull() )
 	{
 		if( this->GetFileTexture( ::GetConnectedUpstreamNode( mMaterialPlug ), this->TranslucenceFocusTextures ) )
@@ -814,14 +894,22 @@ MStatus MaterialNode::InternalSetup()
 	float shininess = 0.f;
 	MString mShaderTypeName = mShaderDependencyNode.typeName();
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	MPlug mCosinePowerPlug = mShaderDependencyNode.findPlug( "cosinePower", &mStatus );
+	SG_DISABLE_SPECIFIC_END
 	if( !mCosinePowerPlug.isNull() )
 	{
 		mCosinePowerPlug.getValue( shininess );
 	}
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	MPlug mEccentricityPlug = mShaderDependencyNode.findPlug( "eccentricity", &mStatus );
 	MPlug mSpecularRollOffPlug = mShaderDependencyNode.findPlug( "specularRollOff", &mStatus );
+	SG_DISABLE_SPECIFIC_END
 	if( !mEccentricityPlug.isNull() && !mSpecularRollOffPlug.isNull() )
 	{
 		float specularRollOff = 0.f;
@@ -833,8 +921,12 @@ MStatus MaterialNode::InternalSetup()
 		shininess = 10.f + 118.f * ( 1.f - eccentricity ) * specularRollOff;
 	}
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	MPlug mRoughnessPlug = mShaderDependencyNode.findPlug( "roughness", &mStatus );
 	MPlug mHighlightSizePlug = mShaderDependencyNode.findPlug( "highlightSize", &mStatus );
+	SG_DISABLE_SPECIFIC_END
 	if( !mRoughnessPlug.isNull() && !mHighlightSizePlug.isNull() )
 	{
 		float highlightSize = 0.0f;
@@ -850,7 +942,11 @@ MStatus MaterialNode::InternalSetup()
 
 	// get the incandescence plug
 	real incandescenceFactor[ 3 ] = { 0.f, 0.f, 0.f };
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	mMaterialPlug = mShaderDependencyNode.findPlug( MAYA_MATERIAL_CHANNEL_INCANDESCENCE );
+	SG_DISABLE_SPECIFIC_END
 	if( !mMaterialPlug.isNull() )
 	{
 		// get the texture if one exists
@@ -880,7 +976,11 @@ MStatus MaterialNode::InternalSetup()
 	// get the bump map plug, check if it has a texture
 	if( this->NormalCameraTextures.TextureLayers.size() == 0 )
 	{
+		// Required for BinSkim compat
+		// TODO: Deprecated method, should be replaced!
+		SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 		MPlug mNormalCameraPlug = mShaderDependencyNode.findPlug( MAYA_MATERIAL_CHANNEL_NORMALCAMERA );
+		SG_DISABLE_SPECIFIC_END
 		if( !mNormalCameraPlug.isNull() )
 		{
 			// look for a bump map node
@@ -889,9 +989,13 @@ MStatus MaterialNode::InternalSetup()
 			{
 				MFnDependencyNode mNormalsDependencyNode( mNormalsNode );
 
+				// Required for BinSkim compat
+				// TODO: Deprecated method, should be replaced!
+				SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 				// get the bump map input plugs
 				MPlug mBumpValue = mNormalsDependencyNode.findPlug( "bumpValue" );
 				MPlug mBumpInterp = mNormalsDependencyNode.findPlug( "bumpInterp" );
+				SG_DISABLE_SPECIFIC_END
 				if( !mBumpValue.isNull() && !mBumpInterp.isNull() )
 				{
 					// get the bump type
@@ -947,8 +1051,12 @@ bool MaterialNode::GetFileTexture( MObject mNode, MaterialTextureLayer& material
 
 	MFnDependencyNode mDependencyNode( mNode );
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	// get the full texture path
 	MPlug mFileTextureName = mDependencyNode.findPlug( "fileTextureName" );
+	SG_DISABLE_SPECIFIC_END
 	if( mFileTextureName.isNull() )
 		return false;
 
@@ -958,22 +1066,34 @@ bool MaterialNode::GetFileTexture( MObject mNode, MaterialTextureLayer& material
 	materialTextureLayer.OriginalTextureFileName = mFileName;
 	materialTextureLayer.TextureFileName = MString( this->materialHandler->ImportTexture( mFileName ).c_str() );
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	// now, look for a place2dTexture, and a uvChooser with sets of shapes
 	MPlug mUVCoordPlug = mDependencyNode.findPlug( "uvCoord" );
+	SG_DISABLE_SPECIFIC_END
 	if( !mUVCoordPlug.isNull() )
 	{
 		MObject mPlace2dTexture = ::GetConnectedUpstreamNode( mUVCoordPlug );
 		if( !mPlace2dTexture.isNull() )
 		{
 			MFnDependencyNode mPlace2dTextureDependencyNode( mPlace2dTexture );
+			// Required for BinSkim compat
+			// TODO: Deprecated method, should be replaced!
+			SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 			mUVCoordPlug = mPlace2dTextureDependencyNode.findPlug( "uvCoord" );
+			SG_DISABLE_SPECIFIC_END
 			MObject mUVChooser = ::GetConnectedUpstreamNode( mUVCoordPlug );
 			if( !mUVChooser.isNull() )
 			{
 				MFnDependencyNode mUVChooserDependencyNode( mUVChooser );
 
+				// Required for BinSkim compat
+				// TODO: Deprecated method, should be replaced!
+				SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 				// get the uvSets plug, which is an array of connected nodes
 				MPlug mUVSetsPlug = mUVChooserDependencyNode.findPlug( "uvSets" );
+				SG_DISABLE_SPECIFIC_END
 				if( !mUVSetsPlug.isNull() )
 				{
 					for( uint i = 0; i < mUVSetsPlug.numElements(); ++i )
@@ -1006,7 +1126,11 @@ void MaterialNode::PopulateLayeredTextureProperties( const MFnDependencyNode& mD
 	}
 
 	MFnDependencyNode mFileDependencyNode( mFilePlug.node() );
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	MPlug mFileTexturePlug = mFileDependencyNode.findPlug( "fileTextureName" );
+	SG_DISABLE_SPECIFIC_END
 	if( mFileTexturePlug.isNull() )
 	{
 		return;
@@ -1026,6 +1150,9 @@ void MaterialNode::PopulateTextureProperties( const MFnDependencyNode& mDependen
 
 	MStatus mStatus;
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	MPlug mRepeatUPlug = mDependencyNode.findPlug( "repeatU", &mStatus );
 	if( mStatus == MStatus::kSuccess )
 	{
@@ -1055,6 +1182,7 @@ void MaterialNode::PopulateTextureProperties( const MFnDependencyNode& mDependen
 	}
 
 	MPlug mColorGainPlug = mDependencyNode.findPlug( "colorGain", &mStatus );
+	SG_DISABLE_SPECIFIC_END
 
 	if( mStatus == MStatus::kSuccess )
 	{
@@ -1064,7 +1192,11 @@ void MaterialNode::PopulateTextureProperties( const MFnDependencyNode& mDependen
 			MPlug mColorGainComponentPlug = mColorGainPlug.child( k, &mStatus );
 			if( mStatus == MStatus::kSuccess )
 			{
+				// Required for BinSkim compat
+				// TODO: Deprecated method, should be replaced!
+				SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 				const float colorGain = mColorGainComponentPlug.asFloat( MDGContext::fsNormal, &mStatus );
+				SG_DISABLE_SPECIFIC_END
 				if( mStatus == MStatus::kSuccess )
 				{
 					textureLayer->ColorGain[ k ] = colorGain;
@@ -1073,6 +1205,9 @@ void MaterialNode::PopulateTextureProperties( const MFnDependencyNode& mDependen
 		}
 	}
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	MPlug mSRGBPlug = mDependencyNode.findPlug( "colorSpace", &mStatus );
 	if( mStatus == MStatus::kSuccess )
 	{
@@ -1082,6 +1217,7 @@ void MaterialNode::PopulateTextureProperties( const MFnDependencyNode& mDependen
 
 	// now, look for a place2dTexture, and a uvChooser with sets of shapes
 	MPlug mUVCoordPlug = mDependencyNode.findPlug( "uvCoord" );
+	SG_DISABLE_SPECIFIC_END
 	if( mUVCoordPlug.isNull() )
 	{
 		return;
@@ -1094,6 +1230,9 @@ void MaterialNode::PopulateTextureProperties( const MFnDependencyNode& mDependen
 		return;
 	}
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	MFnDependencyNode mPlace2dTextureDependencyNode( mPlace2dTexture );
 	mUVCoordPlug = mPlace2dTextureDependencyNode.findPlug( "uvCoord" );
 	MObject mUVChooser = ::GetConnectedUpstreamNode( mUVCoordPlug );
@@ -1110,6 +1249,7 @@ void MaterialNode::PopulateTextureProperties( const MFnDependencyNode& mDependen
 	{
 		return;
 	}
+	SG_DISABLE_SPECIFIC_END
 
 	for( uint k = 0; k < mUVSetsPlug.numElements(); ++k )
 	{
@@ -1135,12 +1275,16 @@ bool MaterialNode::GetFileTexture( MObject mNode, MaterialTextures& materialText
 
 	MFnDependencyNode mDependencyNode( mNode );
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	// get the full texture path
 	MPlug mFileTexturePlug = mDependencyNode.findPlug( "fileTextureName" );
 	if( mFileTexturePlug.isNull() )
 	{
 		// Get the possible color array
 		MPlug mMultiLayeredPlug = mDependencyNode.findPlug( "inputs" );
+		SG_DISABLE_SPECIFIC_END
 
 		if( mMultiLayeredPlug.isNull() )
 			return false;
@@ -1361,7 +1505,7 @@ std::string MaterialNode::GetSimplygonMaterialWithShadingNetwork( MString mMater
 				const uint sgsdkParamCount = sgsdkTextureNode->GetParameterCount();
 
 				// create texture and add it to scene
-				spTexture sgTexture = nullptr;
+				spTexture sgTexture;
 
 				sgTexture = sg->CreateTexture();
 				sgTexture->SetName( tTextureName.c_str() );
@@ -1786,7 +1930,7 @@ void MaterialNode::AddTextureToSimplygonScene( std::basic_string<TCHAR> tTexture
 	std::basic_string<TCHAR> tTextureExtension = GetExtensionOfFile( tTexturePathWithName );
 	std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
 
-	spTexture sgTexture = nullptr;
+	spTexture sgTexture;
 
 	sgTexture = sg->CreateTexture();
 	sgTexture->SetName( tTextureName.c_str() );
@@ -1919,7 +2063,7 @@ void MaterialNode::SetMaterialTextureForMeshNode(
 			const MaterialColorOverride* colorOverride = GetMaterialColorOverrideForChannel( ShadingNodeName.asChar(), sMaterialChannel );
 
 			// setup shading network for layered alpha channel
-			spShadingNode sgLayeredAlpha = nullptr;
+			spShadingNode sgLayeredAlpha;
 			const TextureProperties* layeredAlphaTexture = textureLayer.AlphaTexture;
 			if( layeredAlphaTexture )
 			{
@@ -2169,7 +2313,11 @@ void MaterialNode::SetMaterialTextureForMeshNode(
 MObject MaterialNode::GetConnectedNamedPlug( const MFnDependencyNode& mDependencyNode, MString mPlugName )
 {
 	MObject mNode = MObject::kNullObj;
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	MPlug mNodePlug = mDependencyNode.findPlug( mPlugName );
+	SG_DISABLE_SPECIFIC_END
 	if( !mNodePlug.isNull() )
 	{
 		// find the shader node that is connected to the object set

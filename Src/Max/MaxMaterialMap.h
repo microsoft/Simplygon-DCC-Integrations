@@ -19,7 +19,7 @@ class MaxMaterialMap
 	std::map<int, int> SGToMaxMapping; // map from sg to max local material id
 
 	MaxMaterialMap();
-	MaxMaterialMap( ULONG uniqueHandle, std::basic_string<TCHAR> materialName, std::string materialId );
+	MaxMaterialMap( AnimHandle uniqueHandle, std::basic_string<TCHAR> materialName, std::string materialId );
 
 	void SetupFromMaterial( Mtl* mMaxMaterial );
 	int GetMaxMaterialId( int sgId );

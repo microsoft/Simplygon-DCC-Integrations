@@ -126,4 +126,6 @@ double StringTodouble( std::string str );
 float StringTofloat( std::string str );
 bool StringToNULL( std::basic_string<TCHAR> str );
 
+
+
 float _log2( float n );

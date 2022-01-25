@@ -8,16 +8,25 @@
 #include <winnls.h>
 #include "Common.h"
 #include <objbase.h>
+#include "SgCodeAnalysisSetup.h"
 
 using std::auto_ptr;
 
 bool CompareStrings( std::basic_string<TCHAR> tString1, std::basic_string<TCHAR> tString2 )
 {
+	
 	std::basic_string<TCHAR> tString1Lower = tString1;
+	
+	// NOTE: We are taking TCHAR which can be char or wchar_t however the transform is always assuming char
+	// for wchart_t we need to use ::towlower / ::towupper
+	SG_DISABLE_SPECIFIC_BEGIN( 4244 )
 	std::transform( tString1Lower.begin(), tString1Lower.end(), tString1Lower.begin(), ::tolower );
+	SG_DISABLE_SPECIFIC_END
 
 	std::basic_string<TCHAR> tString2Lower = tString2;
+	SG_DISABLE_SPECIFIC_BEGIN( 4244 )
 	std::transform( tString2Lower.begin(), tString2Lower.end(), tString2Lower.begin(), ::tolower );
+	SG_DISABLE_SPECIFIC_END
 
 	if( tString1Lower == tString2Lower )
 	{
@@ -29,10 +38,20 @@ bool CompareStrings( std::basic_string<TCHAR> tString1, std::basic_string<TCHAR>
 bool IsSubstringPartOfString( std::basic_string<TCHAR> tSourceString, std::basic_string<TCHAR> tPartString )
 {
 	std::basic_string<TCHAR> tSourceStringLower = tSourceString;
+
+	// NOTE: We are taking TCHAR which can be char or wchar_t however the transform is always assuming char
+	// for wchart_t we need to use ::towlower / ::towupper
+	SG_DISABLE_SPECIFIC_BEGIN( 4244 )
 	std::transform( tSourceStringLower.begin(), tSourceStringLower.end(), tSourceStringLower.begin(), ::tolower );
+	SG_DISABLE_SPECIFIC_END
 
 	std::basic_string<TCHAR> tPartStringLower = tPartString;
+
+	// NOTE: We are taking TCHAR which can be char or wchar_t however the transform is always assuming char
+	// for wchart_t we need to use ::towlower / ::towupper
+	SG_DISABLE_SPECIFIC_BEGIN( 4244 )
 	std::transform( tPartStringLower.begin(), tPartStringLower.end(), tPartStringLower.begin(), ::tolower );
+	SG_DISABLE_SPECIFIC_END
 
 	if( (int)tSourceStringLower.find( tPartStringLower ) >= 0 )
 	{
@@ -124,8 +143,12 @@ bool GuidCompare( std::string sString1, std::string sString2 )
 	if( sString1.length() != sString2.length() )
 		return false;
 
+	// NOTE: We are taking TCHAR which can be char or wchar_t however the transform is always assuming char
+	// for wchart_t we need to use ::towlower / ::towupper
+	SG_DISABLE_SPECIFIC_BEGIN( 4244 )
 	std::transform( sString1.begin(), sString1.end(), sString1.begin(), ::toupper );
 	std::transform( sString2.begin(), sString2.end(), sString2.begin(), ::toupper );
+	SG_DISABLE_SPECIFIC_END
 
 	return sString1 == sString2;
 }
@@ -171,4 +194,14 @@ bool CharacterFilter( TCHAR c )
 	static std::basic_string<TCHAR> tFilter( _T("\\/:?\"<>|") );
 
 	return std::basic_string<TCHAR>::npos != tFilter.find( &c );
+}
+
+std::basic_string<wchar_t> AppendInt( const std::basic_string<wchar_t>& str, int value )
+{
+	return str + std::to_wstring( value );
+}
+
+std::basic_string<char> AppendInt( const std::basic_string<char>& str, int value )
+{
+	return str + std::to_string( value );
 }

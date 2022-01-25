@@ -7,7 +7,7 @@
 #include <corecrt_io.h>
 #include <fcntl.h>
 #include <cctype>
-
+#include "HelperFunctions.h"
 #include "SimplygonLoader.h"
 
 using namespace Simplygon;
@@ -246,7 +246,7 @@ DWORD SimplygonProcessingModule::PostProgress()
 			const int progress = pResult.GetProgress();
 			if( this->progressObserver )
 			{
-				this->progressObserver->OnProgress( nullptr, (real)progress );
+				this->progressObserver->OnProgress( Simplygon::NullPtr, (real)progress );
 			}
 		}
 
@@ -256,7 +256,7 @@ DWORD SimplygonProcessingModule::PostProgress()
 		{
 			if( this->errorHandler )
 			{
-				this->errorHandler->HandleError( nullptr, "", "", 0, pResult.GetErrorMessage().c_str() );
+				this->errorHandler->HandleError( Simplygon::NullPtr, "", "", 0, pResult.GetErrorMessage().c_str() );
 			}
 			else
 			{
@@ -490,7 +490,7 @@ EErrorCodes SimplygonProcessingModule::RunPipelineExternallyFromFile( std::basic
 
 					std::basic_string<TCHAR> tOutputFilePath = Combine( tOutputDirectory, tOutputFileName );
 					tOutputFilePath += _T("_LOD");
-					tOutputFilePath += ( c + 1 );
+					tOutputFilePath = AppendInt( tOutputFilePath, c + 1 );
 					tOutputFilePath += tOutputFileNameExtension;
 
 					const char* cOutputFilePath = LPCTSTRToConstCharPtr( tOutputFilePath.c_str() );
@@ -1556,7 +1556,7 @@ spScene SimplygonProcessingModule::RunAggregation( const spScene sgInputScene, b
 {
 	throw std::exception( "RunAggregation is not implemented!" );
 
-	return nullptr;
+	return Simplygon::NullPtr;
 }
 
 spScene SimplygonProcessingModule::RunReductionTest_1( const spScene sgInputScene )

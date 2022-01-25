@@ -587,6 +587,11 @@ namespace SimplygonUI.MaxUI
             MainUI.LoadPipelineFromFile(fileName);
         }
 
+        public void SavePipeline(string fileName, bool serializeUICompontents, bool showFileDialog)
+        {
+            MainUI.SavePipeline(fileName, serializeUICompontents, showFileDialog);
+        }
+
         public void Log(Category category, string message)
         {
             MainUI.Log(category, message);

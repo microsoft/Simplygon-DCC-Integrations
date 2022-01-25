@@ -26,5 +26,6 @@ namespace SimplygonUI
     public interface SimplygonUIExternalAccess
     {
         void LoadPipelineFromFile(string fileName);
+        void SavePipeline(string fileName, bool serializeUICompontents, bool showFileDialog);
     }
 }

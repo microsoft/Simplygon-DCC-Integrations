@@ -204,7 +204,11 @@ MStatus MeshNode::ExtractMeshData( MaterialHandler* materialHandler )
 	if( UseDuplicatedMesh )
 	{
 		MString mNodePath = this->modifiedNode.fullPathName();
+		// Required for BinSkim compat
+		// TODO: Deprecated method, should be replaced!
+		SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 		MGlobal::select( this->modifiedNode, MObject::kNullObj, MGlobal::kReplaceList );
+		SG_DISABLE_SPECIFIC_END
 		this->modifiedNode = MDagPath();
 
 		MGlobal::executeCommand( "delete;" );
@@ -358,7 +362,11 @@ MStatus MeshNode::ExtractVertexData()
 
 		for( uint i = 0; i < numInfluences; ++i )
 		{
+			// Required for BinSkim compat
+			// TODO: Deprecated method, should be replaced!
+			SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 			MGlobal::select( mInfluenceDagPaths[ i ], MObject::kNullObj );
+			SG_DISABLE_SPECIFIC_END
 		}
 
 		if( !this->cmd->UseCurrentPoseAsBindPose() )
@@ -376,9 +384,13 @@ MStatus MeshNode::ExtractVertexData()
 			bidToi.insert( std::pair<uint, uint>( infId, i ) );
 		}
 
+		// Required for BinSkim compat
+		// TODO: Deprecated method, should be replaced!
+		SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 		// this plug is an array (one element for each vertex in your mesh)
 		MPlug wlPlug = mDuplicatedSkinCluster.findPlug( "weightList" );
 		MPlug wPlug = mDuplicatedSkinCluster.findPlug( "weights" );
+		SG_DISABLE_SPECIFIC_END
 		MObject wlAttr = wlPlug.attribute();
 		MObject wAttr = wPlug.attribute();
 
@@ -496,11 +508,19 @@ MStatus MeshNode::ExtractVertexData()
 		MPlug mMeshPlug;
 		MObject mMeshData;
 
+		// Required for BinSkim compat
+		// TODO: Deprecated method, should be replaced!
+		SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 		// Get the .outMesh plug for this mesh
 		mMeshPlug = mModifiedNodeShapeDependencyNode.findPlug( MString( "outMesh" ), &mStatus );
+		SG_DISABLE_SPECIFIC_END
 
+		// Required for BinSkim compat
+		// TODO: Deprecated method, should be replaced!
+		SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 		// Get its value at the specified Time.
 		mStatus = mMeshPlug.getValue( mMeshData, MDGContext( mCurrentTime ) );
+		SG_DISABLE_SPECIFIC_END
 
 		// Use its MFnMesh function set
 		MFnMesh mMesh( mMeshData, &mStatus );
@@ -1546,7 +1566,11 @@ UnpackedRealArrayToPackedRealArray( const real* inRealArray, uint cornerCount, u
 MObject GetConnectedNamedPlug( const MFnDependencyNode& mDependencyNode, MString mPlugName )
 {
 	MObject mNode = MObject::kNullObj;
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	MPlug mNodePlug = mDependencyNode.findPlug( mPlugName );
+	SG_DISABLE_SPECIFIC_END
 	if( !mNodePlug.isNull() )
 	{
 		// find the shader node that is connected to the object set
@@ -1869,8 +1893,12 @@ MStatus MeshNode::WritebackGeometryData(
 		this->postUpdate = true;
 	}
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	// setup the modified node handles
 	this->modifiedNode = MDagPath::getAPathTo( modifiedTransform );
+	SG_DISABLE_SPECIFIC_END
 	this->modifiedNodeShape = this->modifiedNode;
 
 	mStatus = this->modifiedNodeShape.extendToShape();
@@ -2572,7 +2600,11 @@ MStatus MeshNode::WritebackGeometryData(
 					MFnDagNode mTargetDagNode( mTargetTransform );
 					mTargetObjectName = mTargetDagNode.setName( mTargetObjectName );
 
+					// Required for BinSkim compat
+					// TODO: Deprecated method, should be replaced!
+					SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 					MDagPath mTargetDagPath = MDagPath::getAPathTo( mTargetTransform );
+					SG_DISABLE_SPECIFIC_END
 					mTargetDagPath.extendToShape();
 
 					// add target and weight on the specified index
@@ -2844,7 +2876,11 @@ MStatus MeshNode::DeleteModifiedMeshDatas()
 	// delete all the nodes created in the WritebackGeometryData calls
 	for( size_t meshIndex = 0; meshIndex < this->meshLODs.size(); ++meshIndex )
 	{
+		// Required for BinSkim compat
+		// TODO: Deprecated method, should be replaced!
+		SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 		MGlobal::select( this->meshLODs[ meshIndex ].LODNode, MObject::kNullObj, MGlobal::kReplaceList );
+		SG_DISABLE_SPECIFIC_END
 		this->meshLODs[ meshIndex ].LODNode = MDagPath();
 		this->meshLODs[ meshIndex ].LODNodeShape = MDagPath();
 		MGlobal::executeCommand( "delete;" );
@@ -2934,7 +2970,11 @@ MStatus MeshNode::ResetTweaks()
 	MObject mTweakData;
 	MStatus mStatus;
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	mMeshTweakPlug = this->MayaMesh.findPlug( "pnts" );
+	SG_DISABLE_SPECIFIC_END
 	if( !mMeshTweakPlug.isNull() )
 	{
 		const uint numElements = mMeshTweakPlug.numElements();
@@ -3038,7 +3078,11 @@ MStatus MeshNode::AddSkinning( spScene sgProcessedScene )
 
 		if( mBoneDagPath.isValid() )
 		{
+			// Required for BinSkim compat
+			// TODO: Deprecated method, should be replaced!
+			SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 			mStatus = MGlobal::select( mBoneDagPath, MObject::kNullObj );
+			SG_DISABLE_SPECIFIC_END
 			if( !mStatus )
 				return mStatus;
 
@@ -3054,7 +3098,11 @@ MStatus MeshNode::AddSkinning( spScene sgProcessedScene )
 		return MStatus::kSuccess;
 	}
 
+	// Required for BinSkim compat
+	// TODO: Deprecated method, should be replaced!
+	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	mStatus = MGlobal::select( this->modifiedNodeShape, MObject::kNullObj );
+	SG_DISABLE_SPECIFIC_END
 	if( !mStatus )
 		return mStatus;
 
@@ -3361,8 +3409,12 @@ MStatus MeshNode::ExtractBlendShapeData()
 	MItDependencyNodes mDependencyIterator( MFn::kBlendShape );
 	while( !mDependencyIterator.isDone() )
 	{
+		// Required for BinSkim compat
+		// TODO: Deprecated method, should be replaced!
+		SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 		// attach the function set to the object
 		MFnBlendShapeDeformer mBlendShapeDeformer( mDependencyIterator.item() );
+		SG_DISABLE_SPECIFIC_END
 
 		// get a list of base objects
 		MObjectArray mBaseObjects;
@@ -3526,10 +3578,14 @@ void DisableBlendShapes()
 	MItDependencyNodes mBlendShapeDependencyIterator( MFn::kBlendShape );
 	while( !mBlendShapeDependencyIterator.isDone() )
 	{
+		// Required for BinSkim compat
+		// TODO: Deprecated method, should be replaced!
+		SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 		MFnBlendShapeDeformer mBlendShapeDeformer( mBlendShapeDependencyIterator.item() );
 
 		// get the envelope attribute plug
 		MPlug mPlug = mBlendShapeDeformer.findPlug( "en" );
+		SG_DISABLE_SPECIFIC_END
 
 		// store result
 		const float en = mPlug.asFloat();

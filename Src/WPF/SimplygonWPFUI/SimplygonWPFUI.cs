@@ -17,9 +17,9 @@ namespace SimplygonUI
 {
     public class SimplygonVersion
     {
-        public static readonly string Version = "9.1";
-        public static readonly string Build = "9.1.42900.0";
-        public static readonly string Commit = "244a413417a204ab6db6ddcd605e231a600aa08f";
+        public static readonly string Version = "9.2";
+        public static readonly string Build = "9.2.1400.0";
+        public static readonly string Commit = "c47d3175d00ec884bd836442df285bc06f7754eb";
     }
 
     public enum SimplygonIntegrationType
@@ -467,172 +467,427 @@ namespace SimplygonUI
             MaterialCasterTemplates.Clear();
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color") { MenuPath = "Template/ColorCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Advanced/ColorCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity") { MenuPath = "Template/OpacityCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity", "Template/Advanced/OpacityCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal") { MenuPath = "Template/NormalCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal", "Template/Advanced/NormalCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.DisplacementCaster, "Displacement") { MenuPath = "Template/DisplacementCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.DisplacementCaster, "Displacement", "Template/Advanced/DisplacementCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.AmbientOcclusionCaster, "AmbientOcclusion") { MenuPath = "Template/AmbientOcclusionCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.AmbientOcclusionCaster, "AmbientOcclusion", "Template/Advanced/AmbientOcclusionCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.GeometryDataCaster, "GeometryData") { MenuPath = "Template/GeometryDataCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.GeometryDataCaster, "GeometryData", "Template/Advanced/GeometryDataCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.VertexColorCaster, "VertexColor") { MenuPath = "Template/VertexColorCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.VertexColorCaster, "VertexColor", "Template/Advanced/VertexColorCaster"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Blinn/AmbientColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Blinn/DiffuseColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Blinn/SpecularColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity", "Template/Blinn/Opacity"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal", "Template/Blinn/Bump"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Phong/AmbientColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Phong/DiffuseColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Phong/SpecularColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity", "Template/Phong/Opacity"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal", "Template/Phong/Bump"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color") { MenuPath = "Template/ColorCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Advanced/ColorCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity") { MenuPath = "Template/OpacityCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity", "Template/Advanced/OpacityCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal") { MenuPath = "Template/NormalCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal", "Template/Advanced/NormalCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.DisplacementCaster, "Displacement") { MenuPath = "Template/DisplacementCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.DisplacementCaster, "Displacement", "Template/Advanced/DisplacementCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.AmbientOcclusionCaster, "AmbientOcclusion") { MenuPath = "Template/AmbientOcclusionCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.AmbientOcclusionCaster, "AmbientOcclusion", "Template/Advanced/AmbientOcclusionCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.GeometryDataCaster, "GeometryData") { MenuPath = "Template/GeometryDataCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.GeometryDataCaster, "GeometryData", "Template/Advanced/GeometryDataCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.VertexColorCaster, "VertexColor") { MenuPath = "Template/VertexColorCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.VertexColorCaster, "VertexColor", "Template/Advanced/VertexColorCaster"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/BaseWeight"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/BaseColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/Reflectivity"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/ReflColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/Roughness"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/Metalness"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/DiffuseRoughness"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity", "Template/Physical/Transparency"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/TransparencyColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/TransparencyRoughness"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/Scattering"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/SSSColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/SSSScale"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/Emission"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/EmissionColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/CoatingWeight"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/CoatingColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/CoatingRoughness"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal", "Template/Physical/Bump"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal", "Template/Physical/CoatingBump"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/Displacement"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/Cutout"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color") { MenuPath = "Template/ColorCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Advanced/ColorCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity") { MenuPath = "Template/OpacityCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity", "Template/Advanced/OpacityCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal") { MenuPath = "Template/NormalCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal", "Template/Advanced/NormalCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.DisplacementCaster, "Displacement") { MenuPath = "Template/DisplacementCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.DisplacementCaster, "Displacement", "Template/Advanced/DisplacementCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.AmbientOcclusionCaster, "AmbientOcclusion") { MenuPath = "Template/AmbientOcclusionCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.AmbientOcclusionCaster, "AmbientOcclusion", "Template/Advanced/AmbientOcclusionCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.GeometryDataCaster, "GeometryData") { MenuPath = "Template/GeometryDataCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.GeometryDataCaster, "GeometryData", "Template/Advanced/GeometryDataCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.VertexColorCaster, "VertexColor") { MenuPath = "Template/VertexColorCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.VertexColorCaster, "VertexColor", "Template/Advanced/VertexColorCaster"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Blinn/Color"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Blinn/AmbientColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Blinn/Incandescence"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal", "Template/Blinn/NormalCamera"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Blinn/ReflectedColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Blinn/SpecularColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity", "Template/Blinn/Transparency"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Lambert/Color"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Lambert/AmbientColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Lambert/Incandescence"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal", "Template/Lambert/NormalCamera"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity", "Template/Lambert/Transparency"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Phong/Color"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Phong/AmbientColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Phong/Incandescence"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal", "Template/Phong/NormalCamera"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Phong/ReflectedColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Phong/SpecularColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity", "Template/Phong/Transparency"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Blender)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color") { MenuPath = "Template/ColorCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Advanced/ColorCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Blender)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity") { MenuPath = "Template/OpacityCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity", "Template/Advanced/OpacityCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Blender)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal") { MenuPath = "Template/NormalCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal", "Template/Advanced/NormalCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Blender)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.DisplacementCaster, "Displacement") { MenuPath = "Template/DisplacementCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.DisplacementCaster, "Displacement", "Template/Advanced/DisplacementCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Blender)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.AmbientOcclusionCaster, "AmbientOcclusion") { MenuPath = "Template/AmbientOcclusionCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.AmbientOcclusionCaster, "AmbientOcclusion", "Template/Advanced/AmbientOcclusionCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Blender)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.GeometryDataCaster, "GeometryData") { MenuPath = "Template/GeometryDataCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.GeometryDataCaster, "GeometryData", "Template/Advanced/GeometryDataCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Blender)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.VertexColorCaster, "VertexColor") { MenuPath = "Template/VertexColorCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.VertexColorCaster, "VertexColor", "Template/Advanced/VertexColorCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Unity)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color") { MenuPath = "Template/ColorCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Advanced/ColorCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Unity)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal") { MenuPath = "Template/NormalCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal", "Template/Advanced/NormalCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Unity)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.DisplacementCaster, "Displacement") { MenuPath = "Template/DisplacementCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.DisplacementCaster, "Displacement", "Template/Advanced/DisplacementCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Unity)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.AmbientOcclusionCaster, "AmbientOcclusion") { MenuPath = "Template/AmbientOcclusionCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.AmbientOcclusionCaster, "AmbientOcclusion", "Template/Advanced/AmbientOcclusionCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Unity)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.GeometryDataCaster, "GeometryData") { MenuPath = "Template/GeometryDataCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.GeometryDataCaster, "GeometryData", "Template/Advanced/GeometryDataCaster"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Unity)
             {
-                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.VertexColorCaster, "VertexColor") { MenuPath = "Template/VertexColorCaster" });
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.VertexColorCaster, "VertexColor", "Template/Advanced/VertexColorCaster"));
             }
 
             LoadPipelines(string.Empty);
@@ -648,7 +903,7 @@ namespace SimplygonUI
                 {
                     try
                     {
-                        var pipeline = new SimplygonPipeline(JObject.Parse(System.IO.File.ReadAllText(file)));
+                        var pipeline = new SimplygonPipeline(file, JObject.Parse(System.IO.File.ReadAllText(file)));
                         if (pipeline != null)
                         {
                             pipeline.FilePath = file;
@@ -658,8 +913,9 @@ namespace SimplygonUI
 
                     }
 
-                    catch(Exception)
+                    catch(Exception ex)
                     {
+                        UILogger.Instance.Log(Category.Error, $"Could not load pipeline '{file}' due to an error. Details: {ex.Message}");
                     }
 
                 }
@@ -907,6 +1163,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
             public bool DependencyObject { get { return Parent.ReductionTargetTriangleRatioEnabled; } set { Parent.ReductionTargetTriangleRatioEnabled = value; OnPropertyChanged(); } }
 
@@ -918,6 +1176,8 @@ namespace SimplygonUI
                 DefaultValue = 0.5f;
                 MinValue = 0f;
                 MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 HasDependencyObject = true;
                 Visible = true;
@@ -929,24 +1189,38 @@ namespace SimplygonUI
                 HelpText = "The wanted reduction ratio. The range is 0->1.";
                 TypeOverride = "";
                 DefaultValue = 0.5f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetTriangleRatio: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetTriangleRatio: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -1092,6 +1366,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
             public bool DependencyObject { get { return Parent.ReductionTargetTriangleCountEnabled; } set { Parent.ReductionTargetTriangleCountEnabled = value; OnPropertyChanged(); } }
 
@@ -1103,6 +1379,8 @@ namespace SimplygonUI
                 DefaultValue = 10000;
                 MinValue = 0;
                 MaxValue = 10000000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 10000000;
                 TicksFrequencyValue = 10000;
                 HasDependencyObject = true;
                 Visible = true;
@@ -1114,24 +1392,38 @@ namespace SimplygonUI
                 HelpText = "The wanted triangle count. The range is 0->inf.";
                 TypeOverride = "";
                 DefaultValue = 10000;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetTriangleCount: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 10000000;
+                DefaultMaxValue = 10000000;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10000000;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetTriangleCount: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -1277,6 +1569,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
             public bool DependencyObject { get { return Parent.ReductionTargetMaxDeviationEnabled; } set { Parent.ReductionTargetMaxDeviationEnabled = value; OnPropertyChanged(); } }
 
@@ -1288,6 +1582,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 0.1f;
                 HasDependencyObject = true;
                 Visible = true;
@@ -1299,24 +1595,38 @@ namespace SimplygonUI
                 HelpText = "The MaxDeviation value, the maximum surface-deviation between the reduced geometry and the original.";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetMaxDeviation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetMaxDeviation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -1462,17 +1772,21 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
             public bool DependencyObject { get { return Parent.ReductionTargetOnScreenSizeEnabled; } set { Parent.ReductionTargetOnScreenSizeEnabled = value; OnPropertyChanged(); } }
 
             public SimplygonReductionTargetOnScreenSizeEx() : base("ReductionTargetOnScreenSize")
             {
                 Type = "uint";
-                HelpText = "The OnScreenSize value, used to calculate the maximum surface-deviation allowed, by assuming errors less than 1 pixel onscreen will not be noticable.";
+                HelpText = "The OnScreenSize value, used to calculate the maximum surface-deviation allowed, by assuming errors less than 1 pixel onscreen will not be noticeable.";
                 TypeOverride = "";
                 DefaultValue = 300;
                 MinValue = 20;
                 MaxValue = 100000;
+                DefaultMinValue = 20;
+                DefaultMaxValue = 100000;
                 TicksFrequencyValue = 10;
                 HasDependencyObject = true;
                 Visible = true;
@@ -1481,27 +1795,41 @@ namespace SimplygonUI
             public SimplygonReductionTargetOnScreenSizeEx(dynamic jsonData) : base("ReductionTargetOnScreenSize")
             {
                 Type = "uint";
-                HelpText = "The OnScreenSize value, used to calculate the maximum surface-deviation allowed, by assuming errors less than 1 pixel onscreen will not be noticable.";
+                HelpText = "The OnScreenSize value, used to calculate the maximum surface-deviation allowed, by assuming errors less than 1 pixel onscreen will not be noticeable.";
                 TypeOverride = "";
                 DefaultValue = 300;
+                MinValue = 20;
+                DefaultMinValue = 20;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetOnScreenSize: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 20;
-                }
-
+                MaxValue = 100000;
+                DefaultMaxValue = 100000;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 100000;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetOnScreenSize: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -1716,6 +2044,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonGeometryImportanceEx() : base("GeometryImportance")
@@ -1726,6 +2056,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 1f;
                 Visible = true;
             }
@@ -1736,24 +2068,38 @@ namespace SimplygonUI
                 HelpText = "The importance value of the position of the vertices and triangles of the Geometry, or the silhouette of the Geometry. The importance is relative to the values of the other mesh features (or disabling an importance entirely by setting it to 0). A higher number means higher importance. Default is 1.0";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GeometryImportance: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GeometryImportance: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -1825,6 +2171,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonMaterialImportanceEx() : base("MaterialImportance")
@@ -1835,6 +2183,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 1f;
                 Visible = true;
             }
@@ -1845,24 +2195,38 @@ namespace SimplygonUI
                 HelpText = "The importance value of the boundary between triangles with different materials. For example, if triangles with a metallic material are connected to triangles with a wood material, this setting will determine how important it is to keep the border between them intact. The importance is relative to the values of the other mesh features (or disabling an importance entirely by setting it to 0). A higher number means higher importance. Default is 1.0";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaterialImportance: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaterialImportance: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -1934,6 +2298,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonTextureImportanceEx() : base("TextureImportance")
@@ -1944,6 +2310,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 1f;
                 Visible = true;
             }
@@ -1954,24 +2322,38 @@ namespace SimplygonUI
                 HelpText = "The importance value of the UV coordinates of the Geometry, both the boundary of the UV charts, as well as the UV stretch across the triangles. The importance is relative to the values of the other mesh features (or disabling an importance entirely by setting it to 0). A higher number means higher importance. Default is 1.0";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TextureImportance: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TextureImportance: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -2043,6 +2425,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonShadingImportanceEx() : base("ShadingImportance")
@@ -2053,6 +2437,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 1f;
                 Visible = true;
             }
@@ -2063,24 +2449,38 @@ namespace SimplygonUI
                 HelpText = "The importance value of the vertex-normals of the Geometry, both the sharp edges, as well as how the normals interpolate over the surface of the triangles. The importance is relative to the values of the other mesh features (or disabling an importance entirely by setting it to 0). A higher number means higher importance. Default is 1.0";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ShadingImportance: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ShadingImportance: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -2152,6 +2552,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonGroupImportanceEx() : base("GroupImportance")
@@ -2162,6 +2564,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 1f;
                 Visible = true;
             }
@@ -2172,24 +2576,38 @@ namespace SimplygonUI
                 HelpText = "The importance value of the boundary between triangles from different sub-geometries. The importance is relative to the values of the other mesh features (or disabling an importance entirely by setting it to 0). A higher number means higher importance. Default is 1.0";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GroupImportance: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GroupImportance: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -2261,6 +2679,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonVertexColorImportanceEx() : base("VertexColorImportance")
@@ -2271,6 +2691,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 1f;
                 Visible = true;
             }
@@ -2281,24 +2703,38 @@ namespace SimplygonUI
                 HelpText = "The importance value of the vertex-colors of the Geometry, both the boundary between triangles with different colors, as well as how the colors interpolate over the surface of the triangles. The importance is relative to the values of the other mesh features (or disabling an importance entirely by setting it to 0). A higher number means higher importance. Default is 1.0";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"VertexColorImportance: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"VertexColorImportance: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -2370,6 +2806,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonEdgeSetImportanceEx() : base("EdgeSetImportance")
@@ -2380,6 +2818,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 1f;
                 Visible = true;
             }
@@ -2390,24 +2830,38 @@ namespace SimplygonUI
                 HelpText = "The importance value of user selected edges. Can be used when a Boolean UserCornerField with the name SgEdgeSelectionSet is added to the Geometry. The importance is relative to the values of the other mesh features (or disabling an importance entirely by setting it to 0). A higher number means higher importance. Default is 1.0";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"EdgeSetImportance: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"EdgeSetImportance: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -2479,6 +2933,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonSkinningImportanceEx() : base("SkinningImportance")
@@ -2489,6 +2945,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 1f;
                 Visible = true;
             }
@@ -2499,24 +2957,38 @@ namespace SimplygonUI
                 HelpText = "The importance value of the bone-weights of the vertices. The more impact a vertex has on the skinning of the Geometry (for example, vertices close to joints), the more likely it is to be kept. The importance is relative to the values of the other mesh features (or disabling an importance entirely by setting it to 0). A higher number means higher importance. Default is 1.0";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SkinningImportance: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SkinningImportance: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -2588,6 +3060,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonCurvatureImportanceEx() : base("CurvatureImportance")
@@ -2595,9 +3069,11 @@ namespace SimplygonUI
                 Type = "real";
                 HelpText = "This importance is deprecated and disabled.";
                 TypeOverride = "";
-                DefaultValue = 1f;
+                DefaultValue = 0f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 1f;
                 Visible = true;
             }
@@ -2607,25 +3083,39 @@ namespace SimplygonUI
                 Type = "real";
                 HelpText = "This importance is deprecated and disabled.";
                 TypeOverride = "";
-                DefaultValue = 1f;
+                DefaultValue = 0f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"CurvatureImportance: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"CurvatureImportance: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -3126,6 +3616,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
             public override bool Visible { get { if( Parent.KeepSymmetryUI != null ) { return Parent.KeepSymmetry && Parent.KeepSymmetryUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
 
@@ -3137,6 +3629,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -3147,24 +3641,38 @@ namespace SimplygonUI
                 HelpText = "Set SymmetryOffset, the position on the symmetry axis where the symmetry plane is placed.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SymmetryOffset: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SymmetryOffset: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -3236,6 +3744,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
             public override bool Visible { get { if( Parent.KeepSymmetryUI != null ) { return Parent.KeepSymmetry && Parent.KeepSymmetryUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
 
@@ -3247,6 +3757,8 @@ namespace SimplygonUI
                 DefaultValue = 0.0001f;
                 MinValue = 0f;
                 MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.0001f;
                 Visible = true;
             }
@@ -3257,24 +3769,38 @@ namespace SimplygonUI
                 HelpText = "The tolerance used when detecting symmetry. Values in the ranges 1e-5 to 1e-3 will usually produce good results. This specific tolerance corresponds to the off-plane tolerance, ie. the tolerance of the coordinate components that are not the symmetry axis. The in-plane tolerance is always 10 times the off-plane tolerance. This value is relative to the size of the Geometry, so 0.01 would mean 1% of the bounding box size of the Geometry.";
                 TypeOverride = "";
                 DefaultValue = 0.0001f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SymmetryDetectionTolerance: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SymmetryDetectionTolerance: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -3417,6 +3943,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonOutwardMoveMultiplierEx() : base("OutwardMoveMultiplier")
@@ -3427,6 +3955,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -3437,24 +3967,38 @@ namespace SimplygonUI
                 HelpText = "The outward move multiplier, how much the mesh is allowed to grow its silhouette perimeter.";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OutwardMoveMultiplier: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OutwardMoveMultiplier: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -3526,6 +4070,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonInwardMoveMultiplierEx() : base("InwardMoveMultiplier")
@@ -3536,6 +4082,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -3546,24 +4094,38 @@ namespace SimplygonUI
                 HelpText = "The inward move multiplier, how much the mesh is allowed to shrink its silhouette perimeter.";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"InwardMoveMultiplier: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"InwardMoveMultiplier: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -4507,7 +5069,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("ReductionTargetTriangleRatio") != null)
             {
-                ReductionTargetTriangleRatio = (float)jsonData.ReductionTargetTriangleRatio;
+                float newReductionTargetTriangleRatio = (float)jsonData.ReductionTargetTriangleRatio;
+                if (newReductionTargetTriangleRatio >= ReductionTargetTriangleRatioUI.DefaultMinValue && newReductionTargetTriangleRatio <= ReductionTargetTriangleRatioUI.DefaultMaxValue)
+                {
+                    ReductionTargetTriangleRatio = newReductionTargetTriangleRatio;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ReductionTargetTriangleRatio: Invalid value {newReductionTargetTriangleRatio.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {ReductionTargetTriangleRatio.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("ReductionTargetTriangleCountEnabled") != null)
@@ -4517,7 +5089,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("ReductionTargetTriangleCount") != null)
             {
-                ReductionTargetTriangleCount = (int)jsonData.ReductionTargetTriangleCount;
+                var newReductionTargetTriangleCount = (int)jsonData.ReductionTargetTriangleCount;
+                if (newReductionTargetTriangleCount >= ReductionTargetTriangleCountUI.DefaultMinValue && newReductionTargetTriangleCount <= ReductionTargetTriangleCountUI.DefaultMaxValue)
+                {
+                    ReductionTargetTriangleCount = newReductionTargetTriangleCount;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ReductionTargetTriangleCount: Invalid value {newReductionTargetTriangleCount}, using default value {ReductionTargetTriangleCount.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("ReductionTargetMaxDeviationEnabled") != null)
@@ -4527,7 +5109,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("ReductionTargetMaxDeviation") != null)
             {
-                ReductionTargetMaxDeviation = (float)jsonData.ReductionTargetMaxDeviation;
+                float newReductionTargetMaxDeviation = (float)jsonData.ReductionTargetMaxDeviation;
+                if (newReductionTargetMaxDeviation >= ReductionTargetMaxDeviationUI.DefaultMinValue && newReductionTargetMaxDeviation <= ReductionTargetMaxDeviationUI.DefaultMaxValue)
+                {
+                    ReductionTargetMaxDeviation = newReductionTargetMaxDeviation;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ReductionTargetMaxDeviation: Invalid value {newReductionTargetMaxDeviation.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {ReductionTargetMaxDeviation.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("ReductionTargetOnScreenSizeEnabled") != null)
@@ -4537,7 +5129,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("ReductionTargetOnScreenSize") != null)
             {
-                ReductionTargetOnScreenSize = (int)jsonData.ReductionTargetOnScreenSize;
+                var newReductionTargetOnScreenSize = (int)jsonData.ReductionTargetOnScreenSize;
+                if (newReductionTargetOnScreenSize >= ReductionTargetOnScreenSizeUI.DefaultMinValue && newReductionTargetOnScreenSize <= ReductionTargetOnScreenSizeUI.DefaultMaxValue)
+                {
+                    ReductionTargetOnScreenSize = newReductionTargetOnScreenSize;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ReductionTargetOnScreenSize: Invalid value {newReductionTargetOnScreenSize}, using default value {ReductionTargetOnScreenSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("ReductionTargetStopCondition") != null)
@@ -4552,47 +5154,137 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("GeometryImportance") != null)
             {
-                GeometryImportance = (float)jsonData.GeometryImportance;
+                float newGeometryImportance = (float)jsonData.GeometryImportance;
+                if (newGeometryImportance >= GeometryImportanceUI.DefaultMinValue && newGeometryImportance <= GeometryImportanceUI.DefaultMaxValue)
+                {
+                    GeometryImportance = newGeometryImportance;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"GeometryImportance: Invalid value {newGeometryImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {GeometryImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("MaterialImportance") != null)
             {
-                MaterialImportance = (float)jsonData.MaterialImportance;
+                float newMaterialImportance = (float)jsonData.MaterialImportance;
+                if (newMaterialImportance >= MaterialImportanceUI.DefaultMinValue && newMaterialImportance <= MaterialImportanceUI.DefaultMaxValue)
+                {
+                    MaterialImportance = newMaterialImportance;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MaterialImportance: Invalid value {newMaterialImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {MaterialImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("TextureImportance") != null)
             {
-                TextureImportance = (float)jsonData.TextureImportance;
+                float newTextureImportance = (float)jsonData.TextureImportance;
+                if (newTextureImportance >= TextureImportanceUI.DefaultMinValue && newTextureImportance <= TextureImportanceUI.DefaultMaxValue)
+                {
+                    TextureImportance = newTextureImportance;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"TextureImportance: Invalid value {newTextureImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {TextureImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("ShadingImportance") != null)
             {
-                ShadingImportance = (float)jsonData.ShadingImportance;
+                float newShadingImportance = (float)jsonData.ShadingImportance;
+                if (newShadingImportance >= ShadingImportanceUI.DefaultMinValue && newShadingImportance <= ShadingImportanceUI.DefaultMaxValue)
+                {
+                    ShadingImportance = newShadingImportance;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ShadingImportance: Invalid value {newShadingImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {ShadingImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("GroupImportance") != null)
             {
-                GroupImportance = (float)jsonData.GroupImportance;
+                float newGroupImportance = (float)jsonData.GroupImportance;
+                if (newGroupImportance >= GroupImportanceUI.DefaultMinValue && newGroupImportance <= GroupImportanceUI.DefaultMaxValue)
+                {
+                    GroupImportance = newGroupImportance;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"GroupImportance: Invalid value {newGroupImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {GroupImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("VertexColorImportance") != null)
             {
-                VertexColorImportance = (float)jsonData.VertexColorImportance;
+                float newVertexColorImportance = (float)jsonData.VertexColorImportance;
+                if (newVertexColorImportance >= VertexColorImportanceUI.DefaultMinValue && newVertexColorImportance <= VertexColorImportanceUI.DefaultMaxValue)
+                {
+                    VertexColorImportance = newVertexColorImportance;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"VertexColorImportance: Invalid value {newVertexColorImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {VertexColorImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("EdgeSetImportance") != null)
             {
-                EdgeSetImportance = (float)jsonData.EdgeSetImportance;
+                float newEdgeSetImportance = (float)jsonData.EdgeSetImportance;
+                if (newEdgeSetImportance >= EdgeSetImportanceUI.DefaultMinValue && newEdgeSetImportance <= EdgeSetImportanceUI.DefaultMaxValue)
+                {
+                    EdgeSetImportance = newEdgeSetImportance;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"EdgeSetImportance: Invalid value {newEdgeSetImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {EdgeSetImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("SkinningImportance") != null)
             {
-                SkinningImportance = (float)jsonData.SkinningImportance;
+                float newSkinningImportance = (float)jsonData.SkinningImportance;
+                if (newSkinningImportance >= SkinningImportanceUI.DefaultMinValue && newSkinningImportance <= SkinningImportanceUI.DefaultMaxValue)
+                {
+                    SkinningImportance = newSkinningImportance;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"SkinningImportance: Invalid value {newSkinningImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {SkinningImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("CurvatureImportance") != null)
             {
-                CurvatureImportance = (float)jsonData.CurvatureImportance;
+                float newCurvatureImportance = (float)jsonData.CurvatureImportance;
+                if (newCurvatureImportance >= CurvatureImportanceUI.DefaultMinValue && newCurvatureImportance <= CurvatureImportanceUI.DefaultMaxValue)
+                {
+                    CurvatureImportance = newCurvatureImportance;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"CurvatureImportance: Invalid value {newCurvatureImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {CurvatureImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("CreateGeomorphGeometry") != null)
@@ -4627,12 +5319,32 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("SymmetryOffset") != null)
             {
-                SymmetryOffset = (float)jsonData.SymmetryOffset;
+                float newSymmetryOffset = (float)jsonData.SymmetryOffset;
+                if (newSymmetryOffset >= SymmetryOffsetUI.DefaultMinValue && newSymmetryOffset <= SymmetryOffsetUI.DefaultMaxValue)
+                {
+                    SymmetryOffset = newSymmetryOffset;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"SymmetryOffset: Invalid value {newSymmetryOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {SymmetryOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("SymmetryDetectionTolerance") != null)
             {
-                SymmetryDetectionTolerance = (float)jsonData.SymmetryDetectionTolerance;
+                float newSymmetryDetectionTolerance = (float)jsonData.SymmetryDetectionTolerance;
+                if (newSymmetryDetectionTolerance >= SymmetryDetectionToleranceUI.DefaultMinValue && newSymmetryDetectionTolerance <= SymmetryDetectionToleranceUI.DefaultMaxValue)
+                {
+                    SymmetryDetectionTolerance = newSymmetryDetectionTolerance;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"SymmetryDetectionTolerance: Invalid value {newSymmetryDetectionTolerance.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {SymmetryDetectionTolerance.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("DataCreationPreferences") != null)
@@ -4642,12 +5354,32 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("OutwardMoveMultiplier") != null)
             {
-                OutwardMoveMultiplier = (float)jsonData.OutwardMoveMultiplier;
+                float newOutwardMoveMultiplier = (float)jsonData.OutwardMoveMultiplier;
+                if (newOutwardMoveMultiplier >= OutwardMoveMultiplierUI.DefaultMinValue && newOutwardMoveMultiplier <= OutwardMoveMultiplierUI.DefaultMaxValue)
+                {
+                    OutwardMoveMultiplier = newOutwardMoveMultiplier;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"OutwardMoveMultiplier: Invalid value {newOutwardMoveMultiplier.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {OutwardMoveMultiplier.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("InwardMoveMultiplier") != null)
             {
-                InwardMoveMultiplier = (float)jsonData.InwardMoveMultiplier;
+                float newInwardMoveMultiplier = (float)jsonData.InwardMoveMultiplier;
+                if (newInwardMoveMultiplier >= InwardMoveMultiplierUI.DefaultMinValue && newInwardMoveMultiplier <= InwardMoveMultiplierUI.DefaultMaxValue)
+                {
+                    InwardMoveMultiplier = newInwardMoveMultiplier;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"InwardMoveMultiplier: Invalid value {newInwardMoveMultiplier.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {InwardMoveMultiplier.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("UseHighQualityNormalCalculation") != null)
@@ -4876,6 +5608,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
             public override bool Visible { get { if( Parent.UseTJunctionRemoverUI != null ) { return Parent.UseTJunctionRemover && Parent.UseTJunctionRemoverUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
 
@@ -4887,6 +5621,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -4897,24 +5633,38 @@ namespace SimplygonUI
                 HelpText = "The T-Junction distance, below which, the T-Junctions will be welded.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TJuncDist: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TJuncDist: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -4986,6 +5736,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
             public override bool Visible { get { if( Parent.UseWeldingUI != null ) { return Parent.UseWelding && Parent.UseWeldingUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
 
@@ -4997,6 +5749,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -5007,24 +5761,38 @@ namespace SimplygonUI
                 HelpText = "The welding distance below which the vertices will be welded.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"WeldDist: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"WeldDist: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -5455,6 +6223,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonProgressivePassesEx() : base("ProgressivePasses")
@@ -5465,6 +6235,8 @@ namespace SimplygonUI
                 DefaultValue = 3;
                 MinValue = 1;
                 MaxValue = 10;
+                DefaultMinValue = 1;
+                DefaultMaxValue = 10;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -5475,24 +6247,38 @@ namespace SimplygonUI
                 HelpText = "The number of progressive passes. Minimum is 1, but higher numbers give a better quality, at the expense of longer running time.";
                 TypeOverride = "";
                 DefaultValue = 3;
+                MinValue = 1;
+                DefaultMinValue = 1;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ProgressivePasses: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 1;
-                }
-
+                MaxValue = 10;
+                DefaultMaxValue = 10;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ProgressivePasses: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -5731,12 +6517,32 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("TJuncDist") != null)
             {
-                TJuncDist = (float)jsonData.TJuncDist;
+                float newTJuncDist = (float)jsonData.TJuncDist;
+                if (newTJuncDist >= TJuncDistUI.DefaultMinValue && newTJuncDist <= TJuncDistUI.DefaultMaxValue)
+                {
+                    TJuncDist = newTJuncDist;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"TJuncDist: Invalid value {newTJuncDist.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {TJuncDist.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("WeldDist") != null)
             {
-                WeldDist = (float)jsonData.WeldDist;
+                float newWeldDist = (float)jsonData.WeldDist;
+                if (newWeldDist >= WeldDistUI.DefaultMinValue && newWeldDist <= WeldDistUI.DefaultMaxValue)
+                {
+                    WeldDist = newWeldDist;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"WeldDist: Invalid value {newWeldDist.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {WeldDist.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("WeldOnlyBorderVertices") != null)
@@ -5766,7 +6572,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("ProgressivePasses") != null)
             {
-                ProgressivePasses = (int)jsonData.ProgressivePasses;
+                var newProgressivePasses = (int)jsonData.ProgressivePasses;
+                if (newProgressivePasses >= ProgressivePassesUI.DefaultMinValue && newProgressivePasses <= ProgressivePassesUI.DefaultMaxValue)
+                {
+                    ProgressivePasses = newProgressivePasses;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ProgressivePasses: Invalid value {newProgressivePasses}, using default value {ProgressivePasses.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
         }
@@ -5993,6 +6809,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonHardEdgeAngleEx() : base("HardEdgeAngle")
@@ -6003,6 +6821,8 @@ namespace SimplygonUI
                 DefaultValue = 75f;
                 MinValue = 0f;
                 MaxValue = 180f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 180f;
                 TicksFrequencyValue = 1f;
                 Visible = true;
             }
@@ -6013,24 +6833,38 @@ namespace SimplygonUI
                 HelpText = "Set HardEdgeAngle in degrees. If the angle between two triangles are above this value, the normals will not be smooth over the edge between those two triangles.";
                 TypeOverride = "";
                 DefaultValue = 75f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"HardEdgeAngle: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 180f;
+                DefaultMaxValue = 180f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 180f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"HardEdgeAngle: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -6607,7 +7441,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("HardEdgeAngle") != null)
             {
-                HardEdgeAngle = (float)jsonData.HardEdgeAngle;
+                float newHardEdgeAngle = (float)jsonData.HardEdgeAngle;
+                if (newHardEdgeAngle >= HardEdgeAngleUI.DefaultMinValue && newHardEdgeAngle <= HardEdgeAngleUI.DefaultMaxValue)
+                {
+                    HardEdgeAngle = newHardEdgeAngle;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"HardEdgeAngle: Invalid value {newHardEdgeAngle.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {HardEdgeAngle.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("RepairInvalidNormals") != null)
@@ -6861,6 +7705,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonVisibilityWeightsPowerEx() : base("VisibilityWeightsPower")
@@ -6871,6 +7717,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -6881,24 +7729,38 @@ namespace SimplygonUI
                 HelpText = "Set how aggressively reducer should handle low visibility weights.";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"VisibilityWeightsPower: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"VisibilityWeightsPower: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -7320,6 +8182,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonFillNonVisibleAreaThresholdEx() : base("FillNonVisibleAreaThreshold")
@@ -7330,6 +8194,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = 0f;
                 MaxValue = 100f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 100f;
                 TicksFrequencyValue = 1f;
                 Visible = true;
             }
@@ -7340,24 +8206,38 @@ namespace SimplygonUI
                 HelpText = "If a group of non-visible triangles (connected to visible triangles) has an area below the FillNonVisibleAreaThreshold - it will receive the same visibility as the neighboring visible triangles. Set to zero to skip filling nonvisible regions.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"FillNonVisibleAreaThreshold: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 100f;
+                DefaultMaxValue = 100f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 100f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"FillNonVisibleAreaThreshold: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -7863,7 +8743,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("VisibilityWeightsPower") != null)
             {
-                VisibilityWeightsPower = (float)jsonData.VisibilityWeightsPower;
+                float newVisibilityWeightsPower = (float)jsonData.VisibilityWeightsPower;
+                if (newVisibilityWeightsPower >= VisibilityWeightsPowerUI.DefaultMinValue && newVisibilityWeightsPower <= VisibilityWeightsPowerUI.DefaultMaxValue)
+                {
+                    VisibilityWeightsPower = newVisibilityWeightsPower;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"VisibilityWeightsPower: Invalid value {newVisibilityWeightsPower.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {VisibilityWeightsPower.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("CullOccludedGeometry") != null)
@@ -7893,7 +8783,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("FillNonVisibleAreaThreshold") != null)
             {
-                FillNonVisibleAreaThreshold = (float)jsonData.FillNonVisibleAreaThreshold;
+                float newFillNonVisibleAreaThreshold = (float)jsonData.FillNonVisibleAreaThreshold;
+                if (newFillNonVisibleAreaThreshold >= FillNonVisibleAreaThresholdUI.DefaultMinValue && newFillNonVisibleAreaThreshold <= FillNonVisibleAreaThresholdUI.DefaultMaxValue)
+                {
+                    FillNonVisibleAreaThreshold = newFillNonVisibleAreaThreshold;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"FillNonVisibleAreaThreshold: Invalid value {newFillNonVisibleAreaThreshold.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {FillNonVisibleAreaThreshold.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("RemoveTrianglesNotOccludingOtherTriangles") != null)
@@ -8437,6 +9337,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonMaxBonePerVertexEx() : base("MaxBonePerVertex")
@@ -8444,9 +9346,11 @@ namespace SimplygonUI
                 Type = "uint";
                 HelpText = "Decides the maximum limit of how many bones can be connected to each vertex. If for example set to 1, then each vertex will only be linked to 1 bone.";
                 TypeOverride = "";
-                DefaultValue = 64;
+                DefaultValue = 16;
                 MinValue = 0;
-                MaxValue = 256;
+                MaxValue = 16;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 16;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -8456,25 +9360,39 @@ namespace SimplygonUI
                 Type = "uint";
                 HelpText = "Decides the maximum limit of how many bones can be connected to each vertex. If for example set to 1, then each vertex will only be linked to 1 bone.";
                 TypeOverride = "";
-                DefaultValue = 64;
+                DefaultValue = 16;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaxBonePerVertex: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 16;
+                DefaultMaxValue = 16;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 256;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaxBonePerVertex: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -8690,6 +9608,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
             public bool DependencyObject { get { return Parent.BoneReductionTargetBoneRatioEnabled; } set { Parent.BoneReductionTargetBoneRatioEnabled = value; OnPropertyChanged(); } }
 
@@ -8701,6 +9621,8 @@ namespace SimplygonUI
                 DefaultValue = 0.5f;
                 MinValue = 0f;
                 MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 HasDependencyObject = true;
                 Visible = true;
@@ -8712,24 +9634,38 @@ namespace SimplygonUI
                 HelpText = "The desired bone reduction ratio. The range is 0->1.";
                 TypeOverride = "";
                 DefaultValue = 0.5f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"BoneReductionTargetBoneRatio: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"BoneReductionTargetBoneRatio: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -8802,6 +9738,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
             public bool DependencyObject { get { return Parent.BoneReductionTargetBoneCountEnabled; } set { Parent.BoneReductionTargetBoneCountEnabled = value; OnPropertyChanged(); } }
 
@@ -8813,6 +9751,8 @@ namespace SimplygonUI
                 DefaultValue = 100;
                 MinValue = 0;
                 MaxValue = 500;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 500;
                 TicksFrequencyValue = 1;
                 HasDependencyObject = true;
                 Visible = true;
@@ -8824,24 +9764,38 @@ namespace SimplygonUI
                 HelpText = "The desired bone count. The range is 0->inf.";
                 TypeOverride = "";
                 DefaultValue = 100;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"BoneReductionTargetBoneCount: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 500;
+                DefaultMaxValue = 500;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 500;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"BoneReductionTargetBoneCount: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -8914,6 +9868,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
             public bool DependencyObject { get { return Parent.BoneReductionTargetMaxDeviationEnabled; } set { Parent.BoneReductionTargetMaxDeviationEnabled = value; OnPropertyChanged(); } }
 
@@ -8925,6 +9881,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = 0f;
                 MaxValue = 100f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 100f;
                 TicksFrequencyValue = 0.1f;
                 HasDependencyObject = true;
                 Visible = true;
@@ -8936,24 +9894,38 @@ namespace SimplygonUI
                 HelpText = "The MaxDeviation value, the maximum surface-deviation between the reduced geometry and the original.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"BoneReductionTargetMaxDeviation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 100f;
+                DefaultMaxValue = 100f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 100f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"BoneReductionTargetMaxDeviation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -9026,6 +9998,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
             public bool DependencyObject { get { return Parent.BoneReductionTargetOnScreenSizeEnabled; } set { Parent.BoneReductionTargetOnScreenSizeEnabled = value; OnPropertyChanged(); } }
 
@@ -9037,6 +10011,8 @@ namespace SimplygonUI
                 DefaultValue = 300;
                 MinValue = 20;
                 MaxValue = 4000;
+                DefaultMinValue = 20;
+                DefaultMaxValue = 4000;
                 TicksFrequencyValue = 10;
                 HasDependencyObject = true;
                 Visible = true;
@@ -9048,24 +10024,38 @@ namespace SimplygonUI
                 HelpText = "The OnScreenSize value, the maximum surface-deviation between the reduced geometry and the original.";
                 TypeOverride = "";
                 DefaultValue = 300;
+                MinValue = 20;
+                DefaultMinValue = 20;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"BoneReductionTargetOnScreenSize: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 20;
-                }
-
+                MaxValue = 4000;
+                DefaultMaxValue = 4000;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 4000;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"BoneReductionTargetOnScreenSize: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -9572,7 +10562,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("MaxBonePerVertex") != null)
             {
-                MaxBonePerVertex = (int)jsonData.MaxBonePerVertex;
+                var newMaxBonePerVertex = (int)jsonData.MaxBonePerVertex;
+                if (newMaxBonePerVertex >= MaxBonePerVertexUI.DefaultMinValue && newMaxBonePerVertex <= MaxBonePerVertexUI.DefaultMaxValue)
+                {
+                    MaxBonePerVertex = newMaxBonePerVertex;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MaxBonePerVertex: Invalid value {newMaxBonePerVertex}, using default value {MaxBonePerVertex.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("BoneReductionTargetOnScreenSizeEnabled") != null)
@@ -9587,22 +10587,62 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("BoneReductionTargetBoneRatio") != null)
             {
-                BoneReductionTargetBoneRatio = (float)jsonData.BoneReductionTargetBoneRatio;
+                float newBoneReductionTargetBoneRatio = (float)jsonData.BoneReductionTargetBoneRatio;
+                if (newBoneReductionTargetBoneRatio >= BoneReductionTargetBoneRatioUI.DefaultMinValue && newBoneReductionTargetBoneRatio <= BoneReductionTargetBoneRatioUI.DefaultMaxValue)
+                {
+                    BoneReductionTargetBoneRatio = newBoneReductionTargetBoneRatio;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"BoneReductionTargetBoneRatio: Invalid value {newBoneReductionTargetBoneRatio.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {BoneReductionTargetBoneRatio.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("BoneReductionTargetBoneCount") != null)
             {
-                BoneReductionTargetBoneCount = (int)jsonData.BoneReductionTargetBoneCount;
+                var newBoneReductionTargetBoneCount = (int)jsonData.BoneReductionTargetBoneCount;
+                if (newBoneReductionTargetBoneCount >= BoneReductionTargetBoneCountUI.DefaultMinValue && newBoneReductionTargetBoneCount <= BoneReductionTargetBoneCountUI.DefaultMaxValue)
+                {
+                    BoneReductionTargetBoneCount = newBoneReductionTargetBoneCount;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"BoneReductionTargetBoneCount: Invalid value {newBoneReductionTargetBoneCount}, using default value {BoneReductionTargetBoneCount.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("BoneReductionTargetMaxDeviation") != null)
             {
-                BoneReductionTargetMaxDeviation = (float)jsonData.BoneReductionTargetMaxDeviation;
+                float newBoneReductionTargetMaxDeviation = (float)jsonData.BoneReductionTargetMaxDeviation;
+                if (newBoneReductionTargetMaxDeviation >= BoneReductionTargetMaxDeviationUI.DefaultMinValue && newBoneReductionTargetMaxDeviation <= BoneReductionTargetMaxDeviationUI.DefaultMaxValue)
+                {
+                    BoneReductionTargetMaxDeviation = newBoneReductionTargetMaxDeviation;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"BoneReductionTargetMaxDeviation: Invalid value {newBoneReductionTargetMaxDeviation.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {BoneReductionTargetMaxDeviation.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("BoneReductionTargetOnScreenSize") != null)
             {
-                BoneReductionTargetOnScreenSize = (int)jsonData.BoneReductionTargetOnScreenSize;
+                var newBoneReductionTargetOnScreenSize = (int)jsonData.BoneReductionTargetOnScreenSize;
+                if (newBoneReductionTargetOnScreenSize >= BoneReductionTargetOnScreenSizeUI.DefaultMinValue && newBoneReductionTargetOnScreenSize <= BoneReductionTargetOnScreenSizeUI.DefaultMaxValue)
+                {
+                    BoneReductionTargetOnScreenSize = newBoneReductionTargetOnScreenSize;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"BoneReductionTargetOnScreenSize: Invalid value {newBoneReductionTargetOnScreenSize}, using default value {BoneReductionTargetOnScreenSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("LockBoneSelectionSetName") != null)
@@ -9782,7 +10822,7 @@ namespace SimplygonUI
             public SimplygonUseVertexWeightsInTexcoordGeneratorEx() : base("UseVertexWeightsInTexcoordGenerator")
             {
                 Type = "bool";
-                HelpText = "If set, and generating new texcoords using either the parameterizeror the chart aggregator, the relative sizes of the output charts willbe scaled using the weights in the 'VertexWeights' vertex field.";
+                HelpText = "If set, and generating new texcoords using either the parameterizeror the chart aggregator, the relative sizes of the output charts will be scaled using the weights in the 'VertexWeights' vertex field.";
                 TypeOverride = "";
                 DefaultValue = false;
                 Visible = true;
@@ -9791,7 +10831,7 @@ namespace SimplygonUI
             public SimplygonUseVertexWeightsInTexcoordGeneratorEx(dynamic jsonData) : base("UseVertexWeightsInTexcoordGenerator")
             {
                 Type = "bool";
-                HelpText = "If set, and generating new texcoords using either the parameterizeror the chart aggregator, the relative sizes of the output charts willbe scaled using the weights in the 'VertexWeights' vertex field.";
+                HelpText = "If set, and generating new texcoords using either the parameterizeror the chart aggregator, the relative sizes of the output charts will be scaled using the weights in the 'VertexWeights' vertex field.";
                 TypeOverride = "";
                 DefaultValue = false;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -9920,16 +10960,20 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonWeightsFromColorLevelEx() : base("WeightsFromColorLevel")
             {
                 Type = "rid";
-                HelpText = "If the index of an existing vertex color field in the input geometry is set here, the existing VertexWeights field will be overwritten by a set created byconverting the selected color field according to the other WeightsFromColor settings in this settings object. If both this and the corresponding ColorName is set, the processors will prioritize the name.";
+                HelpText = "If the index of an existing vertex color field in the input geometry is set here, the existing VertexWeights field will be overwritten by a set created by converting the selected color field according to the other WeightsFromColor settings in this settings object. If both this and the corresponding ColorName is set, the processors will prioritize the name.";
                 TypeOverride = "";
                 DefaultValue = -1;
                 MinValue = -1;
                 MaxValue = 10;
+                DefaultMinValue = -1;
+                DefaultMaxValue = 10;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -9937,27 +10981,41 @@ namespace SimplygonUI
             public SimplygonWeightsFromColorLevelEx(dynamic jsonData) : base("WeightsFromColorLevel")
             {
                 Type = "rid";
-                HelpText = "If the index of an existing vertex color field in the input geometry is set here, the existing VertexWeights field will be overwritten by a set created byconverting the selected color field according to the other WeightsFromColor settings in this settings object. If both this and the corresponding ColorName is set, the processors will prioritize the name.";
+                HelpText = "If the index of an existing vertex color field in the input geometry is set here, the existing VertexWeights field will be overwritten by a set created by converting the selected color field according to the other WeightsFromColor settings in this settings object. If both this and the corresponding ColorName is set, the processors will prioritize the name.";
                 TypeOverride = "";
                 DefaultValue = -1;
+                MinValue = -1;
+                DefaultMinValue = -1;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"WeightsFromColorLevel: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1;
-                }
-
+                MaxValue = 10;
+                DefaultMaxValue = 10;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"WeightsFromColorLevel: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -10100,6 +11158,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonWeightsFromColorMultiplierEx() : base("WeightsFromColorMultiplier")
@@ -10110,6 +11170,8 @@ namespace SimplygonUI
                 DefaultValue = 4f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 1f;
                 Visible = true;
             }
@@ -10120,24 +11182,38 @@ namespace SimplygonUI
                 HelpText = "If converting vertex colors to weights, this setting controls the max and min resulting vertex weights generated by the input color.";
                 TypeOverride = "";
                 DefaultValue = 4f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"WeightsFromColorMultiplier: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"WeightsFromColorMultiplier: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -10423,7 +11499,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("WeightsFromColorLevel") != null)
             {
-                WeightsFromColorLevel = (int)jsonData.WeightsFromColorLevel;
+                var newWeightsFromColorLevel = (int)jsonData.WeightsFromColorLevel;
+                if (newWeightsFromColorLevel >= WeightsFromColorLevelUI.DefaultMinValue && newWeightsFromColorLevel <= WeightsFromColorLevelUI.DefaultMaxValue)
+                {
+                    WeightsFromColorLevel = newWeightsFromColorLevel;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"WeightsFromColorLevel: Invalid value {newWeightsFromColorLevel}, using default value {WeightsFromColorLevel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("WeightsFromColorComponent") != null)
@@ -10433,7 +11519,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("WeightsFromColorMultiplier") != null)
             {
-                WeightsFromColorMultiplier = (float)jsonData.WeightsFromColorMultiplier;
+                float newWeightsFromColorMultiplier = (float)jsonData.WeightsFromColorMultiplier;
+                if (newWeightsFromColorMultiplier >= WeightsFromColorMultiplierUI.DefaultMinValue && newWeightsFromColorMultiplier <= WeightsFromColorMultiplierUI.DefaultMaxValue)
+                {
+                    WeightsFromColorMultiplier = newWeightsFromColorMultiplier;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"WeightsFromColorMultiplier: Invalid value {newWeightsFromColorMultiplier.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {WeightsFromColorMultiplier.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("WeightsFromColorMode") != null)
@@ -11245,6 +12341,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonMaterialMappingEx() : base("MaterialMapping")
@@ -11253,8 +12351,10 @@ namespace SimplygonUI
                 HelpText = "The material mapping for the input material this setting object corresponds to, meaning what material of the generated LOD the corresponding input material will be baked into. Both InputMaterialCount and OutputMaterialCount need to be set for this mapping to work, and all original materials need to be mapped to an existing output id.";
                 TypeOverride = "";
                 DefaultValue = -1;
-                MinValue = 0;
+                MinValue = -1;
                 MaxValue = 10;
+                DefaultMinValue = -1;
+                DefaultMaxValue = 10;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -11265,24 +12365,38 @@ namespace SimplygonUI
                 HelpText = "The material mapping for the input material this setting object corresponds to, meaning what material of the generated LOD the corresponding input material will be baked into. Both InputMaterialCount and OutputMaterialCount need to be set for this mapping to work, and all original materials need to be mapped to an existing output id.";
                 TypeOverride = "";
                 DefaultValue = -1;
+                MinValue = -1;
+                DefaultMinValue = -1;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaterialMapping: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 10;
+                DefaultMaxValue = 10;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaterialMapping: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -11382,7 +12496,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("MaterialMapping") != null)
             {
-                MaterialMapping = (int)jsonData.MaterialMapping;
+                var newMaterialMapping = (int)jsonData.MaterialMapping;
+                if (newMaterialMapping >= MaterialMappingUI.DefaultMinValue && newMaterialMapping <= MaterialMappingUI.DefaultMaxValue)
+                {
+                    MaterialMapping = newMaterialMapping;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MaterialMapping: Invalid value {newMaterialMapping}, using default value {MaterialMapping.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
         }
@@ -11449,6 +12573,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonTextureWidthEx() : base("TextureWidth")
@@ -11459,6 +12585,8 @@ namespace SimplygonUI
                 DefaultValue = 1024;
                 MinValue = 0;
                 MaxValue = 8192;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 8192;
                 TicksFrequencyValue = 256;
                 Visible = true;
             }
@@ -11469,24 +12597,38 @@ namespace SimplygonUI
                 HelpText = "The width of the texture of the output mapping image.";
                 TypeOverride = "";
                 DefaultValue = 1024;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TextureWidth: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 8192;
+                DefaultMaxValue = 8192;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 8192;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TextureWidth: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -11558,6 +12700,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonTextureHeightEx() : base("TextureHeight")
@@ -11568,6 +12712,8 @@ namespace SimplygonUI
                 DefaultValue = 1024;
                 MinValue = 0;
                 MaxValue = 8192;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 8192;
                 TicksFrequencyValue = 256;
                 Visible = true;
             }
@@ -11578,24 +12724,38 @@ namespace SimplygonUI
                 HelpText = "The height of the texture of the output mapping image.";
                 TypeOverride = "";
                 DefaultValue = 1024;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TextureHeight: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 8192;
+                DefaultMaxValue = 8192;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 8192;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TextureHeight: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -11667,6 +12827,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonMultisamplingLevelEx() : base("MultisamplingLevel")
@@ -11677,6 +12839,8 @@ namespace SimplygonUI
                 DefaultValue = 2;
                 MinValue = 1;
                 MaxValue = 8;
+                DefaultMinValue = 1;
+                DefaultMaxValue = 8;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -11687,24 +12851,38 @@ namespace SimplygonUI
                 HelpText = "The multi-sampling level of the output mapping image. Values 1-8 are accepted.";
                 TypeOverride = "";
                 DefaultValue = 2;
+                MinValue = 1;
+                DefaultMinValue = 1;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MultisamplingLevel: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 1;
-                }
-
+                MaxValue = 8;
+                DefaultMaxValue = 8;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 8;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MultisamplingLevel: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -11776,6 +12954,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonGutterSpaceEx() : base("GutterSpace")
@@ -11784,8 +12964,10 @@ namespace SimplygonUI
                 HelpText = "The minimum number of pixels between charts of the output mapping image.";
                 TypeOverride = "";
                 DefaultValue = 4;
-                MinValue = 0;
+                MinValue = 1;
                 MaxValue = 10;
+                DefaultMinValue = 1;
+                DefaultMaxValue = 10;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -11796,24 +12978,38 @@ namespace SimplygonUI
                 HelpText = "The minimum number of pixels between charts of the output mapping image.";
                 TypeOverride = "";
                 DefaultValue = 4;
+                MinValue = 1;
+                DefaultMinValue = 1;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GutterSpace: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 10;
+                DefaultMaxValue = 10;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GutterSpace: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -11964,22 +13160,62 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("TextureWidth") != null)
             {
-                TextureWidth = (int)jsonData.TextureWidth;
+                var newTextureWidth = (int)jsonData.TextureWidth;
+                if (newTextureWidth >= TextureWidthUI.DefaultMinValue && newTextureWidth <= TextureWidthUI.DefaultMaxValue)
+                {
+                    TextureWidth = newTextureWidth;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"TextureWidth: Invalid value {newTextureWidth}, using default value {TextureWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("TextureHeight") != null)
             {
-                TextureHeight = (int)jsonData.TextureHeight;
+                var newTextureHeight = (int)jsonData.TextureHeight;
+                if (newTextureHeight >= TextureHeightUI.DefaultMinValue && newTextureHeight <= TextureHeightUI.DefaultMaxValue)
+                {
+                    TextureHeight = newTextureHeight;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"TextureHeight: Invalid value {newTextureHeight}, using default value {TextureHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("MultisamplingLevel") != null)
             {
-                MultisamplingLevel = (int)jsonData.MultisamplingLevel;
+                var newMultisamplingLevel = (int)jsonData.MultisamplingLevel;
+                if (newMultisamplingLevel >= MultisamplingLevelUI.DefaultMinValue && newMultisamplingLevel <= MultisamplingLevelUI.DefaultMaxValue)
+                {
+                    MultisamplingLevel = newMultisamplingLevel;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MultisamplingLevel: Invalid value {newMultisamplingLevel}, using default value {MultisamplingLevel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("GutterSpace") != null)
             {
-                GutterSpace = (int)jsonData.GutterSpace;
+                var newGutterSpace = (int)jsonData.GutterSpace;
+                if (newGutterSpace >= GutterSpaceUI.DefaultMinValue && newGutterSpace <= GutterSpaceUI.DefaultMaxValue)
+                {
+                    GutterSpace = newGutterSpace;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"GutterSpace: Invalid value {newGutterSpace}, using default value {GutterSpace.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
         }
@@ -12196,6 +13432,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonOriginalTexCoordLevelEx() : base("OriginalTexCoordLevel")
@@ -12206,6 +13444,8 @@ namespace SimplygonUI
                 DefaultValue = 0;
                 MinValue = -1;
                 MaxValue = 10;
+                DefaultMinValue = -1;
+                DefaultMaxValue = 10;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -12216,24 +13456,38 @@ namespace SimplygonUI
                 HelpText = "Only used when the TexCoordGeneratorType is ChartAggregator. Set the texture coordinate level to get charts from. If the ChartAggregatorOriginalTexCoordName ha been set, the ChartAggregatorOriginalTexCoordLevel is not used.";
                 TypeOverride = "";
                 DefaultValue = 0;
+                MinValue = -1;
+                DefaultMinValue = -1;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OriginalTexCoordLevel: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1;
-                }
-
+                MaxValue = 10;
+                DefaultMaxValue = 10;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OriginalTexCoordLevel: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -12725,7 +13979,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("OriginalTexCoordLevel") != null)
             {
-                OriginalTexCoordLevel = (int)jsonData.OriginalTexCoordLevel;
+                var newOriginalTexCoordLevel = (int)jsonData.OriginalTexCoordLevel;
+                if (newOriginalTexCoordLevel >= OriginalTexCoordLevelUI.DefaultMinValue && newOriginalTexCoordLevel <= OriginalTexCoordLevelUI.DefaultMaxValue)
+                {
+                    OriginalTexCoordLevel = newOriginalTexCoordLevel;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"OriginalTexCoordLevel: Invalid value {newOriginalTexCoordLevel}, using default value {OriginalTexCoordLevel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("OriginalTexCoordName") != null)
@@ -12826,6 +14090,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonMaxStretchEx() : base("MaxStretch")
@@ -12836,6 +14102,8 @@ namespace SimplygonUI
                 DefaultValue = 0.33f;
                 MinValue = 0f;
                 MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -12846,24 +14114,38 @@ namespace SimplygonUI
                 HelpText = "Only used when the TexCoordGeneratorType is Parameterizer. The maximum allowed texture stretch. Range 0->1.";
                 TypeOverride = "";
                 DefaultValue = 0.33f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaxStretch: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaxStretch: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -12935,6 +14217,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonLargeChartsImportanceEx() : base("LargeChartsImportance")
@@ -12945,6 +14229,8 @@ namespace SimplygonUI
                 DefaultValue = 0.2f;
                 MinValue = 0f;
                 MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -12955,24 +14241,38 @@ namespace SimplygonUI
                 HelpText = "Only used when the TexCoordGeneratorType is Parameterizer. The importance value for trying to have as large and few charts as possible. The closer the value is to 1, the slower it is. Having 0 means no extra focus will be put on reducing the number of charts. Having value 1 means maximum focus will be put on reducing the number of charts and thereby increasing the size of the charts.";
                 TypeOverride = "";
                 DefaultValue = 0.2f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"LargeChartsImportance: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"LargeChartsImportance: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -13089,12 +14389,32 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("MaxStretch") != null)
             {
-                MaxStretch = (float)jsonData.MaxStretch;
+                float newMaxStretch = (float)jsonData.MaxStretch;
+                if (newMaxStretch >= MaxStretchUI.DefaultMinValue && newMaxStretch <= MaxStretchUI.DefaultMaxValue)
+                {
+                    MaxStretch = newMaxStretch;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MaxStretch: Invalid value {newMaxStretch.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {MaxStretch.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("LargeChartsImportance") != null)
             {
-                LargeChartsImportance = (float)jsonData.LargeChartsImportance;
+                float newLargeChartsImportance = (float)jsonData.LargeChartsImportance;
+                if (newLargeChartsImportance >= LargeChartsImportanceUI.DefaultMinValue && newLargeChartsImportance <= LargeChartsImportanceUI.DefaultMaxValue)
+                {
+                    LargeChartsImportance = newLargeChartsImportance;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"LargeChartsImportance: Invalid value {newLargeChartsImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {LargeChartsImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
         }
@@ -13391,6 +14711,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonMaximumLayersEx() : base("MaximumLayers")
@@ -13401,6 +14723,8 @@ namespace SimplygonUI
                 DefaultValue = 3;
                 MinValue = 0;
                 MaxValue = 10;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 10;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -13411,24 +14735,38 @@ namespace SimplygonUI
                 HelpText = "The maximum number of layers in the mapping image. If a remeshed geometry has a lot of transparent triangles, use a higher number to be able to find intersections on the inside of parts of the geometry. This setting only has effect in the remeshing, when running reduction the number of layers is always 1.";
                 TypeOverride = "";
                 DefaultValue = 3;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaximumLayers: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 10;
+                DefaultMaxValue = 10;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaximumLayers: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -13710,6 +15048,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonTexCoordLevelEx() : base("TexCoordLevel")
@@ -13720,6 +15060,8 @@ namespace SimplygonUI
                 DefaultValue = 0;
                 MinValue = -1;
                 MaxValue = 10;
+                DefaultMinValue = -1;
+                DefaultMaxValue = 10;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -13730,24 +15072,38 @@ namespace SimplygonUI
                 HelpText = "The texture coordinate level used for mapping image and texture generation. If the TexCoordName has been set, the TexCoordLevel is not used.";
                 TypeOverride = "";
                 DefaultValue = 0;
+                MinValue = -1;
+                DefaultMinValue = -1;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TexCoordLevel: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1;
-                }
-
+                MaxValue = 10;
+                DefaultMaxValue = 10;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TexCoordLevel: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -13959,6 +15315,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonAutomaticTextureSizeMultiplierEx() : base("AutomaticTextureSizeMultiplier")
@@ -13969,6 +15327,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -13979,24 +15339,38 @@ namespace SimplygonUI
                 HelpText = "Texture dimension length multiplier for the automatic texture size.";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"AutomaticTextureSizeMultiplier: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"AutomaticTextureSizeMultiplier: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -14621,7 +15995,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("MaximumLayers") != null)
             {
-                MaximumLayers = (int)jsonData.MaximumLayers;
+                var newMaximumLayers = (int)jsonData.MaximumLayers;
+                if (newMaximumLayers >= MaximumLayersUI.DefaultMinValue && newMaximumLayers <= MaximumLayersUI.DefaultMaxValue)
+                {
+                    MaximumLayers = newMaximumLayers;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MaximumLayers: Invalid value {newMaximumLayers}, using default value {MaximumLayers.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("UseFullRetexturing") != null)
@@ -14641,7 +16025,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("TexCoordLevel") != null)
             {
-                TexCoordLevel = (int)jsonData.TexCoordLevel;
+                var newTexCoordLevel = (int)jsonData.TexCoordLevel;
+                if (newTexCoordLevel >= TexCoordLevelUI.DefaultMinValue && newTexCoordLevel <= TexCoordLevelUI.DefaultMaxValue)
+                {
+                    TexCoordLevel = newTexCoordLevel;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"TexCoordLevel: Invalid value {newTexCoordLevel}, using default value {TexCoordLevel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("TexCoordName") != null)
@@ -14656,7 +16050,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("AutomaticTextureSizeMultiplier") != null)
             {
-                AutomaticTextureSizeMultiplier = (float)jsonData.AutomaticTextureSizeMultiplier;
+                float newAutomaticTextureSizeMultiplier = (float)jsonData.AutomaticTextureSizeMultiplier;
+                if (newAutomaticTextureSizeMultiplier >= AutomaticTextureSizeMultiplierUI.DefaultMinValue && newAutomaticTextureSizeMultiplier <= AutomaticTextureSizeMultiplierUI.DefaultMaxValue)
+                {
+                    AutomaticTextureSizeMultiplier = newAutomaticTextureSizeMultiplier;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"AutomaticTextureSizeMultiplier: Invalid value {newAutomaticTextureSizeMultiplier.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {AutomaticTextureSizeMultiplier.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("ForcePower2Texture") != null)
@@ -14924,11 +16328,15 @@ namespace SimplygonUI
             {
                 if (!VisibleOverride) return false;
                 if (Name == "InputMaterialSettings") return false;
+                if(RemeshingModeManualPositionZUI.Visible) return true;
+                if(RemeshingModeManualPositionYUI.Visible) return true;
+                if(RemeshingModeManualPositionXUI.Visible) return true;
                 if(OnScreenSizeUI.Visible) return true;
                 if(HoleFillingUI.Visible) return true;
                 if(RemeshingModeUI.Visible) return true;
                 if(SurfaceTransferModeUI.Visible) return true;
                 if(HardEdgeAngleUI.Visible) return true;
+                if(ForceSoftEdgesWithinTextureChartsUI.Visible) return true;
                 if(TransferNormalsUI.Visible) return true;
                 if(TransferColorsUI.Visible) return true;
                 if(KeepUnprocessedSceneMeshesUI.Visible) return true;
@@ -14944,6 +16352,387 @@ namespace SimplygonUI
         }
 
         public SimplygonTreeViewItem Parent { get; set; }
+        public float RemeshingModeManualPositionZ { get { return _RemeshingModeManualPositionZ; } set { _RemeshingModeManualPositionZ = value; OnPropertyChanged(); } }
+        private float _RemeshingModeManualPositionZ;
+        public SimplygonRemeshingModeManualPositionZEx RemeshingModeManualPositionZUI { get; set; }
+        public class SimplygonRemeshingModeManualPositionZEx : SimplygonSettingsProperty
+        {
+            public SimplygonRemeshingSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.RemeshingModeManualPositionZ;
+                }
+
+                set
+                {
+                    bool needReload = Parent.RemeshingModeManualPositionZ != value;
+                    Parent.RemeshingModeManualPositionZ = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+
+            public SimplygonRemeshingModeManualPositionZEx() : base("RemeshingModeManualPositionZ")
+            {
+                Type = "real";
+                HelpText = "Z component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -3.402823E+38f;
+                MaxValue = 3.402823E+38f;
+                DefaultMinValue = -3.402823E+38f;
+                DefaultMaxValue = 3.402823E+38f;
+                TicksFrequencyValue = 10f;
+                Visible = true;
+            }
+
+            public SimplygonRemeshingModeManualPositionZEx(dynamic jsonData) : base("RemeshingModeManualPositionZ")
+            {
+                Type = "real";
+                HelpText = "Z component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -3.402823E+38f;
+                DefaultMinValue = -3.402823E+38f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionZ: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 3.402823E+38f;
+                DefaultMaxValue = 3.402823E+38f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionZ: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 10f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonRemeshingModeManualPositionZEx DeepCopy()
+            {
+                return (SimplygonRemeshingModeManualPositionZEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public float RemeshingModeManualPositionY { get { return _RemeshingModeManualPositionY; } set { _RemeshingModeManualPositionY = value; OnPropertyChanged(); } }
+        private float _RemeshingModeManualPositionY;
+        public SimplygonRemeshingModeManualPositionYEx RemeshingModeManualPositionYUI { get; set; }
+        public class SimplygonRemeshingModeManualPositionYEx : SimplygonSettingsProperty
+        {
+            public SimplygonRemeshingSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.RemeshingModeManualPositionY;
+                }
+
+                set
+                {
+                    bool needReload = Parent.RemeshingModeManualPositionY != value;
+                    Parent.RemeshingModeManualPositionY = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+
+            public SimplygonRemeshingModeManualPositionYEx() : base("RemeshingModeManualPositionY")
+            {
+                Type = "real";
+                HelpText = "Y component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -3.402823E+38f;
+                MaxValue = 3.402823E+38f;
+                DefaultMinValue = -3.402823E+38f;
+                DefaultMaxValue = 3.402823E+38f;
+                TicksFrequencyValue = 10f;
+                Visible = true;
+            }
+
+            public SimplygonRemeshingModeManualPositionYEx(dynamic jsonData) : base("RemeshingModeManualPositionY")
+            {
+                Type = "real";
+                HelpText = "Y component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -3.402823E+38f;
+                DefaultMinValue = -3.402823E+38f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionY: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 3.402823E+38f;
+                DefaultMaxValue = 3.402823E+38f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionY: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 10f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonRemeshingModeManualPositionYEx DeepCopy()
+            {
+                return (SimplygonRemeshingModeManualPositionYEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public float RemeshingModeManualPositionX { get { return _RemeshingModeManualPositionX; } set { _RemeshingModeManualPositionX = value; OnPropertyChanged(); } }
+        private float _RemeshingModeManualPositionX;
+        public SimplygonRemeshingModeManualPositionXEx RemeshingModeManualPositionXUI { get; set; }
+        public class SimplygonRemeshingModeManualPositionXEx : SimplygonSettingsProperty
+        {
+            public SimplygonRemeshingSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.RemeshingModeManualPositionX;
+                }
+
+                set
+                {
+                    bool needReload = Parent.RemeshingModeManualPositionX != value;
+                    Parent.RemeshingModeManualPositionX = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+
+            public SimplygonRemeshingModeManualPositionXEx() : base("RemeshingModeManualPositionX")
+            {
+                Type = "real";
+                HelpText = "X component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -3.402823E+38f;
+                MaxValue = 3.402823E+38f;
+                DefaultMinValue = -3.402823E+38f;
+                DefaultMaxValue = 3.402823E+38f;
+                TicksFrequencyValue = 10f;
+                Visible = true;
+            }
+
+            public SimplygonRemeshingModeManualPositionXEx(dynamic jsonData) : base("RemeshingModeManualPositionX")
+            {
+                Type = "real";
+                HelpText = "X component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -3.402823E+38f;
+                DefaultMinValue = -3.402823E+38f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionX: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 3.402823E+38f;
+                DefaultMaxValue = 3.402823E+38f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionX: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 10f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonRemeshingModeManualPositionXEx DeepCopy()
+            {
+                return (SimplygonRemeshingModeManualPositionXEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
         public int OnScreenSize { get { return _OnScreenSize; } set { _OnScreenSize = value; OnPropertyChanged(); } }
         private int _OnScreenSize;
         public SimplygonOnScreenSizeEx OnScreenSizeUI { get; set; }
@@ -14969,6 +16758,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonOnScreenSizeEx() : base("OnScreenSize")
@@ -14979,6 +16770,8 @@ namespace SimplygonUI
                 DefaultValue = 300;
                 MinValue = 20;
                 MaxValue = 10000;
+                DefaultMinValue = 20;
+                DefaultMaxValue = 10000;
                 TicksFrequencyValue = 10;
                 Visible = true;
             }
@@ -14989,24 +16782,38 @@ namespace SimplygonUI
                 HelpText = "The on-screen rendering size of the geometry. Allowed values are in the range 20 to 10000 pixels.";
                 TypeOverride = "";
                 DefaultValue = 300;
+                MinValue = 20;
+                DefaultMinValue = 20;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OnScreenSize: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 20;
-                }
-
+                MaxValue = 10000;
+                DefaultMaxValue = 10000;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10000;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OnScreenSize: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -15081,7 +16888,7 @@ namespace SimplygonUI
             public SimplygonHoleFillingEx() : base("HoleFilling")
             {
                 Type = "enum";
-                HelpText = "HoleFillling defines how aggresively the remesher will fill holes and cavities. What this does is to measure the volume and hole opening sizes of concavities in the input geometry and fill them in in the remeshing if the concavity is large enough with a small enough opening. This removes a lot of unnessecary geometry and is recommended to be kept at it's default rather than turning it off, it will in the vast majority of cases have a positive effect on the result.";
+                HelpText = "HoleFilling defines how aggressively the remesher will fill holes and cavities. What this does is to measure the volume and hole opening sizes of concavities in the input geometry and fill them in in the remeshing if the concavity is large enough with a small enough opening. This removes a lot of unnecessary geometry and is recommended to be kept at it's default rather than turning it off, it will in the vast majority of cases have a positive effect on the result.";
                 TypeOverride = "";
                 DefaultValue = EHoleFilling.Low;
                 Visible = true;
@@ -15090,7 +16897,7 @@ namespace SimplygonUI
             public SimplygonHoleFillingEx(dynamic jsonData) : base("HoleFilling")
             {
                 Type = "enum";
-                HelpText = "HoleFillling defines how aggresively the remesher will fill holes and cavities. What this does is to measure the volume and hole opening sizes of concavities in the input geometry and fill them in in the remeshing if the concavity is large enough with a small enough opening. This removes a lot of unnessecary geometry and is recommended to be kept at it's default rather than turning it off, it will in the vast majority of cases have a positive effect on the result.";
+                HelpText = "HoleFilling defines how aggressively the remesher will fill holes and cavities. What this does is to measure the volume and hole opening sizes of concavities in the input geometry and fill them in in the remeshing if the concavity is large enough with a small enough opening. This removes a lot of unnecessary geometry and is recommended to be kept at it's default rather than turning it off, it will in the vast majority of cases have a positive effect on the result.";
                 TypeOverride = "";
                 DefaultValue = EHoleFilling.Low;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -15291,6 +17098,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonHardEdgeAngleEx() : base("HardEdgeAngle")
@@ -15301,6 +17110,8 @@ namespace SimplygonUI
                 DefaultValue = 75f;
                 MinValue = 0f;
                 MaxValue = 180f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 180f;
                 TicksFrequencyValue = 1f;
                 Visible = true;
             }
@@ -15311,24 +17122,38 @@ namespace SimplygonUI
                 HelpText = "The normal hard angle cutoff in degrees.";
                 TypeOverride = "";
                 DefaultValue = 75f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"HardEdgeAngle: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 180f;
+                DefaultMaxValue = 180f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 180f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"HardEdgeAngle: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -15370,6 +17195,76 @@ namespace SimplygonUI
                 jsonData.MinValue = MinValue;
                 jsonData.MaxValue = MaxValue;
                 jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public bool ForceSoftEdgesWithinTextureCharts { get { return _ForceSoftEdgesWithinTextureCharts; } set { _ForceSoftEdgesWithinTextureCharts = value; OnPropertyChanged(); } }
+        private bool _ForceSoftEdgesWithinTextureCharts;
+        public SimplygonForceSoftEdgesWithinTextureChartsEx ForceSoftEdgesWithinTextureChartsUI { get; set; }
+        public class SimplygonForceSoftEdgesWithinTextureChartsEx : SimplygonSettingsProperty
+        {
+            public SimplygonRemeshingSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.ForceSoftEdgesWithinTextureCharts;
+                }
+
+                set
+                {
+                    bool needReload = Parent.ForceSoftEdgesWithinTextureCharts != value;
+                    Parent.ForceSoftEdgesWithinTextureCharts = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonForceSoftEdgesWithinTextureChartsEx() : base("ForceSoftEdgesWithinTextureCharts")
+            {
+                Type = "bool";
+                HelpText = "If the flag is set, the normal calculation will only allow hard edges along texture borders. Any vertex normal within a texture chart (not along the border) will be forced soft. Caveat: If this is enabled, some normals might be highly interpolated, and deviate substantially from the triangle normal.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonForceSoftEdgesWithinTextureChartsEx(dynamic jsonData) : base("ForceSoftEdgesWithinTextureCharts")
+            {
+                Type = "bool";
+                HelpText = "If the flag is set, the normal calculation will only allow hard edges along texture borders. Any vertex normal within a texture chart (not along the border) will be forced soft. Caveat: If this is enabled, some normals might be highly interpolated, and deviate substantially from the triangle normal.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonForceSoftEdgesWithinTextureChartsEx DeepCopy()
+            {
+                return (SimplygonForceSoftEdgesWithinTextureChartsEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
                 return jsonData;
             }
 
@@ -15589,6 +17484,18 @@ namespace SimplygonUI
         public SimplygonRemeshingSettings() : base("RemeshingSettings")
         {
             Visible = true;
+            RemeshingModeManualPositionZUI = new SimplygonRemeshingModeManualPositionZEx();
+            RemeshingModeManualPositionZUI.Parent = this;
+            RemeshingModeManualPositionZ = RemeshingModeManualPositionZUI.DefaultValue;
+            Items.Add(RemeshingModeManualPositionZUI);
+            RemeshingModeManualPositionYUI = new SimplygonRemeshingModeManualPositionYEx();
+            RemeshingModeManualPositionYUI.Parent = this;
+            RemeshingModeManualPositionY = RemeshingModeManualPositionYUI.DefaultValue;
+            Items.Add(RemeshingModeManualPositionYUI);
+            RemeshingModeManualPositionXUI = new SimplygonRemeshingModeManualPositionXEx();
+            RemeshingModeManualPositionXUI.Parent = this;
+            RemeshingModeManualPositionX = RemeshingModeManualPositionXUI.DefaultValue;
+            Items.Add(RemeshingModeManualPositionXUI);
             OnScreenSizeUI = new SimplygonOnScreenSizeEx();
             OnScreenSizeUI.Parent = this;
             OnScreenSize = OnScreenSizeUI.DefaultValue;
@@ -15617,6 +17524,10 @@ namespace SimplygonUI
             TransferColorsUI.Parent = this;
             TransferColors = TransferColorsUI.DefaultValue;
             Items.Add(TransferColorsUI);
+            ForceSoftEdgesWithinTextureChartsUI = new SimplygonForceSoftEdgesWithinTextureChartsEx();
+            ForceSoftEdgesWithinTextureChartsUI.Parent = this;
+            ForceSoftEdgesWithinTextureCharts = ForceSoftEdgesWithinTextureChartsUI.DefaultValue;
+            Items.Add(ForceSoftEdgesWithinTextureChartsUI);
             KeepUnprocessedSceneMeshesUI = new SimplygonKeepUnprocessedSceneMeshesEx();
             KeepUnprocessedSceneMeshesUI.Parent = this;
             KeepUnprocessedSceneMeshes = KeepUnprocessedSceneMeshesUI.DefaultValue;
@@ -15626,6 +17537,18 @@ namespace SimplygonUI
         public SimplygonRemeshingSettings(dynamic jsonData) : base("RemeshingSettings")
         {
             Visible = true;
+            RemeshingModeManualPositionZUI = new SimplygonRemeshingModeManualPositionZEx(jsonData != null && ((JObject)jsonData).GetValue("RemeshingModeManualPositionZUI") != null ? jsonData.RemeshingModeManualPositionZUI : null);
+            RemeshingModeManualPositionZUI.Parent = this;
+            RemeshingModeManualPositionZ = RemeshingModeManualPositionZUI.DefaultValue;
+            Items.Add(RemeshingModeManualPositionZUI);
+            RemeshingModeManualPositionYUI = new SimplygonRemeshingModeManualPositionYEx(jsonData != null && ((JObject)jsonData).GetValue("RemeshingModeManualPositionYUI") != null ? jsonData.RemeshingModeManualPositionYUI : null);
+            RemeshingModeManualPositionYUI.Parent = this;
+            RemeshingModeManualPositionY = RemeshingModeManualPositionYUI.DefaultValue;
+            Items.Add(RemeshingModeManualPositionYUI);
+            RemeshingModeManualPositionXUI = new SimplygonRemeshingModeManualPositionXEx(jsonData != null && ((JObject)jsonData).GetValue("RemeshingModeManualPositionXUI") != null ? jsonData.RemeshingModeManualPositionXUI : null);
+            RemeshingModeManualPositionXUI.Parent = this;
+            RemeshingModeManualPositionX = RemeshingModeManualPositionXUI.DefaultValue;
+            Items.Add(RemeshingModeManualPositionXUI);
             OnScreenSizeUI = new SimplygonOnScreenSizeEx(jsonData != null && ((JObject)jsonData).GetValue("OnScreenSizeUI") != null ? jsonData.OnScreenSizeUI : null);
             OnScreenSizeUI.Parent = this;
             OnScreenSize = OnScreenSizeUI.DefaultValue;
@@ -15654,6 +17577,10 @@ namespace SimplygonUI
             TransferColorsUI.Parent = this;
             TransferColors = TransferColorsUI.DefaultValue;
             Items.Add(TransferColorsUI);
+            ForceSoftEdgesWithinTextureChartsUI = new SimplygonForceSoftEdgesWithinTextureChartsEx(jsonData != null && ((JObject)jsonData).GetValue("ForceSoftEdgesWithinTextureChartsUI") != null ? jsonData.ForceSoftEdgesWithinTextureChartsUI : null);
+            ForceSoftEdgesWithinTextureChartsUI.Parent = this;
+            ForceSoftEdgesWithinTextureCharts = ForceSoftEdgesWithinTextureChartsUI.DefaultValue;
+            Items.Add(ForceSoftEdgesWithinTextureChartsUI);
             KeepUnprocessedSceneMeshesUI = new SimplygonKeepUnprocessedSceneMeshesEx(jsonData != null && ((JObject)jsonData).GetValue("KeepUnprocessedSceneMeshesUI") != null ? jsonData.KeepUnprocessedSceneMeshesUI : null);
             KeepUnprocessedSceneMeshesUI.Parent = this;
             KeepUnprocessedSceneMeshes = KeepUnprocessedSceneMeshesUI.DefaultValue;
@@ -15665,6 +17592,15 @@ namespace SimplygonUI
         {
             var copy = new SimplygonRemeshingSettings();
             copy.Items.Clear();
+            copy.RemeshingModeManualPositionZUI = this.RemeshingModeManualPositionZUI.DeepCopy();
+            copy.RemeshingModeManualPositionZUI.Parent = copy;
+            copy.Items.Add(copy.RemeshingModeManualPositionZUI);
+            copy.RemeshingModeManualPositionYUI = this.RemeshingModeManualPositionYUI.DeepCopy();
+            copy.RemeshingModeManualPositionYUI.Parent = copy;
+            copy.Items.Add(copy.RemeshingModeManualPositionYUI);
+            copy.RemeshingModeManualPositionXUI = this.RemeshingModeManualPositionXUI.DeepCopy();
+            copy.RemeshingModeManualPositionXUI.Parent = copy;
+            copy.Items.Add(copy.RemeshingModeManualPositionXUI);
             copy.OnScreenSizeUI = this.OnScreenSizeUI.DeepCopy();
             copy.OnScreenSizeUI.Parent = copy;
             copy.Items.Add(copy.OnScreenSizeUI);
@@ -15686,6 +17622,9 @@ namespace SimplygonUI
             copy.TransferColorsUI = this.TransferColorsUI.DeepCopy();
             copy.TransferColorsUI.Parent = copy;
             copy.Items.Add(copy.TransferColorsUI);
+            copy.ForceSoftEdgesWithinTextureChartsUI = this.ForceSoftEdgesWithinTextureChartsUI.DeepCopy();
+            copy.ForceSoftEdgesWithinTextureChartsUI.Parent = copy;
+            copy.Items.Add(copy.ForceSoftEdgesWithinTextureChartsUI);
             copy.KeepUnprocessedSceneMeshesUI = this.KeepUnprocessedSceneMeshesUI.DeepCopy();
             copy.KeepUnprocessedSceneMeshesUI.Parent = copy;
             copy.Items.Add(copy.KeepUnprocessedSceneMeshesUI);
@@ -15695,6 +17634,24 @@ namespace SimplygonUI
         public override JObject SaveJson(bool serializeUIComponents)
         {
             dynamic jsonData = new JObject();
+            jsonData.RemeshingModeManualPositionZ = RemeshingModeManualPositionZ;
+            if(serializeUIComponents)
+            {
+                jsonData.RemeshingModeManualPositionZUI = RemeshingModeManualPositionZUI.SaveJson();
+            }
+
+            jsonData.RemeshingModeManualPositionY = RemeshingModeManualPositionY;
+            if(serializeUIComponents)
+            {
+                jsonData.RemeshingModeManualPositionYUI = RemeshingModeManualPositionYUI.SaveJson();
+            }
+
+            jsonData.RemeshingModeManualPositionX = RemeshingModeManualPositionX;
+            if(serializeUIComponents)
+            {
+                jsonData.RemeshingModeManualPositionXUI = RemeshingModeManualPositionXUI.SaveJson();
+            }
+
             jsonData.OnScreenSize = OnScreenSize;
             if(serializeUIComponents)
             {
@@ -15725,6 +17682,12 @@ namespace SimplygonUI
                 jsonData.HardEdgeAngleUI = HardEdgeAngleUI.SaveJson();
             }
 
+            jsonData.ForceSoftEdgesWithinTextureCharts = ForceSoftEdgesWithinTextureCharts;
+            if(serializeUIComponents)
+            {
+                jsonData.ForceSoftEdgesWithinTextureChartsUI = ForceSoftEdgesWithinTextureChartsUI.SaveJson();
+            }
+
             jsonData.TransferNormals = TransferNormals;
             if(serializeUIComponents)
             {
@@ -15753,9 +17716,64 @@ namespace SimplygonUI
                 return;
             }
 
+            if(jsonData.GetValue("RemeshingModeManualPositionZ") != null)
+            {
+                float newRemeshingModeManualPositionZ = (float)jsonData.RemeshingModeManualPositionZ;
+                if (newRemeshingModeManualPositionZ >= RemeshingModeManualPositionZUI.DefaultMinValue && newRemeshingModeManualPositionZ <= RemeshingModeManualPositionZUI.DefaultMaxValue)
+                {
+                    RemeshingModeManualPositionZ = newRemeshingModeManualPositionZ;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionZ: Invalid value {newRemeshingModeManualPositionZ.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {RemeshingModeManualPositionZ.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("RemeshingModeManualPositionY") != null)
+            {
+                float newRemeshingModeManualPositionY = (float)jsonData.RemeshingModeManualPositionY;
+                if (newRemeshingModeManualPositionY >= RemeshingModeManualPositionYUI.DefaultMinValue && newRemeshingModeManualPositionY <= RemeshingModeManualPositionYUI.DefaultMaxValue)
+                {
+                    RemeshingModeManualPositionY = newRemeshingModeManualPositionY;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionY: Invalid value {newRemeshingModeManualPositionY.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {RemeshingModeManualPositionY.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("RemeshingModeManualPositionX") != null)
+            {
+                float newRemeshingModeManualPositionX = (float)jsonData.RemeshingModeManualPositionX;
+                if (newRemeshingModeManualPositionX >= RemeshingModeManualPositionXUI.DefaultMinValue && newRemeshingModeManualPositionX <= RemeshingModeManualPositionXUI.DefaultMaxValue)
+                {
+                    RemeshingModeManualPositionX = newRemeshingModeManualPositionX;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionX: Invalid value {newRemeshingModeManualPositionX.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {RemeshingModeManualPositionX.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
             if(jsonData.GetValue("OnScreenSize") != null)
             {
-                OnScreenSize = (int)jsonData.OnScreenSize;
+                var newOnScreenSize = (int)jsonData.OnScreenSize;
+                if (newOnScreenSize >= OnScreenSizeUI.DefaultMinValue && newOnScreenSize <= OnScreenSizeUI.DefaultMaxValue)
+                {
+                    OnScreenSize = newOnScreenSize;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"OnScreenSize: Invalid value {newOnScreenSize}, using default value {OnScreenSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("HoleFilling") != null)
@@ -15775,7 +17793,22 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("HardEdgeAngle") != null)
             {
-                HardEdgeAngle = (float)jsonData.HardEdgeAngle;
+                float newHardEdgeAngle = (float)jsonData.HardEdgeAngle;
+                if (newHardEdgeAngle >= HardEdgeAngleUI.DefaultMinValue && newHardEdgeAngle <= HardEdgeAngleUI.DefaultMaxValue)
+                {
+                    HardEdgeAngle = newHardEdgeAngle;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"HardEdgeAngle: Invalid value {newHardEdgeAngle.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {HardEdgeAngle.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("ForceSoftEdgesWithinTextureCharts") != null)
+            {
+                ForceSoftEdgesWithinTextureCharts = (bool)jsonData.ForceSoftEdgesWithinTextureCharts;
             }
 
             if(jsonData.GetValue("TransferNormals") != null)
@@ -15797,11 +17830,15 @@ namespace SimplygonUI
 
         public override void Reset()
         {
+            RemeshingModeManualPositionZUI.Reset();
+            RemeshingModeManualPositionYUI.Reset();
+            RemeshingModeManualPositionXUI.Reset();
             OnScreenSizeUI.Reset();
             HoleFillingUI.Reset();
             RemeshingModeUI.Reset();
             SurfaceTransferModeUI.Reset();
             HardEdgeAngleUI.Reset();
+            ForceSoftEdgesWithinTextureChartsUI.Reset();
             TransferNormalsUI.Reset();
             TransferColorsUI.Reset();
             KeepUnprocessedSceneMeshesUI.Reset();
@@ -15810,11 +17847,15 @@ namespace SimplygonUI
         public override void SetEditMode(bool isEditEnabled)
         {
             IsEditEnabled = isEditEnabled;
+            RemeshingModeManualPositionZUI.IsEditEnabled = isEditEnabled;
+            RemeshingModeManualPositionYUI.IsEditEnabled = isEditEnabled;
+            RemeshingModeManualPositionXUI.IsEditEnabled = isEditEnabled;
             OnScreenSizeUI.IsEditEnabled = isEditEnabled;
             HoleFillingUI.IsEditEnabled = isEditEnabled;
             RemeshingModeUI.IsEditEnabled = isEditEnabled;
             SurfaceTransferModeUI.IsEditEnabled = isEditEnabled;
             HardEdgeAngleUI.IsEditEnabled = isEditEnabled;
+            ForceSoftEdgesWithinTextureChartsUI.IsEditEnabled = isEditEnabled;
             TransferNormalsUI.IsEditEnabled = isEditEnabled;
             TransferColorsUI.IsEditEnabled = isEditEnabled;
             KeepUnprocessedSceneMeshesUI.IsEditEnabled = isEditEnabled;
@@ -16341,6 +18382,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
             public override bool Visible { get { if( Parent.EnableGeometryCullingUI != null ) { return Parent.EnableGeometryCulling && Parent.EnableGeometryCullingUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
 
@@ -16352,6 +18395,8 @@ namespace SimplygonUI
                 DefaultValue = 0.5f;
                 MinValue = 0f;
                 MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -16362,24 +18407,38 @@ namespace SimplygonUI
                 HelpText = "The accuracy of the triangle intersection math to find and cull insides used by the EnableTriangleCulling setting. Defined from 0 to 1 where 0 is max speed and 1 is max precision.";
                 TypeOverride = "";
                 DefaultValue = 0.5f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GeometryCullingPrecision: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GeometryCullingPrecision: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -16522,6 +18581,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
             public override bool Visible { get { if( Parent.SubdivideGeometryBasedOnUVTilesUI != null ) { return Parent.SubdivideGeometryBasedOnUVTiles && Parent.SubdivideGeometryBasedOnUVTilesUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
 
@@ -16533,6 +18594,8 @@ namespace SimplygonUI
                 DefaultValue = 1;
                 MinValue = 0;
                 MaxValue = 100;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 100;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -16543,24 +18606,38 @@ namespace SimplygonUI
                 HelpText = "The cutting frequency used when SubdivideGeometryBasedOnUVTiles is enabled.";
                 TypeOverride = "";
                 DefaultValue = 1;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SubdivisionTileSize: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 100;
+                DefaultMaxValue = 100;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 100;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SubdivisionTileSize: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -16758,7 +18835,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("GeometryCullingPrecision") != null)
             {
-                GeometryCullingPrecision = (float)jsonData.GeometryCullingPrecision;
+                float newGeometryCullingPrecision = (float)jsonData.GeometryCullingPrecision;
+                if (newGeometryCullingPrecision >= GeometryCullingPrecisionUI.DefaultMinValue && newGeometryCullingPrecision <= GeometryCullingPrecisionUI.DefaultMaxValue)
+                {
+                    GeometryCullingPrecision = newGeometryCullingPrecision;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"GeometryCullingPrecision: Invalid value {newGeometryCullingPrecision.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {GeometryCullingPrecision.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("SubdivideGeometryBasedOnUVTiles") != null)
@@ -16768,7 +18855,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("SubdivisionTileSize") != null)
             {
-                SubdivisionTileSize = (int)jsonData.SubdivisionTileSize;
+                var newSubdivisionTileSize = (int)jsonData.SubdivisionTileSize;
+                if (newSubdivisionTileSize >= SubdivisionTileSizeUI.DefaultMinValue && newSubdivisionTileSize <= SubdivisionTileSizeUI.DefaultMaxValue)
+                {
+                    SubdivisionTileSize = newSubdivisionTileSize;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"SubdivisionTileSize: Invalid value {newSubdivisionTileSize}, using default value {SubdivisionTileSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
         }
@@ -16918,6 +19015,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonLightmapTexCoordLevelEx() : base("LightmapTexCoordLevel")
@@ -16928,6 +19027,8 @@ namespace SimplygonUI
                 DefaultValue = -1;
                 MinValue = -1;
                 MaxValue = 10;
+                DefaultMinValue = -1;
+                DefaultMaxValue = 10;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -16938,24 +19039,38 @@ namespace SimplygonUI
                 HelpText = "The texture coordinate level used for storing the LightMap UVs. The texcoord name has priority over level. If neither name or level is set then output would be level 0.";
                 TypeOverride = "";
                 DefaultValue = -1;
+                MinValue = -1;
+                DefaultMinValue = -1;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"LightmapTexCoordLevel: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1;
-                }
-
+                MaxValue = 10;
+                DefaultMaxValue = 10;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"LightmapTexCoordLevel: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -17168,6 +19283,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonTextureWidthEx() : base("TextureWidth")
@@ -17178,6 +19295,8 @@ namespace SimplygonUI
                 DefaultValue = 512;
                 MinValue = 0;
                 MaxValue = 8192;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 8192;
                 TicksFrequencyValue = 256;
                 Visible = true;
             }
@@ -17188,24 +19307,38 @@ namespace SimplygonUI
                 HelpText = "The width of the texture of the output mapping image.";
                 TypeOverride = "";
                 DefaultValue = 512;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TextureWidth: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 8192;
+                DefaultMaxValue = 8192;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 8192;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TextureWidth: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -17277,6 +19410,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonTextureHeightEx() : base("TextureHeight")
@@ -17287,6 +19422,8 @@ namespace SimplygonUI
                 DefaultValue = 512;
                 MinValue = 0;
                 MaxValue = 8192;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 8192;
                 TicksFrequencyValue = 256;
                 Visible = true;
             }
@@ -17297,24 +19434,38 @@ namespace SimplygonUI
                 HelpText = "The height of the texture of the output mapping image.";
                 TypeOverride = "";
                 DefaultValue = 512;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TextureHeight: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 8192;
+                DefaultMaxValue = 8192;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 8192;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TextureHeight: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -17386,6 +19537,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonGutterSpaceEx() : base("GutterSpace")
@@ -17396,6 +19549,8 @@ namespace SimplygonUI
                 DefaultValue = 4;
                 MinValue = 0;
                 MaxValue = 10;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 10;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -17406,24 +19561,38 @@ namespace SimplygonUI
                 HelpText = "The minimum number of pixels between charts of the output mapping image.";
                 TypeOverride = "";
                 DefaultValue = 4;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GutterSpace: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 10;
+                DefaultMaxValue = 10;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GutterSpace: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -17628,7 +19797,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("LightmapTexCoordLevel") != null)
             {
-                LightmapTexCoordLevel = (int)jsonData.LightmapTexCoordLevel;
+                var newLightmapTexCoordLevel = (int)jsonData.LightmapTexCoordLevel;
+                if (newLightmapTexCoordLevel >= LightmapTexCoordLevelUI.DefaultMinValue && newLightmapTexCoordLevel <= LightmapTexCoordLevelUI.DefaultMaxValue)
+                {
+                    LightmapTexCoordLevel = newLightmapTexCoordLevel;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"LightmapTexCoordLevel: Invalid value {newLightmapTexCoordLevel}, using default value {LightmapTexCoordLevel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("LightmapTexCoordName") != null)
@@ -17643,17 +19822,47 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("TextureWidth") != null)
             {
-                TextureWidth = (int)jsonData.TextureWidth;
+                var newTextureWidth = (int)jsonData.TextureWidth;
+                if (newTextureWidth >= TextureWidthUI.DefaultMinValue && newTextureWidth <= TextureWidthUI.DefaultMaxValue)
+                {
+                    TextureWidth = newTextureWidth;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"TextureWidth: Invalid value {newTextureWidth}, using default value {TextureWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("TextureHeight") != null)
             {
-                TextureHeight = (int)jsonData.TextureHeight;
+                var newTextureHeight = (int)jsonData.TextureHeight;
+                if (newTextureHeight >= TextureHeightUI.DefaultMinValue && newTextureHeight <= TextureHeightUI.DefaultMaxValue)
+                {
+                    TextureHeight = newTextureHeight;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"TextureHeight: Invalid value {newTextureHeight}, using default value {TextureHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("GutterSpace") != null)
             {
-                GutterSpace = (int)jsonData.GutterSpace;
+                var newGutterSpace = (int)jsonData.GutterSpace;
+                if (newGutterSpace >= GutterSpaceUI.DefaultMinValue && newGutterSpace <= GutterSpaceUI.DefaultMaxValue)
+                {
+                    GutterSpace = newGutterSpace;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"GutterSpace: Invalid value {newGutterSpace}, using default value {GutterSpace.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
         }
@@ -17804,6 +20013,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonSeparateFoliageTriangleRatioEx() : base("SeparateFoliageTriangleRatio")
@@ -17814,6 +20025,8 @@ namespace SimplygonUI
                 DefaultValue = 0.01f;
                 MinValue = 0f;
                 MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -17824,24 +20037,38 @@ namespace SimplygonUI
                 HelpText = "Is used to separate the trunk from the foliage in a vegetation scene by comparing each group of connected triangles in the scene with the scene's largest group. If a group's triangle count is below SeparateFoliageTriangleRatio * largestGrouptriangleCount it is treated as foliage and processed into billboards. The trunk is optimized using triangle reduction. The range is 0.0->1.0. 0.0 means nothing will be foliage, 1.0 means everything will be foliage.";
                 TypeOverride = "";
                 DefaultValue = 0.01f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SeparateFoliageTriangleRatio: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SeparateFoliageTriangleRatio: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -17913,6 +20140,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonSeparateFoliageTriangleThresholdEx() : base("SeparateFoliageTriangleThreshold")
@@ -17923,6 +20152,8 @@ namespace SimplygonUI
                 DefaultValue = 10;
                 MinValue = 0;
                 MaxValue = 10000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 10000;
                 TicksFrequencyValue = 10;
                 Visible = true;
             }
@@ -17933,24 +20164,38 @@ namespace SimplygonUI
                 HelpText = "Is used to separate the trunk from the foliage in a vegetation scene by finding each group of connected triangles in the scene and if the triangle count is below SeparateFoliageTriangleThreshold it is treated as foliage and processed into billboards. The trunk is optimized using reduction. The range is 0->large value. 0 means nothing will be foliage, value larger than the maximum triangle count means everything will be foliage.";
                 TypeOverride = "";
                 DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SeparateFoliageTriangleThreshold: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 10000;
+                DefaultMaxValue = 10000;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10000;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SeparateFoliageTriangleThreshold: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -18022,6 +20267,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonSeparateFoliageAreaThresholdEx() : base("SeparateFoliageAreaThreshold")
@@ -18032,6 +20279,8 @@ namespace SimplygonUI
                 DefaultValue = 0.1f;
                 MinValue = 0f;
                 MaxValue = 10000f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10000f;
                 TicksFrequencyValue = 1f;
                 Visible = true;
             }
@@ -18042,24 +20291,38 @@ namespace SimplygonUI
                 HelpText = "Is used to separate the trunk from the foliage in a vegetation scene by finding each group of connected triangles in the scene and if the surface area is below (SeparateFoliageAreaThreshold * AreaOfTheLargestGroupInTheScene) it is treated as foliage and processed into billboards. The trunk is optimized using reduction. The range is 0->large value. 0 means nothing will be foliage, value larger than the maximum surface area means everything will be foliage.";
                 TypeOverride = "";
                 DefaultValue = 0.1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SeparateFoliageAreaThreshold: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10000f;
+                DefaultMaxValue = 10000f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10000f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SeparateFoliageAreaThreshold: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -18131,6 +20394,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonSeparateFoliageSizeThresholdEx() : base("SeparateFoliageSizeThreshold")
@@ -18141,6 +20406,8 @@ namespace SimplygonUI
                 DefaultValue = 0.1f;
                 MinValue = 0f;
                 MaxValue = 10000f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10000f;
                 TicksFrequencyValue = 1f;
                 Visible = true;
             }
@@ -18151,24 +20418,38 @@ namespace SimplygonUI
                 HelpText = "Is used to separate the trunk from the foliage in a vegetation scene by finding each group of connected triangles in the scene and if the diameter of the group is below (SeparateFoliageSizeThreshold * SceneDiameter) it is treated as foliage and processed into billboards. The trunk is optimized using reduction. The range is 0->large value. 0 means nothing will be foliage, value larger than the scene's diameter means everything will be foliage.";
                 TypeOverride = "";
                 DefaultValue = 0.1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SeparateFoliageSizeThreshold: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10000f;
+                DefaultMaxValue = 10000f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10000f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SeparateFoliageSizeThreshold: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -18240,6 +20521,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonTrunkReductionRatioEx() : base("TrunkReductionRatio")
@@ -18250,6 +20533,8 @@ namespace SimplygonUI
                 DefaultValue = 0.5f;
                 MinValue = 0f;
                 MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -18260,24 +20545,38 @@ namespace SimplygonUI
                 HelpText = "Determines the triangle reduction ratio for the trunk part that has been separated from the foliage part based on the 'separate foliage' settings.";
                 TypeOverride = "";
                 DefaultValue = 0.5f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TrunkReductionRatio: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TrunkReductionRatio: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -18467,27 +20766,77 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("SeparateFoliageTriangleRatio") != null)
             {
-                SeparateFoliageTriangleRatio = (float)jsonData.SeparateFoliageTriangleRatio;
+                float newSeparateFoliageTriangleRatio = (float)jsonData.SeparateFoliageTriangleRatio;
+                if (newSeparateFoliageTriangleRatio >= SeparateFoliageTriangleRatioUI.DefaultMinValue && newSeparateFoliageTriangleRatio <= SeparateFoliageTriangleRatioUI.DefaultMaxValue)
+                {
+                    SeparateFoliageTriangleRatio = newSeparateFoliageTriangleRatio;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"SeparateFoliageTriangleRatio: Invalid value {newSeparateFoliageTriangleRatio.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {SeparateFoliageTriangleRatio.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("SeparateFoliageTriangleThreshold") != null)
             {
-                SeparateFoliageTriangleThreshold = (int)jsonData.SeparateFoliageTriangleThreshold;
+                var newSeparateFoliageTriangleThreshold = (int)jsonData.SeparateFoliageTriangleThreshold;
+                if (newSeparateFoliageTriangleThreshold >= SeparateFoliageTriangleThresholdUI.DefaultMinValue && newSeparateFoliageTriangleThreshold <= SeparateFoliageTriangleThresholdUI.DefaultMaxValue)
+                {
+                    SeparateFoliageTriangleThreshold = newSeparateFoliageTriangleThreshold;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"SeparateFoliageTriangleThreshold: Invalid value {newSeparateFoliageTriangleThreshold}, using default value {SeparateFoliageTriangleThreshold.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("SeparateFoliageAreaThreshold") != null)
             {
-                SeparateFoliageAreaThreshold = (float)jsonData.SeparateFoliageAreaThreshold;
+                float newSeparateFoliageAreaThreshold = (float)jsonData.SeparateFoliageAreaThreshold;
+                if (newSeparateFoliageAreaThreshold >= SeparateFoliageAreaThresholdUI.DefaultMinValue && newSeparateFoliageAreaThreshold <= SeparateFoliageAreaThresholdUI.DefaultMaxValue)
+                {
+                    SeparateFoliageAreaThreshold = newSeparateFoliageAreaThreshold;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"SeparateFoliageAreaThreshold: Invalid value {newSeparateFoliageAreaThreshold.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {SeparateFoliageAreaThreshold.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("SeparateFoliageSizeThreshold") != null)
             {
-                SeparateFoliageSizeThreshold = (float)jsonData.SeparateFoliageSizeThreshold;
+                float newSeparateFoliageSizeThreshold = (float)jsonData.SeparateFoliageSizeThreshold;
+                if (newSeparateFoliageSizeThreshold >= SeparateFoliageSizeThresholdUI.DefaultMinValue && newSeparateFoliageSizeThreshold <= SeparateFoliageSizeThresholdUI.DefaultMaxValue)
+                {
+                    SeparateFoliageSizeThreshold = newSeparateFoliageSizeThreshold;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"SeparateFoliageSizeThreshold: Invalid value {newSeparateFoliageSizeThreshold.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {SeparateFoliageSizeThreshold.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("TrunkReductionRatio") != null)
             {
-                TrunkReductionRatio = (float)jsonData.TrunkReductionRatio;
+                float newTrunkReductionRatio = (float)jsonData.TrunkReductionRatio;
+                if (newTrunkReductionRatio >= TrunkReductionRatioUI.DefaultMinValue && newTrunkReductionRatio <= TrunkReductionRatioUI.DefaultMaxValue)
+                {
+                    TrunkReductionRatio = newTrunkReductionRatio;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"TrunkReductionRatio: Invalid value {newTrunkReductionRatio.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {TrunkReductionRatio.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
         }
@@ -18530,6 +20879,9 @@ namespace SimplygonUI
                 if(BillboardDensityUI.Visible) return true;
                 if(MaxPlaneCountUI.Visible) return true;
                 if(GeometricComplexityUI.Visible) return true;
+                if(UpVectorXUI.Visible) return true;
+                if(UpVectorYUI.Visible) return true;
+                if(UpVectorZUI.Visible) return true;
 
                 if(FoliageSettings != null && FoliageSettings.Visible) return true;
                 return false;
@@ -18850,6 +21202,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonBillboardDensityEx() : base("BillboardDensity")
@@ -18860,6 +21214,8 @@ namespace SimplygonUI
                 DefaultValue = 0.2f;
                 MinValue = 0f;
                 MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -18870,24 +21226,38 @@ namespace SimplygonUI
                 HelpText = "Determines how many billboards to create. A large BillboardDensity means that more billboards will be created to represent spatially spread out triangles better. Having a low BillboardDensity means that fewer billboards will be created and the distances from original leaves to billboards will get larger. The range is 0->1.";
                 TypeOverride = "";
                 DefaultValue = 0.2f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"BillboardDensity: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"BillboardDensity: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -18959,6 +21329,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonMaxPlaneCountEx() : base("MaxPlaneCount")
@@ -18969,6 +21341,8 @@ namespace SimplygonUI
                 DefaultValue = 10;
                 MinValue = 0;
                 MaxValue = 64;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 64;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -18979,24 +21353,38 @@ namespace SimplygonUI
                 HelpText = "Determines the maximum billboard count. When this criteria is met, it is not guaranteed that all triangles in the scene have been accurately mapped to a billboard yet. Triangles that have not been mapped to a billboard within the BillboardMaxDeviation distance will be mapped to an existing billboard that best represents the triangle.";
                 TypeOverride = "";
                 DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaxPlaneCount: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 64;
+                DefaultMaxValue = 64;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 64;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaxPlaneCount: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -19068,6 +21456,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonGeometricComplexityEx() : base("GeometricComplexity")
@@ -19078,6 +21468,8 @@ namespace SimplygonUI
                 DefaultValue = 0.5f;
                 MinValue = 0f;
                 MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -19088,24 +21480,38 @@ namespace SimplygonUI
                 HelpText = "Determines the geometric complexity of the billboards. The value range is 0->1, where a value of Zero means that the billboards will be simple and not follow the projection closely. And a value of One means that the geometric complexity will be increased and follow the projection closely.";
                 TypeOverride = "";
                 DefaultValue = 0.5f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GeometricComplexity: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GeometricComplexity: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -19152,6 +21558,387 @@ namespace SimplygonUI
 
         }
 
+        public float UpVectorX { get { return _UpVectorX; } set { _UpVectorX = value; OnPropertyChanged(); } }
+        private float _UpVectorX;
+        public SimplygonUpVectorXEx UpVectorXUI { get; set; }
+        public class SimplygonUpVectorXEx : SimplygonSettingsProperty
+        {
+            public SimplygonBillboardCloudSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.UpVectorX;
+                }
+
+                set
+                {
+                    bool needReload = Parent.UpVectorX != value;
+                    Parent.UpVectorX = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+
+            public SimplygonUpVectorXEx() : base("UpVectorX")
+            {
+                Type = "real";
+                HelpText = "The UpVector used in the Billboard Cloud Processor. Set this if the input scene has an up vector other than Y+. If FavorVerticalPlanes is enabled, the UpVector determines verticality.";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -1f;
+                MaxValue = 1f;
+                DefaultMinValue = -1f;
+                DefaultMaxValue = 1f;
+                TicksFrequencyValue = 0.1f;
+                Visible = true;
+            }
+
+            public SimplygonUpVectorXEx(dynamic jsonData) : base("UpVectorX")
+            {
+                Type = "real";
+                HelpText = "The UpVector used in the Billboard Cloud Processor. Set this if the input scene has an up vector other than Y+. If FavorVerticalPlanes is enabled, the UpVector determines verticality.";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -1f;
+                DefaultMinValue = -1f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"UpVectorX: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"UpVectorX: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 0.1f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonUpVectorXEx DeepCopy()
+            {
+                return (SimplygonUpVectorXEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public float UpVectorY { get { return _UpVectorY; } set { _UpVectorY = value; OnPropertyChanged(); } }
+        private float _UpVectorY;
+        public SimplygonUpVectorYEx UpVectorYUI { get; set; }
+        public class SimplygonUpVectorYEx : SimplygonSettingsProperty
+        {
+            public SimplygonBillboardCloudSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.UpVectorY;
+                }
+
+                set
+                {
+                    bool needReload = Parent.UpVectorY != value;
+                    Parent.UpVectorY = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+
+            public SimplygonUpVectorYEx() : base("UpVectorY")
+            {
+                Type = "real";
+                HelpText = "The UpVector used in the Billboard Cloud Processor. Set this if the input scene has an up vector other than Y+. If FavorVerticalPlanes is enabled, the UpVector determines verticality.";
+                TypeOverride = "";
+                DefaultValue = 1f;
+                MinValue = -1f;
+                MaxValue = 1f;
+                DefaultMinValue = -1f;
+                DefaultMaxValue = 1f;
+                TicksFrequencyValue = 0.1f;
+                Visible = true;
+            }
+
+            public SimplygonUpVectorYEx(dynamic jsonData) : base("UpVectorY")
+            {
+                Type = "real";
+                HelpText = "The UpVector used in the Billboard Cloud Processor. Set this if the input scene has an up vector other than Y+. If FavorVerticalPlanes is enabled, the UpVector determines verticality.";
+                TypeOverride = "";
+                DefaultValue = 1f;
+                MinValue = -1f;
+                DefaultMinValue = -1f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"UpVectorY: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"UpVectorY: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 0.1f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonUpVectorYEx DeepCopy()
+            {
+                return (SimplygonUpVectorYEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public float UpVectorZ { get { return _UpVectorZ; } set { _UpVectorZ = value; OnPropertyChanged(); } }
+        private float _UpVectorZ;
+        public SimplygonUpVectorZEx UpVectorZUI { get; set; }
+        public class SimplygonUpVectorZEx : SimplygonSettingsProperty
+        {
+            public SimplygonBillboardCloudSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.UpVectorZ;
+                }
+
+                set
+                {
+                    bool needReload = Parent.UpVectorZ != value;
+                    Parent.UpVectorZ = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+
+            public SimplygonUpVectorZEx() : base("UpVectorZ")
+            {
+                Type = "real";
+                HelpText = "The UpVector used in the Billboard Cloud Processor. Set this if the input scene has an up vector other than Y+. If FavorVerticalPlanes is enabled, the UpVector determines verticality.";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -1f;
+                MaxValue = 1f;
+                DefaultMinValue = -1f;
+                DefaultMaxValue = 1f;
+                TicksFrequencyValue = 0.1f;
+                Visible = true;
+            }
+
+            public SimplygonUpVectorZEx(dynamic jsonData) : base("UpVectorZ")
+            {
+                Type = "real";
+                HelpText = "The UpVector used in the Billboard Cloud Processor. Set this if the input scene has an up vector other than Y+. If FavorVerticalPlanes is enabled, the UpVector determines verticality.";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -1f;
+                DefaultMinValue = -1f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"UpVectorZ: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"UpVectorZ: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 0.1f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonUpVectorZEx DeepCopy()
+            {
+                return (SimplygonUpVectorZEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
 
         public SimplygonBillboardCloudSettings() : base("BillboardCloudSettings")
         {
@@ -19184,6 +21971,18 @@ namespace SimplygonUI
             GeometricComplexityUI.Parent = this;
             GeometricComplexity = GeometricComplexityUI.DefaultValue;
             Items.Add(GeometricComplexityUI);
+            UpVectorXUI = new SimplygonUpVectorXEx();
+            UpVectorXUI.Parent = this;
+            UpVectorX = UpVectorXUI.DefaultValue;
+            Items.Add(UpVectorXUI);
+            UpVectorYUI = new SimplygonUpVectorYEx();
+            UpVectorYUI.Parent = this;
+            UpVectorY = UpVectorYUI.DefaultValue;
+            Items.Add(UpVectorYUI);
+            UpVectorZUI = new SimplygonUpVectorZEx();
+            UpVectorZUI.Parent = this;
+            UpVectorZ = UpVectorZUI.DefaultValue;
+            Items.Add(UpVectorZUI);
             FoliageSettings = new SimplygonFoliageSettings(this);
             Items.Add(FoliageSettings);
         }
@@ -19219,6 +22018,18 @@ namespace SimplygonUI
             GeometricComplexityUI.Parent = this;
             GeometricComplexity = GeometricComplexityUI.DefaultValue;
             Items.Add(GeometricComplexityUI);
+            UpVectorXUI = new SimplygonUpVectorXEx(jsonData != null && ((JObject)jsonData).GetValue("UpVectorXUI") != null ? jsonData.UpVectorXUI : null);
+            UpVectorXUI.Parent = this;
+            UpVectorX = UpVectorXUI.DefaultValue;
+            Items.Add(UpVectorXUI);
+            UpVectorYUI = new SimplygonUpVectorYEx(jsonData != null && ((JObject)jsonData).GetValue("UpVectorYUI") != null ? jsonData.UpVectorYUI : null);
+            UpVectorYUI.Parent = this;
+            UpVectorY = UpVectorYUI.DefaultValue;
+            Items.Add(UpVectorYUI);
+            UpVectorZUI = new SimplygonUpVectorZEx(jsonData != null && ((JObject)jsonData).GetValue("UpVectorZUI") != null ? jsonData.UpVectorZUI : null);
+            UpVectorZUI.Parent = this;
+            UpVectorZ = UpVectorZUI.DefaultValue;
+            Items.Add(UpVectorZUI);
             if(jsonData.GetValue("FoliageSettings") != null)
             {
                 FoliageSettings = new SimplygonFoliageSettings(this, jsonData.FoliageSettings);
@@ -19253,6 +22064,15 @@ namespace SimplygonUI
             copy.GeometricComplexityUI = this.GeometricComplexityUI.DeepCopy();
             copy.GeometricComplexityUI.Parent = copy;
             copy.Items.Add(copy.GeometricComplexityUI);
+            copy.UpVectorXUI = this.UpVectorXUI.DeepCopy();
+            copy.UpVectorXUI.Parent = copy;
+            copy.Items.Add(copy.UpVectorXUI);
+            copy.UpVectorYUI = this.UpVectorYUI.DeepCopy();
+            copy.UpVectorYUI.Parent = copy;
+            copy.Items.Add(copy.UpVectorYUI);
+            copy.UpVectorZUI = this.UpVectorZUI.DeepCopy();
+            copy.UpVectorZUI.Parent = copy;
+            copy.Items.Add(copy.UpVectorZUI);
             if (FoliageSettings != null)
             {
                 copy.FoliageSettings = (SimplygonFoliageSettings)this.FoliageSettings.DeepCopy(copy);
@@ -19307,6 +22127,24 @@ namespace SimplygonUI
                 jsonData.GeometricComplexityUI = GeometricComplexityUI.SaveJson();
             }
 
+            jsonData.UpVectorX = UpVectorX;
+            if(serializeUIComponents)
+            {
+                jsonData.UpVectorXUI = UpVectorXUI.SaveJson();
+            }
+
+            jsonData.UpVectorY = UpVectorY;
+            if(serializeUIComponents)
+            {
+                jsonData.UpVectorYUI = UpVectorYUI.SaveJson();
+            }
+
+            jsonData.UpVectorZ = UpVectorZ;
+            if(serializeUIComponents)
+            {
+                jsonData.UpVectorZUI = UpVectorZUI.SaveJson();
+            }
+
             if (FoliageSettings != null)
             {
                 jsonData.FoliageSettings = FoliageSettings.SaveJson(serializeUIComponents);
@@ -19344,17 +22182,92 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("BillboardDensity") != null)
             {
-                BillboardDensity = (float)jsonData.BillboardDensity;
+                float newBillboardDensity = (float)jsonData.BillboardDensity;
+                if (newBillboardDensity >= BillboardDensityUI.DefaultMinValue && newBillboardDensity <= BillboardDensityUI.DefaultMaxValue)
+                {
+                    BillboardDensity = newBillboardDensity;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"BillboardDensity: Invalid value {newBillboardDensity.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {BillboardDensity.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("MaxPlaneCount") != null)
             {
-                MaxPlaneCount = (int)jsonData.MaxPlaneCount;
+                var newMaxPlaneCount = (int)jsonData.MaxPlaneCount;
+                if (newMaxPlaneCount >= MaxPlaneCountUI.DefaultMinValue && newMaxPlaneCount <= MaxPlaneCountUI.DefaultMaxValue)
+                {
+                    MaxPlaneCount = newMaxPlaneCount;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MaxPlaneCount: Invalid value {newMaxPlaneCount}, using default value {MaxPlaneCount.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("GeometricComplexity") != null)
             {
-                GeometricComplexity = (float)jsonData.GeometricComplexity;
+                float newGeometricComplexity = (float)jsonData.GeometricComplexity;
+                if (newGeometricComplexity >= GeometricComplexityUI.DefaultMinValue && newGeometricComplexity <= GeometricComplexityUI.DefaultMaxValue)
+                {
+                    GeometricComplexity = newGeometricComplexity;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"GeometricComplexity: Invalid value {newGeometricComplexity.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {GeometricComplexity.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("UpVectorX") != null)
+            {
+                float newUpVectorX = (float)jsonData.UpVectorX;
+                if (newUpVectorX >= UpVectorXUI.DefaultMinValue && newUpVectorX <= UpVectorXUI.DefaultMaxValue)
+                {
+                    UpVectorX = newUpVectorX;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"UpVectorX: Invalid value {newUpVectorX.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {UpVectorX.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("UpVectorY") != null)
+            {
+                float newUpVectorY = (float)jsonData.UpVectorY;
+                if (newUpVectorY >= UpVectorYUI.DefaultMinValue && newUpVectorY <= UpVectorYUI.DefaultMaxValue)
+                {
+                    UpVectorY = newUpVectorY;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"UpVectorY: Invalid value {newUpVectorY.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {UpVectorY.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("UpVectorZ") != null)
+            {
+                float newUpVectorZ = (float)jsonData.UpVectorZ;
+                if (newUpVectorZ >= UpVectorZUI.DefaultMinValue && newUpVectorZ <= UpVectorZUI.DefaultMaxValue)
+                {
+                    UpVectorZ = newUpVectorZ;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"UpVectorZ: Invalid value {newUpVectorZ.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {UpVectorZ.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
         }
@@ -19368,6 +22281,9 @@ namespace SimplygonUI
             BillboardDensityUI.Reset();
             MaxPlaneCountUI.Reset();
             GeometricComplexityUI.Reset();
+            UpVectorXUI.Reset();
+            UpVectorYUI.Reset();
+            UpVectorZUI.Reset();
             if (FoliageSettings != null)
             {
                 FoliageSettings.Reset();
@@ -19385,6 +22301,9 @@ namespace SimplygonUI
             BillboardDensityUI.IsEditEnabled = isEditEnabled;
             MaxPlaneCountUI.IsEditEnabled = isEditEnabled;
             GeometricComplexityUI.IsEditEnabled = isEditEnabled;
+            UpVectorXUI.IsEditEnabled = isEditEnabled;
+            UpVectorYUI.IsEditEnabled = isEditEnabled;
+            UpVectorZUI.IsEditEnabled = isEditEnabled;
             if (FoliageSettings != null)
             {
                 FoliageSettings.SetEditMode(isEditEnabled);
@@ -19446,6 +22365,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonNumberOfViewsEx() : base("NumberOfViews")
@@ -19456,6 +22377,8 @@ namespace SimplygonUI
                 DefaultValue = 9;
                 MinValue = 0;
                 MaxValue = 64;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 64;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -19466,24 +22389,38 @@ namespace SimplygonUI
                 HelpText = "Determines the number of views generated for the flip book impostor.";
                 TypeOverride = "";
                 DefaultValue = 9;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"NumberOfViews: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 64;
+                DefaultMaxValue = 64;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 64;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"NumberOfViews: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -19555,6 +22492,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonViewDirectionXEx() : base("ViewDirectionX")
@@ -19565,6 +22504,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = -1f;
                 MaxValue = 1f;
+                DefaultMinValue = -1f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -19575,24 +22516,38 @@ namespace SimplygonUI
                 HelpText = "The X component of the ViewDirection vector. The ViewDirection determines the direction of the first view. The rest of the views are uniformly distributed around the scene rotated around the up-vector. The resulting billboard will be oriented in the negative view direction.";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = -1f;
+                DefaultMinValue = -1f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ViewDirectionX: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ViewDirectionX: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -19664,6 +22619,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonViewDirectionYEx() : base("ViewDirectionY")
@@ -19674,6 +22631,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = -1f;
                 MaxValue = 1f;
+                DefaultMinValue = -1f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -19684,24 +22643,38 @@ namespace SimplygonUI
                 HelpText = "The Y component of the ViewDirection vector. The ViewDirection determines the direction of the first view. The rest of the views are uniformly distributed around the scene rotated around the up-vector. The resulting billboard will be oriented in the negative view direction.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = -1f;
+                DefaultMinValue = -1f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ViewDirectionY: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ViewDirectionY: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -19773,6 +22746,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonViewDirectionZEx() : base("ViewDirectionZ")
@@ -19783,6 +22758,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = -1f;
                 MaxValue = 1f;
+                DefaultMinValue = -1f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -19793,24 +22770,38 @@ namespace SimplygonUI
                 HelpText = "The Z component of the ViewDirection vector. The ViewDirection determines the direction of the first view. The rest of the views are uniformly distributed around the scene rotated around the up-vector. The resulting billboard will be oriented in the negative view direction.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = -1f;
+                DefaultMinValue = -1f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ViewDirectionZ: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ViewDirectionZ: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -19882,6 +22873,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonUpVectorXEx() : base("UpVectorX")
@@ -19892,6 +22885,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = -1f;
                 MaxValue = 1f;
+                DefaultMinValue = -1f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -19902,24 +22897,38 @@ namespace SimplygonUI
                 HelpText = "The views are rotated around the up vector and the rendered images are oriented with the up vector.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = -1f;
+                DefaultMinValue = -1f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"UpVectorX: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"UpVectorX: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -19991,6 +23000,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonUpVectorYEx() : base("UpVectorY")
@@ -20001,6 +23012,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = -1f;
                 MaxValue = 1f;
+                DefaultMinValue = -1f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -20011,24 +23024,38 @@ namespace SimplygonUI
                 HelpText = "The views are rotated around the up vector and the rendered images are oriented with the up vector.";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = -1f;
+                DefaultMinValue = -1f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"UpVectorY: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"UpVectorY: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -20100,6 +23127,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonUpVectorZEx() : base("UpVectorZ")
@@ -20110,6 +23139,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = -1f;
                 MaxValue = 1f;
+                DefaultMinValue = -1f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -20120,24 +23151,38 @@ namespace SimplygonUI
                 HelpText = "The views are rotated around the up vector and the rendered images are oriented with the up vector.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = -1f;
+                DefaultMinValue = -1f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"UpVectorZ: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"UpVectorZ: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -20337,37 +23382,107 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("NumberOfViews") != null)
             {
-                NumberOfViews = (int)jsonData.NumberOfViews;
+                var newNumberOfViews = (int)jsonData.NumberOfViews;
+                if (newNumberOfViews >= NumberOfViewsUI.DefaultMinValue && newNumberOfViews <= NumberOfViewsUI.DefaultMaxValue)
+                {
+                    NumberOfViews = newNumberOfViews;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"NumberOfViews: Invalid value {newNumberOfViews}, using default value {NumberOfViews.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("ViewDirectionX") != null)
             {
-                ViewDirectionX = (float)jsonData.ViewDirectionX;
+                float newViewDirectionX = (float)jsonData.ViewDirectionX;
+                if (newViewDirectionX >= ViewDirectionXUI.DefaultMinValue && newViewDirectionX <= ViewDirectionXUI.DefaultMaxValue)
+                {
+                    ViewDirectionX = newViewDirectionX;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ViewDirectionX: Invalid value {newViewDirectionX.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {ViewDirectionX.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("ViewDirectionY") != null)
             {
-                ViewDirectionY = (float)jsonData.ViewDirectionY;
+                float newViewDirectionY = (float)jsonData.ViewDirectionY;
+                if (newViewDirectionY >= ViewDirectionYUI.DefaultMinValue && newViewDirectionY <= ViewDirectionYUI.DefaultMaxValue)
+                {
+                    ViewDirectionY = newViewDirectionY;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ViewDirectionY: Invalid value {newViewDirectionY.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {ViewDirectionY.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("ViewDirectionZ") != null)
             {
-                ViewDirectionZ = (float)jsonData.ViewDirectionZ;
+                float newViewDirectionZ = (float)jsonData.ViewDirectionZ;
+                if (newViewDirectionZ >= ViewDirectionZUI.DefaultMinValue && newViewDirectionZ <= ViewDirectionZUI.DefaultMaxValue)
+                {
+                    ViewDirectionZ = newViewDirectionZ;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ViewDirectionZ: Invalid value {newViewDirectionZ.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {ViewDirectionZ.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("UpVectorX") != null)
             {
-                UpVectorX = (float)jsonData.UpVectorX;
+                float newUpVectorX = (float)jsonData.UpVectorX;
+                if (newUpVectorX >= UpVectorXUI.DefaultMinValue && newUpVectorX <= UpVectorXUI.DefaultMaxValue)
+                {
+                    UpVectorX = newUpVectorX;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"UpVectorX: Invalid value {newUpVectorX.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {UpVectorX.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("UpVectorY") != null)
             {
-                UpVectorY = (float)jsonData.UpVectorY;
+                float newUpVectorY = (float)jsonData.UpVectorY;
+                if (newUpVectorY >= UpVectorYUI.DefaultMinValue && newUpVectorY <= UpVectorYUI.DefaultMaxValue)
+                {
+                    UpVectorY = newUpVectorY;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"UpVectorY: Invalid value {newUpVectorY.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {UpVectorY.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("UpVectorZ") != null)
             {
-                UpVectorZ = (float)jsonData.UpVectorZ;
+                float newUpVectorZ = (float)jsonData.UpVectorZ;
+                if (newUpVectorZ >= UpVectorZUI.DefaultMinValue && newUpVectorZ <= UpVectorZUI.DefaultMaxValue)
+                {
+                    UpVectorZ = newUpVectorZ;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"UpVectorZ: Invalid value {newUpVectorZ.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {UpVectorZ.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
         }
@@ -20519,6 +23634,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonTightFittingDepthOffsetEx() : base("TightFittingDepthOffset")
@@ -20529,6 +23646,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = -1f;
                 MaxValue = 1f;
+                DefaultMinValue = -1f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -20539,24 +23658,38 @@ namespace SimplygonUI
                 HelpText = "This determines where the impostor will end up in depth. 0 is 'center', 1 is 'front' and -1 is 'back'.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = -1f;
+                DefaultMinValue = -1f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TightFittingDepthOffset: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TightFittingDepthOffset: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -20698,6 +23831,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonViewDirectionXEx() : base("ViewDirectionX")
@@ -20708,6 +23843,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = -1f;
                 MaxValue = 1f;
+                DefaultMinValue = -1f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -20718,24 +23855,38 @@ namespace SimplygonUI
                 HelpText = "The X component of the ViewDirection vector. The ViewDirection determines how the resulting impostor geometry will be oriented. The billboard will be perpendicular to this vector.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = -1f;
+                DefaultMinValue = -1f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ViewDirectionX: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ViewDirectionX: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -20807,6 +23958,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonViewDirectionYEx() : base("ViewDirectionY")
@@ -20817,6 +23970,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = -1f;
                 MaxValue = 1f;
+                DefaultMinValue = -1f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -20827,24 +23982,38 @@ namespace SimplygonUI
                 HelpText = "The Y component of the ViewDirection vector. The ViewDirection determines how the resulting impostor geometry will be oriented. The billboard will be perpendicular to this vector.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = -1f;
+                DefaultMinValue = -1f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ViewDirectionY: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ViewDirectionY: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -20916,6 +24085,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonViewDirectionZEx() : base("ViewDirectionZ")
@@ -20926,6 +24097,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = -1f;
                 MaxValue = 1f;
+                DefaultMinValue = -1f;
+                DefaultMaxValue = 1f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -20936,24 +24109,38 @@ namespace SimplygonUI
                 HelpText = "The Z component of the ViewDirection vector. The ViewDirection determines how the resulting impostor geometry will be oriented. The billboard will be perpendicular to this vector.";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = -1f;
+                DefaultMinValue = -1f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ViewDirectionZ: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1f;
-                }
-
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ViewDirectionZ: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -21025,6 +24212,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonTexCoordPaddingEx() : base("TexCoordPadding")
@@ -21035,6 +24224,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = 0f;
                 MaxValue = 0.5f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 0.5f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -21045,24 +24236,38 @@ namespace SimplygonUI
                 HelpText = "Normally, the processor will generate an impostor with texcoords from 0.0 to 1.0, giving perfect UV coverage in the final texture. If your engine uses permanent tiling rendering mode, you may need to add a small padding to avoid sub-pixel wrapping artifact at the impostor edges, which this setting supplies. Ex: Setting this to 0.01 will generate texcoords in the range 0.01 to 0.99.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TexCoordPadding: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 0.5f;
+                DefaultMaxValue = 0.5f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 0.5f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TexCoordPadding: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -21267,7 +24472,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("TightFittingDepthOffset") != null)
             {
-                TightFittingDepthOffset = (float)jsonData.TightFittingDepthOffset;
+                float newTightFittingDepthOffset = (float)jsonData.TightFittingDepthOffset;
+                if (newTightFittingDepthOffset >= TightFittingDepthOffsetUI.DefaultMinValue && newTightFittingDepthOffset <= TightFittingDepthOffsetUI.DefaultMaxValue)
+                {
+                    TightFittingDepthOffset = newTightFittingDepthOffset;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"TightFittingDepthOffset: Invalid value {newTightFittingDepthOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {TightFittingDepthOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("TwoSided") != null)
@@ -21277,22 +24492,62 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("ViewDirectionX") != null)
             {
-                ViewDirectionX = (float)jsonData.ViewDirectionX;
+                float newViewDirectionX = (float)jsonData.ViewDirectionX;
+                if (newViewDirectionX >= ViewDirectionXUI.DefaultMinValue && newViewDirectionX <= ViewDirectionXUI.DefaultMaxValue)
+                {
+                    ViewDirectionX = newViewDirectionX;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ViewDirectionX: Invalid value {newViewDirectionX.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {ViewDirectionX.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("ViewDirectionY") != null)
             {
-                ViewDirectionY = (float)jsonData.ViewDirectionY;
+                float newViewDirectionY = (float)jsonData.ViewDirectionY;
+                if (newViewDirectionY >= ViewDirectionYUI.DefaultMinValue && newViewDirectionY <= ViewDirectionYUI.DefaultMaxValue)
+                {
+                    ViewDirectionY = newViewDirectionY;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ViewDirectionY: Invalid value {newViewDirectionY.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {ViewDirectionY.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("ViewDirectionZ") != null)
             {
-                ViewDirectionZ = (float)jsonData.ViewDirectionZ;
+                float newViewDirectionZ = (float)jsonData.ViewDirectionZ;
+                if (newViewDirectionZ >= ViewDirectionZUI.DefaultMinValue && newViewDirectionZ <= ViewDirectionZUI.DefaultMaxValue)
+                {
+                    ViewDirectionZ = newViewDirectionZ;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ViewDirectionZ: Invalid value {newViewDirectionZ.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {ViewDirectionZ.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("TexCoordPadding") != null)
             {
-                TexCoordPadding = (float)jsonData.TexCoordPadding;
+                float newTexCoordPadding = (float)jsonData.TexCoordPadding;
+                if (newTexCoordPadding >= TexCoordPaddingUI.DefaultMinValue && newTexCoordPadding <= TexCoordPaddingUI.DefaultMaxValue)
+                {
+                    TexCoordPadding = newTexCoordPadding;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"TexCoordPadding: Invalid value {newTexCoordPadding.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {TexCoordPadding.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
         }
@@ -21374,6 +24629,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonOnScreenSizeEx() : base("OnScreenSize")
@@ -21384,6 +24641,8 @@ namespace SimplygonUI
                 DefaultValue = 100;
                 MinValue = 20;
                 MaxValue = 10000;
+                DefaultMinValue = 20;
+                DefaultMaxValue = 10000;
                 TicksFrequencyValue = 10;
                 Visible = true;
             }
@@ -21394,24 +24653,38 @@ namespace SimplygonUI
                 HelpText = "The onscreen size (px) of the output utility mesh. This will determine triangle count and quality.";
                 TypeOverride = "";
                 DefaultValue = 100;
+                MinValue = 20;
+                DefaultMinValue = 20;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OnScreenSize: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 20;
-                }
-
+                MaxValue = 10000;
+                DefaultMaxValue = 10000;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10000;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OnScreenSize: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -21483,6 +24756,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonOnScreenErrorToleranceEx() : base("OnScreenErrorTolerance")
@@ -21493,6 +24768,8 @@ namespace SimplygonUI
                 DefaultValue = 10;
                 MinValue = 1;
                 MaxValue = 50;
+                DefaultMinValue = 1;
+                DefaultMaxValue = 50;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -21503,24 +24780,38 @@ namespace SimplygonUI
                 HelpText = "The OnScreenErrorTolerance determines how large of an error that is tolerated, in pixels. Valid range is 1-50. Since this setting is based around the absolute worst-case scenario, you can usually get good results at relatively high tolerances.";
                 TypeOverride = "";
                 DefaultValue = 10;
+                MinValue = 1;
+                DefaultMinValue = 1;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OnScreenErrorTolerance: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 1;
-                }
-
+                MaxValue = 50;
+                DefaultMaxValue = 50;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 50;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OnScreenErrorTolerance: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -21875,7 +25166,7 @@ namespace SimplygonUI
             public SimplygonOcclusionModeEx() : base("OcclusionMode")
             {
                 Type = "enum";
-                HelpText = "The occlusion mode. This decides if the processor generates an occluder (which is smaller than the original mesh), an ocludee (which is larger), or an output that just tries to match the input.";
+                HelpText = "The occlusion mode. This decides if the processor generates an occluder (which is smaller than the original mesh), an occludee (which is larger), or an output that just tries to match the input.";
                 TypeOverride = "";
                 DefaultValue = EOcclusionMode.Occluder;
                 Visible = true;
@@ -21884,7 +25175,7 @@ namespace SimplygonUI
             public SimplygonOcclusionModeEx(dynamic jsonData) : base("OcclusionMode")
             {
                 Type = "enum";
-                HelpText = "The occlusion mode. This decides if the processor generates an occluder (which is smaller than the original mesh), an ocludee (which is larger), or an output that just tries to match the input.";
+                HelpText = "The occlusion mode. This decides if the processor generates an occluder (which is smaller than the original mesh), an occludee (which is larger), or an output that just tries to match the input.";
                 TypeOverride = "";
                 DefaultValue = EOcclusionMode.Occluder;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -22071,12 +25362,32 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("OnScreenSize") != null)
             {
-                OnScreenSize = (int)jsonData.OnScreenSize;
+                var newOnScreenSize = (int)jsonData.OnScreenSize;
+                if (newOnScreenSize >= OnScreenSizeUI.DefaultMinValue && newOnScreenSize <= OnScreenSizeUI.DefaultMaxValue)
+                {
+                    OnScreenSize = newOnScreenSize;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"OnScreenSize: Invalid value {newOnScreenSize}, using default value {OnScreenSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("OnScreenErrorTolerance") != null)
             {
-                OnScreenErrorTolerance = (int)jsonData.OnScreenErrorTolerance;
+                var newOnScreenErrorTolerance = (int)jsonData.OnScreenErrorTolerance;
+                if (newOnScreenErrorTolerance >= OnScreenErrorToleranceUI.DefaultMinValue && newOnScreenErrorTolerance <= OnScreenErrorToleranceUI.DefaultMaxValue)
+                {
+                    OnScreenErrorTolerance = newOnScreenErrorTolerance;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"OnScreenErrorTolerance: Invalid value {newOnScreenErrorTolerance}, using default value {OnScreenErrorTolerance.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("InvertOutputMesh") != null)
@@ -22475,7 +25786,7 @@ namespace SimplygonUI
             public SimplygonOpacityChannelEx() : base("OpacityChannel")
             {
                 Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used.";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
                 TypeOverride = "";
                 DefaultValue = "Opacity";
                 Visible = true;
@@ -22484,7 +25795,7 @@ namespace SimplygonUI
             public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
             {
                 Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used.";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
                 TypeOverride = "";
                 DefaultValue = "Opacity";
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -22827,6 +26138,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonDilationEx() : base("Dilation")
@@ -22837,6 +26150,8 @@ namespace SimplygonUI
                 DefaultValue = 10;
                 MinValue = 0;
                 MaxValue = 1000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 1000;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -22847,24 +26162,38 @@ namespace SimplygonUI
                 HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
                 DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 1000;
+                DefaultMaxValue = 1000;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -23510,7 +26839,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("Dilation") != null)
             {
-                Dilation = (int)jsonData.Dilation;
+                var newDilation = (int)jsonData.Dilation;
+                if (newDilation >= DilationUI.DefaultMinValue && newDilation <= DilationUI.DefaultMaxValue)
+                {
+                    Dilation = newDilation;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid value {newDilation}, using default value {Dilation.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("OutputOpacityType") != null)
@@ -23916,7 +27255,7 @@ namespace SimplygonUI
             public SimplygonOpacityChannelEx() : base("OpacityChannel")
             {
                 Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used.";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
                 TypeOverride = "";
                 DefaultValue = "Opacity";
                 Visible = true;
@@ -23925,7 +27264,7 @@ namespace SimplygonUI
             public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
             {
                 Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used.";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
                 TypeOverride = "";
                 DefaultValue = "Opacity";
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -24268,6 +27607,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonDilationEx() : base("Dilation")
@@ -24278,6 +27619,8 @@ namespace SimplygonUI
                 DefaultValue = 10;
                 MinValue = 0;
                 MaxValue = 1000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 1000;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -24288,24 +27631,38 @@ namespace SimplygonUI
                 HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
                 DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 1000;
+                DefaultMaxValue = 1000;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -24777,7 +28134,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("Dilation") != null)
             {
-                Dilation = (int)jsonData.Dilation;
+                var newDilation = (int)jsonData.Dilation;
+                if (newDilation >= DilationUI.DefaultMinValue && newDilation <= DilationUI.DefaultMaxValue)
+                {
+                    Dilation = newDilation;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid value {newDilation}, using default value {Dilation.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("OutputOpacityType") != null)
@@ -25172,7 +28539,7 @@ namespace SimplygonUI
             public SimplygonOpacityChannelEx() : base("OpacityChannel")
             {
                 Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used.";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
                 TypeOverride = "";
                 DefaultValue = "Opacity";
                 Visible = true;
@@ -25181,7 +28548,7 @@ namespace SimplygonUI
             public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
             {
                 Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used.";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
                 TypeOverride = "";
                 DefaultValue = "Opacity";
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -25524,6 +28891,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonDilationEx() : base("Dilation")
@@ -25534,6 +28903,8 @@ namespace SimplygonUI
                 DefaultValue = 10;
                 MinValue = 0;
                 MaxValue = 1000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 1000;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -25544,24 +28915,38 @@ namespace SimplygonUI
                 HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
                 DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 1000;
+                DefaultMaxValue = 1000;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -25846,7 +29231,7 @@ namespace SimplygonUI
             public SimplygonCalculateBitangentPerFragmentEx() : base("CalculateBitangentPerFragment")
             {
                 Type = "bool";
-                HelpText = "If set, the normal caster calculates the bitangent used for encoding per-fragment using the normal, tangent and bitangent sign instead of interpolating the actual bitangent vertex data. This needs to match the behaviour of the renderer to not produce rendering artifacts.";
+                HelpText = "If set, the normal caster calculates the bitangent used for encoding per-fragment using the normal, tangent and bitangent sign instead of interpolating the actual bitangent vertex data. This needs to match the behavior of the renderer to not produce rendering artifacts.";
                 TypeOverride = "";
                 DefaultValue = true;
                 Visible = true;
@@ -25855,7 +29240,7 @@ namespace SimplygonUI
             public SimplygonCalculateBitangentPerFragmentEx(dynamic jsonData) : base("CalculateBitangentPerFragment")
             {
                 Type = "bool";
-                HelpText = "If set, the normal caster calculates the bitangent used for encoding per-fragment using the normal, tangent and bitangent sign instead of interpolating the actual bitangent vertex data. This needs to match the behaviour of the renderer to not produce rendering artifacts.";
+                HelpText = "If set, the normal caster calculates the bitangent used for encoding per-fragment using the normal, tangent and bitangent sign instead of interpolating the actual bitangent vertex data. This needs to match the behavior of the renderer to not produce rendering artifacts.";
                 TypeOverride = "";
                 DefaultValue = true;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -25916,7 +29301,7 @@ namespace SimplygonUI
             public SimplygonNormalizeInterpolatedTangentSpaceEx() : base("NormalizeInterpolatedTangentSpace")
             {
                 Type = "bool";
-                HelpText = "If set, the normal caster normalizes the normal and tangent data used for encoding after interpolation. This needs to match the behaviour of the renderer to not produce rendering artifacts.";
+                HelpText = "If set, the normal caster normalizes the normal and tangent data used for encoding after interpolation. This needs to match the behavior of the renderer to not produce rendering artifacts.";
                 TypeOverride = "";
                 DefaultValue = false;
                 Visible = true;
@@ -25925,7 +29310,7 @@ namespace SimplygonUI
             public SimplygonNormalizeInterpolatedTangentSpaceEx(dynamic jsonData) : base("NormalizeInterpolatedTangentSpace")
             {
                 Type = "bool";
-                HelpText = "If set, the normal caster normalizes the normal and tangent data used for encoding after interpolation. This needs to match the behaviour of the renderer to not produce rendering artifacts.";
+                HelpText = "If set, the normal caster normalizes the normal and tangent data used for encoding after interpolation. This needs to match the behavior of the renderer to not produce rendering artifacts.";
                 TypeOverride = "";
                 DefaultValue = false;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -26293,7 +29678,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("Dilation") != null)
             {
-                Dilation = (int)jsonData.Dilation;
+                var newDilation = (int)jsonData.Dilation;
+                if (newDilation >= DilationUI.DefaultMinValue && newDilation <= DilationUI.DefaultMaxValue)
+                {
+                    Dilation = newDilation;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid value {newDilation}, using default value {Dilation.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("GenerateTangentSpaceNormals") != null)
@@ -26708,7 +30103,7 @@ namespace SimplygonUI
             public SimplygonOpacityChannelEx() : base("OpacityChannel")
             {
                 Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used.";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
                 TypeOverride = "";
                 DefaultValue = "Opacity";
                 Visible = true;
@@ -26717,7 +30112,7 @@ namespace SimplygonUI
             public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
             {
                 Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used.";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
                 TypeOverride = "";
                 DefaultValue = "Opacity";
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -26846,6 +30241,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonDistanceScalingEx() : base("DistanceScaling")
@@ -26856,6 +30253,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = 0f;
                 MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -26866,24 +30265,38 @@ namespace SimplygonUI
                 HelpText = "All the delta values are divided by this value before storing them into an image.";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"DistanceScaling: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"DistanceScaling: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -27099,6 +30512,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonDilationEx() : base("Dilation")
@@ -27109,6 +30524,8 @@ namespace SimplygonUI
                 DefaultValue = 10;
                 MinValue = 0;
                 MaxValue = 1000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 1000;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -27119,24 +30536,38 @@ namespace SimplygonUI
                 HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
                 DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 1000;
+                DefaultMaxValue = 1000;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -27419,6 +30850,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonNormalMapTexCoordLevelEx() : base("NormalMapTexCoordLevel")
@@ -27429,6 +30862,8 @@ namespace SimplygonUI
                 DefaultValue = -1;
                 MinValue = -1;
                 MaxValue = 10;
+                DefaultMinValue = -1;
+                DefaultMaxValue = 10;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -27439,24 +30874,38 @@ namespace SimplygonUI
                 HelpText = "The texture coordinate level to use for the tangent space displacement vectors.";
                 TypeOverride = "";
                 DefaultValue = -1;
+                MinValue = -1;
+                DefaultMinValue = -1;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"NormalMapTexCoordLevel: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1;
-                }
-
+                MaxValue = 10;
+                DefaultMaxValue = 10;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"NormalMapTexCoordLevel: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -27805,7 +31254,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("DistanceScaling") != null)
             {
-                DistanceScaling = (float)jsonData.DistanceScaling;
+                float newDistanceScaling = (float)jsonData.DistanceScaling;
+                if (newDistanceScaling >= DistanceScalingUI.DefaultMinValue && newDistanceScaling <= DistanceScalingUI.DefaultMaxValue)
+                {
+                    DistanceScaling = newDistanceScaling;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"DistanceScaling: Invalid value {newDistanceScaling.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DistanceScaling.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("OutputImageFileFormat") != null)
@@ -27820,7 +31279,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("Dilation") != null)
             {
-                Dilation = (int)jsonData.Dilation;
+                var newDilation = (int)jsonData.Dilation;
+                if (newDilation >= DilationUI.DefaultMinValue && newDilation <= DilationUI.DefaultMaxValue)
+                {
+                    Dilation = newDilation;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid value {newDilation}, using default value {Dilation.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("GenerateScalarDisplacement") != null)
@@ -27840,7 +31309,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("NormalMapTexCoordLevel") != null)
             {
-                NormalMapTexCoordLevel = (int)jsonData.NormalMapTexCoordLevel;
+                var newNormalMapTexCoordLevel = (int)jsonData.NormalMapTexCoordLevel;
+                if (newNormalMapTexCoordLevel >= NormalMapTexCoordLevelUI.DefaultMinValue && newNormalMapTexCoordLevel <= NormalMapTexCoordLevelUI.DefaultMaxValue)
+                {
+                    NormalMapTexCoordLevel = newNormalMapTexCoordLevel;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"NormalMapTexCoordLevel: Invalid value {newNormalMapTexCoordLevel}, using default value {NormalMapTexCoordLevel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
         }
@@ -28228,7 +31707,7 @@ namespace SimplygonUI
             public SimplygonOpacityChannelEx() : base("OpacityChannel")
             {
                 Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used.";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
                 TypeOverride = "";
                 DefaultValue = "Opacity";
                 Visible = true;
@@ -28237,7 +31716,7 @@ namespace SimplygonUI
             public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
             {
                 Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used.";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
                 TypeOverride = "";
                 DefaultValue = "Opacity";
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -28366,6 +31845,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonRaysPerPixelEx() : base("RaysPerPixel")
@@ -28376,6 +31857,8 @@ namespace SimplygonUI
                 DefaultValue = 64;
                 MinValue = 0;
                 MaxValue = 256;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 256;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -28386,24 +31869,38 @@ namespace SimplygonUI
                 HelpText = "This determines how many rays are traced per pixel (or subpixel) to evaluate the occlusion.";
                 TypeOverride = "";
                 DefaultValue = 64;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"RaysPerPixel: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 256;
+                DefaultMaxValue = 256;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 256;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"RaysPerPixel: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -28619,6 +32116,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonDilationEx() : base("Dilation")
@@ -28629,6 +32128,8 @@ namespace SimplygonUI
                 DefaultValue = 10;
                 MinValue = 0;
                 MaxValue = 1000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 1000;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -28639,24 +32140,38 @@ namespace SimplygonUI
                 HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
                 DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 1000;
+                DefaultMaxValue = 1000;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -28728,6 +32243,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonOcclusionFalloffEx() : base("OcclusionFalloff")
@@ -28738,6 +32255,8 @@ namespace SimplygonUI
                 DefaultValue = -1f;
                 MinValue = -1000f;
                 MaxValue = 1000f;
+                DefaultMinValue = -1000f;
+                DefaultMaxValue = 1000f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -28748,24 +32267,38 @@ namespace SimplygonUI
                 HelpText = "How far away a surface has to be from another surface to generate no occlusion. Only applicable if SimpleOcclusionMode is off.";
                 TypeOverride = "";
                 DefaultValue = -1f;
+                MinValue = -1000f;
+                DefaultMinValue = -1000f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OcclusionFalloff: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1000f;
-                }
-
+                MaxValue = 1000f;
+                DefaultMaxValue = 1000f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OcclusionFalloff: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -28908,6 +32441,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonOcclusionMultiplierEx() : base("OcclusionMultiplier")
@@ -28918,6 +32453,8 @@ namespace SimplygonUI
                 DefaultValue = -1f;
                 MinValue = -10f;
                 MaxValue = 10f;
+                DefaultMinValue = -10f;
+                DefaultMaxValue = 10f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -28928,24 +32465,38 @@ namespace SimplygonUI
                 HelpText = "This is just a basic intensity scaler. Higher is 'darker'.";
                 TypeOverride = "";
                 DefaultValue = -1f;
+                MinValue = -10f;
+                DefaultMinValue = -10f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OcclusionMultiplier: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -10f;
-                }
-
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OcclusionMultiplier: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -29364,7 +32915,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("RaysPerPixel") != null)
             {
-                RaysPerPixel = (int)jsonData.RaysPerPixel;
+                var newRaysPerPixel = (int)jsonData.RaysPerPixel;
+                if (newRaysPerPixel >= RaysPerPixelUI.DefaultMinValue && newRaysPerPixel <= RaysPerPixelUI.DefaultMaxValue)
+                {
+                    RaysPerPixel = newRaysPerPixel;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"RaysPerPixel: Invalid value {newRaysPerPixel}, using default value {RaysPerPixel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("OutputImageFileFormat") != null)
@@ -29379,12 +32940,32 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("Dilation") != null)
             {
-                Dilation = (int)jsonData.Dilation;
+                var newDilation = (int)jsonData.Dilation;
+                if (newDilation >= DilationUI.DefaultMinValue && newDilation <= DilationUI.DefaultMaxValue)
+                {
+                    Dilation = newDilation;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid value {newDilation}, using default value {Dilation.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("OcclusionFalloff") != null)
             {
-                OcclusionFalloff = (float)jsonData.OcclusionFalloff;
+                float newOcclusionFalloff = (float)jsonData.OcclusionFalloff;
+                if (newOcclusionFalloff >= OcclusionFalloffUI.DefaultMinValue && newOcclusionFalloff <= OcclusionFalloffUI.DefaultMaxValue)
+                {
+                    OcclusionFalloff = newOcclusionFalloff;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"OcclusionFalloff: Invalid value {newOcclusionFalloff.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {OcclusionFalloff.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("OutputPixelFormat") != null)
@@ -29394,7 +32975,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("OcclusionMultiplier") != null)
             {
-                OcclusionMultiplier = (float)jsonData.OcclusionMultiplier;
+                float newOcclusionMultiplier = (float)jsonData.OcclusionMultiplier;
+                if (newOcclusionMultiplier >= OcclusionMultiplierUI.DefaultMinValue && newOcclusionMultiplier <= OcclusionMultiplierUI.DefaultMaxValue)
+                {
+                    OcclusionMultiplier = newOcclusionMultiplier;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"OcclusionMultiplier: Invalid value {newOcclusionMultiplier.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {OcclusionMultiplier.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("UseSimpleOcclusionMode") != null)
@@ -29793,7 +33384,7 @@ namespace SimplygonUI
             public SimplygonOpacityChannelEx() : base("OpacityChannel")
             {
                 Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used.";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
                 TypeOverride = "";
                 DefaultValue = "Opacity";
                 Visible = true;
@@ -29802,7 +33393,7 @@ namespace SimplygonUI
             public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
             {
                 Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used.";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
                 TypeOverride = "";
                 DefaultValue = "Opacity";
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -30146,6 +33737,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonDilationEx() : base("Dilation")
@@ -30156,6 +33749,8 @@ namespace SimplygonUI
                 DefaultValue = 10;
                 MinValue = 0;
                 MaxValue = 1000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 1000;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -30166,24 +33761,38 @@ namespace SimplygonUI
                 HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
                 DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 1000;
+                DefaultMaxValue = 1000;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -30255,6 +33864,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonGeometryDataFieldIndexEx() : base("GeometryDataFieldIndex")
@@ -30265,6 +33876,8 @@ namespace SimplygonUI
                 DefaultValue = 0;
                 MinValue = 0;
                 MaxValue = 10;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 10;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -30275,24 +33888,38 @@ namespace SimplygonUI
                 HelpText = "The GeometryDataFieldIndex setting, which specifies what field index to cast in the GeometryDataCaster, for fields where it is applicable (TexCoords, Tangents, Bitangents and Colors). The setting is ignored for other field types.";
                 TypeOverride = "";
                 DefaultValue = 0;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GeometryDataFieldIndex: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 10;
+                DefaultMaxValue = 10;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GeometryDataFieldIndex: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -30435,6 +34062,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonMappingInfREx() : base("MappingInfR")
@@ -30445,6 +34074,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = -1000f;
                 MaxValue = 1000f;
+                DefaultMinValue = -1000f;
+                DefaultMaxValue = 1000f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -30455,24 +34086,38 @@ namespace SimplygonUI
                 HelpText = "The inferior/minimum value of field values to map onto the image data range (0->1). The minimum value will be represented by 0 in the image. Note that the mapping is only used for real value fields, not id-based fields, which cannot be scaled accurately.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = -1000f;
+                DefaultMinValue = -1000f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingInfR: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1000f;
-                }
-
+                MaxValue = 1000f;
+                DefaultMaxValue = 1000f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingInfR: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -30544,6 +34189,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonMappingSupREx() : base("MappingSupR")
@@ -30554,6 +34201,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = -1000f;
                 MaxValue = 1000f;
+                DefaultMinValue = -1000f;
+                DefaultMaxValue = 1000f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -30564,24 +34213,38 @@ namespace SimplygonUI
                 HelpText = "The Superior/maximum value of field values to map onto the image data range (0->1). The maximum value will be represented by 1 in the image. Note that the mapping is only used for real value fields, not id-based fields, which cannot be scaled accurately.";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = -1000f;
+                DefaultMinValue = -1000f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingSupR: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1000f;
-                }
-
+                MaxValue = 1000f;
+                DefaultMaxValue = 1000f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingSupR: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -30653,6 +34316,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonMappingInfGEx() : base("MappingInfG")
@@ -30663,6 +34328,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = -1000f;
                 MaxValue = 1000f;
+                DefaultMinValue = -1000f;
+                DefaultMaxValue = 1000f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -30673,24 +34340,38 @@ namespace SimplygonUI
                 HelpText = "The inferior/minimum value of field values to map onto the image data range (0->1). The minimum value will be represented by 0 in the image. Note that the mapping is only used for real value fields, not id-based fields, which cannot be scaled accurately.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = -1000f;
+                DefaultMinValue = -1000f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingInfG: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1000f;
-                }
-
+                MaxValue = 1000f;
+                DefaultMaxValue = 1000f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingInfG: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -30762,6 +34443,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonMappingSupGEx() : base("MappingSupG")
@@ -30772,6 +34455,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = -1000f;
                 MaxValue = 1000f;
+                DefaultMinValue = -1000f;
+                DefaultMaxValue = 1000f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -30782,24 +34467,38 @@ namespace SimplygonUI
                 HelpText = "The Superior/maximum value of field values to map onto the image data range (0->1). The maximum value will be represented by 1 in the image. Note that the mapping is only used for real value fields, not id-based fields, which cannot be scaled accurately.";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = -1000f;
+                DefaultMinValue = -1000f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingSupG: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1000f;
-                }
-
+                MaxValue = 1000f;
+                DefaultMaxValue = 1000f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingSupG: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -30871,6 +34570,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonMappingInfBEx() : base("MappingInfB")
@@ -30881,6 +34582,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = -1000f;
                 MaxValue = 1000f;
+                DefaultMinValue = -1000f;
+                DefaultMaxValue = 1000f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -30891,24 +34594,38 @@ namespace SimplygonUI
                 HelpText = "The inferior/minimum value of field values to map onto the image data range (0->1). The minimum value will be represented by 0 in the image. Note that the mapping is only used for real value fields, not id-based fields, which cannot be scaled accurately.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = -1000f;
+                DefaultMinValue = -1000f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingInfB: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1000f;
-                }
-
+                MaxValue = 1000f;
+                DefaultMaxValue = 1000f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingInfB: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -30980,6 +34697,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonMappingSupBEx() : base("MappingSupB")
@@ -30990,6 +34709,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = -1000f;
                 MaxValue = 1000f;
+                DefaultMinValue = -1000f;
+                DefaultMaxValue = 1000f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -31000,24 +34721,38 @@ namespace SimplygonUI
                 HelpText = "The Superior/maximum value of field values to map onto the image data range (0->1). The maximum value will be represented by 1 in the image. Note that the mapping is only used for real value fields, not id-based fields, which cannot be scaled accurately.";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = -1000f;
+                DefaultMinValue = -1000f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingSupB: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1000f;
-                }
-
+                MaxValue = 1000f;
+                DefaultMaxValue = 1000f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingSupB: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -31089,6 +34824,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonMappingInfAEx() : base("MappingInfA")
@@ -31099,6 +34836,8 @@ namespace SimplygonUI
                 DefaultValue = 0f;
                 MinValue = -1000f;
                 MaxValue = 1000f;
+                DefaultMinValue = -1000f;
+                DefaultMaxValue = 1000f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -31109,24 +34848,38 @@ namespace SimplygonUI
                 HelpText = "Property the inferior/minimum value of field values to map onto the image data range (0->1). The minimum value will be represented by 0 in the image. Note that the mapping is only used for real value fields, not id-based fields, which cannot be scaled accurately.";
                 TypeOverride = "";
                 DefaultValue = 0f;
+                MinValue = -1000f;
+                DefaultMinValue = -1000f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingInfA: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1000f;
-                }
-
+                MaxValue = 1000f;
+                DefaultMaxValue = 1000f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingInfA: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -31198,6 +34951,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonMappingSupAEx() : base("MappingSupA")
@@ -31208,6 +34963,8 @@ namespace SimplygonUI
                 DefaultValue = 1f;
                 MinValue = -1000f;
                 MaxValue = 1000f;
+                DefaultMinValue = -1000f;
+                DefaultMaxValue = 1000f;
                 TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
@@ -31218,24 +34975,38 @@ namespace SimplygonUI
                 HelpText = "Property the Superior/maximum value of field values to map onto the image data range (0->1). The maximum value will be represented by 1 in the image. Note that the mapping is only used for real value fields, not id-based fields, which cannot be scaled accurately.";
                 TypeOverride = "";
                 DefaultValue = 1f;
+                MinValue = -1000f;
+                DefaultMinValue = -1000f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingSupA: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1000f;
-                }
-
+                MaxValue = 1000f;
+                DefaultMaxValue = 1000f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingSupA: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -31701,12 +35472,32 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("Dilation") != null)
             {
-                Dilation = (int)jsonData.Dilation;
+                var newDilation = (int)jsonData.Dilation;
+                if (newDilation >= DilationUI.DefaultMinValue && newDilation <= DilationUI.DefaultMaxValue)
+                {
+                    Dilation = newDilation;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid value {newDilation}, using default value {Dilation.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("GeometryDataFieldIndex") != null)
             {
-                GeometryDataFieldIndex = (int)jsonData.GeometryDataFieldIndex;
+                var newGeometryDataFieldIndex = (int)jsonData.GeometryDataFieldIndex;
+                if (newGeometryDataFieldIndex >= GeometryDataFieldIndexUI.DefaultMinValue && newGeometryDataFieldIndex <= GeometryDataFieldIndexUI.DefaultMaxValue)
+                {
+                    GeometryDataFieldIndex = newGeometryDataFieldIndex;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"GeometryDataFieldIndex: Invalid value {newGeometryDataFieldIndex}, using default value {GeometryDataFieldIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("OutputPixelFormat") != null)
@@ -31716,42 +35507,122 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("MappingInfR") != null)
             {
-                MappingInfR = (float)jsonData.MappingInfR;
+                float newMappingInfR = (float)jsonData.MappingInfR;
+                if (newMappingInfR >= MappingInfRUI.DefaultMinValue && newMappingInfR <= MappingInfRUI.DefaultMaxValue)
+                {
+                    MappingInfR = newMappingInfR;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MappingInfR: Invalid value {newMappingInfR.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {MappingInfR.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("MappingSupR") != null)
             {
-                MappingSupR = (float)jsonData.MappingSupR;
+                float newMappingSupR = (float)jsonData.MappingSupR;
+                if (newMappingSupR >= MappingSupRUI.DefaultMinValue && newMappingSupR <= MappingSupRUI.DefaultMaxValue)
+                {
+                    MappingSupR = newMappingSupR;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MappingSupR: Invalid value {newMappingSupR.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {MappingSupR.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("MappingInfG") != null)
             {
-                MappingInfG = (float)jsonData.MappingInfG;
+                float newMappingInfG = (float)jsonData.MappingInfG;
+                if (newMappingInfG >= MappingInfGUI.DefaultMinValue && newMappingInfG <= MappingInfGUI.DefaultMaxValue)
+                {
+                    MappingInfG = newMappingInfG;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MappingInfG: Invalid value {newMappingInfG.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {MappingInfG.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("MappingSupG") != null)
             {
-                MappingSupG = (float)jsonData.MappingSupG;
+                float newMappingSupG = (float)jsonData.MappingSupG;
+                if (newMappingSupG >= MappingSupGUI.DefaultMinValue && newMappingSupG <= MappingSupGUI.DefaultMaxValue)
+                {
+                    MappingSupG = newMappingSupG;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MappingSupG: Invalid value {newMappingSupG.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {MappingSupG.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("MappingInfB") != null)
             {
-                MappingInfB = (float)jsonData.MappingInfB;
+                float newMappingInfB = (float)jsonData.MappingInfB;
+                if (newMappingInfB >= MappingInfBUI.DefaultMinValue && newMappingInfB <= MappingInfBUI.DefaultMaxValue)
+                {
+                    MappingInfB = newMappingInfB;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MappingInfB: Invalid value {newMappingInfB.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {MappingInfB.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("MappingSupB") != null)
             {
-                MappingSupB = (float)jsonData.MappingSupB;
+                float newMappingSupB = (float)jsonData.MappingSupB;
+                if (newMappingSupB >= MappingSupBUI.DefaultMinValue && newMappingSupB <= MappingSupBUI.DefaultMaxValue)
+                {
+                    MappingSupB = newMappingSupB;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MappingSupB: Invalid value {newMappingSupB.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {MappingSupB.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("MappingInfA") != null)
             {
-                MappingInfA = (float)jsonData.MappingInfA;
+                float newMappingInfA = (float)jsonData.MappingInfA;
+                if (newMappingInfA >= MappingInfAUI.DefaultMinValue && newMappingInfA <= MappingInfAUI.DefaultMaxValue)
+                {
+                    MappingInfA = newMappingInfA;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MappingInfA: Invalid value {newMappingInfA.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {MappingInfA.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("MappingSupA") != null)
             {
-                MappingSupA = (float)jsonData.MappingSupA;
+                float newMappingSupA = (float)jsonData.MappingSupA;
+                if (newMappingSupA >= MappingSupAUI.DefaultMinValue && newMappingSupA <= MappingSupAUI.DefaultMaxValue)
+                {
+                    MappingSupA = newMappingSupA;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MappingSupA: Invalid value {newMappingSupA.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {MappingSupA.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
         }
@@ -32150,7 +36021,7 @@ namespace SimplygonUI
             public SimplygonOpacityChannelEx() : base("OpacityChannel")
             {
                 Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used.";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
                 TypeOverride = "";
                 DefaultValue = "Opacity";
                 Visible = true;
@@ -32159,7 +36030,7 @@ namespace SimplygonUI
             public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
             {
                 Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used.";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
                 TypeOverride = "";
                 DefaultValue = "Opacity";
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -32288,6 +36159,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonOutputColorLevelEx() : base("OutputColorLevel")
@@ -32298,6 +36171,8 @@ namespace SimplygonUI
                 DefaultValue = -1;
                 MinValue = -1;
                 MaxValue = 10;
+                DefaultMinValue = -1;
+                DefaultMaxValue = 10;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -32308,24 +36183,38 @@ namespace SimplygonUI
                 HelpText = "The OutputColorLevel index.";
                 TypeOverride = "";
                 DefaultValue = -1;
+                MinValue = -1;
+                DefaultMinValue = -1;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OutputColorLevel: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = -1;
-                }
-
+                MaxValue = 10;
+                DefaultMaxValue = 10;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 10;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OutputColorLevel: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -32541,6 +36430,8 @@ namespace SimplygonUI
             public int DefaultValue { get; set; }
             public int MinValue { get; set; }
             public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
             public SimplygonDilationEx() : base("Dilation")
@@ -32551,6 +36442,8 @@ namespace SimplygonUI
                 DefaultValue = 10;
                 MinValue = 0;
                 MaxValue = 1000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 1000;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -32561,24 +36454,38 @@ namespace SimplygonUI
                 HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
                 DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (int)jsonData.MinValue;
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0;
-                }
-
+                MaxValue = 1000;
+                DefaultMaxValue = 1000;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (int)jsonData.MaxValue;
-                }
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 1000;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -32791,6 +36698,8 @@ namespace SimplygonUI
             public float DefaultValue { get; set; }
             public float MinValue { get; set; }
             public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
             public float TicksFrequencyValue { get; set; }
 
             public SimplygonColorSpaceEdgeThresholdEx() : base("ColorSpaceEdgeThreshold")
@@ -32801,6 +36710,8 @@ namespace SimplygonUI
                 DefaultValue = 2f;
                 MinValue = 0f;
                 MaxValue = 2f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 2f;
                 TicksFrequencyValue = 0.01f;
                 Visible = true;
             }
@@ -32811,24 +36722,38 @@ namespace SimplygonUI
                 HelpText = "The color space edge threshold, which will define how many hard color borders there will be. Corners more similar than the threshold will be merged. This works similarly to HardEdgeAngle for normals; lower values leads more hard borders between neighboring corner colors, and higher values will give you more shared, smoother, colors. This also impacts data usage when using packed geometry since (more unique colors) == (more vertices). The distance is measured in RGBA space.";
                 TypeOverride = "";
                 DefaultValue = 2f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    MinValue = (float)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ColorSpaceEdgeThreshold: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
-                else
-                {
-                    MinValue = 0f;
-                }
-
+                MaxValue = 2f;
+                DefaultMaxValue = 2f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    MaxValue = (float)jsonData.MaxValue;
-                }
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
 
-                else
-                {
-                    MaxValue = 2f;
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ColorSpaceEdgeThreshold: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
@@ -33160,7 +37085,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("OutputColorLevel") != null)
             {
-                OutputColorLevel = (int)jsonData.OutputColorLevel;
+                var newOutputColorLevel = (int)jsonData.OutputColorLevel;
+                if (newOutputColorLevel >= OutputColorLevelUI.DefaultMinValue && newOutputColorLevel <= OutputColorLevelUI.DefaultMaxValue)
+                {
+                    OutputColorLevel = newOutputColorLevel;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"OutputColorLevel: Invalid value {newOutputColorLevel}, using default value {OutputColorLevel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("OutputImageFileFormat") != null)
@@ -33175,7 +37110,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("Dilation") != null)
             {
-                Dilation = (int)jsonData.Dilation;
+                var newDilation = (int)jsonData.Dilation;
+                if (newDilation >= DilationUI.DefaultMinValue && newDilation <= DilationUI.DefaultMaxValue)
+                {
+                    Dilation = newDilation;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid value {newDilation}, using default value {Dilation.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("OutputColorName") != null)
@@ -33190,7 +37135,17 @@ namespace SimplygonUI
 
             if(jsonData.GetValue("ColorSpaceEdgeThreshold") != null)
             {
-                ColorSpaceEdgeThreshold = (float)jsonData.ColorSpaceEdgeThreshold;
+                float newColorSpaceEdgeThreshold = (float)jsonData.ColorSpaceEdgeThreshold;
+                if (newColorSpaceEdgeThreshold >= ColorSpaceEdgeThresholdUI.DefaultMinValue && newColorSpaceEdgeThreshold <= ColorSpaceEdgeThresholdUI.DefaultMaxValue)
+                {
+                    ColorSpaceEdgeThreshold = newColorSpaceEdgeThreshold;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ColorSpaceEdgeThreshold: Invalid value {newColorSpaceEdgeThreshold.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {ColorSpaceEdgeThreshold.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
         }
@@ -33303,9 +37258,10 @@ namespace SimplygonUI
         public SimplygonGeometryDataCasterSettings GeometryDataCasterSettings { get; set; }
         public SimplygonVertexColorCasterSettings VertexColorCasterSettings { get; set; }
 
-        public SimplygonMaterialCaster(ESimplygonPipeline pipelineType, ESimplygonMaterialCaster materialCasterType, string materialChannelName, bool allowMaterialChannelOverride = true) : base("")
+        public SimplygonMaterialCaster(ESimplygonPipeline pipelineType, ESimplygonMaterialCaster materialCasterType, string materialChannelName, string menuPath, bool allowMaterialChannelOverride = true) : base("")
         {
             PipelineType = pipelineType;
+            MenuPath = menuPath;
             Visible = true;
             MaterialCasterType = materialCasterType;
 
@@ -33442,7 +37398,7 @@ namespace SimplygonUI
 
         public SimplygonMaterialCaster DeepCopy(ESimplygonPipeline pipelineType)
         {
-            return new SimplygonMaterialCaster(pipelineType, this.MaterialCasterType, this.MaterialChannelName);
+            return new SimplygonMaterialCaster(pipelineType, this.MaterialCasterType, this.MaterialChannelName, this.MenuPath);
         }
 
         public new JObject SaveJson(bool serializeUIComponents)
@@ -33637,641 +37593,1215 @@ namespace SimplygonUI
                 return;
             }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max)
+            if (!string.IsNullOrEmpty(MenuPath))
             {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Advanced/ColorCaster"))
                 {
-                    ColorCasterSettings.MaterialChannel = "Diffuse_Color";
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "Diffuse_Color";
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
+
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Advanced/OpacityCaster"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    if (allowMaterialChannelOverride)
+                    {
+                        OpacityCasterSettings.MaterialChannel = "Opacity";
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    OpacityCasterSettings.OutputPixelFormat = EPixelFormat.R8;
+                    OpacityCasterSettings.OpacityChannelComponent = EColorComponent.Red;
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Advanced/NormalCaster"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    if (allowMaterialChannelOverride)
+                    {
+                        NormalCasterSettings.MaterialChannel = "Bump";
+                    }
+
+                    NormalCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    NormalCasterSettings.CalculateBitangentPerFragment = false;
+                    NormalCasterSettings.NormalizeInterpolatedTangentSpace = true;
                 }
 
-                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.DisplacementCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Advanced/DisplacementCaster"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
                 }
 
-                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.AmbientOcclusionCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Advanced/AmbientOcclusionCaster"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
                 }
 
-            }
+                if (MaterialCasterType == ESimplygonMaterialCaster.GeometryDataCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Advanced/GeometryDataCaster"))
+                {
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.VertexColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Advanced/VertexColorCaster"))
                 {
-                    OpacityCasterSettings.MaterialChannel = "Opacity";
+                    VertexColorCasterSettings.OutputColorName = "0";
                 }
 
-                OpacityCasterSettings.OpacityChannelComponent = EColorComponent.Red;
-                OpacityCasterSettings.OutputSRGB = false;
-                OpacityCasterSettings.OutputPixelFormat = EPixelFormat.R8;
-                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Blinn/AmbientColor"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "Ambient_Color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Blinn/DiffuseColor"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "Diffuse_Color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Blinn/SpecularColor"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "Specular_Color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    ColorCasterSettings.Dilation = 0;
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Blinn/Opacity"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
+                    if (allowMaterialChannelOverride)
+                    {
+                        OpacityCasterSettings.MaterialChannel = "Opacity";
+                    }
+
+                    OpacityCasterSettings.MaterialChannelUI.VisibleOverride = false;
                 }
 
-                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Blinn/Bump"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    if (allowMaterialChannelOverride)
+                    {
+                        NormalCasterSettings.MaterialChannel = "Bump";
+                    }
+
+                    NormalCasterSettings.MaterialChannelUI.VisibleOverride = false;
                 }
 
-                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Phong/AmbientColor"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "Ambient_Color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
                 }
 
-                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Phong/DiffuseColor"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "Diffuse_Color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
                 }
 
-                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Phong/SpecularColor"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "Specular_Color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    ColorCasterSettings.Dilation = 0;
                 }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Phong/Opacity"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        OpacityCasterSettings.MaterialChannel = "Opacity";
+                    }
 
-            }
+                    OpacityCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max && (MenuPath == "Template/Phong/Bump"))
                 {
-                    NormalCasterSettings.MaterialChannel = "Bump";
+                    if (allowMaterialChannelOverride)
+                    {
+                        NormalCasterSettings.MaterialChannel = "Bump";
+                    }
+
+                    NormalCasterSettings.MaterialChannelUI.VisibleOverride = false;
                 }
 
-                NormalCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
-                NormalCasterSettings.CalculateBitangentPerFragment = false;
-                NormalCasterSettings.NormalizeInterpolatedTangentSpace = true;
-            }
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Advanced/ColorCaster"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "base_color";
+                    }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.DisplacementCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max)
-            {
-            }
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.AmbientOcclusionCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max)
-            {
-            }
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.GeometryDataCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max)
-            {
-            }
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.VertexColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max)
-            {
-                VertexColorCasterSettings.OutputColorName = "0";
-            }
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
-            {
-                if (allowMaterialChannelOverride)
-                {
-                    ColorCasterSettings.MaterialChannel = "base_color";
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                ColorCasterSettings.OpacityChannel = "transparency";
-                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Advanced/OpacityCaster"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    if (allowMaterialChannelOverride)
+                    {
+                        OpacityCasterSettings.MaterialChannel = "transparency";
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    OpacityCasterSettings.OutputPixelFormat = EPixelFormat.R8;
+                    OpacityCasterSettings.OpacityChannel = "transparency";
+                    OpacityCasterSettings.OutputOpacityType = EOpacityType.Transparency;
+                    OpacityCasterSettings.OpacityChannelComponent = EColorComponent.Red;
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Advanced/NormalCaster"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    if (allowMaterialChannelOverride)
+                    {
+                        NormalCasterSettings.MaterialChannel = "bump";
+                    }
+
+                    NormalCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    NormalCasterSettings.OpacityChannel = "transparency";
+                    NormalCasterSettings.CalculateBitangentPerFragment = false;
+                    NormalCasterSettings.NormalizeInterpolatedTangentSpace = true;
                 }
 
-                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.DisplacementCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Advanced/DisplacementCaster"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    DisplacementCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.AmbientOcclusionCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Advanced/AmbientOcclusionCaster"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    AmbientOcclusionCasterSettings.OpacityChannel = "transparency";
                 }
-
-            }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.GeometryDataCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Advanced/GeometryDataCaster"))
                 {
-                    OpacityCasterSettings.MaterialChannel = "transparency";
+                    GeometryDataCasterSettings.OpacityChannel = "transparency";
                 }
 
-                OpacityCasterSettings.OpacityChannel = "transparency";
-                OpacityCasterSettings.OutputOpacityType = EOpacityType.Transparency;
-                OpacityCasterSettings.OpacityChannelComponent = EColorComponent.Red;
-                OpacityCasterSettings.OutputSRGB = false;
-                OpacityCasterSettings.OutputPixelFormat = EPixelFormat.R8;
-                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.VertexColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Advanced/VertexColorCaster"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    VertexColorCasterSettings.OpacityChannel = "transparency";
+                    VertexColorCasterSettings.OutputColorName = "0";
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/BaseWeight"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "base_weight";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/BaseColor"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "base_color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/Reflectivity"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "reflectivity";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/ReflColor"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "refl_color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/Roughness"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "roughness";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/Metalness"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "metalness";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/DiffuseRoughness"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
-
-            }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/Transparency"))
                 {
-                    NormalCasterSettings.MaterialChannel = "bump";
-                }
+                    if (allowMaterialChannelOverride)
+                    {
+                        OpacityCasterSettings.MaterialChannel = "transparency";
+                    }
 
-                NormalCasterSettings.OpacityChannel = "transparency";
-                NormalCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
-                NormalCasterSettings.CalculateBitangentPerFragment = false;
-                NormalCasterSettings.NormalizeInterpolatedTangentSpace = true;
-            }
+                    OpacityCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    OpacityCasterSettings.OpacityChannel = "transparency";
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.DisplacementCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
-            {
-                DisplacementCasterSettings.OpacityChannel = "transparency";
-            }
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/TransparencyColor"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "trans_color";
+                    }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.AmbientOcclusionCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
-            {
-                AmbientOcclusionCasterSettings.OpacityChannel = "transparency";
-            }
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.GeometryDataCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
-            {
-                GeometryDataCasterSettings.OpacityChannel = "transparency";
-            }
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/TransparencyRoughness"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "trans_rough";
+                    }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.VertexColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
-            {
-                VertexColorCasterSettings.OpacityChannel = "transparency";
-                VertexColorCasterSettings.OutputColorName = "0";
-            }
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/Scattering"))
                 {
-                    ColorCasterSettings.MaterialChannel = "color";
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "sss_scatter";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                ColorCasterSettings.OpacityChannel = "transparency";
-                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/SSSColor"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "sss_color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/SSSScale"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "sss_scale";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/Emission"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "emission";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/EmissionColor"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
-                }
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "emission_color";
+                    }
 
-            }
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/CoatingWeight"))
                 {
-                    OpacityCasterSettings.MaterialChannel = "transparency";
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                OpacityCasterSettings.OpacityChannel = "transparency";
-                OpacityCasterSettings.OpacityChannelComponent = EColorComponent.Red;
-                OpacityCasterSettings.OutputSRGB = false;
-                OpacityCasterSettings.OutputPixelFormat = EPixelFormat.R8;
-                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/CoatingColor"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "coat_color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/CoatingRoughness"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "coat_roughness";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/Bump"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    if (allowMaterialChannelOverride)
+                    {
+                        NormalCasterSettings.MaterialChannel = "bump";
+                    }
+
+                    NormalCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    NormalCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/CoatingBump"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
+                    if (allowMaterialChannelOverride)
+                    {
+                        NormalCasterSettings.MaterialChannel = "coat_bump";
+                    }
+
+                    NormalCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    NormalCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/Displacement"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "displacement";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && (MenuPath == "Template/Physical/Cutout"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "cutout";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Advanced/ColorCaster"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "color";
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
+
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Advanced/OpacityCaster"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
-                }
+                    if (allowMaterialChannelOverride)
+                    {
+                        OpacityCasterSettings.MaterialChannel = "transparency";
+                    }
 
-            }
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
-            {
-                if (allowMaterialChannelOverride)
-                {
-                    NormalCasterSettings.MaterialChannel = "normalCamera";
-                }
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
 
-                NormalCasterSettings.OpacityChannel = "transparency";
-                NormalCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
-            }
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.DisplacementCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
-            {
-                DisplacementCasterSettings.OpacityChannel = "transparency";
-            }
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.AmbientOcclusionCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
-            {
-                AmbientOcclusionCasterSettings.OpacityChannel = "transparency";
-            }
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.GeometryDataCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
-            {
-                GeometryDataCasterSettings.OpacityChannel = "transparency";
-            }
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.VertexColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
-            {
-                VertexColorCasterSettings.OpacityChannel = "transparency";
-                VertexColorCasterSettings.OutputColorName = "color";
-            }
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Blender)
-            {
-                if (allowMaterialChannelOverride)
-                {
-                    ColorCasterSettings.MaterialChannel = "Basecolor";
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    OpacityCasterSettings.OutputPixelFormat = EPixelFormat.R8;
+                    OpacityCasterSettings.OpacityChannel = "transparency";
+                    OpacityCasterSettings.OpacityChannelComponent = EColorComponent.Red;
                 }
 
-                ColorCasterSettings.OpacityChannel = "Opacity";
-                ColorCasterSettings.OpacityChannelUI.Visible = false;
-                ColorCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
-                ColorCasterSettings.OpacityChannelComponentUI.Visible = false;
-                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Advanced/NormalCaster"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
+                    if (allowMaterialChannelOverride)
+                    {
+                        NormalCasterSettings.MaterialChannel = "normalCamera";
+                    }
+
+                    NormalCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    NormalCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.DisplacementCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Advanced/DisplacementCaster"))
                 {
-                    ColorCasterSettings.BakeOpacityInAlpha = true;
+                    DisplacementCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.AmbientOcclusionCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Advanced/AmbientOcclusionCaster"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
+                    AmbientOcclusionCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.GeometryDataCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Advanced/GeometryDataCaster"))
                 {
-                    ColorCasterSettings.BakeOpacityInAlpha = true;
+                    GeometryDataCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.VertexColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Advanced/VertexColorCaster"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
+                    VertexColorCasterSettings.OpacityChannel = "transparency";
+                    VertexColorCasterSettings.OutputColorName = "color";
                 }
 
-                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Blinn/Color"))
                 {
-                    ColorCasterSettings.BakeOpacityInAlpha = true;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Blinn/AmbientColor"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "ambientColor";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Blinn/Incandescence"))
                 {
-                    ColorCasterSettings.BakeOpacityInAlpha = true;
-                }
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "incandescence";
+                    }
 
-            }
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Blender)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Blinn/NormalCamera"))
                 {
-                    OpacityCasterSettings.MaterialChannel = "Opacity";
+                    if (allowMaterialChannelOverride)
+                    {
+                        NormalCasterSettings.MaterialChannel = "normalCamera";
+                    }
+
+                    NormalCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    NormalCasterSettings.OpacityChannel = "transparency";
                 }
 
-                OpacityCasterSettings.OpacityChannel = "Opacity";
-                OpacityCasterSettings.OpacityChannelUI.Visible = false;
-                OpacityCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
-                OpacityCasterSettings.OpacityChannelComponentUI.Visible = false;
-                OpacityCasterSettings.OutputPixelFormat = EPixelFormat.R8;
-                OpacityCasterSettings.OutputPixelFormatUI.Visible = false;
-                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Blinn/ReflectedColor"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "reflectedColor";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Blinn/SpecularColor"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "specularColor";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    ColorCasterSettings.Dilation = 0;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Blinn/Transparency"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    if (allowMaterialChannelOverride)
+                    {
+                        OpacityCasterSettings.MaterialChannel = "transparency";
+                    }
+
+                    OpacityCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    OpacityCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Lambert/Color"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Lambert/AmbientColor"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "ambientColor";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Lambert/Incandescence"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "incandescence";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Lambert/NormalCamera"))
                 {
-                    OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    if (allowMaterialChannelOverride)
+                    {
+                        NormalCasterSettings.MaterialChannel = "normalCamera";
+                    }
+
+                    NormalCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    NormalCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Lambert/Transparency"))
                 {
-                    OpacityCasterSettings.Dilation = 0;
-                }
+                    if (allowMaterialChannelOverride)
+                    {
+                        OpacityCasterSettings.MaterialChannel = "transparency";
+                    }
 
-            }
+                    OpacityCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    OpacityCasterSettings.OpacityChannel = "transparency";
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Blender)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Phong/Color"))
                 {
-                    NormalCasterSettings.MaterialChannel = "Normals";
-                }
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "color";
+                    }
 
-                NormalCasterSettings.MaterialChannelUI.VisibleOverride = false;
-                NormalCasterSettings.OpacityChannel = "Opacity";
-                NormalCasterSettings.OpacityChannelUI.VisibleOverride = false;
-                NormalCasterSettings.OpacityChannelComponentUI.VisibleOverride = false;
-                NormalCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
-            }
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.DisplacementCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Blender)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Phong/AmbientColor"))
                 {
-                    DisplacementCasterSettings.MaterialChannel = "Displacement";
-                }
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "ambientColor";
+                    }
 
-                DisplacementCasterSettings.MaterialChannelUI.VisibleOverride = false;
-                DisplacementCasterSettings.OpacityChannel = "Opacity";
-                DisplacementCasterSettings.OpacityChannelUI.VisibleOverride = false;
-                DisplacementCasterSettings.OpacityChannelComponentUI.VisibleOverride = false;
-            }
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.AmbientOcclusionCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Blender)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Phong/Incandescence"))
                 {
-                    AmbientOcclusionCasterSettings.MaterialChannel = "Occlusion";
-                }
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "incandescence";
+                    }
 
-                AmbientOcclusionCasterSettings.MaterialChannelUI.VisibleOverride = false;
-                AmbientOcclusionCasterSettings.OpacityChannel = "Opacity";
-                AmbientOcclusionCasterSettings.OpacityChannelUI.VisibleOverride = false;
-                AmbientOcclusionCasterSettings.OpacityChannelComponentUI.VisibleOverride = false;
-            }
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.GeometryDataCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Blender)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Phong/NormalCamera"))
                 {
-                    GeometryDataCasterSettings.MaterialChannel = "Geometry";
-                }
+                    if (allowMaterialChannelOverride)
+                    {
+                        NormalCasterSettings.MaterialChannel = "normalCamera";
+                    }
 
-                GeometryDataCasterSettings.MaterialChannelUI.VisibleOverride = false;
-                GeometryDataCasterSettings.OpacityChannel = "Opacity";
-                GeometryDataCasterSettings.OpacityChannelUI.VisibleOverride = false;
-                GeometryDataCasterSettings.OpacityChannelComponentUI.VisibleOverride = false;
-            }
+                    NormalCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    NormalCasterSettings.OpacityChannel = "transparency";
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.VertexColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Blender)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Phong/ReflectedColor"))
                 {
-                    VertexColorCasterSettings.MaterialChannel = "Basecolor";
-                }
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "reflectedColor";
+                    }
 
-                VertexColorCasterSettings.OpacityChannel = "Opacity";
-                VertexColorCasterSettings.OutputColorName = "color";
-            }
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Unity)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Phong/SpecularColor"))
                 {
-                    ColorCasterSettings.MaterialChannel = "diffuseColor";
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "specularColor";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    ColorCasterSettings.Dilation = 0;
+                    ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
-                ColorCasterSettings.OpacityChannel = "diffuseColor";
-                ColorCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
-                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Phong/Transparency"))
                 {
-                    ColorCasterSettings.BakeOpacityInAlpha = true;
+                    if (allowMaterialChannelOverride)
+                    {
+                        OpacityCasterSettings.MaterialChannel = "transparency";
+                    }
+
+                    OpacityCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    OpacityCasterSettings.OpacityChannel = "transparency";
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Blender && (MenuPath == "Template/Advanced/ColorCaster"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "Basecolor";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = true;
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
+                    }
+
+                    ColorCasterSettings.OpacityChannel = "Opacity";
+                    ColorCasterSettings.OpacityChannelUI.Visible = false;
+                    ColorCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                    ColorCasterSettings.OpacityChannelComponentUI.Visible = false;
+                    ColorCasterSettings.OpacityChannelUI.Visible = true;
+                    ColorCasterSettings.OpacityChannelComponentUI.Visible = true;
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        ColorCasterSettings.BakeOpacityInAlpha = true;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        ColorCasterSettings.BakeOpacityInAlpha = true;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        ColorCasterSettings.BakeOpacityInAlpha = true;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        ColorCasterSettings.BakeOpacityInAlpha = true;
+                    }
+
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Blender && (MenuPath == "Template/Advanced/OpacityCaster"))
                 {
-                    ColorCasterSettings.BakeOpacityInAlpha = true;
+                    OpacityCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    if (allowMaterialChannelOverride)
+                    {
+                        OpacityCasterSettings.MaterialChannel = "Opacity";
+                    }
+
+                    OpacityCasterSettings.MaterialChannelUI.VisibleOverride = true;
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    OpacityCasterSettings.OutputPixelFormat = EPixelFormat.R8;
+                    OpacityCasterSettings.OutputPixelFormatUI.Visible = false;
+                    OpacityCasterSettings.OpacityChannel = "Opacity";
+                    OpacityCasterSettings.OpacityChannelUI.Visible = false;
+                    OpacityCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                    OpacityCasterSettings.OpacityChannelComponentUI.Visible = false;
                 }
 
-                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Blender && (MenuPath == "Template/Advanced/NormalCaster"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
+                    NormalCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    if (allowMaterialChannelOverride)
+                    {
+                        NormalCasterSettings.MaterialChannel = "Normals";
+                    }
+
+                    NormalCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    NormalCasterSettings.OpacityChannel = "Opacity";
+                    NormalCasterSettings.OpacityChannelUI.Visible = false;
+                    NormalCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                    NormalCasterSettings.OpacityChannelComponentUI.Visible = false;
                 }
 
-                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.DisplacementCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Blender && (MenuPath == "Template/Advanced/DisplacementCaster"))
                 {
-                    ColorCasterSettings.BakeOpacityInAlpha = true;
+                    DisplacementCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    if (allowMaterialChannelOverride)
+                    {
+                        DisplacementCasterSettings.MaterialChannel = "Displacement";
+                    }
+
+                    DisplacementCasterSettings.OpacityChannel = "Opacity";
+                    DisplacementCasterSettings.OpacityChannelUI.Visible = false;
+                    DisplacementCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                    DisplacementCasterSettings.OpacityChannelComponentUI.Visible = false;
                 }
 
-                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.AmbientOcclusionCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Blender && (MenuPath == "Template/Advanced/AmbientOcclusionCaster"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
+                    AmbientOcclusionCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    if (allowMaterialChannelOverride)
+                    {
+                        AmbientOcclusionCasterSettings.MaterialChannel = "Occlusion";
+                    }
+
+                    AmbientOcclusionCasterSettings.OpacityChannel = "Opacity";
+                    AmbientOcclusionCasterSettings.OpacityChannelUI.Visible = false;
+                    AmbientOcclusionCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                    AmbientOcclusionCasterSettings.OpacityChannelComponentUI.Visible = false;
                 }
 
-                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.GeometryDataCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Blender && (MenuPath == "Template/Advanced/GeometryDataCaster"))
                 {
-                    ColorCasterSettings.BakeOpacityInAlpha = true;
+                    GeometryDataCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    if (allowMaterialChannelOverride)
+                    {
+                        GeometryDataCasterSettings.MaterialChannel = "Geometry";
+                    }
+
+                    GeometryDataCasterSettings.OpacityChannel = "Opacity";
+                    GeometryDataCasterSettings.OpacityChannelUI.Visible = false;
+                    GeometryDataCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                    GeometryDataCasterSettings.OpacityChannelComponentUI.Visible = false;
                 }
 
-                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                if (MaterialCasterType == ESimplygonMaterialCaster.VertexColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Blender && (MenuPath == "Template/Advanced/VertexColorCaster"))
                 {
-                    ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
-                }
+                    VertexColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    if (allowMaterialChannelOverride)
+                    {
+                        VertexColorCasterSettings.MaterialChannel = "Basecolor";
+                    }
 
-            }
+                    VertexColorCasterSettings.OpacityChannel = "Opacity";
+                    VertexColorCasterSettings.OpacityChannelUI.Visible = false;
+                    VertexColorCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                    VertexColorCasterSettings.OpacityChannelComponentUI.Visible = false;
+                    VertexColorCasterSettings.OutputColorName = "color";
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Unity)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && (MenuPath == "Template/Advanced/ColorCaster"))
                 {
-                    NormalCasterSettings.MaterialChannel = "normal";
-                }
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "diffuseColor";
+                    }
 
-                NormalCasterSettings.MaterialChannelUI.VisibleOverride = false;
-                NormalCasterSettings.OpacityChannel = "diffuseColor";
-                NormalCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
-                NormalCasterSettings.OpacityChannelUI.VisibleOverride = false;
-                NormalCasterSettings.OpacityChannelComponentUI.VisibleOverride = false;
-                NormalCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
-                NormalCasterSettings.FlipGreen = true;
-                NormalCasterSettings.CalculateBitangentPerFragment = false;
-                NormalCasterSettings.NormalizeInterpolatedTangentSpace = false;
-            }
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = true;
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
+                    }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.DisplacementCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Unity)
-            {
-                if (allowMaterialChannelOverride)
-                {
-                    DisplacementCasterSettings.MaterialChannel = "displacement";
-                }
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8A8;
+                    }
+
+                    ColorCasterSettings.OpacityChannel = "diffuseColor";
+                    ColorCasterSettings.OpacityChannelUI.Visible = false;
+                    ColorCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                    ColorCasterSettings.OpacityChannelComponentUI.Visible = false;
+                    ColorCasterSettings.OpacityChannelUI.Visible = true;
+                    ColorCasterSettings.OpacityChannelComponentUI.Visible = true;
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        ColorCasterSettings.BakeOpacityInAlpha = true;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        ColorCasterSettings.BakeOpacityInAlpha = true;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        ColorCasterSettings.BakeOpacityInAlpha = true;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        ColorCasterSettings.BakeOpacityInAlpha = true;
+                    }
 
-                DisplacementCasterSettings.MaterialChannelUI.VisibleOverride = false;
-                DisplacementCasterSettings.OpacityChannel = "diffuseColor";
-                DisplacementCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
-                DisplacementCasterSettings.OpacityChannelUI.VisibleOverride = false;
-                DisplacementCasterSettings.OpacityChannelComponentUI.VisibleOverride = false;
-            }
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.AmbientOcclusionCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Unity)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && (MenuPath == "Template/Advanced/NormalCaster"))
                 {
-                    AmbientOcclusionCasterSettings.MaterialChannel = "occlusion";
+                    NormalCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    if (allowMaterialChannelOverride)
+                    {
+                        NormalCasterSettings.MaterialChannel = "normal";
+                    }
+
+                    NormalCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    NormalCasterSettings.OpacityChannel = "diffuseColor";
+                    NormalCasterSettings.OpacityChannelUI.Visible = false;
+                    NormalCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                    NormalCasterSettings.OpacityChannelComponentUI.Visible = false;
+                    NormalCasterSettings.FlipGreen = true;
+                    NormalCasterSettings.CalculateBitangentPerFragment = false;
+                    NormalCasterSettings.NormalizeInterpolatedTangentSpace = false;
                 }
 
-                AmbientOcclusionCasterSettings.MaterialChannelUI.VisibleOverride = false;
-                AmbientOcclusionCasterSettings.OpacityChannel = "diffuseColor";
-                AmbientOcclusionCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
-                AmbientOcclusionCasterSettings.OpacityChannelUI.VisibleOverride = false;
-                AmbientOcclusionCasterSettings.OpacityChannelComponentUI.VisibleOverride = false;
-            }
+                if (MaterialCasterType == ESimplygonMaterialCaster.DisplacementCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && (MenuPath == "Template/Advanced/DisplacementCaster"))
+                {
+                    DisplacementCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    if (allowMaterialChannelOverride)
+                    {
+                        DisplacementCasterSettings.MaterialChannel = "displacement";
+                    }
+
+                    DisplacementCasterSettings.OpacityChannel = "diffuseColor";
+                    DisplacementCasterSettings.OpacityChannelUI.Visible = false;
+                    DisplacementCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                    DisplacementCasterSettings.OpacityChannelComponentUI.Visible = false;
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.GeometryDataCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Unity)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.AmbientOcclusionCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && (MenuPath == "Template/Advanced/AmbientOcclusionCaster"))
                 {
-                    GeometryDataCasterSettings.MaterialChannel = "geometry";
+                    AmbientOcclusionCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    if (allowMaterialChannelOverride)
+                    {
+                        AmbientOcclusionCasterSettings.MaterialChannel = "occlusion";
+                    }
+
+                    AmbientOcclusionCasterSettings.OpacityChannel = "diffuseColor";
+                    AmbientOcclusionCasterSettings.OpacityChannelUI.Visible = false;
+                    AmbientOcclusionCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                    AmbientOcclusionCasterSettings.OpacityChannelComponentUI.Visible = false;
                 }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.GeometryDataCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && (MenuPath == "Template/Advanced/GeometryDataCaster"))
+                {
+                    GeometryDataCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    if (allowMaterialChannelOverride)
+                    {
+                        GeometryDataCasterSettings.MaterialChannel = "geometry";
+                    }
 
-                GeometryDataCasterSettings.OpacityChannel = "diffuseColor";
-                GeometryDataCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
-                GeometryDataCasterSettings.OpacityChannelUI.VisibleOverride = false;
-                GeometryDataCasterSettings.OpacityChannelComponentUI.VisibleOverride = false;
-            }
+                    GeometryDataCasterSettings.OpacityChannel = "diffuseColor";
+                    GeometryDataCasterSettings.OpacityChannelUI.Visible = false;
+                    GeometryDataCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                    GeometryDataCasterSettings.OpacityChannelComponentUI.Visible = false;
+                }
 
-            if (MaterialCasterType == ESimplygonMaterialCaster.VertexColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Unity)
-            {
-                if (allowMaterialChannelOverride)
+                if (MaterialCasterType == ESimplygonMaterialCaster.VertexColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && (MenuPath == "Template/Advanced/VertexColorCaster"))
                 {
-                    VertexColorCasterSettings.MaterialChannel = "diffuseColor";
+                    VertexColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    if (allowMaterialChannelOverride)
+                    {
+                        VertexColorCasterSettings.MaterialChannel = "diffuseColor";
+                    }
+
+                    VertexColorCasterSettings.OpacityChannel = "diffuseColor";
+                    VertexColorCasterSettings.OpacityChannelUI.Visible = false;
+                    VertexColorCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                    VertexColorCasterSettings.OpacityChannelComponentUI.Visible = false;
+                    VertexColorCasterSettings.OpacityChannelUI.Visible = true;
+                    VertexColorCasterSettings.OpacityChannelComponentUI.Visible = true;
+                    VertexColorCasterSettings.OutputColorName = "color";
                 }
 
-                VertexColorCasterSettings.OpacityChannel = "diffuseColor";
-                VertexColorCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
-                VertexColorCasterSettings.OutputColorName = "color";
             }
 
         }
@@ -34699,8 +39229,9 @@ namespace SimplygonUI
             SetTemplateOverrides();
         }
 
-        public SimplygonPipeline(dynamic jsonData)
+        public SimplygonPipeline(string filePath, dynamic jsonData)
         {
+            FilePath = filePath;
             GlobalSettings = new SimplygonGlobalSettings();
             PipelineSettings = new SimplygonPipelineSettings();
             CascadedPipelines = new List<SimplygonPipeline>();
@@ -34784,9 +39315,9 @@ namespace SimplygonUI
                 jsonData.Pipeline = "OcclusionMesh";
             }
 
-            jsonData.Version = "9.1";
-            jsonData.Build = "9.1.42900.0";
-            jsonData.Commit = "244a413417a204ab6db6ddcd605e231a600aa08f";
+            jsonData.Version = "9.2";
+            jsonData.Build = "9.2.1400.0";
+            jsonData.Commit = "c47d3175d00ec884bd836442df285bc06f7754eb";
             jsonData.Settings.GlobalSettings = GlobalSettings.SaveJson(serializeUIComponents);
             jsonData.Settings.PipelineSettings = PipelineSettings.SaveJson(serializeUIComponents);
 
@@ -34939,9 +39470,19 @@ namespace SimplygonUI
                 throw new Exception("Invalid pipeline - pipeline type could not be resolved.");
             }
 
+            else if((string)jsonData.Version == null)
+            {
+                throw new Exception("Invalid pipeline - pipeline version could not be resolved.");
+            }
+
             if ((string)jsonData.Pipeline == "Passthrough")
             {
                 PipelineType = ESimplygonPipeline.Passthrough;
+            }
+
+            if ((string)jsonData.Version != "9.2")
+            {
+                UILogger.Instance.Log(Category.Warning, $"Pipeline '{FilePath}' updated to version 9.2. Please save the updated pipeline so it can be used with the Simplygon 9.2 API.");
             }
 
             if ((string)jsonData.Pipeline == "Reduction")
@@ -35040,7 +39581,7 @@ namespace SimplygonUI
             {
                 for(int i = 0; i < jsonData.Cascaded.Count; ++i)
                 {
-                    var cascadedPipeline = new SimplygonPipeline(jsonData.Cascaded[i]);
+                    var cascadedPipeline = new SimplygonPipeline(FilePath, jsonData.Cascaded[i]);
                     CascadedPipelines.Add(cascadedPipeline);
                 }
 
@@ -35166,7 +39707,7 @@ namespace SimplygonUI
             var materialCaster = MaterialCasters.Where(i => i.MaterialChannelName == materialChannelName).FirstOrDefault();
             if(materialCaster == null)
             {
-                materialCaster = new SimplygonMaterialCaster(this.PipelineType, materialCasterType, materialChannelName, allowMaterialChannelOverride);
+                materialCaster = new SimplygonMaterialCaster(this.PipelineType, materialCasterType, materialChannelName, "Template/Advanced/" + materialCasterType, allowMaterialChannelOverride);
                 materialCaster.Pipeline = this;
                 MaterialCasters.Add(materialCaster);
                 MaterialCasterTreeView.Items.Add(materialCaster);
@@ -35428,6 +39969,9 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -35437,6 +39981,9 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "Diffuse_Color";
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -35566,6 +40113,10 @@ namespace SimplygonUI
             {
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "Diffuse_Color";
+                RemeshingSettings.RemeshingModeManualPositionXUI.VisibleOverride = false;
+                RemeshingSettings.RemeshingModeManualPositionYUI.VisibleOverride = false;
+                RemeshingSettings.RemeshingModeManualPositionZUI.VisibleOverride = false;
+                RemeshingSettings.ForceSoftEdgesWithinTextureChartsUI.VisibleOverride = false;
                 RemeshingSettings.HoleFillingUI.VisibleOverride = false;
                 RemeshingSettings.RemeshingModeUI.VisibleOverride = false;
                 RemeshingSettings.SurfaceTransferModeUI.VisibleOverride = false;
@@ -35668,6 +40219,9 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -35698,6 +40252,9 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -35791,6 +40348,9 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -35800,6 +40360,9 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -35929,6 +40492,10 @@ namespace SimplygonUI
             {
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                RemeshingSettings.RemeshingModeManualPositionXUI.VisibleOverride = false;
+                RemeshingSettings.RemeshingModeManualPositionYUI.VisibleOverride = false;
+                RemeshingSettings.RemeshingModeManualPositionZUI.VisibleOverride = false;
+                RemeshingSettings.ForceSoftEdgesWithinTextureChartsUI.VisibleOverride = false;
                 RemeshingSettings.HoleFillingUI.VisibleOverride = false;
                 RemeshingSettings.RemeshingModeUI.VisibleOverride = false;
                 RemeshingSettings.SurfaceTransferModeUI.VisibleOverride = false;
@@ -36031,6 +40598,9 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -36061,6 +40631,9 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -36292,6 +40865,10 @@ namespace SimplygonUI
             {
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "color";
+                RemeshingSettings.RemeshingModeManualPositionXUI.VisibleOverride = false;
+                RemeshingSettings.RemeshingModeManualPositionYUI.VisibleOverride = false;
+                RemeshingSettings.RemeshingModeManualPositionZUI.VisibleOverride = false;
+                RemeshingSettings.ForceSoftEdgesWithinTextureChartsUI.VisibleOverride = false;
                 RemeshingSettings.HoleFillingUI.VisibleOverride = false;
                 RemeshingSettings.RemeshingModeUI.VisibleOverride = false;
                 RemeshingSettings.SurfaceTransferModeUI.VisibleOverride = false;
@@ -36534,6 +41111,9 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -36542,6 +41122,9 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "Basecolor";
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -36664,6 +41247,10 @@ namespace SimplygonUI
             if (PipelineType == ESimplygonPipeline.RemeshingPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Blender && MenuPath == "Template/Basic/Remeshing with material baking")
             {
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "Basecolor";
+                RemeshingSettings.RemeshingModeManualPositionXUI.VisibleOverride = false;
+                RemeshingSettings.RemeshingModeManualPositionYUI.VisibleOverride = false;
+                RemeshingSettings.RemeshingModeManualPositionZUI.VisibleOverride = false;
+                RemeshingSettings.ForceSoftEdgesWithinTextureChartsUI.VisibleOverride = false;
                 RemeshingSettings.HoleFillingUI.VisibleOverride = false;
                 RemeshingSettings.RemeshingModeUI.VisibleOverride = false;
                 RemeshingSettings.SurfaceTransferModeUI.VisibleOverride = false;
@@ -36777,6 +41364,9 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -36806,6 +41396,9 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -36990,6 +41583,10 @@ namespace SimplygonUI
             if (PipelineType == ESimplygonPipeline.RemeshingPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && MenuPath == "Template/Basic/Remeshing with material baking")
             {
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                RemeshingSettings.RemeshingModeManualPositionXUI.VisibleOverride = false;
+                RemeshingSettings.RemeshingModeManualPositionYUI.VisibleOverride = false;
+                RemeshingSettings.RemeshingModeManualPositionZUI.VisibleOverride = false;
+                RemeshingSettings.ForceSoftEdgesWithinTextureChartsUI.VisibleOverride = false;
                 RemeshingSettings.HoleFillingUI.VisibleOverride = false;
                 RemeshingSettings.RemeshingModeUI.VisibleOverride = false;
                 RemeshingSettings.SurfaceTransferModeUI.VisibleOverride = false;

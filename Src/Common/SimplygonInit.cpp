@@ -143,7 +143,6 @@ bool SimplygonInitClass::Initialize()
 #elif MAYA_INTEGRATION
 	sg->SetGlobalDefaultTangentCalculatorTypeSetting( ETangentSpaceMethod::MikkTSpace );
 #endif
-	sg->SetGlobalBoolSetting( "IgnoreCameraInExtentsCalculation", true );
 
 	// add error handler
 	sg->SetErrorHandler( this );
@@ -185,7 +184,7 @@ void SimplygonInitClass::HandleError( Simplygon::spObject object, const char* cI
 	else
 	{
 		TCHAR tInterfaceBuffer[ 512 ] = { 0 };
-		_stprintf_s( tInterfaceBuffer, 512, _T("Interface: %s (%p)\n"), ConstCharPtrToLPCTSTR( cInterfaceName ), object.GetInterface() );
+		_stprintf_s( tInterfaceBuffer, 512, _T("Interface: %s (%p)\n"), ConstCharPtrToLPCTSTR( cInterfaceName ), object._GetHandle() );
 
 		tErrorMessage += _T( "An error occurred! Details:\n\n");
 		tErrorMessage += tInterfaceBuffer;

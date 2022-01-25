@@ -9,11 +9,13 @@ class PipelineHelper
 	std::map<INT64, Simplygon::spPipeline> nameToSettingsPipeline;
 
 	INT64 LoadSettingsPipeline( std::basic_string<TCHAR> tPipelineFilePath );
+	bool SaveSettingsPipeline( const INT64 pipelineId, std::basic_string<TCHAR> tPipelineFilePath );
+
 	INT64 CreateSettingsPipeline( std::basic_string<TCHAR> tPipelineType );
 	bool RemoveSettingsPipeline( const INT64 pipelineId );
 	bool ClearAllSettingsPipelines();
 
-	bool SaveSettingsPipeline( const INT64 pipelineId, std::basic_string<TCHAR> tPipelineFilePath );
+	INT64 CloneSettingsPipeline( const INT64 pipelineId );
 
 	std::vector<INT64> GetPipelines();
 	std::basic_string<TCHAR> GetPipelineType( const INT64 pipelineId );
