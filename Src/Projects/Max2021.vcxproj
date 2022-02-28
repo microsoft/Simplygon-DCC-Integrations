@@ -54,7 +54,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj %(AdditionalOptions) /ZH:SHA_256</AdditionalOptions>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(SIMPLYGON_9_PATH);$(ProjectDir)..\Common;$(ProjectDir)..\Simplygon;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Max;C:\Program Files\Autodesk\3ds Max 2021 SDK\maxsdk\include;$(DXSDK_DIR)\include;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>MAX_INTEGRATION;WINVER=0x0602;_WIN32_WINNT=0x0602;_WIN32_WINDOWS=0x0602;_AMD64_;WIN32;WIN64;WINDOWS;_USRDLL;MAX_EXPORTS;_CRT_SECURE_NO_WARNINGS;DBG_ASSERT_ACTIVE_IN_RELEASE_BUILD;REDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -91,7 +91,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>/bigobj %(AdditionalOptions) /we4018 /we4244</AdditionalOptions>
+      <AdditionalOptions>/bigobj %(AdditionalOptions) /we4018 /we4244 /ZH:SHA_256</AdditionalOptions>
       <Optimization>Full</Optimization>
       <AdditionalIncludeDirectories>$(SIMPLYGON_9_PATH);$(ProjectDir)..\Common;$(ProjectDir)..\Simplygon;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Max;C:\Program Files\Autodesk\3ds Max 2021 SDK\maxsdk\include;$(DXSDK_DIR)\include;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>MAX_INTEGRATION;WINVER=0x0602;_WIN32_WINNT=0x0602;_WIN32_WINDOWS=0x0602;_AMD64_;WIN32;WIN64;WINDOWS;_USRDLL;MAX_EXPORTS;_CRT_SECURE_NO_WARNINGS;DBG_ASSERT_ACTIVE_IN_RELEASE_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>

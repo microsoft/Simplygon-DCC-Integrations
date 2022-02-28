@@ -37,3 +37,13 @@ __pragma(warning(disable : x))
 
 #define SG_DISABLE_SPECIFIC_END \
 __pragma(warning(pop))
+
+/*
+Use the set/reset to still warning about warning but not error out due.
+i.e type casting, deprecations
+*/
+#define SG_WARNING_LEVEL_SET( warningNo ,level) \
+__pragma(warning( level : warningNo ))
+
+#define SG_WARNING_LEVEL_RESET( warningNo ) \
+__pragma(warning( default : warningNo ))

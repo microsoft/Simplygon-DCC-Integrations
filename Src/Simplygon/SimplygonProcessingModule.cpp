@@ -9,6 +9,8 @@
 #include <cctype>
 #include "HelperFunctions.h"
 #include "SimplygonLoader.h"
+#include "SgCodeAnalysisSetup.h"
+
 
 using namespace Simplygon;
 extern ISimplygon* sg;
@@ -1374,6 +1376,8 @@ spScene SimplygonProcessingModule::RunReduction( const spScene sgInputScene, boo
 
 spScene SimplygonProcessingModule::RunRemeshing( const spScene sgInputScene, bool bBakeMaterials /*= false*/ )
 {
+	//NOTE: Since spRemeshingLegacyProcessor has been marked for deprecation. 
+	SG_WARNING_LEVEL_SET(4996,4)
 	const uint onScreenSize = 300;
 	const uint mergeDistance = 0;
 	const uint textureSize = 1024;
@@ -1548,7 +1552,7 @@ spScene SimplygonProcessingModule::RunRemeshing( const spScene sgInputScene, boo
 	sgTextureTable->Copy( sgLodTextureTable );
 	// END CASTING
 	///////////////////////////////////////////////////////////////////////////////////////////////
-
+	SG_WARNING_LEVEL_RESET(4996)
 	return sgLodScene;
 }
 

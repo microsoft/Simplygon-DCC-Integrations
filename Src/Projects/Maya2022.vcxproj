@@ -49,7 +49,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>/I "." /D "WIN32" /D "_DEBUG" /c %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/I "." /D "WIN32" /D "_DEBUG" /c %(AdditionalOptions) /ZH:SHA_256</AdditionalOptions>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(SIMPLYGON_9_PATH);$(ProjectDir)..\Simplygon;$(ProjectDir)..\Maya;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Common;C:\Program Files\Autodesk\Maya2022\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>MAYA_INTEGRATION;WIN32;_DEBUG;_WINDOWS;_AFXDLL;_MBCS;NT_PLUGIN;REQUIRE_IOSTREAM;_CRT_SECURE_NO_DEPRECATE;SGCP;%(PreprocessorDefinitions);</PreprocessorDefinitions>
@@ -89,7 +89,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>/I "." /c %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/I "." /c %(AdditionalOptions) /ZH:SHA_256</AdditionalOptions>
       <Optimization>Full</Optimization>
       <AdditionalIncludeDirectories>$(SIMPLYGON_9_PATH);$(ProjectDir)..\Simplygon;$(ProjectDir)..\Maya;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Common;C:\Program Files\Autodesk\Maya2022\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>MAYA_INTEGRATION;WIN32;NDEBUG;_WINDOWS;_AFXDLL;_MBCS;NT_PLUGIN;REQUIRE_IOSTREAM;_CRT_SECURE_NO_DEPRECATE;SGCP;%(PreprocessorDefinitions);</PreprocessorDefinitions>
