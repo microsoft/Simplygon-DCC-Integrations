@@ -634,12 +634,13 @@ namespace MaterialNodes {
 class TextureData
 {
 	public:
-	TextureData()
-	    : mBitmap( nullptr )
+	TextureData( Texmap* mTex )
+	    : mBitmap( (BitmapTex*)mTex )
 	    , mIsSRGB( false )
 	    , mUseAlphaAsTransparency( false )
 	    , mPremultipliedAlpha( true )
 	    , mHasAlpha( false )
+	    , mAlphaSource( 0 )
 	{
 	}
 	~TextureData() {}
@@ -656,201 +657,179 @@ class TextureData
 	bool mUseAlphaAsTransparency;
 	bool mPremultipliedAlpha;
 	bool mHasAlpha;
+	int mAlphaSource;
 };
 
-class MaterialNodeBase
+class TextureSettingsOverride
 {
 	public:
-	enum MaterialNodeType
-	{
-		eNodeBase = 0,
-		eMultiplyNode,
-		eBitmapNode,
-		eTintNode,
-		eCompositeNode,
-		eColorCorrectionNode,
-		eRayTrace,
-		eColorNode
-	};
-
-	MaterialNodeBase()
-	    : type( eNodeBase )
+	TextureSettingsOverride()
+	    : mEnabledSRGBOverride( false )
+	    , mSRGB( false )
+	    , mEnabledAlphaSourceOverride( false )
+	    , mAlphaSource( 0 )
+	    , mEnabledPremultOverride( false )
+	    , mPremultipliedAlpha( false )
 	{
 	}
-	MaterialNodeBase( MaterialNodeType type )
-	    : type( type )
-	{
-	}
-	const MaterialNodeType type;
-
-	virtual TextureData* GetTexture( size_t index ) = 0;
-
-	virtual size_t GetNumTextures() = 0;
+	~TextureSettingsOverride() {}
+	bool mEnabledSRGBOverride;
+	bool mSRGB;
+	bool mEnabledAlphaSourceOverride;
+	int mAlphaSource;
+	bool mEnabledPremultOverride;
+	bool mPremultipliedAlpha;
 };
 
-class MultiplyNode : public MaterialNodeBase
+class MaterialChannelData
 {
 	public:
-	enum MultiplyNodeAlphaFrom
-	{
-		AlphaFirstSource = 0,
-		AlphaSecondSource,
-		AlphaBlendSource
-	};
+	// ConstCharPtrToLPCTSTR
+	// LPCTSTRToConstCharPtr
 
-	MultiplyNode( Texmap* Texmap )
-	    : MaterialNodeBase( eMultiplyNode )
-	    , mTexMap( Texmap )
-	    , mTexture{ TextureData(), TextureData() }
-	    , mColor{ Color( 0, 0, 0 ), Color( 0, 0, 0 ) }
-	    , mIsEnabled{ false, false }
-	    , mAlphaFrom( AlphaFirstSource )
+	MaterialChannelData( std::basic_string<TCHAR> tMaterialName,
+	                     std::basic_string<TCHAR> tChannelName,
+	                     const long maxChannelId,
+	                     StdMat2* maxStdMaterial,
+	                     spMaterial sgMaterial,
+	                     std::vector<MaterialTextureOverride>* materialTextureOverrides,
+	                     TimeValue time,
+	                     const bool isPbr )
+	    : mMaterialName( tMaterialName )
+	    , mChannelName( tChannelName )
+	    , mMaxChannelId( maxChannelId )
+	    , mMaxStdMaterial( maxStdMaterial )
+	    , mSGMaterial( sgMaterial )
+	    , mMaterialTextureOverrides( materialTextureOverrides )
+	    , mTime( time )
+	    , mIsMatPBR( isPbr )
 	{
 	}
+	~MaterialChannelData() {}
 
-	bool Setup( long maxChannelId,
-	            const char* cMaterialName,
-	            const char* cChannelName,
-	            std::vector<MaterialTextureOverride>* materialTextureOverrides,
-	            TimeValue time );
+	const bool IsPBR() { return mIsMatPBR; }
+	const bool IsSTD() { return !mIsMatPBR; }
 
-	virtual ~MultiplyNode() {}
+	std::basic_string<TCHAR> mMaterialName;
+	std::basic_string<TCHAR> mChannelName;
 
-	TextureData* GetTexture( size_t index ) override;
+	const long mMaxChannelId;
 
-	size_t GetNumTextures() override { return 2; }
+	StdMat2* mMaxStdMaterial;
+	spMaterial mSGMaterial;
 
-	Texmap* mTexMap;
-	TextureData mTexture[ 2 ];
-	Color mColor[ 2 ];
-	bool mIsEnabled[ 2 ];
-	MultiplyNodeAlphaFrom mAlphaFrom;
+	std::vector<MaterialTextureOverride>* mMaterialTextureOverrides;
+	TimeValue mTime;
+
+	private:
+	const bool mIsMatPBR;
 };
 
-class BitmapNode : public MaterialNodeBase
+struct ColorCorrectionData
 {
-	public:
-	BitmapNode( Texmap* Texmap )
-	    : MaterialNodeBase( eBitmapNode )
-	    , mTexMap( Texmap )
-	    , mTexture( TextureData() )
-	    , mColor( 0, 0, 0 )
-	{
-	}
+	// rewire RGBA
+	int mRewireMode;
+	int mRewireR;
+	int mRewireG;
+	int mRewireB;
+	int mRewireA;
 
-	virtual ~BitmapNode() {}
+	float mHueShift;
+	float mSaturation;
+	AColor mHueTint;
+	float mHueTintStrength;
+	int mLightnessMode;
+	float mContrast;
+	float mBrightness;
+	int mExposureMode;
+	bool mEnableR;
+	bool mEnableG;
+	bool mEnableB;
 
-	bool Setup( long maxChannelId,
-	            const char* cMaterialName,
-	            const char* cChannelName,
-	            std::vector<MaterialTextureOverride>* materialTextureOverrides,
-	            TimeValue time );
+	// Lightness Gain
+	float mGainRGB;
+	float mGainR;
+	float mGainG;
+	float mGainB;
 
-	TextureData* GetTexture( size_t index ) override;
+	// Lightness Gamma
+	float mGammaRGB;
+	float mGammaR;
+	float mGammaG;
+	float mGammaB;
 
-	size_t GetNumTextures() override { return 1; }
+	// Lightness pivot
+	float mPivotRGB;
+	float mPivotR;
+	float mPivotG;
+	float mPivotB;
 
-	Texmap* mTexMap;
-	TextureData mTexture;
-	Color mColor;
+	// Lightness lift
+	float mLiftRGB;
+	float mLiftR;
+	float mLiftG;
+	float mLiftB;
+
+	float mPrinterLights;
 };
 
-class TintNode : public MaterialNodeBase
+enum MultiplyNodeAlphaFrom
 {
-	public:
-	TintNode( Texmap* Texmap )
-	    : MaterialNodeBase( eTintNode )
-	    , mTexMap( Texmap )
-	    , mTexture( TextureData() )
-	    , mRedChannel( 0, 0, 0 )
-	    , mGreenChannel( 0, 0, 0 )
-	    , mBlueChannel( 0, 0, 0 )
-	    , mIsEnabled( false )
-	{
-	}
-
-	virtual ~TintNode() {}
-
-	bool Setup( long maxChannelId,
-	            const char* cMaterialName,
-	            const char* cChannelName,
-	            std::vector<MaterialTextureOverride>* materialTextureOverrides,
-	            TimeValue time );
-
-	TextureData* GetTexture( size_t index ) override;
-
-	size_t GetNumTextures() override { return 1; }
-
-	Texmap* mTexMap;
-	TextureData mTexture;
-	Color mRedChannel;
-	Color mGreenChannel;
-	Color mBlueChannel;
-	bool mIsEnabled;
+	AlphaFirstSource = 0,
+	AlphaSecondSource,
+	AlphaBlendSource
 };
 
-class CompositeNode : public MaterialNodeBase
+enum eMaxBlendMode
 {
-	public:
-	enum eMaxBlendMode
-	{
-		eNormal = 0,
-		eAverage,
-		eAddition,
-		eSubtract,
-		eDarken,
-		eMultiply,
-		eColor_Burn,
-		eLinear_Burn,
-		eLighten,
-		eScreen,
-		eColor_Dodge,
-		eLinear_Dodge,
-		eSpotlight,
-		eSpotlight_Blend,
-		eOverlay,
-		eSoft_Light,
-		eHard_Light,
-		ePin_Light,
-		eHard_Mix,
-		eDifference,
-		eExclusion,
-		eHue,
-		eSaturation,
-		eColor,
-		eValue
-	};
+	eNormal = 0,
+	eAverage,
+	eAddition,
+	eSubtract,
+	eDarken,
+	eMultiply,
+	eColor_Burn,
+	eLinear_Burn,
+	eLighten,
+	eScreen,
+	eColor_Dodge,
+	eLinear_Dodge,
+	eSpotlight,
+	eSpotlight_Blend,
+	eOverlay,
+	eSoft_Light,
+	eHard_Light,
+	ePin_Light,
+	eHard_Mix,
+	eDifference,
+	eExclusion,
+	eHue,
+	eSaturation,
+	eColor,
+	eValue
+};
 
-	CompositeNode( Texmap* Texmap )
-	    : MaterialNodeBase( eCompositeNode )
-	    , mTexMap( Texmap )
-	{
-	}
+enum eMaxColorCorrectionSwizzle
+{
+	Red = 0,
+	Green,
+	Blue,
+	Alpha,
+	invRed,
+	invGreen,
+	invBlue,
+	invAlpha,
+	Monochrome,
+	One,
+	Zero
+};
 
-	bool Setup( long maxChannelId,
-	            const char* cMaterialName,
-	            const char* cChannelName,
-	            std::vector<MaterialTextureOverride>* materialTextureOverrides,
-	            TimeValue time );
-
-	virtual ~CompositeNode() {}
-
-	TextureData* GetTexture( size_t index ) override;
-
-	size_t GetNumTextures() override { return mNumTextureSlots; }
-
-	unsigned int mNumTextureSlots;
-
-	unsigned int mNumLayers;
-
-	Texmap* mTexMap;
-	std::vector<bool> mMaskEnabled;
-	std::vector<ETextureBlendType> mTextureBlendmode;
-	std::vector<std::basic_string<TCHAR>> mLayerName;
-	std::vector<float> mTextureOpacity;
-
-	std::vector<TextureData> mTextures;
-	std::vector<TextureData> mMasks;
+enum eMaxRewireMode
+{
+	reWireNormal,
+	reWireMonochrome,
+	reWireInvert,
+	reWireCustom
 };
 
 const bool GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<AColor>* outValue );
@@ -863,7 +842,7 @@ const bool GetData( IParamBlock2* mParamBlock, const ParamID paramId, const Time
 
 const bool GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<Color>* outValue );
 
-const bool GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<CompositeNode::eMaxBlendMode>* outValue );
+const bool GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<eMaxBlendMode>* outValue );
 
 template <typename T> bool GetTexMapProperty( Texmap* mTexMap, std::basic_string<TCHAR> tPropertyName, TimeValue time, T* outValue )
 {
@@ -989,9 +968,9 @@ bool GetStdMaterialProperties( IParamBlock2* mParamBlock, std::basic_string<TCHA
 				{
 					return GetData( mParamBlock, paramId, time, reinterpret_cast<std::vector<float>*>( outValue ) );
 				}
-				else if( typeid( T ) == typeid( CompositeNode::eMaxBlendMode ) )
+				else if( typeid( T ) == typeid( eMaxBlendMode ) )
 				{
-					return GetData( mParamBlock, paramId, time, reinterpret_cast<std::vector<CompositeNode::eMaxBlendMode>*>( outValue ) );
+					return GetData( mParamBlock, paramId, time, reinterpret_cast<std::vector<eMaxBlendMode>*>( outValue ) );
 				}
 				else if( typeid( T ) == typeid( std::basic_string<TCHAR> ) )
 				{
@@ -1004,58 +983,54 @@ bool GetStdMaterialProperties( IParamBlock2* mParamBlock, std::basic_string<TCHA
 	return false;
 }
 
-void WriteTextureMetadata( MaterialNodes::TextureData* bitmapTex,
-                           long maxChannelId,
-                           const char* cMaterialName,
-                           const char* cChannelName,
-                           std::vector<MaterialTextureOverride>* materialTextureOverrides );
+spShadingNode GetColorCorrectionLightSettings( ColorCorrectionData& sgColorCorrectionData,
+                                               spShadingNode sgInputColor,
+                                               spShadingColorNode sgGainRGBNode,
+                                               spShadingColorNode sgGammaRGBNode,
+                                               spShadingColorNode sgPivotRGBNode,
+                                               spShadingColorNode sgLiftRGBNode );
 
-spShadingNode BuildNode( MaterialNodes::MaterialNodeBase* node,
-                         long maxChannelId,
-                         std::basic_string<TCHAR>& tMaterialName,
-                         std::basic_string<TCHAR>& tChannelName,
-                         std::basic_string<TCHAR>& tMaxMappingChannel,
-                         Color& baseColor,
-                         float baseAlpha,
-                         TimeValue time );
+spShadingNode GetShadingNode( MaterialNodes::TextureData& textureData, std::basic_string<TCHAR> tMaxMappingChannel, TimeValue time );
 
-spShadingNode BuildNode( MaterialNodes::MaterialNodeBase* node,
-                         std::basic_string<TCHAR>& tMaterialName,
-                         std::basic_string<TCHAR>& tMaxMappingChannel,
-                         Color& baseColor,
-                         float baseAlpha,
-                         TimeValue& time,
-                         const float blendAmount );
+spShadingNode SetUpMultiplyShadingNode( spShadingNode sgInputNodes[ 2 ],
+                                        MaterialNodes::MultiplyNodeAlphaFrom alphaFrom,
+                                        std::basic_string<TCHAR>& tMaterialName,
+                                        TimeValue time );
 
-spShadingNode GetShadingNode( MaterialNodes::TextureData& textureData, std::basic_string<TCHAR> tMaxMappingChannel, Color& baseColor, TimeValue& time );
+spShadingNode RunMultiplyNode( Texmap* mTexMap, MaterialNodes::MaterialChannelData& mChannelData );
 
-spShadingNode SetUpShadingNodes( MaterialNodes::MultiplyNode& node,
-                                 std::basic_string<TCHAR>& tMaterialName,
-                                 std::basic_string<TCHAR>& tMaxMappingChannel,
-                                 Color& baseColor,
-                                 float baseAlpha,
-                                 TimeValue& time );
+spShadingNode SetUpBitmapShadingNode( std::basic_string<TCHAR>& tMaterialName,
+                                      std::basic_string<TCHAR>& tMaxMappingChannel,
+                                      MaterialNodes::TextureData& rTextureData,
+                                      TimeValue time );
 
-spShadingNode SetUpShadingNodes( MaterialNodes::BitmapNode& node,
-                                 std::basic_string<TCHAR>& tMaterialName,
-                                 std::basic_string<TCHAR>& tMaxMappingChannel,
-                                 Color& baseColor,
-                                 float baseAlpha,
-                                 TimeValue& time );
+spShadingNode
+RunBitmapNode( Texmap* mTexMap, MaterialNodes::MaterialChannelData& mChannelData, MaterialNodes::TextureSettingsOverride* textureSettingsOverride = nullptr );
 
-spShadingNode SetUpShadingNodes( MaterialNodes::TintNode& node,
-                                 std::basic_string<TCHAR>& tMaterialName,
-                                 std::basic_string<TCHAR>& tMaxMappingChannel,
-                                 Color& baseColor,
-                                 float baseAlpha,
-                                 TimeValue& time );
+spShadingNode SetUpTintShadingNode(
+    spShadingNode& sgInputNode, std::basic_string<TCHAR>& tMaterialName, Color& redChannel, Color& greenChannel, Color& blueChannel, TimeValue time );
 
-spShadingNode SetUpShadingNodes( MaterialNodes::CompositeNode& node,
-                                 std::basic_string<TCHAR>& tMaterialName,
-                                 std::basic_string<TCHAR>& tMaxMappingChannel,
-                                 Color& baseColor,
-                                 float baseAlpha,
-                                 TimeValue& time );
+spShadingNode RunTintNode( Texmap* mTexMap, MaterialNodes::MaterialChannelData& mChannelData );
+
+spShadingNode SetUpCompositeShadingNode( std::vector<spShadingNode>& TextureNodes,
+                                         std::vector<spShadingNode>& MaskNodes,
+                                         std::vector<ETextureBlendType>& TextureBlendTypes,
+                                         std::vector<float>& Opacity,
+                                         std::basic_string<TCHAR>& tMaterialName,
+                                         TimeValue time );
+
+spShadingNode RunCompositeNode( Texmap* mTexMap, MaterialNodes::MaterialChannelData& mChannelData );
+
+spShadingNode
+SetUpColorCorrectionShadingNode( spShadingNode sgInputNode, ColorCorrectionData& ColorCorrectionData, std::basic_string<TCHAR>& tMaterialName, TimeValue time );
+
+spShadingNode ReWireColorCorrectionNode( spShadingNode& sgInputNode,
+                                         eMaxColorCorrectionSwizzle red,
+                                         eMaxColorCorrectionSwizzle green,
+                                         eMaxColorCorrectionSwizzle blue,
+                                         eMaxColorCorrectionSwizzle alpha );
+
+spShadingNode RunColorCorrectionNode( Texmap* mTexMap, MaterialNodes::MaterialChannelData& mChannelData );
 
 void PopulateTextureNode( spShadingTextureNode sgTextureNode,
                           BitmapTex* mBitmapTex,
@@ -1464,29 +1439,22 @@ class SimplygonMax : public SimplygonEventRelay
 	bool ImportProcessedScenes();
 
 	TSTR GetNonCollidingMeshName( TSTR tNodeName );
-	void CreateSgMaterialChannel( long maxChannelID, StdMat2* mMaxStdMaterial, Simplygon::spMaterial sgMaterial, bool* hasTextures );
 
 	bool MaterialChannelHasShadingNetwork( Simplygon::spMaterial sgMaterial, const char* cChannelName );
 
 	public:
 	spShadingNode CreateSgMaterialPBRChannel( Texmap* mTexMap, long maxChannelId, const char* cMaterialName, const char* cChannelName );
 
-	private:
-	spShadingNode CreateShadingNetworkForPBRMaterial( long maxChannelID,
-	                                                  std::basic_string<TCHAR> tMaterialName,
-	                                                  std::basic_string<TCHAR> tMaxMappingChannel,
-	                                                  std::basic_string<TCHAR> tMappedChannelName,
-	                                                  MaterialNodes::MaterialNodeBase* node );
+	void CreateAndLinkTexture( MaterialNodes::TextureData& rTextureData );
 
-	void CreateShadingNetworkForStdMaterial( long maxChannelID,
-	                                         StdMat2* mMaxStdMaterial,
-	                                         spMaterial sgMaterial,
-	                                         std::basic_string<TCHAR> tMaterialName,
-	                                         std::basic_string<TCHAR> tMaxMappingChannel,
-	                                         std::basic_string<TCHAR> tMappedChannelName,
-	                                         MaterialNodes::MaterialNodeBase* node,
-	                                         const float blendAmount,
-	                                         bool* hasTextures );
+	void CreateSgMaterialSTDChannel( long maxChannelID, StdMat2* mMaxStdMaterial, Simplygon::spMaterial sgMaterial, bool* hasTextures );
+
+	spShadingNode CreateSgMaterial( Texmap* mTexMap,
+	                                MaterialNodes::MaterialChannelData& mMaterialChannel,
+	                                MaterialNodes::TextureSettingsOverride* textureSettingsOverride = nullptr );
+
+	private:
+	void ApplyChannelSpecificModifiers( long maxChannelId, StdMat2* mMaxStdMaterial, std::basic_string<TCHAR> tMaterialName, Color* outColor, float* outAlpha );
 
 	std::pair<std::string, int> AddMaxMaterialToSgScene( Mtl* mMaxMaterial );
 
@@ -1555,7 +1523,7 @@ class SimplygonMax : public SimplygonEventRelay
 	void LogToWindow( std::basic_string<TCHAR> tMessage, ErrorType errorType = Info, bool sleep = false );
 	void LogMaterialNodeMessage( Texmap* mTexMap,
 	                             std::basic_string<TCHAR> tMaterialName,
-	                             std::basic_string<TCHAR> tChannelNameconst,
+	                             std::basic_string<TCHAR> tChannelName,
 	                             bool partialFail = false,
 	                             std::basic_string<TCHAR> tExtendedInformation = L"" );
 };

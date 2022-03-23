@@ -37,6 +37,7 @@
 
 #include "Common.h"
 
+#include <algorithm>
 #include "IColorCorrectionMgr.h"
 
 using namespace Simplygon;
@@ -623,319 +624,261 @@ spShadingTextureNode MaterialNodes::CreateTextureNode(
 	return sgTextureNode;
 }
 
-spShadingNode
-MaterialNodes::GetShadingNode( MaterialNodes::TextureData& textureData, std::basic_string<TCHAR> tMaxMappingChannel, Color& baseColor, TimeValue& time )
+spShadingNode MaterialNodes::GetShadingNode( MaterialNodes::TextureData& textureData, std::basic_string<TCHAR> tMaxMappingChannel, TimeValue time )
 {
-	if( textureData.mBitmap == nullptr )
+	spShadingNode sgFinalizedTextureNode;
+	spShadingTextureNode sgTextureNode = CreateTextureNode( textureData.mBitmap, tMaxMappingChannel, textureData.mTextureName, time, textureData.mIsSRGB );
+
+	if( textureData.mAlphaSource == ALPHA_RGB )
 	{
-		spShadingColorNode sgReplacementNode = sg->CreateShadingColorNode();
-		sgReplacementNode->SetColor( baseColor.r, baseColor.g, baseColor.b, 1.0f );
-		return sgReplacementNode;
+		spShadingSwizzlingNode sgRedSwizzleNode = sg->CreateShadingSwizzlingNode();
+		sgRedSwizzleNode->SetInput( 0, sgTextureNode );
+		sgRedSwizzleNode->SetInput( 1, sgTextureNode );
+		sgRedSwizzleNode->SetInput( 2, sgTextureNode );
+		sgRedSwizzleNode->SetInput( 3, sgTextureNode );
+
+		sgRedSwizzleNode->SetRedComponent( 0 );
+		sgRedSwizzleNode->SetGreenComponent( 0 );
+		sgRedSwizzleNode->SetBlueComponent( 0 );
+		sgRedSwizzleNode->SetAlphaComponent( 0 );
+
+		spShadingSwizzlingNode sgGreenSwizzleNode = sg->CreateShadingSwizzlingNode();
+		sgGreenSwizzleNode->SetInput( 0, sgTextureNode );
+		sgGreenSwizzleNode->SetInput( 1, sgTextureNode );
+		sgGreenSwizzleNode->SetInput( 2, sgTextureNode );
+		sgGreenSwizzleNode->SetInput( 3, sgTextureNode );
+
+		sgGreenSwizzleNode->SetRedComponent( 1 );
+		sgGreenSwizzleNode->SetGreenComponent( 1 );
+		sgGreenSwizzleNode->SetBlueComponent( 1 );
+		sgGreenSwizzleNode->SetAlphaComponent( 1 );
+
+		spShadingSwizzlingNode sgBlueSwizzleNode = sg->CreateShadingSwizzlingNode();
+		sgBlueSwizzleNode->SetInput( 0, sgTextureNode );
+		sgBlueSwizzleNode->SetInput( 1, sgTextureNode );
+		sgBlueSwizzleNode->SetInput( 2, sgTextureNode );
+		sgBlueSwizzleNode->SetInput( 3, sgTextureNode );
+
+		sgBlueSwizzleNode->SetRedComponent( 2 );
+		sgBlueSwizzleNode->SetGreenComponent( 2 );
+		sgBlueSwizzleNode->SetBlueComponent( 2 );
+		sgBlueSwizzleNode->SetAlphaComponent( 2 );
+
+		spShadingAddNode sgAddRGNode = sg->CreateShadingAddNode();
+		sgAddRGNode->SetInput( 0, sgRedSwizzleNode );
+		sgAddRGNode->SetInput( 1, sgGreenSwizzleNode );
+
+		spShadingAddNode sgAddRGBNode = sg->CreateShadingAddNode();
+		sgAddRGBNode->SetInput( 0, sgAddRGNode );
+		sgAddRGBNode->SetInput( 1, sgBlueSwizzleNode );
+
+		spShadingColorNode sg1Through3Node = sg->CreateShadingColorNode();
+		sg1Through3Node->SetDefaultParameter( 0, 3, 3, 3, 3 );
+
+		spShadingDivideNode sgDivideNode = sg->CreateShadingDivideNode();
+		sgDivideNode->SetInput( 0, sgAddRGBNode );
+		sgDivideNode->SetInput( 1, sg1Through3Node );
+
+		spShadingSwizzlingNode sgFinalSwizzleNode = sg->CreateShadingSwizzlingNode();
+		sgFinalSwizzleNode->SetInput( 0, sgTextureNode );
+		sgFinalSwizzleNode->SetInput( 1, sgTextureNode );
+		sgFinalSwizzleNode->SetInput( 2, sgTextureNode );
+		sgFinalSwizzleNode->SetInput( 3, sgDivideNode );
+
+		sgFinalSwizzleNode->SetRedComponent( 0 );
+		sgFinalSwizzleNode->SetGreenComponent( 1 );
+		sgFinalSwizzleNode->SetBlueComponent( 2 );
+		sgFinalSwizzleNode->SetAlphaComponent( 3 );
+
+		sgFinalizedTextureNode = sgFinalSwizzleNode;
+	}
+	else if( textureData.mAlphaSource == ALPHA_NONE )
+	{
+		spShadingColorNode sgOneNode = sg->CreateShadingColorNode();
+		sgOneNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
+
+		spShadingSwizzlingNode sgTextureColorSwizzleNode = sg->CreateShadingSwizzlingNode();
+		sgTextureColorSwizzleNode->SetInput( 0, sgTextureNode );
+		sgTextureColorSwizzleNode->SetInput( 1, sgTextureNode );
+		sgTextureColorSwizzleNode->SetInput( 2, sgTextureNode );
+		sgTextureColorSwizzleNode->SetInput( 3, sgOneNode );
+
+		sgTextureColorSwizzleNode->SetRedComponent( 0 );
+		sgTextureColorSwizzleNode->SetGreenComponent( 1 );
+		sgTextureColorSwizzleNode->SetBlueComponent( 2 );
+		sgTextureColorSwizzleNode->SetAlphaComponent( 3 );
+
+		sgFinalizedTextureNode = sgTextureColorSwizzleNode;
 	}
 	else
 	{
-		spShadingNode sgFinalizedTextureNode;
-		spShadingTextureNode sgTextureNode = CreateTextureNode( textureData.mBitmap, tMaxMappingChannel, textureData.mTextureName, time, textureData.mIsSRGB );
-
-		spShadingColorNode sgOne = sg->CreateShadingColorNode();
-		sgOne->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
-
-		int alphaMode = textureData.mBitmap->GetAlphaSource();
-		if( alphaMode == ALPHA_RGB )
-		{
-			spShadingSwizzlingNode sgRedSwizzleNode = sg->CreateShadingSwizzlingNode();
-			sgRedSwizzleNode->SetInput( 0, sgTextureNode );
-			sgRedSwizzleNode->SetInput( 1, sgTextureNode );
-			sgRedSwizzleNode->SetInput( 2, sgTextureNode );
-			sgRedSwizzleNode->SetInput( 3, sgTextureNode );
-
-			sgRedSwizzleNode->SetRedComponent( 0 );
-			sgRedSwizzleNode->SetGreenComponent( 0 );
-			sgRedSwizzleNode->SetBlueComponent( 0 );
-			sgRedSwizzleNode->SetAlphaComponent( 0 );
-
-			spShadingSwizzlingNode sgGreenSwizzleNode = sg->CreateShadingSwizzlingNode();
-			sgGreenSwizzleNode->SetInput( 0, sgTextureNode );
-			sgGreenSwizzleNode->SetInput( 1, sgTextureNode );
-			sgGreenSwizzleNode->SetInput( 2, sgTextureNode );
-			sgGreenSwizzleNode->SetInput( 3, sgTextureNode );
-
-			sgGreenSwizzleNode->SetRedComponent( 1 );
-			sgGreenSwizzleNode->SetGreenComponent( 1 );
-			sgGreenSwizzleNode->SetBlueComponent( 1 );
-			sgGreenSwizzleNode->SetAlphaComponent( 1 );
-
-			spShadingSwizzlingNode sgBlueSwizzleNode = sg->CreateShadingSwizzlingNode();
-			sgBlueSwizzleNode->SetInput( 0, sgTextureNode );
-			sgBlueSwizzleNode->SetInput( 1, sgTextureNode );
-			sgBlueSwizzleNode->SetInput( 2, sgTextureNode );
-			sgBlueSwizzleNode->SetInput( 3, sgTextureNode );
-
-			sgBlueSwizzleNode->SetRedComponent( 2 );
-			sgBlueSwizzleNode->SetGreenComponent( 2 );
-			sgBlueSwizzleNode->SetBlueComponent( 2 );
-			sgBlueSwizzleNode->SetAlphaComponent( 2 );
-
-			spShadingAddNode sgAddRGNode = sg->CreateShadingAddNode();
-			sgAddRGNode->SetInput( 0, sgRedSwizzleNode );
-			sgAddRGNode->SetInput( 1, sgGreenSwizzleNode );
-
-			spShadingAddNode sgAddRGBNode = sg->CreateShadingAddNode();
-			sgAddRGBNode->SetInput( 0, sgAddRGNode );
-			sgAddRGBNode->SetInput( 1, sgBlueSwizzleNode );
-
-			spShadingColorNode sg1Through3Node = sg->CreateShadingColorNode();
-			sg1Through3Node->SetDefaultParameter( 0, 3, 3, 3, 3 );
-
-			spShadingDivideNode sgDivideNode = sg->CreateShadingDivideNode();
-			sgDivideNode->SetInput( 0, sgAddRGBNode );
-			sgDivideNode->SetInput( 1, sg1Through3Node );
-
-			spShadingSwizzlingNode sgFinalSwizzleNode = sg->CreateShadingSwizzlingNode();
-			sgFinalSwizzleNode->SetInput( 0, sgTextureNode );
-			sgFinalSwizzleNode->SetInput( 1, sgTextureNode );
-			sgFinalSwizzleNode->SetInput( 2, sgTextureNode );
-			sgFinalSwizzleNode->SetInput( 3, sgDivideNode );
-
-			sgFinalSwizzleNode->SetRedComponent( 0 );
-			sgFinalSwizzleNode->SetGreenComponent( 1 );
-			sgFinalSwizzleNode->SetBlueComponent( 2 );
-			sgFinalSwizzleNode->SetAlphaComponent( 3 );
-
-			sgFinalizedTextureNode = sgFinalSwizzleNode;
-		}
-		else if( alphaMode == ALPHA_NONE )
-		{
-			spShadingSwizzlingNode sgTextureColorSwizzleNode = sg->CreateShadingSwizzlingNode();
-			sgTextureColorSwizzleNode->SetInput( 0, sgTextureNode );
-			sgTextureColorSwizzleNode->SetInput( 1, sgTextureNode );
-			sgTextureColorSwizzleNode->SetInput( 2, sgTextureNode );
-			sgTextureColorSwizzleNode->SetInput( 3, sgOne );
-
-			sgTextureColorSwizzleNode->SetRedComponent( 0 );
-			sgTextureColorSwizzleNode->SetGreenComponent( 1 );
-			sgTextureColorSwizzleNode->SetBlueComponent( 2 );
-			sgTextureColorSwizzleNode->SetAlphaComponent( 3 );
-
-			sgFinalizedTextureNode = sgTextureColorSwizzleNode;
-		}
-		else
-		{
-			sgFinalizedTextureNode = sgTextureNode;
-		}
-
-		if( textureData.mPremultipliedAlpha == false )
-		{
-			spShadingSwizzlingNode sgAlphaSource = sg->CreateShadingSwizzlingNode();
-			sgAlphaSource->SetInput( 0, sgFinalizedTextureNode );
-			sgAlphaSource->SetInput( 1, sgFinalizedTextureNode );
-			sgAlphaSource->SetInput( 2, sgFinalizedTextureNode );
-			sgAlphaSource->SetInput( 3, sgFinalizedTextureNode );
-
-			sgAlphaSource->SetRedComponent( 3 );
-			sgAlphaSource->SetGreenComponent( 3 );
-			sgAlphaSource->SetBlueComponent( 3 );
-			sgAlphaSource->SetAlphaComponent( 3 );
-
-			spShadingMultiplyNode sgMultiply = sg->CreateShadingMultiplyNode();
-			sgMultiply->SetInput( 0, sgFinalizedTextureNode );
-			sgMultiply->SetInput( 1, sgAlphaSource );
-
-			sgFinalizedTextureNode = sgMultiply;
-		}
-
-		return sgFinalizedTextureNode;
+		sgFinalizedTextureNode = sgTextureNode;
 	}
+
+	if( textureData.mPremultipliedAlpha == false )
+	{
+		spShadingSwizzlingNode sgAlphaSourceNode = sg->CreateShadingSwizzlingNode();
+		sgAlphaSourceNode->SetInput( 0, sgFinalizedTextureNode );
+		sgAlphaSourceNode->SetInput( 1, sgFinalizedTextureNode );
+		sgAlphaSourceNode->SetInput( 2, sgFinalizedTextureNode );
+		sgAlphaSourceNode->SetInput( 3, sgFinalizedTextureNode );
+		sgAlphaSourceNode->SetRedComponent( 3 );
+		sgAlphaSourceNode->SetGreenComponent( 3 );
+		sgAlphaSourceNode->SetBlueComponent( 3 );
+		sgAlphaSourceNode->SetAlphaComponent( 3 );
+
+		spShadingMultiplyNode sgMultiplyNode = sg->CreateShadingMultiplyNode();
+		sgMultiplyNode->SetInput( 0, sgFinalizedTextureNode );
+		sgMultiplyNode->SetInput( 1, sgAlphaSourceNode );
+
+		spShadingSwizzlingNode sgAlphaSwizzleNode = sg->CreateShadingSwizzlingNode();
+		sgAlphaSwizzleNode->SetInput( 0, sgMultiplyNode );
+		sgAlphaSwizzleNode->SetInput( 1, sgMultiplyNode );
+		sgAlphaSwizzleNode->SetInput( 2, sgMultiplyNode );
+		sgAlphaSwizzleNode->SetInput( 3, sgAlphaSourceNode );
+		sgAlphaSwizzleNode->SetRedComponent( 0 );
+		sgAlphaSwizzleNode->SetGreenComponent( 1 );
+		sgAlphaSwizzleNode->SetBlueComponent( 2 );
+		sgAlphaSwizzleNode->SetAlphaComponent( 3 );
+
+		sgFinalizedTextureNode = sgAlphaSwizzleNode;
+	}
+	return sgFinalizedTextureNode;
 }
 
-spShadingNode MaterialNodes::SetUpShadingNodes( MaterialNodes::MultiplyNode& node,
-                                                std::basic_string<TCHAR>& tMaterialName,
-                                                std::basic_string<TCHAR>& tMaxMappingChannel,
-                                                Color& baseColor,
-                                                float baseAlpha,
-                                                TimeValue& time )
+spShadingNode MaterialNodes::SetUpMultiplyShadingNode( spShadingNode sgInputNodes[ 2 ],
+                                                       MaterialNodes::MultiplyNodeAlphaFrom alphaFrom,
+                                                       std::basic_string<TCHAR>& tMaterialName,
+                                                       TimeValue time )
 {
-	// incase the node is fully or partially inactive
-	spShadingNode shadingNode[ 2 ];
-	for( size_t i = 0; i < 2; ++i )
+	spShadingNode sgSelectedAlphaSourceNode = sg->CreateShadingSwizzlingNode();
+	if( alphaFrom == MaterialNodes::MultiplyNodeAlphaFrom::AlphaFirstSource )
 	{
-		if( node.mIsEnabled[ i ] && node.mTexture[ i ].mBitmap != nullptr )
-		{
-			// i == 1 for two alpha textures?
-			shadingNode[ i ] = GetShadingNode( node.mTexture[ i ], tMaxMappingChannel, Color( 0.0f, 0.0f, 0.0f ), time );
-		}
-		else
-		{
-			spShadingColorNode sgColorNode = sg->CreateShadingColorNode();
-			sgColorNode->SetColor( node.mColor[ i ].r, node.mColor[ i ].g, node.mColor[ i ].b, baseAlpha );
-			shadingNode[ i ] = sgColorNode;
-		}
+		spShadingSwizzlingNode sgSelectedAlphaNode = sg->CreateShadingSwizzlingNode();
+		sgSelectedAlphaNode->SetInput( 0, sgInputNodes[ 0 ] );
+		sgSelectedAlphaNode->SetInput( 1, sgInputNodes[ 0 ] );
+		sgSelectedAlphaNode->SetInput( 2, sgInputNodes[ 0 ] );
+		sgSelectedAlphaNode->SetInput( 3, sgInputNodes[ 0 ] );
+		sgSelectedAlphaNode->SetRedComponent( 3 );
+		sgSelectedAlphaNode->SetGreenComponent( 3 );
+		sgSelectedAlphaNode->SetBlueComponent( 3 );
+		sgSelectedAlphaNode->SetAlphaComponent( 3 );
+
+		sgSelectedAlphaSourceNode = sgSelectedAlphaNode;
 	}
-
-	spShadingNode sgSelectedAlphaSource = sg->CreateShadingSwizzlingNode();
-	if( node.mAlphaFrom == MaterialNodes::MultiplyNode::MultiplyNodeAlphaFrom::AlphaFirstSource )
+	else if( alphaFrom == MaterialNodes::MultiplyNodeAlphaFrom::AlphaSecondSource )
 	{
-		spShadingSwizzlingNode sgSelectedAlpha = sg->CreateShadingSwizzlingNode();
-		sgSelectedAlpha->SetInput( 0, shadingNode[ 0 ] );
-		sgSelectedAlpha->SetInput( 1, shadingNode[ 0 ] );
-		sgSelectedAlpha->SetInput( 2, shadingNode[ 0 ] );
-		sgSelectedAlpha->SetInput( 3, shadingNode[ 0 ] );
+		spShadingSwizzlingNode sgSelectedAlphaNode = sg->CreateShadingSwizzlingNode();
+		sgSelectedAlphaNode->SetInput( 0, sgInputNodes[ 1 ] );
+		sgSelectedAlphaNode->SetInput( 1, sgInputNodes[ 1 ] );
+		sgSelectedAlphaNode->SetInput( 2, sgInputNodes[ 1 ] );
+		sgSelectedAlphaNode->SetInput( 3, sgInputNodes[ 1 ] );
+		sgSelectedAlphaNode->SetRedComponent( 3 );
+		sgSelectedAlphaNode->SetGreenComponent( 3 );
+		sgSelectedAlphaNode->SetBlueComponent( 3 );
+		sgSelectedAlphaNode->SetAlphaComponent( 3 );
 
-		sgSelectedAlpha->SetRedComponent( 3 );
-		sgSelectedAlpha->SetGreenComponent( 3 );
-		sgSelectedAlpha->SetBlueComponent( 3 );
-		sgSelectedAlpha->SetAlphaComponent( 3 );
-
-		sgSelectedAlphaSource = sgSelectedAlpha;
-	}
-	else if( node.mAlphaFrom == MaterialNodes::MultiplyNode::MultiplyNodeAlphaFrom::AlphaSecondSource )
-	{
-		spShadingSwizzlingNode sgSelectedAlpha = sg->CreateShadingSwizzlingNode();
-		sgSelectedAlpha->SetInput( 0, shadingNode[ 1 ] );
-		sgSelectedAlpha->SetInput( 1, shadingNode[ 1 ] );
-		sgSelectedAlpha->SetInput( 2, shadingNode[ 1 ] );
-		sgSelectedAlpha->SetInput( 3, shadingNode[ 1 ] );
-
-		sgSelectedAlpha->SetRedComponent( 3 );
-		sgSelectedAlpha->SetGreenComponent( 3 );
-		sgSelectedAlpha->SetBlueComponent( 3 );
-		sgSelectedAlpha->SetAlphaComponent( 3 );
-
-		sgSelectedAlphaSource = sgSelectedAlpha;
+		sgSelectedAlphaSourceNode = sgSelectedAlphaNode;
 	}
 	else // if( node.mAlphaFrom == MultiplyNode::MultiplyNodeAlphaFrom::AlphaBlendSource )
 	{
-		spShadingSwizzlingNode sgTexture0Alpha = sg->CreateShadingSwizzlingNode();
-		sgTexture0Alpha->SetInput( 0, shadingNode[ 0 ] );
-		sgTexture0Alpha->SetInput( 1, shadingNode[ 0 ] );
-		sgTexture0Alpha->SetInput( 2, shadingNode[ 0 ] );
-		sgTexture0Alpha->SetInput( 3, shadingNode[ 0 ] );
+		spShadingSwizzlingNode sgTexture0AlphaNode = sg->CreateShadingSwizzlingNode();
+		sgTexture0AlphaNode->SetInput( 0, sgInputNodes[ 0 ] );
+		sgTexture0AlphaNode->SetInput( 1, sgInputNodes[ 0 ] );
+		sgTexture0AlphaNode->SetInput( 2, sgInputNodes[ 0 ] );
+		sgTexture0AlphaNode->SetInput( 3, sgInputNodes[ 0 ] );
+		sgTexture0AlphaNode->SetRedComponent( 3 );
+		sgTexture0AlphaNode->SetGreenComponent( 3 );
+		sgTexture0AlphaNode->SetBlueComponent( 3 );
+		sgTexture0AlphaNode->SetAlphaComponent( 3 );
 
-		sgTexture0Alpha->SetRedComponent( 3 );
-		sgTexture0Alpha->SetGreenComponent( 3 );
-		sgTexture0Alpha->SetBlueComponent( 3 );
-		sgTexture0Alpha->SetAlphaComponent( 3 );
+		spShadingSwizzlingNode sgTexture1AlphaNode = sg->CreateShadingSwizzlingNode();
+		sgTexture1AlphaNode->SetInput( 0, sgInputNodes[ 1 ] );
+		sgTexture1AlphaNode->SetInput( 1, sgInputNodes[ 1 ] );
+		sgTexture1AlphaNode->SetInput( 2, sgInputNodes[ 1 ] );
+		sgTexture1AlphaNode->SetInput( 3, sgInputNodes[ 1 ] );
+		sgTexture1AlphaNode->SetRedComponent( 3 );
+		sgTexture1AlphaNode->SetGreenComponent( 3 );
+		sgTexture1AlphaNode->SetBlueComponent( 3 );
+		sgTexture1AlphaNode->SetAlphaComponent( 3 );
 
-		spShadingSwizzlingNode sgTexture1Alpha = sg->CreateShadingSwizzlingNode();
-		sgTexture1Alpha->SetInput( 0, shadingNode[ 1 ] );
-		sgTexture1Alpha->SetInput( 1, shadingNode[ 1 ] );
-		sgTexture1Alpha->SetInput( 2, shadingNode[ 1 ] );
-		sgTexture1Alpha->SetInput( 3, shadingNode[ 1 ] );
+		spShadingMultiplyNode sgMultAlphaNode = sg->CreateShadingMultiplyNode();
+		sgMultAlphaNode->SetInput( 0, sgTexture0AlphaNode );
+		sgMultAlphaNode->SetInput( 1, sgTexture1AlphaNode );
 
-		sgTexture1Alpha->SetRedComponent( 3 );
-		sgTexture1Alpha->SetGreenComponent( 3 );
-		sgTexture1Alpha->SetBlueComponent( 3 );
-		sgTexture1Alpha->SetAlphaComponent( 3 );
-
-		spShadingMultiplyNode sgMultAlpha = sg->CreateShadingMultiplyNode();
-		sgMultAlpha->SetInput( 0, sgTexture0Alpha );
-		sgMultAlpha->SetInput( 1, sgTexture1Alpha );
-
-		sgSelectedAlphaSource = sgMultAlpha;
+		sgSelectedAlphaSourceNode = sgMultAlphaNode;
 	}
 
-	spShadingColorNode sgOne = sg->CreateShadingColorNode();
-	sgOne->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
+	spShadingColorNode sgOneNode = sg->CreateShadingColorNode();
+	sgOneNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
 
-	spShadingColorNode sgZero = sg->CreateShadingColorNode();
-	sgZero->SetColor( 0.0f, 0.0f, 0.0f, 1.0f );
+	spShadingColorNode sgZeroNode = sg->CreateShadingColorNode();
+	sgZeroNode->SetColor( 0.0f, 0.0f, 0.0f, 1.0f );
 
-	spShadingColorNode sgDestination = sg->CreateShadingColorNode();
-	sgDestination->SetColor( baseColor.r, baseColor.g, baseColor.b, 1 );
+	spShadingMultiplyNode sgMultipliedTexturesNode = sg->CreateShadingMultiplyNode();
+	sgMultipliedTexturesNode->SetInput( 0, sgInputNodes[ 0 ] );
+	sgMultipliedTexturesNode->SetInput( 1, sgInputNodes[ 1 ] );
 
-	spShadingMultiplyNode sgMultipliedTextures = sg->CreateShadingMultiplyNode();
-	sgMultipliedTextures->SetInput( 0, shadingNode[ 0 ] );
-	sgMultipliedTextures->SetInput( 1, shadingNode[ 1 ] );
+	spShadingSwizzlingNode sgFinalAlphaSwizzleNode = sg->CreateShadingSwizzlingNode();
+	sgFinalAlphaSwizzleNode->SetInput( 0, sgMultipliedTexturesNode );
+	sgFinalAlphaSwizzleNode->SetInput( 1, sgMultipliedTexturesNode );
+	sgFinalAlphaSwizzleNode->SetInput( 2, sgMultipliedTexturesNode );
+	sgFinalAlphaSwizzleNode->SetInput( 3, sgSelectedAlphaSourceNode );
+	sgFinalAlphaSwizzleNode->SetRedComponent( 0 );
+	sgFinalAlphaSwizzleNode->SetGreenComponent( 1 );
+	sgFinalAlphaSwizzleNode->SetBlueComponent( 2 );
+	sgFinalAlphaSwizzleNode->SetAlphaComponent( 3 );
 
-	spShadingSubtractNode sgOneMinusTextureAlpha = sg->CreateShadingSubtractNode();
-	sgOneMinusTextureAlpha->SetInput( 0, sgOne );
-	sgOneMinusTextureAlpha->SetInput( 1, sgSelectedAlphaSource );
-
-	spShadingMultiplyNode sgDestination_x_InvertedTextureAlpha = sg->CreateShadingMultiplyNode();
-	sgDestination_x_InvertedTextureAlpha->SetInput( 0, sgDestination );
-	sgDestination_x_InvertedTextureAlpha->SetInput( 1, sgOneMinusTextureAlpha );
-
-	spShadingAddNode sgAddNode = sg->CreateShadingAddNode();
-	sgAddNode->SetInput( 0, sgMultipliedTextures );
-	sgAddNode->SetInput( 1, sgDestination_x_InvertedTextureAlpha );
-
-	spShadingSwizzlingNode sgAlphaOneSwizzle = sg->CreateShadingSwizzlingNode();
-	sgAlphaOneSwizzle->SetInput( 0, sgAddNode );
-	sgAlphaOneSwizzle->SetInput( 1, sgAddNode );
-	sgAlphaOneSwizzle->SetInput( 2, sgAddNode );
-	sgAlphaOneSwizzle->SetInput( 3, sgOne );
-
-	sgAlphaOneSwizzle->SetRedComponent( 0 );
-	sgAlphaOneSwizzle->SetGreenComponent( 1 );
-	sgAlphaOneSwizzle->SetBlueComponent( 2 );
-	sgAlphaOneSwizzle->SetAlphaComponent( 3 );
-
-	return sgAlphaOneSwizzle;
+	return sgFinalAlphaSwizzleNode;
 }
 
-spShadingNode MaterialNodes::SetUpShadingNodes( MaterialNodes::TintNode& node,
-                                                std::basic_string<TCHAR>& tMaterialName,
-                                                std::basic_string<TCHAR>& tMaxMappingChannel,
-                                                Color& baseColor,
-                                                float baseAlpha,
-                                                TimeValue& time )
+spShadingNode MaterialNodes::SetUpTintShadingNode(
+    spShadingNode& sgInputNode, std::basic_string<TCHAR>& tMaterialName, Color& redChannel, Color& greenChannel, Color& blueChannel, TimeValue time )
 {
-	spShadingColorNode sgOne = sg->CreateShadingColorNode();
-	sgOne->SetColor( 1.f, 1.f, 1.f, 1.f );
+	spShadingColorNode sgOneNode = sg->CreateShadingColorNode();
+	sgOneNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
 
-	spShadingColorNode sgZero = sg->CreateShadingColorNode();
-	sgZero->SetColor( 0.f, 0.f, 0.f, 0.f );
+	spShadingColorNode sgZeroNode = sg->CreateShadingColorNode();
+	sgZeroNode->SetColor( 0.f, 0.f, 0.f, 0.f );
 
-	spShadingNode sgTextureChannelNode;
-	if( node.mIsEnabled )
-	{
-		sgTextureChannelNode = GetShadingNode( node.mTexture, tMaxMappingChannel, baseColor, time );
-	}
-	else
-	{
-		spShadingColorNode sgColorNode = sg->CreateShadingColorNode();
-		sgColorNode->SetColor( 1, 1, 1, 1 );
-		sgTextureChannelNode = sgColorNode;
-	}
+	spShadingSwizzlingNode sgSrcRedNode = sg->CreateShadingSwizzlingNode();
+	sgSrcRedNode->SetInput( 0, sgInputNode );
+	sgSrcRedNode->SetInput( 1, sgInputNode );
+	sgSrcRedNode->SetInput( 2, sgInputNode );
+	sgSrcRedNode->SetInput( 3, sgOneNode );
+	sgSrcRedNode->SetRedComponent( 0 );
+	sgSrcRedNode->SetGreenComponent( 0 );
+	sgSrcRedNode->SetBlueComponent( 0 );
+	sgSrcRedNode->SetAlphaComponent( 0 );
 
-	spShadingSwizzlingNode sgSrcRed = sg->CreateShadingSwizzlingNode();
-	sgSrcRed->SetInput( 0, sgTextureChannelNode );
-	sgSrcRed->SetInput( 1, sgTextureChannelNode );
-	sgSrcRed->SetInput( 2, sgTextureChannelNode );
-	sgSrcRed->SetInput( 3, sgOne );
-	sgSrcRed->SetRedComponent( 0 );
-	sgSrcRed->SetGreenComponent( 0 );
-	sgSrcRed->SetBlueComponent( 0 );
-	sgSrcRed->SetAlphaComponent( 0 );
+	spShadingSwizzlingNode sgSrcGreenNode = sg->CreateShadingSwizzlingNode();
+	sgSrcGreenNode->SetInput( 0, sgInputNode );
+	sgSrcGreenNode->SetInput( 1, sgInputNode );
+	sgSrcGreenNode->SetInput( 2, sgInputNode );
+	sgSrcGreenNode->SetInput( 3, sgOneNode );
+	sgSrcGreenNode->SetRedComponent( 1 );
+	sgSrcGreenNode->SetGreenComponent( 1 );
+	sgSrcGreenNode->SetBlueComponent( 1 );
+	sgSrcGreenNode->SetAlphaComponent( 1 );
 
-	spShadingSwizzlingNode sgSrcGreen = sg->CreateShadingSwizzlingNode();
-	sgSrcGreen->SetInput( 0, sgTextureChannelNode );
-	sgSrcGreen->SetInput( 1, sgTextureChannelNode );
-	sgSrcGreen->SetInput( 2, sgTextureChannelNode );
-	sgSrcGreen->SetInput( 3, sgOne );
-	sgSrcGreen->SetRedComponent( 1 );
-	sgSrcGreen->SetGreenComponent( 1 );
-	sgSrcGreen->SetBlueComponent( 1 );
-	sgSrcGreen->SetAlphaComponent( 1 );
+	spShadingSwizzlingNode sgSrcBlueNode = sg->CreateShadingSwizzlingNode();
+	sgSrcBlueNode->SetInput( 0, sgInputNode );
+	sgSrcBlueNode->SetInput( 1, sgInputNode );
+	sgSrcBlueNode->SetInput( 2, sgInputNode );
+	sgSrcBlueNode->SetInput( 3, sgOneNode );
+	sgSrcBlueNode->SetRedComponent( 2 );
+	sgSrcBlueNode->SetGreenComponent( 2 );
+	sgSrcBlueNode->SetBlueComponent( 2 );
+	sgSrcBlueNode->SetAlphaComponent( 2 );
 
-	spShadingSwizzlingNode sgSrcBlue = sg->CreateShadingSwizzlingNode();
-	sgSrcBlue->SetInput( 0, sgTextureChannelNode );
-	sgSrcBlue->SetInput( 1, sgTextureChannelNode );
-	sgSrcBlue->SetInput( 2, sgTextureChannelNode );
-	sgSrcBlue->SetInput( 3, sgOne );
-	sgSrcBlue->SetRedComponent( 2 );
-	sgSrcBlue->SetGreenComponent( 2 );
-	sgSrcBlue->SetBlueComponent( 2 );
-	sgSrcBlue->SetAlphaComponent( 2 );
+	spShadingColorNode sgTintChannel0Node = sg->CreateShadingColorNode();
+	sgTintChannel0Node->SetDefaultParameter( 0, redChannel.r, redChannel.g, redChannel.b, 1 );
 
-	spShadingColorNode sgTintChannel0 = sg->CreateShadingColorNode();
-	sgTintChannel0->SetDefaultParameter( 0, node.mRedChannel.r, node.mRedChannel.g, node.mRedChannel.b, 1 );
+	spShadingColorNode sgTintChannel1Node = sg->CreateShadingColorNode();
+	sgTintChannel1Node->SetDefaultParameter( 0, greenChannel.r, greenChannel.g, greenChannel.b, 1 );
 
-	spShadingColorNode sgTintChannel1 = sg->CreateShadingColorNode();
-	sgTintChannel1->SetDefaultParameter( 0, node.mGreenChannel.r, node.mGreenChannel.g, node.mGreenChannel.b, 1 );
-
-	spShadingColorNode sgTintChannel2 = sg->CreateShadingColorNode();
-	sgTintChannel2->SetDefaultParameter( 0, node.mBlueChannel.r, node.mBlueChannel.g, node.mBlueChannel.b, 1 );
+	spShadingColorNode sgTintChannel2Node = sg->CreateShadingColorNode();
+	sgTintChannel2Node->SetDefaultParameter( 0, blueChannel.r, blueChannel.g, blueChannel.b, 1 );
 
 	/*
 	    The MAX's tint formula is:
@@ -950,155 +893,79 @@ spShadingNode MaterialNodes::SetUpShadingNodes( MaterialNodes::TintNode& node,
 	    COL.R = SRC.R *R
 	    COL.G = SRC.G *G
 	    COL.B = SRC.B *B
+
+
+	    c2.r = c.r*col[0].r + c.g*col[1].r + c.b*col[2].r;
+	    c2.g = c.r*col[0].g + c.g*col[1].g + c.b*col[2].g;
+	    c2.b = c.r*col[0].b + c.g*col[1].b + c.b*col[2].b;
+	    c2.a = c.a;
 	*/
 
-	spShadingMultiplyNode sgSrcRed_x_Tint0 = sg->CreateShadingMultiplyNode();
-	sgSrcRed_x_Tint0->SetInput( 0, sgSrcRed );
-	sgSrcRed_x_Tint0->SetInput( 1, sgTintChannel0 );
+	spShadingMultiplyNode sgSrcRed_x_Tint0Node = sg->CreateShadingMultiplyNode();
+	sgSrcRed_x_Tint0Node->SetInput( 0, sgSrcRedNode );
+	sgSrcRed_x_Tint0Node->SetInput( 1, sgTintChannel0Node );
 
-	spShadingMultiplyNode sgSrcGreen_x_Tint1 = sg->CreateShadingMultiplyNode();
-	sgSrcGreen_x_Tint1->SetInput( 0, sgSrcGreen );
-	sgSrcGreen_x_Tint1->SetInput( 1, sgTintChannel1 );
+	spShadingMultiplyNode sgSrcGreen_x_Tint1Node = sg->CreateShadingMultiplyNode();
+	sgSrcGreen_x_Tint1Node->SetInput( 0, sgSrcGreenNode );
+	sgSrcGreen_x_Tint1Node->SetInput( 1, sgTintChannel1Node );
 
-	spShadingMultiplyNode sgSrcBlue_x_Tint2 = sg->CreateShadingMultiplyNode();
-	sgSrcBlue_x_Tint2->SetInput( 0, sgSrcBlue );
-	sgSrcBlue_x_Tint2->SetInput( 1, sgTintChannel2 );
+	spShadingMultiplyNode sgSrcBlue_x_Tint2Node = sg->CreateShadingMultiplyNode();
+	sgSrcBlue_x_Tint2Node->SetInput( 0, sgSrcBlueNode );
+	sgSrcBlue_x_Tint2Node->SetInput( 1, sgTintChannel2Node );
 
-	spShadingAddNode sgAddColumn0 = sg->CreateShadingAddNode();
-	sgAddColumn0->SetInput( 0, sgSrcRed_x_Tint0 );
-	sgAddColumn0->SetInput( 1, sgSrcGreen_x_Tint1 );
+	spShadingAddNode sgAddColumn0Node = sg->CreateShadingAddNode();
+	sgAddColumn0Node->SetInput( 0, sgSrcRed_x_Tint0Node );
+	sgAddColumn0Node->SetInput( 1, sgSrcGreen_x_Tint1Node );
 
-	spShadingAddNode sgAddColumn1 = sg->CreateShadingAddNode();
-	sgAddColumn1->SetInput( 0, sgAddColumn0 );
-	sgAddColumn1->SetInput( 1, sgSrcBlue_x_Tint2 );
+	spShadingAddNode sgAddColumn1Node = sg->CreateShadingAddNode();
+	sgAddColumn1Node->SetInput( 0, sgAddColumn0Node );
+	sgAddColumn1Node->SetInput( 1, sgSrcBlue_x_Tint2Node );
 
-	spShadingSwizzlingNode sgAlphaSwizzle = sg->CreateShadingSwizzlingNode();
-	sgAlphaSwizzle->SetInput( 0, sgAddColumn1 );
-	sgAlphaSwizzle->SetInput( 1, sgAddColumn1 );
-	sgAlphaSwizzle->SetInput( 2, sgAddColumn1 );
-	sgAlphaSwizzle->SetInput( 3, sgTextureChannelNode );
-	sgAlphaSwizzle->SetRedComponent( 0 );
-	sgAlphaSwizzle->SetGreenComponent( 1 );
-	sgAlphaSwizzle->SetBlueComponent( 2 );
-	sgAlphaSwizzle->SetAlphaComponent( 3 );
+	spShadingSwizzlingNode sgAlphaSwizzleNode = sg->CreateShadingSwizzlingNode();
+	sgAlphaSwizzleNode->SetInput( 0, sgAddColumn1Node );
+	sgAlphaSwizzleNode->SetInput( 1, sgAddColumn1Node );
+	sgAlphaSwizzleNode->SetInput( 2, sgAddColumn1Node );
+	sgAlphaSwizzleNode->SetInput( 3, sgInputNode );
+	sgAlphaSwizzleNode->SetRedComponent( 0 );
+	sgAlphaSwizzleNode->SetGreenComponent( 1 );
+	sgAlphaSwizzleNode->SetBlueComponent( 2 );
+	sgAlphaSwizzleNode->SetAlphaComponent( 3 );
 
-	spShadingClampNode sgClampNode = sg->CreateShadingClampNode();
-	sgClampNode->SetInput( 0, sgAlphaSwizzle );
-	sgClampNode->SetInput( 1, sgZero );
-	sgClampNode->SetInput( 2, sgOne );
-
-	spShadingColorNode sgDestination = sg->CreateShadingColorNode();
-	sgDestination->SetColor( baseColor.r, baseColor.g, baseColor.b, 1 );
-
-	spShadingSwizzlingNode sgTextureAlpha = sg->CreateShadingSwizzlingNode();
-	sgTextureAlpha->SetInput( 0, sgClampNode );
-	sgTextureAlpha->SetInput( 1, sgClampNode );
-	sgTextureAlpha->SetInput( 2, sgClampNode );
-	sgTextureAlpha->SetInput( 3, sgClampNode );
-
-	sgTextureAlpha->SetRedComponent( 3 );
-	sgTextureAlpha->SetGreenComponent( 3 );
-	sgTextureAlpha->SetBlueComponent( 3 );
-	sgTextureAlpha->SetAlphaComponent( 3 );
-
-	spShadingSubtractNode sgOneMinusTextureAlpha = sg->CreateShadingSubtractNode();
-	sgOneMinusTextureAlpha->SetInput( 0, sgOne );
-	sgOneMinusTextureAlpha->SetInput( 1, sgTextureAlpha );
-
-	spShadingMultiplyNode sgDestination_x_InvertedTextureAlpha = sg->CreateShadingMultiplyNode();
-	sgDestination_x_InvertedTextureAlpha->SetInput( 0, sgDestination );
-	sgDestination_x_InvertedTextureAlpha->SetInput( 1, sgOneMinusTextureAlpha );
-
-	spShadingAddNode sgAddNode = sg->CreateShadingAddNode();
-	sgAddNode->SetInput( 0, sgClampNode );
-	sgAddNode->SetInput( 1, sgDestination_x_InvertedTextureAlpha );
-
-	spShadingSwizzlingNode sgAlphaOneSwizzle = sg->CreateShadingSwizzlingNode();
-	sgAlphaOneSwizzle->SetInput( 0, sgAddNode );
-	sgAlphaOneSwizzle->SetInput( 1, sgAddNode );
-	sgAlphaOneSwizzle->SetInput( 2, sgAddNode );
-	sgAlphaOneSwizzle->SetInput( 3, sgOne );
-
-	sgAlphaOneSwizzle->SetRedComponent( 0 );
-	sgAlphaOneSwizzle->SetGreenComponent( 1 );
-	sgAlphaOneSwizzle->SetBlueComponent( 2 );
-	sgAlphaOneSwizzle->SetAlphaComponent( 3 );
-
-	return sgAlphaOneSwizzle;
+	return sgAlphaSwizzleNode;
 }
 
-spShadingNode MaterialNodes::SetUpShadingNodes( MaterialNodes::BitmapNode& node,
-                                                std::basic_string<TCHAR>& tMaterialName,
-                                                std::basic_string<TCHAR>& tMaxMappingChannel,
-                                                Color& baseColor,
-                                                float baseAlpha,
-                                                TimeValue& time )
+spShadingNode MaterialNodes::SetUpBitmapShadingNode( std::basic_string<TCHAR>& tMaterialName,
+                                                     std::basic_string<TCHAR>& tMaxMappingChannel,
+                                                     MaterialNodes::TextureData& rTextureData,
+                                                     TimeValue time )
 {
-	spShadingColorNode sgDestinationNode = sg->CreateShadingColorNode();
-	sgDestinationNode->SetColor( baseColor.r, baseColor.g, baseColor.b, 1.0f );
+	spShadingNode sgShadingNode = GetShadingNode( rTextureData, tMaxMappingChannel, time );
 
-	spShadingColorNode sgBlendAmountNode = sg->CreateShadingColorNode();
-	sgBlendAmountNode->SetColor( baseAlpha, baseAlpha, baseAlpha, 1.0f );
-
-	spShadingNode sgShadingNode = GetShadingNode( node.mTexture, tMaxMappingChannel, baseColor, time );
-
-	spShadingInterpolateNode sgInterpolationNode = sg->CreateShadingInterpolateNode();
-	sgInterpolationNode->SetInput( 0, sgDestinationNode );
-	sgInterpolationNode->SetInput( 1, sgShadingNode );
-	sgInterpolationNode->SetInput( 2, sgBlendAmountNode );
-
-	return (spShadingNode)sgInterpolationNode;
+	return sgShadingNode;
 }
 
-spShadingNode MaterialNodes::SetUpShadingNodes( MaterialNodes::CompositeNode& node,
-                                                std::basic_string<TCHAR>& tMaterialName,
-                                                std::basic_string<TCHAR>& tMaxMappingChannel,
-                                                Color& baseColor,
-                                                float baseAlpha,
-                                                TimeValue& time )
+spShadingNode MaterialNodes::SetUpCompositeShadingNode( std::vector<spShadingNode>& TextureNodes,
+                                                        std::vector<spShadingNode>& MaskNodes,
+                                                        std::vector<ETextureBlendType>& TextureBlendTypes,
+                                                        std::vector<float>& Opacity,
+                                                        std::basic_string<TCHAR>& tMaterialName,
+                                                        TimeValue time )
 {
-	spShadingColorNode sgDestinationNode = sg->CreateShadingColorNode();
-	sgDestinationNode->SetColor( baseColor.r, baseColor.g, baseColor.b, 1 );
+	spShadingColorNode sgOneNode = sg->CreateShadingColorNode();
+	sgOneNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
 
-	spShadingColorNode sgOne = sg->CreateShadingColorNode();
-	sgOne->SetColor( 1.f, 1.f, 1.f, 1.f );
-
-	spShadingColorNode sgZero = sg->CreateShadingColorNode();
-	sgZero->SetColor( 0.f, 0.f, 0.f, 0.f );
+	spShadingColorNode sgZeroNode = sg->CreateShadingColorNode();
+	sgZeroNode->SetColor( 0.f, 0.f, 0.f, 0.f );
 
 	spShadingLayeredBlendNode sgLayeredBlendNode = sg->CreateShadingLayeredBlendNode();
-	sgLayeredBlendNode->SetInputCount( node.mNumLayers + 1 );
-	sgLayeredBlendNode->SetInput( 0, sgDestinationNode );
-	sgLayeredBlendNode->SetPerInputBlendType( 0, ETextureBlendType::Replace );
-	for( uint index = 0; index < node.mNumLayers; ++index )
+	sgLayeredBlendNode->SetInputCount( static_cast<uint>( TextureNodes.size() ) );
+	for( uint index = 0; index < static_cast<uint>( TextureNodes.size() ); ++index )
 	{
-		spShadingNode sgTextureChannelNode;
-		if( node.mTextures[ index ].mBitmap != nullptr )
-		{
-			sgTextureChannelNode = GetShadingNode( node.mTextures[ index ], tMaxMappingChannel, baseColor, time );
-		}
-		else
-		{
-			spShadingColorNode sgColorNode = sg->CreateShadingColorNode();
-			sgColorNode->SetColor( 1, 1, 1, 1 );
-			sgTextureChannelNode = sgColorNode;
-		}
-
-		spShadingNode sgMaskChannelNode;
-		if( node.mMaskEnabled[ index ] && node.mMasks[ index ].mBitmap != nullptr )
-		{
-			node.mMasks[ index ].mIsSRGB = false;
-			sgMaskChannelNode = GetShadingNode( node.mMasks[ index ], tMaxMappingChannel, baseColor, time );
-		}
-		else
-		{
-			spShadingColorNode sgBColorNode = sg->CreateShadingColorNode();
-			sgBColorNode->SetColor( 1, 1, 1, 1 );
-			sgMaskChannelNode = sgBColorNode;
-		}
+		spShadingNode sgTextureChannelNode = TextureNodes[ index ];
+		spShadingNode sgMaskChannelNode = MaskNodes[ index ];
 
 		spShadingNode sgMaskAlpha;
-		if( node.mMaskEnabled[ index ] && node.mMasks[ index ].mBitmap != nullptr )
+		if( !sgMaskChannelNode.IsNull() )
 		{
 			// Extract Mask
 			////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1106,7 +973,7 @@ spShadingNode MaterialNodes::SetUpShadingNodes( MaterialNodes::CompositeNode& no
 			sgRedExtract->SetInput( 0, sgMaskChannelNode );
 			sgRedExtract->SetInput( 1, sgMaskChannelNode );
 			sgRedExtract->SetInput( 2, sgMaskChannelNode );
-			sgRedExtract->SetInput( 3, sgOne );
+			sgRedExtract->SetInput( 3, sgOneNode );
 			sgRedExtract->SetRedComponent( 0 );
 			sgRedExtract->SetGreenComponent( 0 );
 			sgRedExtract->SetBlueComponent( 0 );
@@ -1116,7 +983,7 @@ spShadingNode MaterialNodes::SetUpShadingNodes( MaterialNodes::CompositeNode& no
 			sgGreenExtract->SetInput( 0, sgMaskChannelNode );
 			sgGreenExtract->SetInput( 1, sgMaskChannelNode );
 			sgGreenExtract->SetInput( 2, sgMaskChannelNode );
-			sgGreenExtract->SetInput( 3, sgOne );
+			sgGreenExtract->SetInput( 3, sgOneNode );
 			sgGreenExtract->SetRedComponent( 1 );
 			sgGreenExtract->SetGreenComponent( 1 );
 			sgGreenExtract->SetBlueComponent( 1 );
@@ -1126,7 +993,7 @@ spShadingNode MaterialNodes::SetUpShadingNodes( MaterialNodes::CompositeNode& no
 			sgBlueExtract->SetInput( 0, sgMaskChannelNode );
 			sgBlueExtract->SetInput( 1, sgMaskChannelNode );
 			sgBlueExtract->SetInput( 2, sgMaskChannelNode );
-			sgBlueExtract->SetInput( 3, sgOne );
+			sgBlueExtract->SetInput( 3, sgOneNode );
 			sgBlueExtract->SetRedComponent( 2 );
 			sgBlueExtract->SetGreenComponent( 2 );
 			sgBlueExtract->SetBlueComponent( 2 );
@@ -1140,94 +1007,478 @@ spShadingNode MaterialNodes::SetUpShadingNodes( MaterialNodes::CompositeNode& no
 			sgRGBlueAdd->SetInput( 0, sgRedGreenAdd );
 			sgRGBlueAdd->SetInput( 1, sgBlueExtract );
 
-			spShadingColorNode sgOneThruThree = sg->CreateShadingColorNode();
-			sgOneThruThree->SetColor( 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f, 1.f );
+			spShadingColorNode sgThree = sg->CreateShadingColorNode();
+			sgThree->SetColor( 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f, 1.0f );
 
-			spShadingMultiplyNode sgRGB_x_3 = sg->CreateShadingMultiplyNode();
-			sgRGB_x_3->SetInput( 0, sgRGBlueAdd );
-			sgRGB_x_3->SetInput( 1, sgOneThruThree );
-			////////////////////////////////////////////////////////////////////////////////////////////////////
+			spShadingMultiplyNode sgRGB_div_3 = sg->CreateShadingMultiplyNode();
+			sgRGB_div_3->SetInput( 0, sgRGBlueAdd );
+			sgRGB_div_3->SetInput( 1, sgThree );
 
-			spShadingSwizzlingNode sgMono = sg->CreateShadingSwizzlingNode();
-			sgMono->SetInput( 0, sgRGB_x_3 );
-			sgMono->SetInput( 1, sgRGB_x_3 );
-			sgMono->SetInput( 2, sgRGB_x_3 );
-			sgMono->SetInput( 3, sgRGB_x_3 );
-			sgMono->SetRedComponent( 0 );
-			sgMono->SetGreenComponent( 0 );
-			sgMono->SetBlueComponent( 0 );
-			sgMono->SetAlphaComponent( 0 );
+			spShadingClampNode sgClampNode = sg->CreateShadingClampNode();
+			sgClampNode->SetInput( 0, sgRGB_div_3 );
+			sgClampNode->SetInput( 1, sgZeroNode );
+			sgClampNode->SetInput( 2, sgOneNode );
 
-			sgMaskAlpha = sgMono;
+			spShadingSwizzlingNode sgAlphaMaskNode = sg->CreateShadingSwizzlingNode();
+			sgAlphaMaskNode->SetInput( 0, sgClampNode );
+			sgAlphaMaskNode->SetInput( 1, sgClampNode );
+			sgAlphaMaskNode->SetInput( 2, sgClampNode );
+			sgAlphaMaskNode->SetInput( 3, sgClampNode );
+			sgAlphaMaskNode->SetRedComponent( 0 );
+			sgAlphaMaskNode->SetGreenComponent( 0 );
+			sgAlphaMaskNode->SetBlueComponent( 0 );
+			sgAlphaMaskNode->SetAlphaComponent( 0 );
+
+			sgMaskAlpha = sgAlphaMaskNode;
 		}
 		else
 		{
-			sgMaskAlpha = sgOne;
+			sgMaskAlpha = sgOneNode;
 		}
 
-		const float nodeAlpha = node.mTextureOpacity[ index ] / 100.0f;
+		spShadingSwizzlingNode sgTextureAlphaSource = sg->CreateShadingSwizzlingNode();
+		sgTextureAlphaSource->SetInput( 0, sgTextureChannelNode );
+		sgTextureAlphaSource->SetInput( 1, sgTextureChannelNode );
+		sgTextureAlphaSource->SetInput( 2, sgTextureChannelNode );
+		sgTextureAlphaSource->SetInput( 3, sgTextureChannelNode );
+		sgTextureAlphaSource->SetRedComponent( 3 );
+		sgTextureAlphaSource->SetGreenComponent( 3 );
+		sgTextureAlphaSource->SetBlueComponent( 3 );
+		sgTextureAlphaSource->SetAlphaComponent( 3 );
+
+		spShadingMultiplyNode sgAlphaMultiplyNode = sg->CreateShadingMultiplyNode();
+		sgAlphaMultiplyNode->SetInput( 0, sgMaskAlpha );
+		sgAlphaMultiplyNode->SetInput( 1, sgTextureAlphaSource );
+
+		const float nodeAlpha = Opacity[ index ] / 100.0f;
 
 		spShadingColorNode sgOpacityFactor = sg->CreateShadingColorNode();
 		sgOpacityFactor->SetColor( nodeAlpha, nodeAlpha, nodeAlpha, nodeAlpha );
 
 		spShadingMultiplyNode sMono_x_OpacityFactor = sg->CreateShadingMultiplyNode();
-		sMono_x_OpacityFactor->SetInput( 0, sgMaskAlpha );
+		sMono_x_OpacityFactor->SetInput( 0, sgAlphaMultiplyNode );
 		sMono_x_OpacityFactor->SetInput( 1, sgOpacityFactor );
 
-		// Extract Texture Alpha
-		////////////////////////////////////////////////////////////////////////////////////////////////////
-		spShadingSwizzlingNode sgAlphaExtractFromTexture = sg->CreateShadingSwizzlingNode();
-		sgAlphaExtractFromTexture->SetInput( 0, sgTextureChannelNode );
-		sgAlphaExtractFromTexture->SetInput( 1, sgTextureChannelNode );
-		sgAlphaExtractFromTexture->SetInput( 2, sgTextureChannelNode );
-		sgAlphaExtractFromTexture->SetInput( 3, sgTextureChannelNode );
-		sgAlphaExtractFromTexture->SetRedComponent( 3 );
-		sgAlphaExtractFromTexture->SetGreenComponent( 3 );
-		sgAlphaExtractFromTexture->SetBlueComponent( 3 );
-		sgAlphaExtractFromTexture->SetAlphaComponent( 3 );
+		spShadingSwizzlingNode sgTextureNode = sg->CreateShadingSwizzlingNode();
+		sgTextureNode->SetInput( 0, sgTextureChannelNode );
+		sgTextureNode->SetInput( 1, sgTextureChannelNode );
+		sgTextureNode->SetInput( 2, sgTextureChannelNode );
+		sgTextureNode->SetInput( 3, sMono_x_OpacityFactor );
+		sgTextureNode->SetRedComponent( 0 );
+		sgTextureNode->SetGreenComponent( 1 );
+		sgTextureNode->SetBlueComponent( 2 );
+		sgTextureNode->SetAlphaComponent( 3 );
 
-		spShadingMultiplyNode sgTexAlpha_x_Mono = sg->CreateShadingMultiplyNode();
-		sgTexAlpha_x_Mono->SetInput( 0, sgAlphaExtractFromTexture );
-		sgTexAlpha_x_Mono->SetInput( 1, sMono_x_OpacityFactor );
-		////////////////////////////////////////////////////////////////////////////////////////////////////
-
-		if( node.mTextureBlendmode[ index ] == ETextureBlendType::Alpha )
+		// First should always be alpha
+		// if( TextureBlendTypes[ index ] == ETextureBlendType::Alpha || index == 0 )
 		{
-			spShadingSwizzlingNode sgSwizzleOpacity = sg->CreateShadingSwizzlingNode();
-			sgSwizzleOpacity->SetInput( 0, sgTextureChannelNode );
-			sgSwizzleOpacity->SetInput( 1, sgTextureChannelNode );
-			sgSwizzleOpacity->SetInput( 2, sgTextureChannelNode );
-			sgSwizzleOpacity->SetInput( 3, sgTexAlpha_x_Mono );
-			sgSwizzleOpacity->SetRedComponent( 0 );
-			sgSwizzleOpacity->SetGreenComponent( 1 );
-			sgSwizzleOpacity->SetBlueComponent( 2 );
-			sgSwizzleOpacity->SetAlphaComponent( 3 );
-
-			sgLayeredBlendNode->SetInput( index + 1, sgSwizzleOpacity );
-			sgLayeredBlendNode->SetPerInputBlendType( index + 1, node.mTextureBlendmode[ index ] );
-		}
-		else if( node.mTextureBlendmode[ index ] == ETextureBlendType::Add || node.mTextureBlendmode[ index ] == ETextureBlendType::Subtract )
-		{
-			spShadingInterpolateNode sgInterpolateNode = sg->CreateShadingInterpolateNode();
-			sgInterpolateNode->SetInput( 0, sgOne );
-			sgInterpolateNode->SetInput( 1, sgTextureChannelNode );
-			sgInterpolateNode->SetInput( 2, sgTexAlpha_x_Mono );
-
-			sgLayeredBlendNode->SetInput( index + 1, sgInterpolateNode );
-			sgLayeredBlendNode->SetPerInputBlendType( index + 1, node.mTextureBlendmode[ index ] );
-		}
-		else if( node.mTextureBlendmode[ index ] == ETextureBlendType::Multiply )
-		{
-			spShadingInterpolateNode sgInterpolateNode = sg->CreateShadingInterpolateNode();
-			sgInterpolateNode->SetInput( 0, sgZero );
-			sgInterpolateNode->SetInput( 1, sgTextureChannelNode );
-			sgInterpolateNode->SetInput( 2, sgTexAlpha_x_Mono );
-
-			sgLayeredBlendNode->SetInput( index + 1, sgInterpolateNode );
-			sgLayeredBlendNode->SetPerInputBlendType( index + 1, node.mTextureBlendmode[ index ] );
+			sgLayeredBlendNode->SetInput( index, sgTextureNode );
+			sgLayeredBlendNode->SetPerInputBlendType( index, TextureBlendTypes[ index ] );
 		}
 	}
-	return sgLayeredBlendNode;
+
+	spShadingSwizzlingNode sgAlphaSourceNode = sg->CreateShadingSwizzlingNode();
+	sgAlphaSourceNode->SetInput( 0, sgLayeredBlendNode );
+	sgAlphaSourceNode->SetInput( 1, sgLayeredBlendNode );
+	sgAlphaSourceNode->SetInput( 2, sgLayeredBlendNode );
+	sgAlphaSourceNode->SetInput( 3, sgLayeredBlendNode );
+	sgAlphaSourceNode->SetRedComponent( 3 );
+	sgAlphaSourceNode->SetGreenComponent( 3 );
+	sgAlphaSourceNode->SetBlueComponent( 3 );
+	sgAlphaSourceNode->SetAlphaComponent( 3 );
+
+	spShadingMultiplyNode sgMultiplyNode = sg->CreateShadingMultiplyNode();
+	sgMultiplyNode->SetInput( 0, sgLayeredBlendNode );
+	sgMultiplyNode->SetInput( 1, sgAlphaSourceNode );
+
+	spShadingSwizzlingNode sgAlphaSwizzle = sg->CreateShadingSwizzlingNode();
+	sgAlphaSwizzle->SetInput( 0, sgMultiplyNode );
+	sgAlphaSwizzle->SetInput( 1, sgMultiplyNode );
+	sgAlphaSwizzle->SetInput( 2, sgMultiplyNode );
+	sgAlphaSwizzle->SetInput( 3, sgAlphaSourceNode );
+	sgAlphaSwizzle->SetRedComponent( 0 );
+	sgAlphaSwizzle->SetGreenComponent( 1 );
+	sgAlphaSwizzle->SetBlueComponent( 2 );
+	sgAlphaSwizzle->SetAlphaComponent( 3 );
+
+	return sgAlphaSwizzle;
+}
+
+spShadingNode MaterialNodes::ReWireColorCorrectionNode( spShadingNode& sgInputNode,
+                                                        eMaxColorCorrectionSwizzle red,
+                                                        eMaxColorCorrectionSwizzle green,
+                                                        eMaxColorCorrectionSwizzle blue,
+                                                        eMaxColorCorrectionSwizzle alpha )
+{
+	spShadingSwizzlingNode sgSwizzleNode = sg->CreateShadingSwizzlingNode();
+
+	eMaxColorCorrectionSwizzle swizzleChannels[ 4 ] = { red, green, blue, alpha };
+
+	void ( *RGBAComponentLambda[ 4 ] )( spShadingSwizzlingNode&,
+	                                    int ) = { []( spShadingSwizzlingNode& sgSwizzle, int index ) -> void { sgSwizzle->SetRedComponent( index ); },
+	                                              []( spShadingSwizzlingNode& sgSwizzle, int index ) -> void { sgSwizzle->SetGreenComponent( index ); },
+	                                              []( spShadingSwizzlingNode& sgSwizzle, int index ) -> void { sgSwizzle->SetBlueComponent( index ); },
+	                                              []( spShadingSwizzlingNode& sgSwizzle, int index ) -> void { sgSwizzle->SetAlphaComponent( index ); } };
+
+	spShadingColorNode sgOneNode = sg->CreateShadingColorNode();
+	sgOneNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
+
+	spShadingColorNode sgZeroNode = sg->CreateShadingColorNode();
+	sgZeroNode->SetColor( 0.0f, 0.0f, 0.0f, 0.0f );
+
+	for( unsigned int i = 0; i < 4; ++i )
+	{
+		if( swizzleChannels[ i ] == eMaxColorCorrectionSwizzle::Red )
+		{
+			sgSwizzleNode->SetInput( i, sgInputNode );
+			( *RGBAComponentLambda[ i ] )( sgSwizzleNode, 0 );
+		}
+		else if( swizzleChannels[ i ] == eMaxColorCorrectionSwizzle::Green )
+		{
+			sgSwizzleNode->SetInput( i, sgInputNode );
+			( *RGBAComponentLambda[ i ] )( sgSwizzleNode, 1 );
+		}
+		else if( swizzleChannels[ i ] == eMaxColorCorrectionSwizzle::Blue )
+		{
+			sgSwizzleNode->SetInput( i, sgInputNode );
+			( *RGBAComponentLambda[ i ] )( sgSwizzleNode, 2 );
+		}
+		else if( swizzleChannels[ i ] == eMaxColorCorrectionSwizzle::Alpha )
+		{
+			sgSwizzleNode->SetInput( i, sgInputNode );
+			( *RGBAComponentLambda[ i ] )( sgSwizzleNode, 3 );
+		}
+		else if( swizzleChannels[ i ] == eMaxColorCorrectionSwizzle::invRed )
+		{
+			spShadingSubtractNode sgOneMinusTextureNode = sg->CreateShadingSubtractNode();
+			sgOneMinusTextureNode->SetInput( 0, sgOneNode );
+			sgOneMinusTextureNode->SetInput( 1, sgInputNode );
+
+			sgSwizzleNode->SetInput( i, sgOneMinusTextureNode );
+			( *RGBAComponentLambda[ i ] )( sgSwizzleNode, 0 );
+		}
+		else if( swizzleChannels[ i ] == eMaxColorCorrectionSwizzle::invGreen )
+		{
+			spShadingSubtractNode sgOneMinusTextureNode = sg->CreateShadingSubtractNode();
+			sgOneMinusTextureNode->SetInput( 0, sgOneNode );
+			sgOneMinusTextureNode->SetInput( 1, sgInputNode );
+
+			sgSwizzleNode->SetInput( i, sgOneMinusTextureNode );
+			( *RGBAComponentLambda[ i ] )( sgSwizzleNode, 1 );
+		}
+		else if( swizzleChannels[ i ] == eMaxColorCorrectionSwizzle::invBlue )
+		{
+			spShadingSubtractNode sgOneMinusTextureNode = sg->CreateShadingSubtractNode();
+			sgOneMinusTextureNode->SetInput( 0, sgOneNode );
+			sgOneMinusTextureNode->SetInput( 1, sgInputNode );
+
+			sgSwizzleNode->SetInput( i, sgOneMinusTextureNode );
+			( *RGBAComponentLambda[ i ] )( sgSwizzleNode, 2 );
+		}
+		else if( swizzleChannels[ i ] == eMaxColorCorrectionSwizzle::invAlpha )
+		{
+			spShadingSubtractNode sgOneMinusTextureNode = sg->CreateShadingSubtractNode();
+			sgOneMinusTextureNode->SetInput( 0, sgOneNode );
+			sgOneMinusTextureNode->SetInput( 1, sgInputNode );
+
+			sgSwizzleNode->SetInput( i, sgOneMinusTextureNode );
+			( *RGBAComponentLambda[ i ] )( sgSwizzleNode, 3 );
+		}
+		else if( swizzleChannels[ i ] == eMaxColorCorrectionSwizzle::Monochrome )
+		{
+			spShadingSwizzlingNode sgRedExtractNode = sg->CreateShadingSwizzlingNode();
+			sgRedExtractNode->SetInput( 0, sgInputNode );
+			sgRedExtractNode->SetInput( 1, sgInputNode );
+			sgRedExtractNode->SetInput( 2, sgInputNode );
+			sgRedExtractNode->SetInput( 3, sgOneNode );
+			sgRedExtractNode->SetRedComponent( 0 );
+			sgRedExtractNode->SetGreenComponent( 0 );
+			sgRedExtractNode->SetBlueComponent( 0 );
+			sgRedExtractNode->SetAlphaComponent( 0 );
+
+			spShadingSwizzlingNode sgGreenExtractNode = sg->CreateShadingSwizzlingNode();
+			sgGreenExtractNode->SetInput( 0, sgInputNode );
+			sgGreenExtractNode->SetInput( 1, sgInputNode );
+			sgGreenExtractNode->SetInput( 2, sgInputNode );
+			sgGreenExtractNode->SetInput( 3, sgOneNode );
+			sgGreenExtractNode->SetRedComponent( 1 );
+			sgGreenExtractNode->SetGreenComponent( 1 );
+			sgGreenExtractNode->SetBlueComponent( 1 );
+			sgGreenExtractNode->SetAlphaComponent( 1 );
+
+			spShadingSwizzlingNode sgBlueExtractNode = sg->CreateShadingSwizzlingNode();
+			sgBlueExtractNode->SetInput( 0, sgInputNode );
+			sgBlueExtractNode->SetInput( 1, sgInputNode );
+			sgBlueExtractNode->SetInput( 2, sgInputNode );
+			sgBlueExtractNode->SetInput( 3, sgOneNode );
+			sgBlueExtractNode->SetRedComponent( 2 );
+			sgBlueExtractNode->SetGreenComponent( 2 );
+			sgBlueExtractNode->SetBlueComponent( 2 );
+			sgBlueExtractNode->SetAlphaComponent( 2 );
+
+			spShadingAddNode sgRed_GreenAddNode = sg->CreateShadingAddNode();
+			sgRed_GreenAddNode->SetInput( 0, sgRedExtractNode );
+			sgRed_GreenAddNode->SetInput( 1, sgGreenExtractNode );
+
+			spShadingAddNode sgRG_BlueAddNode = sg->CreateShadingAddNode();
+			sgRG_BlueAddNode->SetInput( 0, sgRed_GreenAddNode );
+			sgRG_BlueAddNode->SetInput( 1, sgBlueExtractNode );
+
+			spShadingColorNode sgOneThruThreeNode = sg->CreateShadingColorNode();
+			sgOneThruThreeNode->SetColor( 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f, 1.0f );
+
+			spShadingMultiplyNode sgRGB_x_3Node = sg->CreateShadingMultiplyNode();
+			sgRGB_x_3Node->SetInput( 0, sgRG_BlueAddNode );
+			sgRGB_x_3Node->SetInput( 1, sgOneThruThreeNode );
+
+			spShadingSwizzlingNode sgMonoNode = sg->CreateShadingSwizzlingNode();
+			sgMonoNode->SetInput( 0, sgRGB_x_3Node );
+			sgMonoNode->SetInput( 1, sgRGB_x_3Node );
+			sgMonoNode->SetInput( 2, sgRGB_x_3Node );
+			sgMonoNode->SetInput( 3, sgRGB_x_3Node );
+			sgMonoNode->SetRedComponent( 0 );
+			sgMonoNode->SetGreenComponent( 1 );
+			sgMonoNode->SetBlueComponent( 2 );
+			sgMonoNode->SetAlphaComponent( 3 );
+
+			sgSwizzleNode->SetInput( i, sgMonoNode );
+			( *RGBAComponentLambda[ i ] )( sgSwizzleNode, 0 );
+		}
+		else if( swizzleChannels[ i ] == eMaxColorCorrectionSwizzle::One )
+		{
+			sgSwizzleNode->SetInput( i, sgOneNode );
+			( *RGBAComponentLambda[ i ] )( sgSwizzleNode, 0 );
+		}
+		else if( swizzleChannels[ i ] == eMaxColorCorrectionSwizzle::Zero )
+		{
+			sgSwizzleNode->SetInput( i, sgZeroNode );
+			( *RGBAComponentLambda[ i ] )( sgSwizzleNode, 0 );
+		}
+		else
+		{
+			sgSwizzleNode->SetInput( i, sgZeroNode );
+			( *RGBAComponentLambda[ i ] )( sgSwizzleNode, 0 );
+		}
+	}
+	return sgSwizzleNode;
+}
+
+spShadingNode MaterialNodes::SetUpColorCorrectionShadingNode( spShadingNode sgInputNode,
+                                                              ColorCorrectionData& ColorCorrectionData,
+                                                              std::basic_string<TCHAR>& tMaterialName,
+                                                              TimeValue time )
+{
+	spShadingColorNode sgOneNode = sg->CreateShadingColorNode();
+	sgOneNode->SetColor( 1.f, 1.f, 1.f, 1.f );
+
+	spShadingColorNode sgZeroNode = sg->CreateShadingColorNode();
+	sgZeroNode->SetColor( 0.f, 0.f, 0.f, 0.f );
+
+	// rewire colorchannels
+	spShadingNode sgRewiredTexturedNode;
+	if( ColorCorrectionData.mRewireMode == eMaxRewireMode::reWireNormal )
+	{
+		sgRewiredTexturedNode = sgInputNode;
+	}
+	else if( ColorCorrectionData.mRewireMode == eMaxRewireMode::reWireMonochrome )
+	{
+		spShadingSwizzlingNode sgRedExtractNode = sg->CreateShadingSwizzlingNode();
+		sgRedExtractNode->SetInput( 0, sgInputNode );
+		sgRedExtractNode->SetInput( 1, sgInputNode );
+		sgRedExtractNode->SetInput( 2, sgInputNode );
+		sgRedExtractNode->SetInput( 3, sgOneNode );
+		sgRedExtractNode->SetRedComponent( 0 );
+		sgRedExtractNode->SetGreenComponent( 0 );
+		sgRedExtractNode->SetBlueComponent( 0 );
+		sgRedExtractNode->SetAlphaComponent( 0 );
+
+		spShadingSwizzlingNode sgGreenExtractNode = sg->CreateShadingSwizzlingNode();
+		sgGreenExtractNode->SetInput( 0, sgInputNode );
+		sgGreenExtractNode->SetInput( 1, sgInputNode );
+		sgGreenExtractNode->SetInput( 2, sgInputNode );
+		sgGreenExtractNode->SetInput( 3, sgOneNode );
+		sgGreenExtractNode->SetRedComponent( 1 );
+		sgGreenExtractNode->SetGreenComponent( 1 );
+		sgGreenExtractNode->SetBlueComponent( 1 );
+		sgGreenExtractNode->SetAlphaComponent( 1 );
+
+		spShadingSwizzlingNode sgBlueExtractNode = sg->CreateShadingSwizzlingNode();
+		sgBlueExtractNode->SetInput( 0, sgInputNode );
+		sgBlueExtractNode->SetInput( 1, sgInputNode );
+		sgBlueExtractNode->SetInput( 2, sgInputNode );
+		sgBlueExtractNode->SetInput( 3, sgOneNode );
+		sgBlueExtractNode->SetRedComponent( 2 );
+		sgBlueExtractNode->SetGreenComponent( 2 );
+		sgBlueExtractNode->SetBlueComponent( 2 );
+		sgBlueExtractNode->SetAlphaComponent( 2 );
+
+		spShadingAddNode sgRed_GreenAddNode = sg->CreateShadingAddNode();
+		sgRed_GreenAddNode->SetInput( 0, sgRedExtractNode );
+		sgRed_GreenAddNode->SetInput( 1, sgGreenExtractNode );
+
+		spShadingAddNode sgRG_BlueAddNode = sg->CreateShadingAddNode();
+		sgRG_BlueAddNode->SetInput( 0, sgRed_GreenAddNode );
+		sgRG_BlueAddNode->SetInput( 1, sgBlueExtractNode );
+
+		spShadingColorNode sgOneThroughThreeNode = sg->CreateShadingColorNode();
+		sgOneThroughThreeNode->SetColor( 1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f, 1.f );
+
+		spShadingMultiplyNode sgRGB_x_3Node = sg->CreateShadingMultiplyNode();
+		sgRGB_x_3Node->SetInput( 0, sgRG_BlueAddNode );
+		sgRGB_x_3Node->SetInput( 1, sgOneThroughThreeNode );
+		////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		spShadingSwizzlingNode sgMonoNode = sg->CreateShadingSwizzlingNode();
+		sgMonoNode->SetInput( 0, sgRGB_x_3Node );
+		sgMonoNode->SetInput( 1, sgRGB_x_3Node );
+		sgMonoNode->SetInput( 2, sgRGB_x_3Node );
+		sgMonoNode->SetInput( 3, sgRGB_x_3Node );
+		sgMonoNode->SetRedComponent( 0 );
+		sgMonoNode->SetGreenComponent( 0 );
+		sgMonoNode->SetBlueComponent( 0 );
+		sgMonoNode->SetAlphaComponent( 0 );
+
+		sgRewiredTexturedNode = sgMonoNode;
+	}
+	else if( ColorCorrectionData.mRewireMode == eMaxRewireMode::reWireInvert )
+	{
+		spShadingSubtractNode sgOneMinusTextureNode = sg->CreateShadingSubtractNode();
+		sgOneMinusTextureNode->SetInput( 0, sgOneNode );
+		sgOneMinusTextureNode->SetInput( 1, sgInputNode );
+
+		sgRewiredTexturedNode = sgOneMinusTextureNode;
+	}
+	else if( ColorCorrectionData.mRewireMode == eMaxRewireMode::reWireCustom )
+	{
+		sgRewiredTexturedNode = ReWireColorCorrectionNode( sgInputNode,
+		                                                   (eMaxColorCorrectionSwizzle)ColorCorrectionData.mRewireR,
+		                                                   (eMaxColorCorrectionSwizzle)ColorCorrectionData.mRewireG,
+		                                                   (eMaxColorCorrectionSwizzle)ColorCorrectionData.mRewireB,
+		                                                   (eMaxColorCorrectionSwizzle)ColorCorrectionData.mRewireA );
+	}
+
+	float hueStrength = ColorCorrectionData.mHueTintStrength / 100.0f;
+	float hslShift = ColorCorrectionData.mHueShift / 360.0f;
+	float brightness = ColorCorrectionData.mBrightness / 100.0f;
+	float contrast = ColorCorrectionData.mContrast / 100;
+	float saturation = ColorCorrectionData.mSaturation / 100.0f;
+
+	spShadingColorNode sgHSLInputNode = sg->CreateShadingColorNode();
+	sgHSLInputNode->SetColor( hslShift, saturation, 0.0f, 1.0f );
+
+	spShadingColorCorrectionNode sgShadingHSLTintNode = sg->CreateShadingColorCorrectionNode();
+	sgShadingHSLTintNode->SetInput( 0, sgRewiredTexturedNode );
+	sgShadingHSLTintNode->SetInput( 1, sgHSLInputNode );
+
+	spShadingNode sgLightnessModifiedNode = sgShadingHSLTintNode;
+	// ( value - 0.5f ) * ( 1.0f + m_Contrast ) + 0.5f + m_Brightness;
+	if( ColorCorrectionData.mLightnessMode == 0 )
+	{
+		if( brightness != 1.0f || contrast != 1.0f )
+		{
+			spShadingColorNode sg05Node = sg->CreateShadingColorNode();
+			sg05Node->SetColor( 0.5f, 0.5f, 0.5f, 1.0f );
+
+			spShadingSubtractNode sgSubtract05Node = sg->CreateShadingSubtractNode();
+			sgSubtract05Node->SetInput( 0, sgShadingHSLTintNode );
+			sgSubtract05Node->SetInput( 1, sg05Node );
+
+			spShadingColorNode sgContrastNode = sg->CreateShadingColorNode();
+			sgContrastNode->SetColor( contrast, contrast, contrast, 1.0f );
+
+			spShadingAddNode sgAddContrastOneNode = sg->CreateShadingAddNode();
+			sgAddContrastOneNode->SetInput( 0, sgOneNode );
+			sgAddContrastOneNode->SetInput( 1, sgContrastNode );
+
+			spShadingMultiplyNode sgMultiplyNode = sg->CreateShadingMultiplyNode();
+			sgMultiplyNode->SetInput( 0, sgSubtract05Node );
+			sgMultiplyNode->SetInput( 1, sgAddContrastOneNode );
+
+			spShadingColorNode sgBrightnessNode = sg->CreateShadingColorNode();
+			sgBrightnessNode->SetColor( brightness, brightness, brightness, brightness );
+
+			spShadingAddNode sgBrightness05_AddNode = sg->CreateShadingAddNode();
+			sgBrightness05_AddNode->SetInput( 0, sg05Node );
+			sgBrightness05_AddNode->SetInput( 1, sgBrightnessNode );
+
+			spShadingAddNode sgFinalAddNode = sg->CreateShadingAddNode();
+			sgFinalAddNode->SetInput( 0, sgBrightness05_AddNode );
+			sgFinalAddNode->SetInput( 1, sgMultiplyNode );
+
+			spShadingSwizzlingNode sgSwizzleOpacityNode = sg->CreateShadingSwizzlingNode();
+			sgSwizzleOpacityNode->SetInput( 0, sgFinalAddNode );
+			sgSwizzleOpacityNode->SetInput( 1, sgFinalAddNode );
+			sgSwizzleOpacityNode->SetInput( 2, sgFinalAddNode );
+			sgSwizzleOpacityNode->SetInput( 3, sgShadingHSLTintNode );
+			sgSwizzleOpacityNode->SetRedComponent( 0 );
+			sgSwizzleOpacityNode->SetGreenComponent( 1 );
+			sgSwizzleOpacityNode->SetBlueComponent( 2 );
+			sgSwizzleOpacityNode->SetAlphaComponent( 3 );
+
+			sgLightnessModifiedNode = sgSwizzleOpacityNode;
+		}
+	}
+	else
+	{
+		Color globalGainRGB = Color( ColorCorrectionData.mGainRGB, ColorCorrectionData.mGainRGB, ColorCorrectionData.mGainRGB );
+		Color globalGammaRGB = Color( ColorCorrectionData.mGammaRGB, ColorCorrectionData.mGammaRGB, ColorCorrectionData.mGammaRGB );
+		Color globalPivotRGB = Color( ColorCorrectionData.mPivotRGB, ColorCorrectionData.mPivotRGB, ColorCorrectionData.mPivotRGB );
+		Color globalLiftRGB = Color( ColorCorrectionData.mLiftRGB, ColorCorrectionData.mLiftRGB, ColorCorrectionData.mLiftRGB );
+
+		spShadingColorNode sgGlobalGainRGBNode = sg->CreateShadingColorNode();
+		sgGlobalGainRGBNode->SetColor( globalGainRGB.r / 100.0f, globalGainRGB.g / 100.0f, globalGainRGB.b / 100.0f, 1.0f );
+
+		spShadingColorNode sgGlobalGammaRGBNode = sg->CreateShadingColorNode();
+		sgGlobalGammaRGBNode->SetColor( globalGammaRGB.r, globalGammaRGB.g, globalGammaRGB.b, 1.0f );
+
+		spShadingColorNode sgGlobalPivotRGBNode = sg->CreateShadingColorNode();
+		sgGlobalPivotRGBNode->SetColor( globalPivotRGB.r, globalPivotRGB.g, globalPivotRGB.b, 1.0f );
+
+		spShadingColorNode sgGlobalLiftRGBNode = sg->CreateShadingColorNode();
+		sgGlobalLiftRGBNode->SetColor( globalLiftRGB.r, globalLiftRGB.g, globalLiftRGB.b, 1.0f );
+
+		spShadingNode sgGlobalLightNode = MaterialNodes::GetColorCorrectionLightSettings(
+		    ColorCorrectionData, sgShadingHSLTintNode, sgGlobalGainRGBNode, sgGlobalGammaRGBNode, sgGlobalPivotRGBNode, sgGlobalLiftRGBNode );
+
+		Color gainRGB = Color( ColorCorrectionData.mGainR, ColorCorrectionData.mGainG, ColorCorrectionData.mGainB );
+		Color gammaRGB = Color( ColorCorrectionData.mGammaR, ColorCorrectionData.mGammaG, ColorCorrectionData.mGammaB );
+		Color pivotRGB = Color( ColorCorrectionData.mPivotR, ColorCorrectionData.mPivotG, ColorCorrectionData.mPivotB );
+		Color liftRGB = Color( ColorCorrectionData.mLiftR, ColorCorrectionData.mLiftG, ColorCorrectionData.mLiftB );
+
+		spShadingColorNode sgGainRGBNode = sg->CreateShadingColorNode();
+		sgGainRGBNode->SetColor( gainRGB.r / 100.0f, gainRGB.g / 100.0f, gainRGB.b / 100.0f, 1.0f );
+
+		spShadingColorNode sgGammaRGBNode = sg->CreateShadingColorNode();
+		sgGammaRGBNode->SetColor( gammaRGB.r, gammaRGB.g, gammaRGB.b, 1.0f );
+
+		spShadingColorNode sgPivotRGBNode = sg->CreateShadingColorNode();
+		sgPivotRGBNode->SetColor( pivotRGB.r, pivotRGB.g, pivotRGB.b, 1.0f );
+
+		spShadingColorNode sgLiftRGBNode = sg->CreateShadingColorNode();
+		sgLiftRGBNode->SetColor( liftRGB.r, liftRGB.g, liftRGB.b, 1.0f );
+
+		spShadingNode FinalNode = MaterialNodes::GetColorCorrectionLightSettings(
+		    ColorCorrectionData, sgGlobalLightNode, sgGainRGBNode, sgGammaRGBNode, sgPivotRGBNode, sgLiftRGBNode );
+
+		spShadingSwizzlingNode sgSwizzleChannelNode = sg->CreateShadingSwizzlingNode();
+		sgSwizzleChannelNode->SetInput( 0, ColorCorrectionData.mEnableR == true ? FinalNode : sgGlobalLightNode );
+		sgSwizzleChannelNode->SetInput( 1, ColorCorrectionData.mEnableG == true ? FinalNode : sgGlobalLightNode );
+		sgSwizzleChannelNode->SetInput( 2, ColorCorrectionData.mEnableB == true ? FinalNode : sgGlobalLightNode );
+		sgSwizzleChannelNode->SetInput( 3, sgShadingHSLTintNode );
+		sgSwizzleChannelNode->SetRedComponent( 0 );
+		sgSwizzleChannelNode->SetGreenComponent( 1 );
+		sgSwizzleChannelNode->SetBlueComponent( 2 );
+		sgSwizzleChannelNode->SetAlphaComponent( 3 );
+
+		sgLightnessModifiedNode = sgSwizzleChannelNode;
+	}
+
+	spShadingClampNode sgClampNode = sg->CreateShadingClampNode();
+	sgClampNode->SetInput( 0, sgLightnessModifiedNode );
+	sgClampNode->SetInput( 1, sgZeroNode );
+	sgClampNode->SetInput( 2, sgOneNode );
+
+	return sgClampNode;
 }
 
 const bool MaterialNodes::GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<AColor>* outValue )
@@ -1280,327 +1531,77 @@ const bool MaterialNodes::GetData( IParamBlock2* mParamBlock, const ParamID para
 	return itemCount != 0;
 }
 
-const bool MaterialNodes::GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<CompositeNode::eMaxBlendMode>* outValue )
+const bool MaterialNodes::GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<eMaxBlendMode>* outValue )
 {
 	int itemCount = mParamBlock->Count( paramId );
 	for( int i = 0; i < itemCount; ++i )
 	{
-		outValue->emplace_back( static_cast<CompositeNode::eMaxBlendMode>( mParamBlock->GetInt( paramId, time, i ) ) );
+		outValue->emplace_back( static_cast<eMaxBlendMode>( mParamBlock->GetInt( paramId, time, i ) ) );
 	}
 	return itemCount != 0;
 }
 
-spShadingNode MaterialNodes::BuildNode( MaterialNodes::MaterialNodeBase* node,
-                                        std::basic_string<TCHAR>& tMaterialName,
-                                        std::basic_string<TCHAR>& tMaxMappingChannel,
-                                        Color& baseColor,
-                                        float baseAlpha,
-                                        TimeValue& time,
-                                        const float blendAmount )
+spShadingNode MaterialNodes::RunTintNode( Texmap* mTexMap, MaterialNodes::MaterialChannelData& mMaterialChannel )
 {
-	spShadingNode sgShadingNode;
+	spShadingNode ShadingNode;
 
-	switch( node->type )
-	{
-		case MaterialNodes::CompositeNode::eMultiplyNode:
-		{
-			sgShadingNode =
-			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::MultiplyNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
-			break;
-		}
-		case MaterialNodes::CompositeNode::eBitmapNode:
-		{
-			sgShadingNode =
-			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::BitmapNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
-			break;
-		}
-		case MaterialNodes::CompositeNode::eTintNode:
-		{
-			sgShadingNode =
-			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::TintNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
-			break;
-		}
-		case MaterialNodes::CompositeNode::eCompositeNode:
-		{
-			sgShadingNode =
-			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::CompositeNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
-			break;
-		}
-	}
+	Color mRedChannel;
+	Color mGreenChannel;
+	Color mBlueChannel;
 
-	spShadingColorNode sgColorNodeNode = sg->CreateShadingColorNode();
-	sgColorNodeNode->SetColor( baseColor.r, baseColor.g, baseColor.b, 1 );
-
-	spShadingColorNode sgBlendAmountNode = sg->CreateShadingColorNode();
-	sgBlendAmountNode->SetColor( blendAmount, blendAmount, blendAmount, 1 );
-
-	spShadingInterpolateNode sgBlendInterpolationNode = sg->CreateShadingInterpolateNode();
-	sgBlendInterpolationNode->SetInput( 0, sgColorNodeNode );
-	sgBlendInterpolationNode->SetInput( 1, sgShadingNode );
-	sgBlendInterpolationNode->SetInput( 2, sgBlendAmountNode );
-
-	return sgBlendInterpolationNode;
-}
-
-spShadingNode MaterialNodes::BuildNode( MaterialNodes::MaterialNodeBase* node,
-                                        long maxChannelId,
-                                        std::basic_string<TCHAR>& tMaterialName,
-                                        std::basic_string<TCHAR>& tChannelName,
-                                        std::basic_string<TCHAR>& tMaxMappingChannel,
-                                        Color& baseColor,
-                                        float baseAlpha,
-                                        TimeValue time )
-{
-	spShadingNode sgShadingNode;
-
-	switch( node->type )
-	{
-		case MaterialNodes::CompositeNode::eMultiplyNode:
-		{
-			sgShadingNode =
-			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::MultiplyNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
-			break;
-		}
-		case MaterialNodes::CompositeNode::eBitmapNode:
-		{
-			sgShadingNode =
-			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::BitmapNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
-			break;
-		}
-		case MaterialNodes::CompositeNode::eTintNode:
-		{
-			sgShadingNode =
-			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::TintNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
-			break;
-		}
-		case MaterialNodes::CompositeNode::eCompositeNode:
-		{
-			sgShadingNode =
-			    SetUpShadingNodes( *reinterpret_cast<MaterialNodes::CompositeNode*>( node ), tMaterialName, tMaxMappingChannel, baseColor, baseAlpha, time );
-			break;
-		}
-	}
-
-	return sgShadingNode;
-}
-
-bool MaterialNodes::CompositeNode::Setup(
-    long maxChannelId, const char* cMaterialName, const char* cChannelName, std::vector<MaterialTextureOverride>* materialTextureOverrides, TimeValue time )
-{
-	std::vector<int> textureEnableFlags;
-	std::vector<int> maskEnableFlags;
-	std::vector<eMaxBlendMode> maxBlendMode;
-	std::vector<std::basic_string<TCHAR>> layerName;
-	std::vector<float> textureOpacity;
-
-	MaterialNodes::GetTexMapProperties<int>( mTexMap, _T("mapEnabled"), time, &textureEnableFlags );
-	MaterialNodes::GetTexMapProperties<int>( mTexMap, _T("maskEnabled"), time, &maskEnableFlags );
-	MaterialNodes::GetTexMapProperties<eMaxBlendMode>( mTexMap, _T("blendMode"), time, &maxBlendMode );
-	MaterialNodes::GetTexMapProperties<std::basic_string<TCHAR>>( mTexMap, _T("layerName"), time, &layerName );
-	MaterialNodes::GetTexMapProperties<float>( mTexMap, _T("opacity"), time, &textureOpacity );
-
-	for( int i = 0, j = 0; i < textureEnableFlags.size() * 2; i += 2, ++j )
-	{
-		// skip inactive layers
-		if( !textureEnableFlags[ j ] )
-		{
-			continue;
-		}
-
-		MaterialNodes::TextureData tex;
-		if( mTexMap->GetSubTexmap( i ) && mTexMap->GetSubTexmap( i )->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) )
-		{
-			tex.mBitmap = (BitmapTex*)mTexMap->GetSubTexmap( i );
-			MaterialNodes::WriteTextureMetadata( &tex, maxChannelId, cMaterialName, cChannelName, nullptr );
-		}
-
-		MaterialNodes::TextureData mask;
-		if( mTexMap->GetSubTexmap( i + 1 ) && mTexMap->GetSubTexmap( i + 1 )->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) )
-		{
-			mask.mBitmap = (BitmapTex*)mTexMap->GetSubTexmap( i + 1 );
-			MaterialNodes::WriteTextureMetadata( &mask, maxChannelId, cMaterialName, cChannelName, nullptr );
-		}
-
-		mMaskEnabled.emplace_back( maskEnableFlags[ j ] > 0 );
-		mLayerName.emplace_back( layerName[ j ] );
-		mTextureOpacity.emplace_back( textureOpacity[ j ] );
-		mTextures.emplace_back( tex );
-		mMasks.emplace_back( mask );
-
-		switch( maxBlendMode[ j ] )
-		{
-			case eMaxBlendMode::eNormal:
-			{
-				mTextureBlendmode.emplace_back( ETextureBlendType::Alpha );
-				break;
-			}
-			// case eMaxBlendMode::eAddition:
-			//{
-			//	mTextureBlendmode.emplace_back( ETextureBlendType::Add );
-			//	break;
-			//}
-			// case eMaxBlendMode::eSubtract:
-			//{
-			//	mTextureBlendmode.emplace_back( ETextureBlendType::Subtract );
-			//	break;
-			//}
-			// case eMaxBlendMode::eMultiply:
-			//{
-			//	mTextureBlendmode.emplace_back( ETextureBlendType::Multiply );
-			//	break;
-			//}
-			default:
-			{
-				std::basic_string<TCHAR> tMaterialName = ConstCharPtrToLPCTSTR( cMaterialName );
-				std::basic_string<TCHAR> tChannelName = ConstCharPtrToLPCTSTR( cChannelName );
-
-				// not supported
-				GlobalLogMaterialNodeMessage(
-				    mTexMap, tMaterialName, tChannelName, true, L"Blending mode unsupported, " + mLayerName[ j ] + L" defaulting to Normal blending mode." );
-				mTextureBlendmode.emplace_back( ETextureBlendType::Alpha );
-				break;
-			}
-		}
-	}
-	mNumLayers = static_cast<unsigned int>( mTextures.size() );
-	mNumTextureSlots = mNumLayers * 2;
-
-	// max ignores the first layer blendmode imitates max behavior
-	if( mNumLayers )
-	{
-		mTextureBlendmode[ 0 ] = ETextureBlendType::Alpha;
-	}
-
-	return true;
-}
-
-MaterialNodes::TextureData* MaterialNodes::CompositeNode::GetTexture( size_t index )
-{
-	size_t aIndex = index / 2;
-	if( aIndex < mMasks.size() && 1 & index )
-	{
-		return &mMasks[ aIndex ];
-	}
-	else if( aIndex < mTextures.size() )
-	{
-		return &mTextures[ aIndex ];
-	}
-	return nullptr;
-}
-
-bool MaterialNodes::TintNode::Setup(
-    long maxChannelId, const char* cMaterialName, const char* cChannelName, std::vector<MaterialTextureOverride>* materialTextureOverrides, TimeValue time )
-{
-	GetTexMapProperty<Color>( mTexMap, _T("red"), time, &mRedChannel );
-	GetTexMapProperty<Color>( mTexMap, _T("green"), time, &mGreenChannel );
-	GetTexMapProperty<Color>( mTexMap, _T("blue"), time, &mBlueChannel );
+	GetTexMapProperty<Color>( mTexMap, _T("red"), mMaterialChannel.mTime, &mRedChannel );
+	GetTexMapProperty<Color>( mTexMap, _T("green"), mMaterialChannel.mTime, &mGreenChannel );
+	GetTexMapProperty<Color>( mTexMap, _T("blue"), mMaterialChannel.mTime, &mBlueChannel );
 
 	int isEnabled = 0;
-	const bool bEnableMapsFound = GetTexMapProperty<int>( mTexMap, _T("map1Enabled"), time, &isEnabled );
-	mIsEnabled = isEnabled == 1;
+	const bool bEnableMapsFound = GetTexMapProperty<int>( mTexMap, _T("map1Enabled"), mMaterialChannel.mTime, &isEnabled );
+	const bool mIsEnabled = isEnabled == 1;
 
-	if( mTexMap->GetSubTexmap( 0 ) && mTexMap->GetSubTexmap( 0 )->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) )
-	{
-		mTexture.mBitmap = (BitmapTex*)mTexMap->GetSubTexmap( 0 );
-		MaterialNodes::WriteTextureMetadata( &mTexture, maxChannelId, cMaterialName, cChannelName, materialTextureOverrides );
-	}
-	return true;
+	Texmap* mSubTexMap = mTexMap->GetSubTexmap( 0 );
+	ShadingNode = SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel );
+
+	return MaterialNodes::SetUpTintShadingNode( ShadingNode, mMaterialChannel.mMaterialName, mRedChannel, mGreenChannel, mBlueChannel, mMaterialChannel.mTime );
 }
 
-MaterialNodes::TextureData* MaterialNodes::TintNode::GetTexture( size_t index )
+spShadingNode
+MaterialNodes::RunBitmapNode( Texmap* mTexMap, MaterialNodes::MaterialChannelData& mMaterialChannel, TextureSettingsOverride* textureSettingsOverride )
 {
-	if( index == 0 )
-	{
-		return &mTexture;
-	}
-	return nullptr;
-}
+	const char* materialName = LPCTSTRToConstCharPtr( mMaterialChannel.mMaterialName.c_str() );
+	const char* channelName = LPCTSTRToConstCharPtr( mMaterialChannel.mChannelName.c_str() );
 
-bool MaterialNodes::BitmapNode::Setup(
-    long maxChannelId, const char* cMaterialName, const char* cChannelName, std::vector<MaterialTextureOverride>* materialTextureOverrides, TimeValue time )
-{
-	mTexture.mBitmap = (BitmapTex*)mTexMap;
+	std::basic_string<TCHAR> tMaxMappingChannel = SimplygonMaxInstance->SetupMaxMappingChannel( materialName, channelName, mTexMap );
 
-	WriteTextureMetadata( &mTexture, maxChannelId, cMaterialName, cChannelName, materialTextureOverrides );
+	// allocate and writedata to TextureData
+	MaterialNodes::TextureData mTextureData( mTexMap );
 
-	return true;
-}
-
-MaterialNodes::TextureData* MaterialNodes::BitmapNode::GetTexture( size_t index )
-{
-	if( index == 0 )
-	{
-		return &mTexture;
-	}
-	return nullptr;
-}
-
-bool MaterialNodes::MultiplyNode::Setup(
-    long maxChannelId, const char* cMaterialName, const char* cChannelName, std::vector<MaterialTextureOverride>* materialTextureOverrides, TimeValue time )
-{
-	const bool bHasColor[ 2 ] = { GetTexMapProperty<Color>( mTexMap, _T("color1"), time, &mColor[ 0 ] ),
-	                              GetTexMapProperty<Color>( mTexMap, _T("color2"), time, &mColor[ 1 ] ) };
-
-	int isEnabled[ 2 ] = { 0, 0 };
-	const bool bEnableMapsFound[ 2 ] = { GetTexMapProperty<int>( mTexMap, _T("map1Enabled"), time, &isEnabled[ 0 ] ),
-	                                     GetTexMapProperty<int>( mTexMap, _T("map2Enabled"), time, &isEnabled[ 1 ] ) };
-
-	int alphaFrom;
-	const bool alphaFromFound = GetTexMapProperty<int>( mTexMap, _T("alphaFrom"), time, &alphaFrom );
-
-	mAlphaFrom = (MultiplyNodeAlphaFrom)alphaFrom;
-	for( int i = 0; i < 2; ++i )
-	{
-		mIsEnabled[ i ] = isEnabled[ i ] == 1;
-		if( mTexMap->GetSubTexmap( i ) && mTexMap->GetSubTexmap( i )->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) )
-		{
-			mTexture[ i ].mBitmap = (BitmapTex*)mTexMap->GetSubTexmap( i );
-
-			WriteTextureMetadata( &mTexture[ i ], maxChannelId, cMaterialName, cChannelName, materialTextureOverrides );
-		}
-	}
-	return true;
-}
-
-MaterialNodes::TextureData* MaterialNodes::MultiplyNode::GetTexture( size_t index )
-{
-	return &mTexture[ index ];
-}
-
-void MaterialNodes::WriteTextureMetadata( MaterialNodes::TextureData* bitmapTex,
-                                          long maxChannelId,
-                                          const char* cMaterialName,
-                                          const char* cChannelName,
-                                          std::vector<MaterialTextureOverride>* materialTextureOverrides )
-{
 	TCHAR tTexturePath[ MAX_PATH ] = { 0 };
 	bool bIsSRGB = false;
 
 	// change sRGB based on gamma
-	const float gamma = GetBitmapTextureGamma( bitmapTex->mBitmap );
+	const float gamma = GetBitmapTextureGamma( mTextureData.mBitmap );
 	if( gamma <= 2.21000000f && gamma >= 2.19000000f )
 	{
 		bIsSRGB = true;
 	}
-	GetImageFullFilePath( bitmapTex->mBitmap->GetMapName(), tTexturePath );
+	GetImageFullFilePath( mTextureData.mBitmap->GetMapName(), tTexturePath );
 
 	if( _tcslen( tTexturePath ) > 0 )
 	{
 		// if normal map, disable sRGB
-		if( maxChannelId == ID_BU )
+		if( mMaterialChannel.mMaxChannelId == ID_BU )
 		{
 			bIsSRGB = false;
 		}
 
-		if( materialTextureOverrides )
+		if( mMaterialChannel.mMaterialTextureOverrides )
 		{
 			std::basic_string<TCHAR> tTexturePathOverride = _T("");
-			for( size_t channelIndex = 0; channelIndex < materialTextureOverrides->size(); ++channelIndex )
+			for( size_t channelIndex = 0; channelIndex < mMaterialChannel.mMaterialTextureOverrides->size(); ++channelIndex )
 			{
-				const MaterialTextureOverride& textureOverride = ( *materialTextureOverrides )[ channelIndex ];
-				if( strcmp( cMaterialName, LPCTSTRToConstCharPtr( textureOverride.MaterialName.c_str() ) ) == 0 )
+				const MaterialTextureOverride& textureOverride = ( *mMaterialChannel.mMaterialTextureOverrides )[ channelIndex ];
+				if( strcmp( materialName, LPCTSTRToConstCharPtr( textureOverride.MaterialName.c_str() ) ) == 0 )
 				{
-					if( strcmp( cChannelName, LPCTSTRToConstCharPtr( textureOverride.MappingChannelName.c_str() ) ) == 0 )
+					if( strcmp( channelName, LPCTSTRToConstCharPtr( textureOverride.MappingChannelName.c_str() ) ) == 0 )
 					{
 						tTexturePathOverride = textureOverride.TextureFileName;
 						break;
@@ -1636,15 +1637,400 @@ void MaterialNodes::WriteTextureMetadata( MaterialNodes::TextureData* bitmapTex,
 			}
 		}
 
-		bitmapTex->mTexturePathWithName = tTexturePath;
-		bitmapTex->mTextureName = GetTitleOfFile( bitmapTex->mTexturePathWithName );
-		bitmapTex->mTextureExtension = GetExtensionOfFile( bitmapTex->mTexturePathWithName );
-		bitmapTex->mTextureNameWithExtension = bitmapTex->mTextureName + bitmapTex->mTextureExtension;
-		bitmapTex->mIsSRGB = bIsSRGB;
-		bitmapTex->mUseAlphaAsTransparency = bitmapTex->mBitmap->GetAlphaAsRGB( TRUE ) == TRUE;
-		bitmapTex->mHasAlpha = TextureHasAlpha( LPCTSTRToConstCharPtr( bitmapTex->mTextureNameWithExtension.c_str() ) );
-		bitmapTex->mPremultipliedAlpha = bitmapTex->mBitmap->GetPremultAlpha( TRUE ) == TRUE;
+		mTextureData.mTexturePathWithName = tTexturePath;
+		mTextureData.mTextureName = GetTitleOfFile( mTextureData.mTexturePathWithName );
+		mTextureData.mTextureExtension = GetExtensionOfFile( mTextureData.mTexturePathWithName );
+		mTextureData.mTextureNameWithExtension = mTextureData.mTextureName + mTextureData.mTextureExtension;
+		mTextureData.mIsSRGB = bIsSRGB;
+		mTextureData.mUseAlphaAsTransparency = mTextureData.mBitmap->GetAlphaAsRGB( TRUE ) == TRUE;
+		mTextureData.mHasAlpha = TextureHasAlpha( LPCTSTRToConstCharPtr( mTextureData.mTextureNameWithExtension.c_str() ) );
+		mTextureData.mPremultipliedAlpha = mTextureData.mBitmap->GetPremultAlpha( TRUE ) == TRUE;
+		mTextureData.mAlphaSource = mTextureData.mBitmap->GetAlphaSource();
+		if( textureSettingsOverride )
+		{
+			mTextureData.mAlphaSource =
+			    textureSettingsOverride->mEnabledAlphaSourceOverride ? textureSettingsOverride->mAlphaSource : mTextureData.mAlphaSource;
+
+			mTextureData.mIsSRGB = textureSettingsOverride->mEnabledSRGBOverride ? textureSettingsOverride->mSRGB : mTextureData.mIsSRGB;
+
+			mTextureData.mPremultipliedAlpha =
+			    textureSettingsOverride->mEnabledPremultOverride ? textureSettingsOverride->mPremultipliedAlpha : mTextureData.mPremultipliedAlpha;
+		}
 	}
+
+	// map TextureData
+	SimplygonMaxInstance->CreateAndLinkTexture( mTextureData );
+
+	// setup the bitmapNode
+	return MaterialNodes::SetUpBitmapShadingNode( mMaterialChannel.mMaterialName, tMaxMappingChannel, mTextureData, mMaterialChannel.mTime );
+}
+
+spShadingNode MaterialNodes::RunMultiplyNode( Texmap* mTexMap, MaterialNodes::MaterialChannelData& mMaterialChannel )
+{
+	// first get texmap
+	spShadingNode mShadingNodes[ 2 ];
+	Color mColors[ 2 ];
+
+	//
+	const bool bHasColor[ 2 ] = { GetTexMapProperty<Color>( mTexMap, _T("color1"), mMaterialChannel.mTime, &mColors[ 0 ] ),
+	                              GetTexMapProperty<Color>( mTexMap, _T("color2"), mMaterialChannel.mTime, &mColors[ 1 ] ) };
+
+	//
+	int isEnabled[ 2 ] = { 0, 0 };
+	const bool bEnableMapsFound[ 2 ] = { GetTexMapProperty<int>( mTexMap, _T("map1Enabled"), mMaterialChannel.mTime, &isEnabled[ 0 ] ),
+	                                     GetTexMapProperty<int>( mTexMap, _T("map2Enabled"), mMaterialChannel.mTime, &isEnabled[ 1 ] ) };
+
+	//
+	int alphaFrom = 0;
+	const bool alphaFromFound = GetTexMapProperty<int>( mTexMap, _T("alphaFrom"), mMaterialChannel.mTime, &alphaFrom );
+	MaterialNodes::MultiplyNodeAlphaFrom mAlphaFrom = (MaterialNodes::MultiplyNodeAlphaFrom)alphaFrom;
+
+	// Map TextureData
+	for( int i = 0; i < 2; ++i )
+	{
+		Texmap* mSubTexMap = mTexMap->GetSubTexmap( i );
+		if( isEnabled[ i ] )
+		{
+			mShadingNodes[ i ] = SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel );
+		}
+		else
+		{
+			spShadingColorNode sgColorNode = sg->CreateShadingColorNode();
+			sgColorNode->SetColor( mColors[ i ].r, mColors[ i ].g, mColors[ i ].b, 1.0f );
+
+			mShadingNodes[ i ] = sgColorNode;
+		}
+	}
+
+	return MaterialNodes::SetUpMultiplyShadingNode( mShadingNodes, mAlphaFrom, mMaterialChannel.mMaterialName, mMaterialChannel.mTime );
+}
+
+spShadingNode MaterialNodes::RunCompositeNode( Texmap* mTexMap, MaterialNodes::MaterialChannelData& mMaterialChannel )
+{
+	std::vector<int> textureEnableFlags;
+	std::vector<int> maskEnableFlags;
+	std::vector<MaterialNodes::eMaxBlendMode> maxBlendMode;
+	std::vector<std::basic_string<TCHAR>> mLayerName;
+	std::vector<float> textureOpacity;
+
+	MaterialNodes::GetTexMapProperties<int>( mTexMap, _T("mapEnabled"), mMaterialChannel.mTime, &textureEnableFlags );
+	MaterialNodes::GetTexMapProperties<int>( mTexMap, _T("maskEnabled"), mMaterialChannel.mTime, &maskEnableFlags );
+	MaterialNodes::GetTexMapProperties<eMaxBlendMode>( mTexMap, _T("blendMode"), mMaterialChannel.mTime, &maxBlendMode );
+	MaterialNodes::GetTexMapProperties<std::basic_string<TCHAR>>( mTexMap, _T("layerName"), mMaterialChannel.mTime, &mLayerName );
+	MaterialNodes::GetTexMapProperties<float>( mTexMap, _T("opacity"), mMaterialChannel.mTime, &textureOpacity );
+
+	std::vector<bool> mMaskEnabled;
+	std::vector<ETextureBlendType> mTextureBlendmodes;
+	std::vector<float> mTextureOpacity;
+
+	std::vector<spShadingNode> mTextureNodes;
+	std::vector<spShadingNode> mMaskNodes;
+	for( int i = 0, j = 0; i < textureEnableFlags.size() * 2; i += 2, ++j )
+	{
+		// skip inactive layers
+		if( !textureEnableFlags[ j ] )
+		{
+			continue;
+		}
+
+		if( mTexMap->GetSubTexmap( i ) )
+		{
+			Texmap* mSubTexMap = mTexMap->GetSubTexmap( i );
+
+			mTextureNodes.emplace_back( SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel ) );
+		}
+		else
+		{
+			// no texture, continue to next
+			continue;
+		}
+
+		if( mTexMap->GetSubTexmap( i + 1 ) )
+		{
+			Texmap* mSubTexMap = mTexMap->GetSubTexmap( i + 1 );
+
+			// masks needs to be forced to opaque and nonSrgb
+			MaterialNodes::TextureSettingsOverride textureOverride = MaterialNodes::TextureSettingsOverride();
+			textureOverride.mEnabledAlphaSourceOverride = true;
+			textureOverride.mAlphaSource = ALPHA_NONE;
+
+			textureOverride.mEnabledSRGBOverride = true;
+			textureOverride.mSRGB = false;
+
+			mMaskNodes.emplace_back( SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel, &textureOverride ) );
+		}
+		else
+		{
+			spShadingColorNode sgColorNode;
+			mMaskNodes.emplace_back( sgColorNode );
+		}
+
+		mMaskEnabled.emplace_back( maskEnableFlags[ j ] > 0 );
+		mTextureOpacity.emplace_back( textureOpacity[ j ] );
+
+		switch( maxBlendMode[ j ] )
+		{
+			case MaterialNodes::eMaxBlendMode::eNormal:
+			{
+				mTextureBlendmodes.emplace_back( ETextureBlendType::Alpha );
+				break;
+			}
+			// case eMaxBlendMode::eAddition:
+			// {
+			// 	mTextureBlendmodes.emplace_back( ETextureBlendType::Add );
+			// 	break;
+			// }
+			// case eMaxBlendMode::eSubtract:
+			// {
+			// 	mTextureBlendmodes.emplace_back( ETextureBlendType::Subtract );
+			// 	break;
+			// }
+			// case eMaxBlendMode::eMultiply:
+			// {
+			// 	mTextureBlendmodes.emplace_back( ETextureBlendType::Multiply );
+			// 	break;
+			// }
+			default:
+			{
+				// not supported
+				GlobalLogMaterialNodeMessage( mTexMap,
+				                              mMaterialChannel.mMaterialName,
+				                              mMaterialChannel.mChannelName,
+				                              true,
+				                              L"Blending mode unsupported, " + mLayerName[ j ] + L" defaulting to Normal blending mode." );
+				mTextureBlendmodes.emplace_back( ETextureBlendType::Alpha );
+				break;
+			}
+		}
+	}
+
+	if( !mTextureBlendmodes.empty() )
+	{
+		mTextureBlendmodes[ 0 ] = ETextureBlendType::Replace;
+	}
+
+	return MaterialNodes::SetUpCompositeShadingNode(
+	    mTextureNodes, mMaskNodes, mTextureBlendmodes, mTextureOpacity, mMaterialChannel.mMaterialName, mMaterialChannel.mTime );
+}
+
+spShadingNode MaterialNodes::RunColorCorrectionNode( Texmap* mTexMap, MaterialNodes::MaterialChannelData& mMaterialChannel )
+{
+	int enableRed = 0;
+	int enableGreen = 0;
+	int enableBlue = 0;
+
+	ColorCorrectionData colorCorrectionData;
+	AColor mColor = AColor( 0.0f, 0.0f, 0.0f, 1.0f );
+	spShadingNode node;
+
+	GetTexMapProperty<AColor>( mTexMap, _T("color"), mMaterialChannel.mTime, &mColor );
+	GetTexMapProperty<float>( mTexMap, _T("brightness"), mMaterialChannel.mTime, &colorCorrectionData.mBrightness );
+	GetTexMapProperty<float>( mTexMap, _T("contrast"), mMaterialChannel.mTime, &colorCorrectionData.mContrast );
+	GetTexMapProperty<int>( mTexMap, _T("rewireMode"), mMaterialChannel.mTime, &colorCorrectionData.mRewireMode );
+	GetTexMapProperty<int>( mTexMap, _T("rewireR"), mMaterialChannel.mTime, &colorCorrectionData.mRewireR );
+	GetTexMapProperty<int>( mTexMap, _T("rewireG"), mMaterialChannel.mTime, &colorCorrectionData.mRewireG );
+	GetTexMapProperty<int>( mTexMap, _T("rewireB"), mMaterialChannel.mTime, &colorCorrectionData.mRewireB );
+	GetTexMapProperty<int>( mTexMap, _T("rewireA"), mMaterialChannel.mTime, &colorCorrectionData.mRewireA );
+
+	GetTexMapProperty<int>( mTexMap, _T("exposureMode"), mMaterialChannel.mTime, &colorCorrectionData.mExposureMode );
+	GetTexMapProperty<float>( mTexMap, _T("gainRGB"), mMaterialChannel.mTime, &colorCorrectionData.mGainRGB );
+	GetTexMapProperty<float>( mTexMap, _T("gainR"), mMaterialChannel.mTime, &colorCorrectionData.mGainR );
+	GetTexMapProperty<float>( mTexMap, _T("gainG"), mMaterialChannel.mTime, &colorCorrectionData.mGainG );
+	GetTexMapProperty<float>( mTexMap, _T("gainB"), mMaterialChannel.mTime, &colorCorrectionData.mGainB );
+	GetTexMapProperty<float>( mTexMap, _T("gammaRGB"), mMaterialChannel.mTime, &colorCorrectionData.mGammaRGB );
+	GetTexMapProperty<float>( mTexMap, _T("gammaR"), mMaterialChannel.mTime, &colorCorrectionData.mGammaR );
+	GetTexMapProperty<float>( mTexMap, _T("gammaG"), mMaterialChannel.mTime, &colorCorrectionData.mGammaG );
+	GetTexMapProperty<float>( mTexMap, _T("gammaB"), mMaterialChannel.mTime, &colorCorrectionData.mGammaB );
+	GetTexMapProperty<float>( mTexMap, _T("hueShift"), mMaterialChannel.mTime, &colorCorrectionData.mHueShift );
+	GetTexMapProperty<AColor>( mTexMap, _T("tint"), mMaterialChannel.mTime, &colorCorrectionData.mHueTint );
+	GetTexMapProperty<float>( mTexMap, _T("tintStrength"), mMaterialChannel.mTime, &colorCorrectionData.mHueTintStrength );
+	GetTexMapProperty<float>( mTexMap, _T("liftRGB"), mMaterialChannel.mTime, &colorCorrectionData.mLiftRGB );
+	GetTexMapProperty<float>( mTexMap, _T("liftR"), mMaterialChannel.mTime, &colorCorrectionData.mLiftR );
+	GetTexMapProperty<float>( mTexMap, _T("liftG"), mMaterialChannel.mTime, &colorCorrectionData.mLiftG );
+	GetTexMapProperty<float>( mTexMap, _T("liftB"), mMaterialChannel.mTime, &colorCorrectionData.mLiftB );
+	GetTexMapProperty<int>( mTexMap, _T("lightnessMode"), mMaterialChannel.mTime, &colorCorrectionData.mLightnessMode );
+	GetTexMapProperty<float>( mTexMap, _T("saturation"), mMaterialChannel.mTime, &colorCorrectionData.mSaturation );
+	GetTexMapProperty<float>( mTexMap, _T("pivotRGB"), mMaterialChannel.mTime, &colorCorrectionData.mPivotRGB );
+	GetTexMapProperty<float>( mTexMap, _T("pivotR"), mMaterialChannel.mTime, &colorCorrectionData.mPivotR );
+	GetTexMapProperty<float>( mTexMap, _T("pivotG"), mMaterialChannel.mTime, &colorCorrectionData.mPivotG );
+	GetTexMapProperty<float>( mTexMap, _T("pivotB"), mMaterialChannel.mTime, &colorCorrectionData.mPivotB );
+	GetTexMapProperty<float>( mTexMap, _T("printerLights"), mMaterialChannel.mTime, &colorCorrectionData.mPrinterLights );
+
+	GetTexMapProperty<int>( mTexMap, _T("enableR"), mMaterialChannel.mTime, &enableRed );
+	GetTexMapProperty<int>( mTexMap, _T("enableG"), mMaterialChannel.mTime, &enableGreen );
+	GetTexMapProperty<int>( mTexMap, _T("enableB"), mMaterialChannel.mTime, &enableBlue );
+
+	colorCorrectionData.mEnableR = enableRed == 1;
+	colorCorrectionData.mEnableG = enableGreen == 1;
+	colorCorrectionData.mEnableB = enableBlue == 1;
+
+	Texmap* mSubTexMap = mTexMap->GetSubTexmap( 0 );
+	if( mSubTexMap )
+	{
+		node = SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel );
+	}
+	else
+	{
+		spShadingColorNode sgColorNode = sg->CreateShadingColorNode();
+		sgColorNode->SetColor( mColor.r, mColor.g, mColor.b, mColor.a );
+
+		node = sgColorNode;
+	}
+
+	return MaterialNodes::SetUpColorCorrectionShadingNode( node, colorCorrectionData, mMaterialChannel.mMaterialName, mMaterialChannel.mTime );
+}
+
+spShadingNode MaterialNodes::GetColorCorrectionLightSettings( ColorCorrectionData& sgColorCorrectionData,
+                                                              spShadingNode sgInputColor,
+                                                              spShadingColorNode sgGainRGBNode,
+                                                              spShadingColorNode sgGammaRGBNode,
+                                                              spShadingColorNode sgPivotRGBNode,
+                                                              spShadingColorNode sgLiftRGBNode )
+{
+	spShadingColorNode sgOneNode = sg->CreateShadingColorNode();
+	sgOneNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
+
+	spShadingNode sgReturnNode;
+	switch( sgColorCorrectionData.mExposureMode )
+	{
+		case 0: // Gain
+		{
+			// m_Pivot* pow( value * m_Gain / m_Pivot, 1.0f / m_Gamma ) + m_Lift;
+			spShadingMultiplyNode sgHSLXGainNode = sg->CreateShadingMultiplyNode();
+			sgHSLXGainNode->SetInput( 0, sgInputColor );
+			sgHSLXGainNode->SetInput( 1, sgGainRGBNode );
+
+			spShadingDivideNode sgMulDivPivotNode = sg->CreateShadingDivideNode();
+			sgMulDivPivotNode->SetInput( 0, sgHSLXGainNode );
+			sgMulDivPivotNode->SetInput( 1, sgPivotRGBNode );
+
+			spShadingDivideNode sgOneDivGammaNode = sg->CreateShadingDivideNode();
+			sgOneDivGammaNode->SetInput( 0, sgOneNode );
+			sgOneDivGammaNode->SetInput( 1, sgGammaRGBNode );
+
+			spShadingPowNode sgPowNode = sg->CreateShadingPowNode();
+			sgPowNode.SetInput( 0, sgMulDivPivotNode );
+			sgPowNode.SetInput( 1, sgOneDivGammaNode );
+
+			spShadingMultiplyNode sgMultiplyNode = sg->CreateShadingMultiplyNode();
+			sgMultiplyNode->SetInput( 0, sgPowNode );
+			sgMultiplyNode->SetInput( 1, sgPivotRGBNode );
+
+			spShadingAddNode sgAddNode = sg->CreateShadingAddNode();
+			sgAddNode.SetInput( 0, sgMultiplyNode );
+			sgAddNode.SetInput( 1, sgLiftRGBNode );
+
+			// add clamp here
+
+			spShadingSwizzlingNode sgSwizzleOpacity = sg->CreateShadingSwizzlingNode();
+			sgSwizzleOpacity->SetInput( 0, sgAddNode );
+			sgSwizzleOpacity->SetInput( 1, sgAddNode );
+			sgSwizzleOpacity->SetInput( 2, sgAddNode );
+			sgSwizzleOpacity->SetInput( 3, sgInputColor );
+			sgSwizzleOpacity->SetRedComponent( 0 );
+			sgSwizzleOpacity->SetGreenComponent( 1 );
+			sgSwizzleOpacity->SetBlueComponent( 2 );
+			sgSwizzleOpacity->SetAlphaComponent( 3 );
+
+			sgReturnNode = sgSwizzleOpacity;
+			break;
+		}
+		case 1: // FStops
+		{
+			// m_Pivot* pow( value * pow( 2.0f, m_Gain ) / m_Pivot, 1.0f / m_Gamma ) + m_Lift;
+
+			spShadingColorNode sg2Node = sg->CreateShadingColorNode();
+			sg2Node->SetColor( 2.0f, 2.0f, 2.0f, 1.0f );
+
+			spShadingPowNode sg2PowGainNode = sg->CreateShadingPowNode();
+			sg2PowGainNode.SetInput( 0, sg2Node );
+			sg2PowGainNode.SetInput( 1, sgGainRGBNode );
+
+			spShadingMultiplyNode sgXPowNode = sg->CreateShadingMultiplyNode();
+			sgXPowNode->SetInput( 0, sgInputColor );
+			sgXPowNode->SetInput( 1, sg2PowGainNode );
+
+			spShadingDivideNode sgMulDivPivotNode = sg->CreateShadingDivideNode();
+			sgMulDivPivotNode->SetInput( 0, sgXPowNode );
+			sgMulDivPivotNode->SetInput( 1, sgPivotRGBNode );
+
+			spShadingDivideNode sgOneDivGammaNode = sg->CreateShadingDivideNode();
+			sgOneDivGammaNode->SetInput( 0, sgOneNode );
+			sgOneDivGammaNode->SetInput( 1, sgGammaRGBNode );
+
+			spShadingPowNode sgPowNode = sg->CreateShadingPowNode();
+			sgPowNode.SetInput( 0, sgMulDivPivotNode );
+			sgPowNode.SetInput( 1, sgOneDivGammaNode );
+
+			spShadingMultiplyNode sgMultiplyNode = sg->CreateShadingMultiplyNode();
+			sgMultiplyNode->SetInput( 0, sgPowNode );
+			sgMultiplyNode->SetInput( 1, sgPivotRGBNode );
+
+			spShadingPowNode sgAddNode = sg->CreateShadingPowNode();
+			sgAddNode.SetInput( 0, sgMultiplyNode );
+			sgAddNode.SetInput( 1, sgLiftRGBNode );
+
+			spShadingSwizzlingNode sgSwizzleOpacity = sg->CreateShadingSwizzlingNode();
+			sgSwizzleOpacity->SetInput( 0, sgAddNode );
+			sgSwizzleOpacity->SetInput( 1, sgAddNode );
+			sgSwizzleOpacity->SetInput( 2, sgAddNode );
+			sgSwizzleOpacity->SetInput( 3, sgInputColor );
+			sgSwizzleOpacity->SetRedComponent( 0 );
+			sgSwizzleOpacity->SetGreenComponent( 1 );
+			sgSwizzleOpacity->SetBlueComponent( 2 );
+			sgSwizzleOpacity->SetAlphaComponent( 3 );
+
+			sgReturnNode = sgSwizzleOpacity;
+			break;
+		}
+		case 2: // Printer
+		{
+			// m_Pivot* pow( value * pow( m_Printer, m_Gain ) / m_Pivot, 1.0f / m_Gamma ) + m_Lift;
+
+			spShadingColorNode sg2Node = sg->CreateShadingColorNode();
+			sg2Node->SetColor( 2.0f, 2.0f, 2.0f, 1.0f );
+
+			spShadingPowNode sg2PowGainNode = sg->CreateShadingPowNode();
+			sg2PowGainNode.SetInput( 0, sg2Node );
+			sg2PowGainNode.SetInput( 1, sgGainRGBNode );
+
+			spShadingMultiplyNode sgXPowNode = sg->CreateShadingMultiplyNode();
+			sgXPowNode->SetInput( 0, sgInputColor );
+			sgXPowNode->SetInput( 1, sg2PowGainNode );
+
+			spShadingDivideNode sgMulDivPivotNode = sg->CreateShadingDivideNode();
+			sgMulDivPivotNode->SetInput( 0, sgXPowNode );
+			sgMulDivPivotNode->SetInput( 1, sgPivotRGBNode );
+
+			spShadingDivideNode sgOneDivGammaNode = sg->CreateShadingDivideNode();
+			sgOneDivGammaNode->SetInput( 0, sgOneNode );
+			sgOneDivGammaNode->SetInput( 1, sgGammaRGBNode );
+
+			spShadingPowNode sgPowNode = sg->CreateShadingPowNode();
+			sgPowNode.SetInput( 0, sgMulDivPivotNode );
+			sgPowNode.SetInput( 1, sgOneDivGammaNode );
+
+			spShadingMultiplyNode sgMultiplyNode = sg->CreateShadingMultiplyNode();
+			sgMultiplyNode->SetInput( 0, sgPowNode );
+			sgMultiplyNode->SetInput( 1, sgPivotRGBNode );
+
+			spShadingPowNode sgAddNode = sg->CreateShadingPowNode();
+			sgAddNode.SetInput( 0, sgMultiplyNode );
+			sgAddNode.SetInput( 1, sgLiftRGBNode );
+
+			sgReturnNode = sgAddNode;
+			break;
+		}
+		default:
+		{
+			spShadingColorNode sgBlackNode = sg->CreateShadingColorNode();
+			sgBlackNode->SetColor( 0.0f, 0.0f, 0.0f, 1.0f );
+
+			sgReturnNode = sgBlackNode;
+		}
+	}
+
+	return sgReturnNode;
 }
 
 class PhysicalMaterial
@@ -3746,7 +4132,7 @@ void SimplygonMax::WriteMaterialMappingAttribute()
 		const char* cMaterialId = materialMap->sgMaterialId.c_str();
 		const size_t numMaterialIdChars = strlen( cMaterialId ) + 1;
 
-		attributeDataSize += sizeof( ULONG );                                                  // uniqueHandle
+		attributeDataSize += sizeof( AnimHandle );                                             // uniqueHandle
 		attributeDataSize += sizeof( size_t );                                                 // materialId length
 		attributeDataSize += sizeof( char ) * (uint)numMaterialIdChars;                        // materialId
 		attributeDataSize += sizeof( size_t );                                                 // materialName length
@@ -6697,15 +7083,15 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 			const int mid = globalMaterialMap->GetMaxMaterialId( sgMaterialIds->GetItem( tid ) );
 
 			// if material id is valid, assign, otherwise 0
-			mNewMaxMesh.setFaceMtlIndex( tid, static_cast<MtlID>(mid >= 0 ? mid : 0) );
+			mNewMaxMesh.setFaceMtlIndex( tid, static_cast<MtlID>( mid >= 0 ? mid : 0 ) );
 		}
 		else if( !sgMaterialIds.IsNull() )
 		{
 			const int mid = sgMaterialIds->GetItem( tid );
 
 			// if material id is valid, assign, otherwise 0
-			
-			mNewMaxMesh.setFaceMtlIndex( tid, static_cast<MtlID>(mid >= 0 ? mid + 0 : 0) );
+
+			mNewMaxMesh.setFaceMtlIndex( tid, static_cast<MtlID>( mid >= 0 ? mid + 0 : 0 ) );
 		}
 		else
 		{
@@ -6806,7 +7192,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 
 			sgMIds.insert( mid );
 
-			if( mid >= static_cast<int>(sgMaterialTable->GetMaterialsCount()) )
+			if( mid >= static_cast<int>( sgMaterialTable->GetMaterialsCount() ) )
 			{
 				std::basic_string<TCHAR> tErrorMessage = _T("Writeback of material(s) failed due to an out-of-range material id when importing node ");
 				tErrorMessage += tIndexedNodeName;
@@ -9206,16 +9592,14 @@ spShadingColorNode CreateColorShadingNetwork( float r, float g, float b, float a
 
 // returns a material-color override for the given channel, if any
 MaterialColorOverride* HasMaterialColorOverrideForChannel( std::vector<MaterialColorOverride>* materialColorOverrides,
-                                                           StdMat2* mMaxStdMaterial,
+                                                           std::basic_string<TCHAR> tMaxStdMaterialName,
                                                            std::basic_string<TCHAR> tChannelName )
 {
-	std::basic_string<TCHAR> maxMaterialName = mMaxStdMaterial->GetName();
-
 	for( size_t c = 0; c < materialColorOverrides->size(); ++c )
 	{
 		std::basic_string<TCHAR> maxChannelName = materialColorOverrides->at( c ).MappingChannelName;
 
-		if( maxMaterialName == materialColorOverrides->at( c ).MaterialName && maxChannelName == tChannelName )
+		if( tMaxStdMaterialName == materialColorOverrides->at( c ).MaterialName && maxChannelName == tChannelName )
 		{
 			return &( materialColorOverrides->at( c ) );
 		}
@@ -9237,12 +9621,14 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 	std::basic_string<TCHAR> tMappedChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel );
 	ReplaceInvalidCharacters( tMappedChannelName, _T( '_' ) );
 
+	std::basic_string<TCHAR> tMaxMaterialName = mMaxStdMaterial->GetName();
+
 	// assign color
 	switch( maxChannelId )
 	{
 		case ID_AM:
 		{
-			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, mMaxStdMaterial, tMappedChannelName );
+			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, tMaxMaterialName, tMappedChannelName );
 
 			if( colorOverride != nullptr )
 			{
@@ -9259,7 +9645,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 
 		case ID_DI:
 		{
-			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, mMaxStdMaterial, tMappedChannelName );
+			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, tMaxMaterialName, tMappedChannelName );
 
 			if( colorOverride != nullptr )
 			{
@@ -9276,7 +9662,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 
 		case ID_SP:
 		{
-			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, mMaxStdMaterial, tMappedChannelName );
+			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, tMaxMaterialName, tMappedChannelName );
 
 			if( colorOverride != nullptr )
 			{
@@ -9294,7 +9680,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 
 		case ID_SH:
 		{
-			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, mMaxStdMaterial, tMappedChannelName );
+			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, tMaxMaterialName, tMappedChannelName );
 
 			if( colorOverride != nullptr )
 			{
@@ -9308,7 +9694,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 
 		case ID_SS:
 		{
-			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, mMaxStdMaterial, tMappedChannelName );
+			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, tMaxMaterialName, tMappedChannelName );
 
 			if( colorOverride != nullptr )
 			{
@@ -9322,7 +9708,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 
 		case ID_SI:
 		{
-			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, mMaxStdMaterial, tMappedChannelName );
+			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, tMaxMaterialName, tMappedChannelName );
 
 			if( colorOverride != nullptr )
 			{
@@ -9336,7 +9722,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 
 		case ID_OP:
 		{
-			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, mMaxStdMaterial, tMappedChannelName );
+			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, tMaxMaterialName, tMappedChannelName );
 
 			if( colorOverride != nullptr )
 			{
@@ -9351,7 +9737,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 
 		case ID_FI:
 		{
-			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, mMaxStdMaterial, tMappedChannelName );
+			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, tMaxMaterialName, tMappedChannelName );
 
 			if( colorOverride != nullptr )
 			{
@@ -9371,7 +9757,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 
 		case ID_RL:
 		{
-			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, mMaxStdMaterial, tMappedChannelName );
+			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, tMaxMaterialName, tMappedChannelName );
 
 			if( colorOverride != nullptr )
 			{
@@ -9385,7 +9771,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 
 		case ID_RR:
 		{
-			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, mMaxStdMaterial, tMappedChannelName );
+			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, tMaxMaterialName, tMappedChannelName );
 
 			if( colorOverride != nullptr )
 			{
@@ -9399,7 +9785,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 
 		case ID_DP:
 		{
-			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, mMaxStdMaterial, tMappedChannelName );
+			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, tMaxMaterialName, tMappedChannelName );
 
 			if( colorOverride != nullptr )
 			{
@@ -9416,7 +9802,7 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 			std::basic_string<TCHAR> tChannelName = ConstCharPtrToLPCTSTR( cChannelName );
 			ReplaceInvalidCharacters( tChannelName, _T( '_' ) );
 
-			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, mMaxStdMaterial, tChannelName );
+			MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &materialColorOverrides, tMaxMaterialName, tChannelName );
 
 			if( colorOverride != nullptr )
 			{
@@ -9488,283 +9874,6 @@ bool SimplygonMax::MaterialChannelHasShadingNetwork( spMaterial sgMaterial, cons
 		return false;
 
 	return true;
-}
-
-spShadingNode SimplygonMax::CreateShadingNetworkForPBRMaterial( long maxChannelID,
-                                                                std::basic_string<TCHAR> tMaterialName,
-                                                                std::basic_string<TCHAR> tMaxMappingChannel,
-                                                                std::basic_string<TCHAR> tMappedChannelName,
-                                                                MaterialNodes::MaterialNodeBase* node )
-{
-	const char* cChannelName = LPCTSTRToConstCharPtr( tMappedChannelName.c_str() );
-
-	// MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &MaterialColorOverrides, mMaxStdMaterial, tMappedChannelName );
-
-	Color mBaseColor = Color( 0, 0, 0 );
-
-	spShadingNode sgExitNode = BuildNode( node, maxChannelID, tMaterialName, tMappedChannelName, tMaxMappingChannel, mBaseColor, 1.0f, CurrentTime );
-
-	// export xml string from shading network material
-	// if( sgExitNode != nullptr )
-	//{
-	//	sgMaterial->SetShadingNetwork( cChannelName, sgExitNode );
-	//}
-
-	for( uint32_t i = 0; i < node->GetNumTextures(); ++i )
-	{
-		// create texture and add it to scene
-		spTexture sgTexture;
-
-		MaterialNodes::TextureData* sgInternalTextureData = node->GetTexture( i );
-		if( sgInternalTextureData && sgInternalTextureData->mBitmap )
-		{
-			// do lookup in case this texture is already in use
-			std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-			    this->LoadedTexturePathToID.find( sgInternalTextureData->mTexturePathWithName );
-			const bool bTextureInUse = ( tTextureIterator != this->LoadedTexturePathToID.end() );
-
-			if( bTextureInUse )
-			{
-				sgTexture = this->SceneHandler->sgScene->GetTextureTable()->FindTextureUsingPath(
-				    LPCTSTRToConstCharPtr( sgInternalTextureData->mTexturePathWithName.c_str() ) );
-			}
-			else
-			{
-				sgTexture = sg->CreateTexture();
-				sgTexture->SetName( LPCTSTRToConstCharPtr( sgInternalTextureData->mTextureName.c_str() ) );
-				sgTexture->SetFilePath( LPCTSTRToConstCharPtr( sgInternalTextureData->mTexturePathWithName.c_str() ) );
-
-				this->SceneHandler->sgScene->GetTextureTable()->AddTexture( sgTexture );
-			}
-
-			// if the texture was not already in scene, copy it to local work folder
-			if( !bTextureInUse )
-			{
-				const spString rTexturePathWithName = sgTexture->GetFilePath();
-				this->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-				    sgInternalTextureData->mTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-			}
-		}
-	}
-
-	// hasTextures[ maxChannelId ] = true;
-
-	return sgExitNode;
-}
-
-void SimplygonMax::CreateShadingNetworkForStdMaterial( long maxChannelId,
-                                                       StdMat2* mMaxStdMaterial,
-                                                       spMaterial sgMaterial,
-                                                       std::basic_string<TCHAR> tMaterialName,
-                                                       std::basic_string<TCHAR> tMaxMappingChannel,
-                                                       std::basic_string<TCHAR> tMappedChannelName,
-                                                       MaterialNodes::MaterialNodeBase* node,
-                                                       const float blendAmount,
-                                                       bool* hasTextures )
-{
-	const char* cChannelName = LPCTSTRToConstCharPtr( tMappedChannelName.c_str() );
-
-	spShadingNode sgExitNode;
-
-	MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &MaterialColorOverrides, mMaxStdMaterial, tMappedChannelName );
-
-	Color mBaseColor = Color( 1, 1, 1 );
-
-	// copy material colors
-	switch( maxChannelId )
-	{
-		case ID_AM:
-		{
-			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetAmbient( this->MaxInterface->GetTime() );
-			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
-
-			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
-			break;
-		}
-		case ID_DI:
-		{
-			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetDiffuse( this->MaxInterface->GetTime() );
-			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
-
-			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
-			break;
-		}
-		case ID_SP:
-		{
-			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetSpecular( this->MaxInterface->GetTime() );
-			float shininess = colorOverride ? colorOverride->ColorValue[ 3 ] : mMaxStdMaterial->GetShininess( this->MaxInterface->GetTime() ) * 128.f;
-
-			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, shininess, this->CurrentTime, blendAmount );
-			break;
-		}
-		case ID_SH:
-		{
-			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
-			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
-
-			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
-			break;
-		}
-		case ID_SS:
-		{
-			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
-			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
-
-			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
-			break;
-		}
-		case ID_SI:
-		{
-			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetSelfIllumColor( this->MaxInterface->GetTime() );
-			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : mMaxStdMaterial->GetSelfIllum( this->MaxInterface->GetTime() );
-
-			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
-			break;
-		}
-		case ID_OP:
-		{
-			float opacity = mMaxStdMaterial->GetOpacity( this->MaxInterface->GetTime() );
-
-			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : Color( opacity, opacity, opacity );
-			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : opacity;
-
-			auto sgInterpolationNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
-
-			spShadingSwizzlingNode sgSwizzleNode = sg->CreateShadingSwizzlingNode();
-			sgSwizzleNode->SetInput( 0, sgInterpolationNode );
-			sgSwizzleNode->SetInput( 1, sgInterpolationNode );
-			sgSwizzleNode->SetInput( 2, sgInterpolationNode );
-			sgSwizzleNode->SetInput( 3, sgInterpolationNode );
-
-			bool bUseAlphaAsTransparency = false;
-			Texmap* mTexMap = mMaxStdMaterial->GetSubTexmap( mMaxStdMaterial->StdIDToChannel( maxChannelId ) );
-			if( mTexMap )
-			{
-				BitmapTex* mBitmapTex = (BitmapTex*)mTexMap;
-				if( mBitmapTex )
-				{
-					bUseAlphaAsTransparency = mBitmapTex->GetAlphaAsRGB( TRUE ) == TRUE;
-				}
-			}
-
-			// pick first texture
-			MaterialNodes::TextureData* texture = node->GetTexture( 0 );
-			if( texture && texture->mBitmap )
-			{
-				const bool bTextureHasAlpha = TextureHasAlpha( LPCTSTRToConstCharPtr( texture->mTexturePathWithName.c_str() ) );
-
-				if( bTextureHasAlpha && bUseAlphaAsTransparency )
-				{
-					sgSwizzleNode->SetRedComponent( 3 );
-					sgSwizzleNode->SetGreenComponent( 3 );
-					sgSwizzleNode->SetBlueComponent( 3 );
-					sgSwizzleNode->SetAlphaComponent( 3 );
-				}
-				else
-				{
-					sgSwizzleNode->SetRedComponent( 0 );
-					sgSwizzleNode->SetGreenComponent( 0 );
-					sgSwizzleNode->SetBlueComponent( 0 );
-					sgSwizzleNode->SetAlphaComponent( 0 );
-				}
-
-				sgExitNode = (spShadingNode)sgSwizzleNode;
-			}
-			break;
-		}
-		case ID_FI:
-		{
-			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
-			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
-
-			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
-			break;
-		}
-		case ID_BU:
-		{
-			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, Color( 1, 1, 1 ), 1.0f, this->CurrentTime, 1.0f );
-			break;
-		}
-		case ID_RL:
-		{
-			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
-			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
-
-			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
-			break;
-		}
-		case ID_RR:
-		{
-			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
-			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
-
-			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
-			break;
-		}
-		case ID_DP:
-		{
-			mBaseColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
-			float alpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
-
-			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, alpha, this->CurrentTime, blendAmount );
-			break;
-		}
-		default:
-		{
-			sgExitNode = BuildNode( node, tMaterialName, tMaxMappingChannel, mBaseColor, 1, this->CurrentTime, blendAmount );
-			break;
-		}
-	}
-
-	// export xml string from shading network material
-	if( sgExitNode != nullptr )
-	{
-		sgMaterial->SetShadingNetwork( cChannelName, sgExitNode );
-	}
-
-	for( uint32_t i = 0; i < node->GetNumTextures(); ++i )
-	{
-		// create texture and add it to scene
-		spTexture sgTexture;
-
-		MaterialNodes::TextureData* sgInternalTextureData = node->GetTexture( i );
-		if( sgInternalTextureData && sgInternalTextureData->mBitmap )
-		{
-			// do lookup in case this texture is already in use
-			std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
-			    this->LoadedTexturePathToID.find( sgInternalTextureData->mTexturePathWithName );
-			const bool bTextureInUse = ( tTextureIterator != this->LoadedTexturePathToID.end() );
-
-			if( bTextureInUse )
-			{
-				sgTexture = this->SceneHandler->sgScene->GetTextureTable()->FindTextureUsingPath(
-				    LPCTSTRToConstCharPtr( sgInternalTextureData->mTexturePathWithName.c_str() ) );
-			}
-			else
-			{
-				sgTexture = sg->CreateTexture();
-				sgTexture->SetName( LPCTSTRToConstCharPtr( sgInternalTextureData->mTextureName.c_str() ) );
-				sgTexture->SetFilePath( LPCTSTRToConstCharPtr( sgInternalTextureData->mTexturePathWithName.c_str() ) );
-
-				this->SceneHandler->sgScene->GetTextureTable()->AddTexture( sgTexture );
-			}
-
-			// if the texture was not already in scene, copy it to local work folder
-			if( !bTextureInUse )
-			{
-				const spString rTexturePathWithName = sgTexture->GetFilePath();
-				this->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
-				    sgInternalTextureData->mTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
-			}
-		}
-	}
-
-	if( maxChannelId == ID_BU )
-	{
-		sgMaterial->SetUseTangentSpaceNormals( true );
-	}
-
-	hasTextures[ maxChannelId ] = true;
 }
 
 void SimplygonMax::LogMaterialNodeMessage( Texmap* mTexMap,
@@ -9843,24 +9952,188 @@ std::basic_string<TCHAR> SimplygonMax::SetupMaxMappingChannel( const char* cMate
 
 spShadingNode SimplygonMax::CreateSgMaterialPBRChannel( Texmap* mTexMap, long maxChannelId, const char* cMaterialName, const char* cChannelName )
 {
-	spShadingNode shadingNode;
-	std::string sMaterialName = cMaterialName;
 	std::basic_string<TCHAR> tMaterialName = ConstCharPtrToLPCTSTR( cMaterialName );
 	std::basic_string<TCHAR> tChannelName = ConstCharPtrToLPCTSTR( cChannelName );
 
+	MaterialNodes::MaterialChannelData mChannelData = MaterialNodes::MaterialChannelData(
+	    tMaterialName, tChannelName, maxChannelId, nullptr, Simplygon::NullPtr, &this->MaterialTextureOverrides, this->CurrentTime, true );
+
+	spShadingNode sgShadingNode = CreateSgMaterial( mTexMap, mChannelData );
+
+	spShadingColorNode sgOneNode = sg->CreateShadingColorNode();
+	sgOneNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
+
+	spShadingSwizzlingNode sgAlphaOneSwizzleNode = sg->CreateShadingSwizzlingNode();
+	sgAlphaOneSwizzleNode->SetInput( 0, sgShadingNode );
+	sgAlphaOneSwizzleNode->SetInput( 1, sgShadingNode );
+	sgAlphaOneSwizzleNode->SetInput( 2, sgShadingNode );
+	sgAlphaOneSwizzleNode->SetInput( 3, sgOneNode );
+	sgAlphaOneSwizzleNode->SetRedComponent( 0 );
+	sgAlphaOneSwizzleNode->SetGreenComponent( 1 );
+	sgAlphaOneSwizzleNode->SetBlueComponent( 2 );
+	sgAlphaOneSwizzleNode->SetAlphaComponent( 3 );
+
+	return sgAlphaOneSwizzleNode;
+}
+
+void SimplygonMax::CreateAndLinkTexture( MaterialNodes::TextureData& rTextureData )
+{
+	if( rTextureData.mBitmap )
+	{
+		spTexture sgTexture;
+
+		// do lookup in case this texture is already in use
+		std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
+		    this->LoadedTexturePathToID.find( rTextureData.mTexturePathWithName );
+		const bool bTextureInUse = ( tTextureIterator != this->LoadedTexturePathToID.end() );
+
+		if( bTextureInUse )
+		{
+			sgTexture =
+			    this->SceneHandler->sgScene->GetTextureTable()->FindTextureUsingPath( LPCTSTRToConstCharPtr( rTextureData.mTexturePathWithName.c_str() ) );
+		}
+		else
+		{
+			sgTexture = sg->CreateTexture();
+			sgTexture->SetName( LPCTSTRToConstCharPtr( rTextureData.mTextureName.c_str() ) );
+			sgTexture->SetFilePath( LPCTSTRToConstCharPtr( rTextureData.mTexturePathWithName.c_str() ) );
+
+			this->SceneHandler->sgScene->GetTextureTable()->AddTexture( sgTexture );
+		}
+
+		// if the texture was not already in scene, copy it to local work folder
+		if( !bTextureInUse )
+		{
+			const spString rTexturePathWithName = sgTexture->GetFilePath();
+			this->LoadedTexturePathToID.insert( std::pair<std::basic_string<TCHAR>, std::basic_string<TCHAR>>(
+			    rTextureData.mTexturePathWithName, ConstCharPtrToLPCTSTR( rTexturePathWithName.c_str() ) ) );
+		}
+	}
+}
+
+void SimplygonMax::ApplyChannelSpecificModifiers(
+    long maxChannelId, StdMat2* mMaxStdMaterial, std::basic_string<TCHAR> tMaterialName, Color* outColor, float* outAlpha )
+{
+	std::basic_string<TCHAR> tChannelName;
+	std::basic_string<TCHAR> tMaxMaterialName = mMaxStdMaterial->GetName();
+
+	MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &MaterialColorOverrides, tMaxMaterialName, tChannelName );
+
+	Color mBaseColor = Color( 1, 1, 1 );
+
+	// copy material colors
+	switch( maxChannelId )
+	{
+		case ID_AM:
+		{
+			*outColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetAmbient( this->MaxInterface->GetTime() );
+			*outAlpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
+
+			break;
+		}
+		case ID_DI:
+		{
+			*outColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetDiffuse( this->MaxInterface->GetTime() );
+			*outAlpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
+
+			break;
+		}
+		case ID_SP:
+		{
+			// shininess
+			*outColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetSpecular( this->MaxInterface->GetTime() );
+			*outAlpha = colorOverride ? colorOverride->ColorValue[ 3 ] : mMaxStdMaterial->GetShininess( this->MaxInterface->GetTime() ) * 128.f;
+
+			break;
+		}
+		case ID_SH:
+		{
+			*outColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
+			*outAlpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
+
+			break;
+		}
+		case ID_SS:
+		{
+			*outColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
+			*outAlpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
+
+			break;
+		}
+		case ID_SI:
+		{
+			*outColor = colorOverride ? Color( colorOverride->ColorValue ) : mMaxStdMaterial->GetSelfIllumColor( this->MaxInterface->GetTime() );
+			*outAlpha = colorOverride ? colorOverride->ColorValue[ 3 ] : mMaxStdMaterial->GetSelfIllum( this->MaxInterface->GetTime() );
+
+			break;
+		}
+		case ID_OP:
+		{
+			float opacity = mMaxStdMaterial->GetOpacity( this->MaxInterface->GetTime() );
+
+			*outColor = colorOverride ? Color( colorOverride->ColorValue ) : Color( opacity, opacity, opacity );
+			*outAlpha = colorOverride ? colorOverride->ColorValue[ 3 ] : opacity;
+
+			break;
+		}
+		case ID_FI:
+		{
+			*outColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
+			*outAlpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
+
+			break;
+		}
+		case ID_BU:
+		{
+			*outColor = mBaseColor;
+			*outAlpha = 1.0f;
+			break;
+		}
+		case ID_RL:
+		{
+			*outColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
+			*outAlpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
+
+			break;
+		}
+		case ID_RR:
+		{
+			*outColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
+			*outAlpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
+
+			break;
+		}
+		case ID_DP:
+		{
+			*outColor = colorOverride ? Color( colorOverride->ColorValue ) : mBaseColor;
+			*outAlpha = colorOverride ? colorOverride->ColorValue[ 3 ] : 1.0f;
+
+			break;
+		}
+		default:
+		{
+			*outColor = mBaseColor;
+			*outAlpha = 1.0f;
+			break;
+		}
+	}
+}
+
+spShadingNode SimplygonMax::CreateSgMaterial( Texmap* mTexMap,
+                                              MaterialNodes::MaterialChannelData& mMaterialChannel,
+                                              MaterialNodes::TextureSettingsOverride* textureSettingsOverride )
+{
+	spShadingNode sgNode;
+
 	if( mTexMap && ( mTexMap->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) || ( mTexMap->ClassID() == GNORMAL_CLASS_ID ) ||
 	                 ( mTexMap->ClassID() == Class_ID( RGBMULT_CLASS_ID, 0 ) ) || ( mTexMap->ClassID() == Class_ID( TINT_CLASS_ID, 0 ) ) ||
-	                 ( mTexMap->ClassID() == Class_ID( COMPOSITE_CLASS_ID, 0 ) ) ) )
+	                 ( mTexMap->ClassID() == Class_ID( COMPOSITE_CLASS_ID, 0 ) ) || ( mTexMap->ClassID() == Class_ID( COLORCORRECTION_CLASS_ID, 0 ) ) ) )
 	{
-		std::basic_string<TCHAR> tMaxMappingChannel = SetupMaxMappingChannel( cMaterialName, cChannelName, mTexMap );
-
 		// see if there are nodes in between slot and texture
 		if( mTexMap->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) )
 		{
-			MaterialNodes::BitmapNode sgBitmapNode( mTexMap );
-			sgBitmapNode.Setup( maxChannelId, cMaterialName, cChannelName, nullptr, CurrentTime );
-
-			shadingNode = CreateShadingNetworkForPBRMaterial( maxChannelId, tMaterialName, tMaxMappingChannel, tChannelName, &sgBitmapNode );
+			// texture settingsoverride will only apply to the textures directly under it
+			sgNode = MaterialNodes::RunBitmapNode( mTexMap, mMaterialChannel, textureSettingsOverride );
 		}
 		else if( mTexMap->ClassID() == GNORMAL_CLASS_ID )
 		{
@@ -9874,47 +10147,126 @@ spShadingNode SimplygonMax::CreateSgMaterialPBRChannel( Texmap* mTexMap, long ma
 				Class_ID normalNodeClassId = mTexMap->ClassID();
 				if( normalNodeClassId == Class_ID( BMTEX_CLASS_ID, 0 ) )
 				{
-					MaterialNodes::BitmapNode sgBitmapNode( mTexMap );
-					sgBitmapNode.Setup( maxChannelId, cMaterialName, cChannelName, nullptr, CurrentTime );
-
-					// turn off SRGB
-					sgBitmapNode.mTexture.mIsSRGB = false;
-					shadingNode = CreateShadingNetworkForPBRMaterial( maxChannelId, tMaterialName, tMaxMappingChannel, tChannelName, &sgBitmapNode );
+					sgNode = MaterialNodes::RunBitmapNode( mTexMap, mMaterialChannel );
 				}
 				else
 				{
-					LogMaterialNodeMessage( mTexMap, tMaterialName, tChannelName );
+					LogMaterialNodeMessage( mTexMap, mMaterialChannel.mMaterialName, mMaterialChannel.mChannelName );
 				}
 			}
 		}
 		else if( mTexMap->ClassID() == Class_ID( RGBMULT_CLASS_ID, 0 ) )
 		{
-			MaterialNodes::MultiplyNode sgMultiplyNode( mTexMap );
-			sgMultiplyNode.Setup( maxChannelId, cMaterialName, cChannelName, nullptr, CurrentTime );
-
-			shadingNode = CreateShadingNetworkForPBRMaterial( maxChannelId, tMaterialName, tMaxMappingChannel, tChannelName, &sgMultiplyNode );
+			sgNode = MaterialNodes::RunMultiplyNode( mTexMap, mMaterialChannel );
 		}
 		else if( mTexMap->ClassID() == Class_ID( TINT_CLASS_ID, 0 ) )
 		{
-			MaterialNodes::TintNode sgTintNode( mTexMap );
-			sgTintNode.Setup( maxChannelId, cMaterialName, cChannelName, nullptr, CurrentTime );
-
-			shadingNode = CreateShadingNetworkForPBRMaterial( maxChannelId, tMaterialName, tMaxMappingChannel, tChannelName, &sgTintNode );
+			sgNode = MaterialNodes::RunTintNode( mTexMap, mMaterialChannel );
 		}
 		else if( mTexMap->ClassID() == Class_ID( COMPOSITE_CLASS_ID, 0 ) )
 		{
-			MaterialNodes::CompositeNode sgCompositeNode( mTexMap );
-			sgCompositeNode.Setup( maxChannelId, cMaterialName, cChannelName, nullptr, CurrentTime );
+			sgNode = MaterialNodes::RunCompositeNode( mTexMap, mMaterialChannel );
+		}
+		else if( mTexMap->ClassID() == Class_ID( COLORCORRECTION_CLASS_ID, 0 ) )
+		{
+			sgNode = MaterialNodes::RunColorCorrectionNode( mTexMap, mMaterialChannel );
+		}
+		else
+		{
+			sgNode = MaterialNodes::RunBitmapNode( mTexMap, mMaterialChannel );
+		}
+	}
+	else
+	{
+		// if there is a texmap of unsupported type, output warning
+		if( mTexMap )
+		{
+			LogMaterialNodeMessage( mTexMap, mMaterialChannel.mMaterialName, mMaterialChannel.mChannelName );
+		}
 
-			shadingNode = CreateShadingNetworkForPBRMaterial( maxChannelId, tMaterialName, tMaxMappingChannel, tChannelName, &sgCompositeNode );
+		if( mMaterialChannel.IsSTD() )
+		{
+			const char* materialName = LPCTSTRToConstCharPtr( mMaterialChannel.mMaterialName.c_str() );
+			const char* materialChannel = LPCTSTRToConstCharPtr( mMaterialChannel.mChannelName.c_str() );
+
+			// check for material overrides
+			TCHAR tTexturePath[ MAX_PATH ] = { 0 };
+
+			// disable sRGB if normal map
+			bool bIsSRGB = mMaterialChannel.mMaxChannelId != ID_BU;
+			const float gamma = 1.0f;
+
+			std::basic_string<TCHAR> tTexturePathOverride = _T("");
+			for( size_t channelIndex = 0; channelIndex < this->MaterialTextureOverrides.size(); ++channelIndex )
+			{
+				const MaterialTextureOverride& textureOverride = this->MaterialTextureOverrides[ channelIndex ];
+				if( strcmp( materialName, LPCTSTRToConstCharPtr( textureOverride.MaterialName.c_str() ) ) == 0 )
+				{
+					if( strcmp( materialChannel, LPCTSTRToConstCharPtr( textureOverride.MappingChannelName.c_str() ) ) == 0 )
+					{
+						tTexturePathOverride = textureOverride.TextureFileName;
+						bIsSRGB = textureOverride.IsSRGB;
+						break;
+					}
+				}
+			}
+
+			// if there is a texture override,
+			// continue building material channel
+			if( tTexturePathOverride.length() > 0 )
+			{
+				// set mapping channel to 1
+				std::basic_string<TCHAR> tMaxMappingChannel = _T("1");
+
+				// check for uv overrides
+				if( this->MaterialChannelOverrides.size() > 0 )
+				{
+					for( size_t channelIndex = 0; channelIndex < this->MaterialChannelOverrides.size(); ++channelIndex )
+					{
+						const MaterialTextureMapChannelOverride& mappingChannelOverride = this->MaterialChannelOverrides[ channelIndex ];
+						if( strcmp( materialName, LPCTSTRToConstCharPtr( mappingChannelOverride.MaterialName.c_str() ) ) == 0 )
+						{
+							if( strcmp( materialChannel, LPCTSTRToConstCharPtr( mappingChannelOverride.MappingChannelName.c_str() ) ) == 0 )
+							{
+								TCHAR tMappingChannelBuffer[ MAX_PATH ] = { 0 };
+								_stprintf_s( tMappingChannelBuffer, _T("%d"), mappingChannelOverride.MappingChannel );
+
+								tMaxMappingChannel = tMappingChannelBuffer;
+								break;
+							}
+						}
+					}
+				}
+				// else, use standard channel
+				else
+				{
+					const int maxMappingChannel = 1;
+					TCHAR tMappingChannelBuffer[ MAX_PATH ] = { 0 };
+					_stprintf_s( tMappingChannelBuffer, _T("%d"), maxMappingChannel );
+
+					tMaxMappingChannel = tMappingChannelBuffer;
+				}
+
+				_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
+
+				sgNode = MaterialNodes::RunBitmapNode( mTexMap, mMaterialChannel );
+			}
+		}
+
+		if( sgNode.IsNull() )
+		{
+			spShadingColorNode sgWhiteReplacementNode = sg->CreateShadingColorNode();
+			sgWhiteReplacementNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
+
+			sgNode = sgWhiteReplacementNode;
 		}
 	}
 
-	return shadingNode;
+	return sgNode;
 }
 
 // creates Simplygon material channels based on the channels in the Max StdMaterial
-void SimplygonMax::CreateSgMaterialChannel( long maxChannelId, StdMat2* mMaxStdMaterial, spMaterial sgMaterial, bool* hasTextures )
+void SimplygonMax::CreateSgMaterialSTDChannel( long maxChannelId, StdMat2* mMaxStdMaterial, spMaterial sgMaterial, bool* hasTextures )
 {
 	const spString rMaterialName = sgMaterial->GetName();
 	const char* cMaterialName = rMaterialName.c_str();
@@ -9926,173 +10278,152 @@ void SimplygonMax::CreateSgMaterialChannel( long maxChannelId, StdMat2* mMaxStdM
 	std::basic_string<TCHAR> tChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel );
 	ReplaceInvalidCharacters( tChannelName, _T( '_' ) );
 
-	// add material channel
 	const char* cChannelName = LPCTSTRToConstCharPtr( tChannelName.c_str() );
+
+	// add material channel
 	if( !sgMaterial->HasMaterialChannel( cChannelName ) )
 	{
 		sgMaterial->AddMaterialChannel( cChannelName );
 	}
 
-	Texmap* mTexMap = mMaxStdMaterial->GetSubTexmap( maxChannel );
+	float mAlpha;
+	Color mColor;
 	const float blendAmount = mMaxStdMaterial->GetTexmapAmt( maxChannel, this->MaxInterface->GetTime() );
+	ApplyChannelSpecificModifiers( maxChannelId, mMaxStdMaterial, tMaterialName, &mColor, &mAlpha );
+	
+	spShadingColorNode sgBlendAmountNode = sg->CreateShadingColorNode();
+	sgBlendAmountNode->SetColor( blendAmount, blendAmount, blendAmount, blendAmount );
 
-	if( mTexMap && ( mTexMap->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) || ( mTexMap->ClassID() == GNORMAL_CLASS_ID ) ||
-	                 ( mTexMap->ClassID() == Class_ID( RGBMULT_CLASS_ID, 0 ) ) || ( mTexMap->ClassID() == Class_ID( TINT_CLASS_ID, 0 ) ) ||
-	                 ( mTexMap->ClassID() == Class_ID( COMPOSITE_CLASS_ID, 0 ) ) ) )
+	Texmap* mTexMap = mMaxStdMaterial->GetSubTexmap( maxChannel );
+	if( mTexMap )
 	{
-		std::basic_string<TCHAR> tMaxMappingChannel = SetupMaxMappingChannel( cMaterialName, cChannelName, mTexMap );
+		// float4 finalColor2 = float4( baseColor.rgb * ( 1 - mul2selectedAlpha ), 1.0f );
+		// float4 superFinalColor2 = float4( ( map3_x_map4.rgb ) + finalColor2.rgb, 1.0f );
+		// float4 result2 = clamp( float4( superFinalColor2 ), 0.0f, 1.0f );
+		// result2.a = mul2selectedAlpha;
 
-		// see if there are nodes in between slot and texture
-		if( mTexMap->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) )
+		MaterialNodes::MaterialChannelData mChannelData = MaterialNodes::MaterialChannelData(
+		    tMaterialName, tChannelName, maxChannelId, mMaxStdMaterial, sgMaterial, &this->MaterialTextureOverrides, this->CurrentTime, false );
+
+		spShadingNode sgShadingNode = CreateSgMaterial( mTexMap, mChannelData );
+
+		const char* cChannelName = LPCTSTRToConstCharPtr( tChannelName.c_str() );
+
+		switch( maxChannelId )
 		{
-			MaterialNodes::BitmapNode sgBitmapNode( mTexMap );
-			sgBitmapNode.Setup( maxChannelId, cMaterialName, cChannelName, &this->MaterialTextureOverrides, this->CurrentTime );
-
-			CreateShadingNetworkForStdMaterial(
-			    maxChannelId, mMaxStdMaterial, sgMaterial, tMaterialName, tMaxMappingChannel, tChannelName, &sgBitmapNode, blendAmount, hasTextures );
-		}
-		else if( mTexMap->ClassID() == GNORMAL_CLASS_ID )
-		{
-			// get first texmap of the normal node
-			mTexMap = mTexMap->GetSubTexmap( 0 );
-
-			if( mTexMap )
+			case ID_OP:
 			{
-				// check that the texmap is a bitmaptex,
-				// if so, use it for this material channel
-				Class_ID normalNodeClassId = mTexMap->ClassID();
-				if( normalNodeClassId == Class_ID( BMTEX_CLASS_ID, 0 ) )
-				{
-					MaterialNodes::BitmapNode sgBitmapNode( mTexMap );
-					sgBitmapNode.Setup( maxChannelId, cMaterialName, cChannelName, &this->MaterialTextureOverrides, this->CurrentTime );
+				spShadingSwizzlingNode sgSwizzleNode = sg->CreateShadingSwizzlingNode();
+				sgSwizzleNode->SetInput( 0, sgShadingNode );
+				sgSwizzleNode->SetInput( 1, sgShadingNode );
+				sgSwizzleNode->SetInput( 2, sgShadingNode );
+				sgSwizzleNode->SetInput( 3, sgShadingNode );
 
-					CreateShadingNetworkForStdMaterial(
-					    maxChannelId, mMaxStdMaterial, sgMaterial, tMaterialName, tMaxMappingChannel, tChannelName, &sgBitmapNode, blendAmount, hasTextures );
-				}
-				else
+				bool bUseAlphaAsTransparency = false;
+				Texmap* mTexMap = mMaxStdMaterial->GetSubTexmap( mMaxStdMaterial->StdIDToChannel( maxChannelId ) );
+				if( mTexMap )
 				{
-					LogMaterialNodeMessage( mTexMap, tMaterialName, tChannelName );
+					BitmapTex* mBitmapTex = (BitmapTex*)mTexMap;
+					if( mBitmapTex )
+					{
+						bUseAlphaAsTransparency = mBitmapTex->GetAlphaAsRGB( TRUE ) == TRUE;
+					}
+				}
+
+				// pick first texture
+				BitmapTex* bitmap = (BitmapTex*)mTexMap;
+				if( bitmap )
+				{
+					TCHAR tTexturePath[ MAX_PATH ] = { 0 };
+					GetImageFullFilePath( bitmap->GetMapName(), tTexturePath );
+
+					const bool bTextureHasAlpha = TextureHasAlpha( LPCTSTRToConstCharPtr( tTexturePath ) );
+
+					if( bTextureHasAlpha && bUseAlphaAsTransparency )
+					{
+						sgSwizzleNode->SetRedComponent( 3 );
+						sgSwizzleNode->SetGreenComponent( 3 );
+						sgSwizzleNode->SetBlueComponent( 3 );
+						sgSwizzleNode->SetAlphaComponent( 3 );
+					}
+					else
+					{
+						sgSwizzleNode->SetRedComponent( 0 );
+						sgSwizzleNode->SetGreenComponent( 0 );
+						sgSwizzleNode->SetBlueComponent( 0 );
+						sgSwizzleNode->SetAlphaComponent( 0 );
+					}
+
+					sgShadingNode = (spShadingNode)sgSwizzleNode;
 				}
 			}
 		}
-		else if( mTexMap->ClassID() == Class_ID( RGBMULT_CLASS_ID, 0 ) )
-		{
-			MaterialNodes::MultiplyNode sgMultiplyNode( mTexMap );
-			sgMultiplyNode.Setup( maxChannelId, cMaterialName, cChannelName, &this->MaterialTextureOverrides, this->CurrentTime );
 
-			CreateShadingNetworkForStdMaterial(
-			    maxChannelId, mMaxStdMaterial, sgMaterial, tMaterialName, tMaxMappingChannel, tChannelName, &sgMultiplyNode, blendAmount, hasTextures );
-		}
-		else if( mTexMap->ClassID() == Class_ID( TINT_CLASS_ID, 0 ) )
+		if( maxChannelId == ID_BU )
 		{
-			MaterialNodes::TintNode sgTintNode( mTexMap );
-			sgTintNode.Setup( maxChannelId, cMaterialName, cChannelName, &this->MaterialTextureOverrides, this->CurrentTime );
-
-			CreateShadingNetworkForStdMaterial(
-			    maxChannelId, mMaxStdMaterial, sgMaterial, tMaterialName, tMaxMappingChannel, tChannelName, &sgTintNode, blendAmount, hasTextures );
+			sgMaterial->SetUseTangentSpaceNormals( true );
 		}
-		else if( mTexMap->ClassID() == Class_ID( COMPOSITE_CLASS_ID, 0 ) )
-		{
-			MaterialNodes::CompositeNode sgCompositeNode( mTexMap );
-			sgCompositeNode.Setup( maxChannelId, cMaterialName, cChannelName, &this->MaterialTextureOverrides, this->CurrentTime );
 
-			CreateShadingNetworkForStdMaterial(
-			    maxChannelId, mMaxStdMaterial, sgMaterial, tMaterialName, tMaxMappingChannel, tChannelName, &sgCompositeNode, blendAmount, hasTextures );
-		}
-		else
-		{
-			MaterialNodes::BitmapNode sgBitmapNode( mTexMap );
-			sgBitmapNode.Setup( maxChannelId, cMaterialName, cChannelName, &this->MaterialTextureOverrides, this->CurrentTime );
+		spShadingColorNode sgOneNode = sg->CreateShadingColorNode();
+		sgOneNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
 
-			CreateShadingNetworkForStdMaterial(
-			    maxChannelId, mMaxStdMaterial, sgMaterial, tMaterialName, tMaxMappingChannel, tChannelName, &sgBitmapNode, blendAmount, hasTextures );
-		}
+		spShadingColorNode sgZeroNode = sg->CreateShadingColorNode();
+		sgZeroNode->SetColor( 0.0f, 0.0f, 0.0f, 0.0f );
+
+		spShadingColorNode sgDestinationNode = sg->CreateShadingColorNode();
+		sgDestinationNode->SetColor( mColor.r, mColor.g, mColor.b, 1.0f );
+
+		// float4 finalColor2 = float4( baseColor.rgb * ( 1 - mul2selectedAlpha ), 1.0f );
+		spShadingSwizzlingNode sgAlphaNode = sg->CreateShadingSwizzlingNode();
+		sgAlphaNode->SetInput( 0, sgShadingNode );
+		sgAlphaNode->SetInput( 1, sgShadingNode );
+		sgAlphaNode->SetInput( 2, sgShadingNode );
+		sgAlphaNode->SetInput( 3, sgShadingNode );
+		sgAlphaNode->SetRedComponent( 3 );
+		sgAlphaNode->SetGreenComponent( 3 );
+		sgAlphaNode->SetBlueComponent( 3 );
+		sgAlphaNode->SetAlphaComponent( 3 );
+
+		spShadingSubtractNode sgInvAlphaNode = sg->CreateShadingSubtractNode();
+		sgInvAlphaNode->SetInput( 0, sgOneNode );
+		sgInvAlphaNode->SetInput( 1, sgAlphaNode );
+
+		spShadingMultiplyNode sgDestinationXInvAlphaNode = sg->CreateShadingMultiplyNode();
+		sgDestinationXInvAlphaNode->SetInput( 0, sgDestinationNode );
+		sgDestinationXInvAlphaNode->SetInput( 1, sgInvAlphaNode );
+
+		spShadingAddNode sgAddNode = sg->CreateShadingAddNode();
+		sgAddNode->SetInput( 0, sgShadingNode );
+		sgAddNode->SetInput( 1, sgDestinationXInvAlphaNode );
+
+		spShadingClampNode sgClampNode = sg->CreateShadingClampNode();
+		sgClampNode->SetInput( 0, sgAddNode );
+		sgClampNode->SetInput( 1, sgZeroNode );
+		sgClampNode->SetInput( 2, sgOneNode );
+
+		spShadingInterpolateNode sgBlendBaseNode = sg->CreateShadingInterpolateNode();
+		sgBlendBaseNode->SetInput( 0, sgDestinationNode);
+		sgBlendBaseNode->SetInput( 1, sgClampNode );
+		sgBlendBaseNode->SetInput( 2, sgBlendAmountNode );
+
+		spShadingSwizzlingNode sgAlphaOneSwizzleNode = sg->CreateShadingSwizzlingNode();
+		sgAlphaOneSwizzleNode->SetInput( 0, sgBlendBaseNode );
+		sgAlphaOneSwizzleNode->SetInput( 1, sgBlendBaseNode );
+		sgAlphaOneSwizzleNode->SetInput( 2, sgBlendBaseNode );
+		sgAlphaOneSwizzleNode->SetInput( 3, sgOneNode );
+		sgAlphaOneSwizzleNode->SetRedComponent( 0 );
+		sgAlphaOneSwizzleNode->SetGreenComponent( 1 );
+		sgAlphaOneSwizzleNode->SetBlueComponent( 2 );
+		sgAlphaOneSwizzleNode->SetAlphaComponent( 3 );
+
+		sgMaterial->SetShadingNetwork( cChannelName, sgAlphaOneSwizzleNode );
 	}
 	else
 	{
-		// if there is a texmap of unsupported type, output warning
-		if( mTexMap )
-		{
-			LogMaterialNodeMessage( mTexMap, tMaterialName, tChannelName );
-		}
+		spShadingColorNode sgDestinationNode = sg->CreateShadingColorNode();
+		sgDestinationNode->SetColor( mColor.r, mColor.g, mColor.b, 1.0f );
 
-		// check for material overrides
-		TCHAR tTexturePath[ MAX_PATH ] = { 0 };
-
-		// disable sRGB if normal map
-		bool bIsSRGB = maxChannelId != ID_BU;
-		const float gamma = 1.0f;
-
-		std::basic_string<TCHAR> tTexturePathOverride = _T("");
-		for( size_t channelIndex = 0; channelIndex < this->MaterialTextureOverrides.size(); ++channelIndex )
-		{
-			const MaterialTextureOverride& textureOverride = this->MaterialTextureOverrides[ channelIndex ];
-			if( strcmp( cMaterialName, LPCTSTRToConstCharPtr( textureOverride.MaterialName.c_str() ) ) == 0 )
-			{
-				if( strcmp( cChannelName, LPCTSTRToConstCharPtr( textureOverride.MappingChannelName.c_str() ) ) == 0 )
-				{
-					tTexturePathOverride = textureOverride.TextureFileName;
-					bIsSRGB = textureOverride.IsSRGB;
-					break;
-				}
-			}
-		}
-
-		// if there is a texture override,
-		// continue building material channel
-		if( tTexturePathOverride.length() > 0 )
-		{
-			// set mapping channel to 1
-			std::basic_string<TCHAR> tMaxMappingChannel = _T("1");
-
-			// check for uv overrides
-			if( this->MaterialChannelOverrides.size() > 0 )
-			{
-				for( size_t channelIndex = 0; channelIndex < this->MaterialChannelOverrides.size(); ++channelIndex )
-				{
-					const MaterialTextureMapChannelOverride& mappingChannelOverride = this->MaterialChannelOverrides[ channelIndex ];
-					if( strcmp( cMaterialName, LPCTSTRToConstCharPtr( mappingChannelOverride.MaterialName.c_str() ) ) == 0 )
-					{
-						if( strcmp( cChannelName, LPCTSTRToConstCharPtr( mappingChannelOverride.MappingChannelName.c_str() ) ) == 0 )
-						{
-							TCHAR tMappingChannelBuffer[ MAX_PATH ] = { 0 };
-							_stprintf_s( tMappingChannelBuffer, _T("%d"), mappingChannelOverride.MappingChannel );
-
-							tMaxMappingChannel = tMappingChannelBuffer;
-							break;
-						}
-					}
-				}
-			}
-			// else, use standard channel
-			else
-			{
-				const int maxMappingChannel = 1;
-				TCHAR tMappingChannelBuffer[ MAX_PATH ] = { 0 };
-				_stprintf_s( tMappingChannelBuffer, _T("%d"), maxMappingChannel );
-
-				tMaxMappingChannel = tMappingChannelBuffer;
-			}
-
-			_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
-
-			MaterialNodes::BitmapNode sgBitmapNode( mTexMap );
-			sgBitmapNode.Setup( maxChannelId, cMaterialName, cChannelName, &this->MaterialTextureOverrides, this->CurrentTime );
-
-			CreateShadingNetworkForStdMaterial(
-			    maxChannelId, mMaxStdMaterial, sgMaterial, tMaterialName, tMaxMappingChannel, tChannelName, &sgBitmapNode, blendAmount, hasTextures );
-		}
-	}
-
-	if( !hasTextures[ maxChannelId ] )
-	{
-		spShadingColorNode sgColorNode =
-		    AssignMaxColorToSgMaterialChannel( sgMaterial, cChannelName, mMaxStdMaterial, this->MaxInterface, maxChannelId, MaterialColorOverrides );
-
-		if( !sgColorNode.IsNull() && !MaterialChannelHasShadingNetwork( sgMaterial, cChannelName ) )
-		{
-			sgMaterial->SetShadingNetwork( cChannelName, sgColorNode );
-		}
+		sgMaterial->SetShadingNetwork( cChannelName, sgDestinationNode );
 	}
 }
 
@@ -10479,7 +10810,7 @@ std::pair<std::string, int> SimplygonMax::AddMaxMaterialToSgScene( Mtl* mMaxMate
 			// check for standard channels (see mapping)
 			for( long maxChannelId = 0; maxChannelId < NTEXMAPS; ++maxChannelId )
 			{
-				this->CreateSgMaterialChannel( maxChannelId, mMaxStdMaterial, sgMaterial, bTextureChannelsInUse );
+				this->CreateSgMaterialSTDChannel( maxChannelId, mMaxStdMaterial, sgMaterial, bTextureChannelsInUse );
 			}
 		}
 
@@ -10574,16 +10905,16 @@ bool WriteStandinTexture( const TCHAR* tOutputFilePath )
 	{
 		for( int x = 0; x < TEXTURE_WIDTH; ++x )
 		{
-			textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 0 ] = static_cast<unsigned char>(( x * 0xff ) / TEXTURE_WIDTH);
+			textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 0 ] = static_cast<unsigned char>( ( x * 0xff ) / TEXTURE_WIDTH );
 			if( ( ( ( x >> 3 ) & 0x1 ) ^ ( ( y >> 3 ) & 0x1 ) ) )
 			{
-				textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 1 ] = static_cast < unsigned char>(0);
+				textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 1 ] = static_cast<unsigned char>( 0 );
 			}
 			else
 			{
-				textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 1 ] = static_cast < unsigned char>(0xff);
+				textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 1 ] = static_cast<unsigned char>( 0xff );
 			}
-			textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 2 ] = static_cast < unsigned char>(( y * 0xff ) / TEXTURE_HEIGHT);
+			textureData[ ( x + y * TEXTURE_WIDTH ) * 3 + 2 ] = static_cast<unsigned char>( ( y * 0xff ) / TEXTURE_HEIGHT );
 		}
 	}
 

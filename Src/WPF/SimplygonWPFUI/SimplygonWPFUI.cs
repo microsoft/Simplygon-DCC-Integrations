@@ -18,8 +18,8 @@ namespace SimplygonUI
     public class SimplygonVersion
     {
         public static readonly string Version = "9.2";
-        public static readonly string Build = "9.2.1400.0";
-        public static readonly string Commit = "c47d3175d00ec884bd836442df285bc06f7754eb";
+        public static readonly string Build = "9.2.4200.0";
+        public static readonly string Commit = "5e344672a8a2e674301feb7b4a9c30e9dc565f34";
     }
 
     public enum SimplygonIntegrationType
@@ -33054,6 +33054,7 @@ namespace SimplygonUI
                 if(DilationUI.Visible) return true;
                 if(GeometryDataFieldIndexUI.Visible) return true;
                 if(OutputPixelFormatUI.Visible) return true;
+                if(MappingLayerIndexUI.Visible) return true;
                 if(MappingInfRUI.Visible) return true;
                 if(MappingSupRUI.Visible) return true;
                 if(MappingInfGUI.Visible) return true;
@@ -34032,6 +34033,133 @@ namespace SimplygonUI
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public int MappingLayerIndex { get { return _MappingLayerIndex; } set { _MappingLayerIndex = value; OnPropertyChanged(); } }
+        private int _MappingLayerIndex;
+        public SimplygonMappingLayerIndexEx MappingLayerIndexUI { get; set; }
+        public class SimplygonMappingLayerIndexEx : SimplygonSettingsProperty
+        {
+            public SimplygonGeometryDataCasterSettings Parent { get; set; }
+            public int Value
+            {
+                get
+                {
+                    return Parent.MappingLayerIndex;
+                }
+
+                set
+                {
+                    bool needReload = Parent.MappingLayerIndex != value;
+                    Parent.MappingLayerIndex = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
+
+            public SimplygonMappingLayerIndexEx() : base("MappingLayerIndex")
+            {
+                Type = "uint";
+                HelpText = "The MappingLayerIndex setting, which specifies the layer of the mapping image to use for mapping the geometry data. This is useful eg if you have decals which are on layer 0, and the real geometry on layer 1";
+                TypeOverride = "";
+                DefaultValue = 0;
+                MinValue = 0;
+                MaxValue = 10;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 10;
+                TicksFrequencyValue = 1;
+                Visible = true;
+            }
+
+            public SimplygonMappingLayerIndexEx(dynamic jsonData) : base("MappingLayerIndex")
+            {
+                Type = "uint";
+                HelpText = "The MappingLayerIndex setting, which specifies the layer of the mapping image to use for mapping the geometry data. This is useful eg if you have decals which are on layer 0, and the real geometry on layer 1";
+                TypeOverride = "";
+                DefaultValue = 0;
+                MinValue = 0;
+                DefaultMinValue = 0;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingLayerIndex: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 10;
+                DefaultMaxValue = 10;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MappingLayerIndex: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonMappingLayerIndexEx DeepCopy()
+            {
+                return (SimplygonMappingLayerIndexEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
                 return jsonData;
             }
 
@@ -35105,6 +35233,10 @@ namespace SimplygonUI
             GeometryDataFieldIndexUI.Parent = this;
             GeometryDataFieldIndex = GeometryDataFieldIndexUI.DefaultValue;
             Items.Add(GeometryDataFieldIndexUI);
+            MappingLayerIndexUI = new SimplygonMappingLayerIndexEx();
+            MappingLayerIndexUI.Parent = this;
+            MappingLayerIndex = MappingLayerIndexUI.DefaultValue;
+            Items.Add(MappingLayerIndexUI);
             MappingInfRUI = new SimplygonMappingInfREx();
             MappingInfRUI.Parent = this;
             MappingInfR = MappingInfRUI.DefaultValue;
@@ -35190,6 +35322,10 @@ namespace SimplygonUI
             GeometryDataFieldIndexUI.Parent = this;
             GeometryDataFieldIndex = GeometryDataFieldIndexUI.DefaultValue;
             Items.Add(GeometryDataFieldIndexUI);
+            MappingLayerIndexUI = new SimplygonMappingLayerIndexEx(jsonData != null && ((JObject)jsonData).GetValue("MappingLayerIndexUI") != null ? jsonData.MappingLayerIndexUI : null);
+            MappingLayerIndexUI.Parent = this;
+            MappingLayerIndex = MappingLayerIndexUI.DefaultValue;
+            Items.Add(MappingLayerIndexUI);
             MappingInfRUI = new SimplygonMappingInfREx(jsonData != null && ((JObject)jsonData).GetValue("MappingInfRUI") != null ? jsonData.MappingInfRUI : null);
             MappingInfRUI.Parent = this;
             MappingInfR = MappingInfRUI.DefaultValue;
@@ -35265,6 +35401,9 @@ namespace SimplygonUI
             copy.GeometryDataFieldIndexUI = this.GeometryDataFieldIndexUI.DeepCopy();
             copy.GeometryDataFieldIndexUI.Parent = copy;
             copy.Items.Add(copy.GeometryDataFieldIndexUI);
+            copy.MappingLayerIndexUI = this.MappingLayerIndexUI.DeepCopy();
+            copy.MappingLayerIndexUI.Parent = copy;
+            copy.Items.Add(copy.MappingLayerIndexUI);
             copy.MappingInfRUI = this.MappingInfRUI.DeepCopy();
             copy.MappingInfRUI.Parent = copy;
             copy.Items.Add(copy.MappingInfRUI);
@@ -35365,6 +35504,12 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
+            }
+
+            jsonData.MappingLayerIndex = MappingLayerIndex;
+            if(serializeUIComponents)
+            {
+                jsonData.MappingLayerIndexUI = MappingLayerIndexUI.SaveJson();
             }
 
             jsonData.MappingInfR = MappingInfR;
@@ -35505,6 +35650,21 @@ namespace SimplygonUI
                 OutputPixelFormat = (EPixelFormat)jsonData.OutputPixelFormat;
             }
 
+            if(jsonData.GetValue("MappingLayerIndex") != null)
+            {
+                var newMappingLayerIndex = (int)jsonData.MappingLayerIndex;
+                if (newMappingLayerIndex >= MappingLayerIndexUI.DefaultMinValue && newMappingLayerIndex <= MappingLayerIndexUI.DefaultMaxValue)
+                {
+                    MappingLayerIndex = newMappingLayerIndex;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MappingLayerIndex: Invalid value {newMappingLayerIndex}, using default value {MappingLayerIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
             if(jsonData.GetValue("MappingInfR") != null)
             {
                 float newMappingInfR = (float)jsonData.MappingInfR;
@@ -35641,6 +35801,7 @@ namespace SimplygonUI
             DilationUI.Reset();
             GeometryDataFieldIndexUI.Reset();
             OutputPixelFormatUI.Reset();
+            MappingLayerIndexUI.Reset();
             MappingInfRUI.Reset();
             MappingSupRUI.Reset();
             MappingInfGUI.Reset();
@@ -35666,6 +35827,7 @@ namespace SimplygonUI
             DilationUI.IsEditEnabled = isEditEnabled;
             GeometryDataFieldIndexUI.IsEditEnabled = isEditEnabled;
             OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
+            MappingLayerIndexUI.IsEditEnabled = isEditEnabled;
             MappingInfRUI.IsEditEnabled = isEditEnabled;
             MappingSupRUI.IsEditEnabled = isEditEnabled;
             MappingInfGUI.IsEditEnabled = isEditEnabled;
@@ -39316,8 +39478,8 @@ namespace SimplygonUI
             }
 
             jsonData.Version = "9.2";
-            jsonData.Build = "9.2.1400.0";
-            jsonData.Commit = "c47d3175d00ec884bd836442df285bc06f7754eb";
+            jsonData.Build = "9.2.4200.0";
+            jsonData.Commit = "5e344672a8a2e674301feb7b4a9c30e9dc565f34";
             jsonData.Settings.GlobalSettings = GlobalSettings.SaveJson(serializeUIComponents);
             jsonData.Settings.PipelineSettings = PipelineSettings.SaveJson(serializeUIComponents);
 
