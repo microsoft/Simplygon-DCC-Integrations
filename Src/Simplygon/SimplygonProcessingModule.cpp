@@ -11,6 +11,7 @@
 #include "SimplygonLoader.h"
 #include "SgCodeAnalysisSetup.h"
 
+
 using namespace Simplygon;
 extern ISimplygon* sg;
 
