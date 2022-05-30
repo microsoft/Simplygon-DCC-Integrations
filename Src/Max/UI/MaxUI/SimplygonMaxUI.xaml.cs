@@ -69,8 +69,8 @@ namespace SimplygonUI.MaxUI
 "			prop = getProperty  mat props[i]                                                                                                            \n" +
 "			if (props[i] as string) == \"shaderByName\" do                                                                                              \n" +
 "			(                                                                                                                                           \n" +
-"				shaderProp = getProperty  mat props[i]                                                                                                  \n" +
-"				if finditem supportedShaderTypes shaderProp do                                                                                          \n" +
+"				shaderProp = getProperty  mat props[i] as string                                                                                        \n" +
+"				if finditem supportedShaderTypes shaderProp > 0 do                                                                                      \n" +
 "				(                                                                                                                                       \n" +
 "					GetEnabledChannelNames selectedShaderChannels mat                                                                                   \n" +
 "				)                                                                                                                                       \n" +
@@ -91,8 +91,8 @@ namespace SimplygonUI.MaxUI
 "				prop = getProperty subMat props[i]                                                                                                      \n" +
 "				if (props[i] as string) == \"shaderByName\" do                                                                                          \n" +
 "				(                                                                                                                                       \n" +
-"					shaderProp = getProperty  subMat props[i]                                                                                           \n" +
-"					if finditem supportedShaderTypes shaderProp do                                                                                      \n" +
+"					shaderProp = getProperty  subMat props[i] as string                                                                                 \n" +
+"					if finditem supportedShaderTypes shaderProp > 0 do                                                                                  \n" +
 "					(                                                                                                                                   \n" +
 "						GetEnabledChannelNames selectedShaderChannels submat                                                                            \n" +
 "					)                                                                                                                                   \n" +
@@ -130,7 +130,7 @@ namespace SimplygonUI.MaxUI
 "																																																\n" +
 "		if classof mat == Physical_Material then																																				\n" +
 "		(																																														\n" +
-"			GetAllPhysicalMaterialChannelNames selectedShaderChannels mat                                                                                 											\n" +
+"			GetAllPhysicalMaterialChannelNames selectedShaderChannels mat                                                                                 										\n" +
 "		)																																														\n" +
 "																																																\n" +
 "		subMatCount = getNumSubMtls mat																																							\n" +

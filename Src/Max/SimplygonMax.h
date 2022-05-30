@@ -990,7 +990,7 @@ spShadingNode GetColorCorrectionLightSettings( ColorCorrectionData& sgColorCorre
                                                spShadingColorNode sgPivotRGBNode,
                                                spShadingColorNode sgLiftRGBNode );
 
-spShadingNode GetShadingNode( MaterialNodes::TextureData& textureData, std::basic_string<TCHAR> tMaxMappingChannel, TimeValue time );
+spShadingNode GetShadingNode( MaterialNodes::TextureData& textureData, std::basic_string<TCHAR> tMaxMappingChannel, const int channelId, TimeValue time );
 
 spShadingNode SetUpMultiplyShadingNode( spShadingNode sgInputNodes[ 2 ],
                                         MaterialNodes::MultiplyNodeAlphaFrom alphaFrom,
@@ -1002,6 +1002,7 @@ spShadingNode RunMultiplyNode( Texmap* mTexMap, MaterialNodes::MaterialChannelDa
 spShadingNode SetUpBitmapShadingNode( std::basic_string<TCHAR>& tMaterialName,
                                       std::basic_string<TCHAR>& tMaxMappingChannel,
                                       MaterialNodes::TextureData& rTextureData,
+                                      const int channelId,
                                       TimeValue time );
 
 spShadingNode
@@ -1042,6 +1043,10 @@ void PopulateTextureNode( spShadingTextureNode sgTextureNode,
 spShadingTextureNode CreateTextureNode(
     BitmapTex* mBitmapTex, std::basic_string<TCHAR>& tMaxMappingChannel, std::basic_string<TCHAR>& tTextureName, TimeValue& time, const bool isSRGB );
 };
+
+bool HasActiveTransparency( BitmapTex* mBitmapTex );
+
+bool IsNumber( const std::string& sPossibleNumber );
 
 class SimplygonMax : public SimplygonEventRelay
 {

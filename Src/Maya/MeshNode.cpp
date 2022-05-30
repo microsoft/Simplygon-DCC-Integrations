@@ -1207,34 +1207,31 @@ MStatus MeshNode::FindSelectedEdges()
 
 		if( mSetType == MFn::kSet )
 		{
-			MFnSet mSet( mSets[ i ] );
-
-			// only lock sets that are in the vertex lock array
-			MString mSetName( mSet.name() );
-
-			// create and reset the vertex lock field
-			sprintf( cNameBuffer, "SelectionSet%u", numSelectionSets );
-			numSelectionSets++;
-
-			spBoolArray sgSelectedEdgeField = spBoolArray::SafeCast( this->sgMeshData->GetUserCornerField( cNameBuffer ) );
-			if( sgSelectedEdgeField.IsNull() )
-			{
-				// if null, create field
-				sgSelectedEdgeField = spBoolArray::SafeCast( this->sgMeshData->AddBaseTypeUserCornerField( EBaseTypes::TYPES_ID_BOOL, cNameBuffer, 1 ) );
-				sgSelectedEdgeField->SetAlternativeName( mSetName.asChar() );
-
-				for( uint c = 0; c < cornerCount; ++c )
-				{
-					sgSelectedEdgeField->SetItem( c, false );
-				}
-			}
-
-			// check for edges
+			// check for edge sets
 			if( mComponentType == MFn::kMeshEdgeComponent )
 			{
+				// return early if no iterator
 				MItMeshEdge mMeshEdgeIterator( this->modifiedNodeShape, mComponents[ i ], &mStatus );
 				if( !mStatus )
 					return mStatus;
+
+				// fetch set name and copy data to unique corner field
+				MFnSet mSet( mSets[ i ] );
+				MString mSetName( mSet.name() );
+
+				// generate field name
+				sprintf( cNameBuffer, "SelectionSet%u", numSelectionSets++ );
+
+				spBoolArray sgSelectedEdgeField = spBoolArray::SafeCast( this->sgMeshData->GetUserCornerField( cNameBuffer ) );
+				if( sgSelectedEdgeField.IsNull() )
+				{
+					// if null, create field
+					sgSelectedEdgeField = spBoolArray::SafeCast( this->sgMeshData->AddBaseTypeUserCornerField( EBaseTypes::TYPES_ID_BOOL, cNameBuffer, 1 ) );
+					sgSelectedEdgeField->SetAlternativeName( mSetName.asChar() );
+				}
+
+				bool* bSelectedEdgesField = new bool[ cornerCount ];
+				memset( bSelectedEdgesField, 0, sizeof( bool ) * cornerCount );
 
 				spRidArray sgVertexPairs = sg->CreateRidArray();
 				sgVertexPairs->SetTupleSize( 2 );
@@ -1242,17 +1239,14 @@ MStatus MeshNode::FindSelectedEdges()
 				// fetch all vertex ids
 				while( !mMeshEdgeIterator.isDone() )
 				{
-					const uint vIndex0 = mMeshEdgeIterator.index( 0 );
-					const uint vIndex1 = mMeshEdgeIterator.index( 1 );
+					const int vIndex0 = mMeshEdgeIterator.index( 0 );
+					const int vIndex1 = mMeshEdgeIterator.index( 1 );
 
-					int2 tuple;
-					tuple[ 0 ] = vIndex0;
-					tuple[ 1 ] = vIndex1;
-					sgVertexPairs->AddTuple( tuple );
+					const int2 tuple0 = { vIndex0, vIndex1 };
+					const int2 tuple1 = { vIndex1, vIndex0 };
 
-					tuple[ 0 ] = vIndex1;
-					tuple[ 1 ] = vIndex0;
-					sgVertexPairs->AddTuple( tuple );
+					sgVertexPairs->AddTuple( tuple0 );
+					sgVertexPairs->AddTuple( tuple1 );
 
 					mMeshEdgeIterator.next();
 				}
@@ -1261,11 +1255,18 @@ MStatus MeshNode::FindSelectedEdges()
 
 				this->sgMeshData->FindEdgeIdsFromVertexPairs( sgVertexPairs, sgEdgeIds );
 
-				for( uint e = 0; e < sgEdgeIds->GetTupleCount(); ++e )
+				spRidData sgEdgeIdData = sgEdgeIds.GetData();
+				const rid* rEdgeData = sgEdgeIdData.Data();
+
+				const uint numEdgeIds = sgEdgeIdData.GetItemCount();
+				for( uint e = 0; e < numEdgeIds; ++e )
 				{
-					const rid id = sgEdgeIds->GetItem( e );
-					sgSelectedEdgeField->SetItem( id, true );
+					const rid edgeid = rEdgeData[ e ];
+					bSelectedEdgesField[ edgeid ] = true;
 				}
+
+				sgSelectedEdgeField->SetData( bSelectedEdgesField, cornerCount );
+				delete[] bSelectedEdgesField;
 			}
 		}
 	}
