@@ -7047,17 +7047,17 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 	const char* cSgMeshId = rSgMeshId.c_str();
 
 	// try to find mesh map via global lookup
-	const std::map<std::string, GlobalMeshMap>::const_iterator& meshMap = this->GlobalGuidToMaxNodeMap.find( cSgMeshId );
-	bool bHasMeshMap = ( this->mapMeshes || this->extractionType == BATCH_PROCESSOR ) ? meshMap != this->GlobalGuidToMaxNodeMap.end() : nullptr;
+	const std::map<std::string, GlobalMeshMap>::const_iterator& globalMeshMap = this->GlobalGuidToMaxNodeMap.find( cSgMeshId );
+	bool bHasGlobalMeshMap = ( this->mapMeshes || this->extractionType == BATCH_PROCESSOR ) ? globalMeshMap != this->GlobalGuidToMaxNodeMap.end() : nullptr;
 
 	// try to find original Max mesh from map handle
-	INode* mMappedMaxNode = bHasMeshMap ? this->MaxInterface->GetINodeByHandle( meshMap->second.GetMaxId() ) : nullptr;
+	INode* mMappedMaxNode = bHasGlobalMeshMap ? this->MaxInterface->GetINodeByHandle( globalMeshMap->second.GetMaxId() ) : nullptr;
 	if( mMappedMaxNode )
 	{
 		// if the name does not match, try to get Max mesh by name (fallback)
-		if( mMappedMaxNode->GetName() != meshMap->second.GetName() )
+		if( mMappedMaxNode->GetName() != globalMeshMap->second.GetName() )
 		{
-			mMappedMaxNode = bHasMeshMap ? this->MaxInterface->GetINodeByName( meshMap->second.GetName().c_str() ) : nullptr;
+			mMappedMaxNode = bHasGlobalMeshMap ? this->MaxInterface->GetINodeByName( globalMeshMap->second.GetName().c_str() ) : nullptr;
 		}
 	}
 	// only use this fallback on user request (sgsdk_AllowUnsafeImport()),
@@ -7072,7 +7072,8 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 		}
 	}
 
-	bHasMeshMap = mMappedMaxNode != nullptr;
+	bHasGlobalMeshMap = mMappedMaxNode != nullptr;
+	const bool bHasSceneMeshMap = bHasGlobalMeshMap ? globalMeshMap != this->GlobalGuidToMaxNodeMap.end() : false;
 
 	// fetch the geometry from the mesh node
 	spGeometryData sgMeshData = sgProcessedMesh->GetGeometry();
@@ -7097,7 +7098,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 	MaxMaterialMap* globalMaterialMap = nullptr;
 
 	// if mesh map, map back the mesh to the original node's location
-	if( bHasMeshMap )
+	if( bHasGlobalMeshMap )
 	{
 		INode* mOriginalMaxNode = mMappedMaxNode;
 		tMaxOriginalNodeName = mOriginalMaxNode->GetName();
@@ -7273,7 +7274,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 	}
 
 	// create a valid mesh name
-	std::basic_string<TCHAR> tMeshName = bHasMeshMap ? tMaxOriginalNodeName.c_str() : tMaxOriginalNodeName.c_str();
+	std::basic_string<TCHAR> tMeshName = bHasGlobalMeshMap ? tMaxOriginalNodeName.c_str() : tMaxOriginalNodeName.c_str();
 
 	// format mesh name based on user string and lod index
 	std::basic_string<TCHAR> tFormattedMeshName =
@@ -7636,13 +7637,13 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 
 	// if the original object had morph targets, add a morph modifier
 	// after the new mesh in the modifier stack
-	if( bHasMeshMap && meshMap->second.HasMorpherMetaData() )
+	if( bHasSceneMeshMap && globalMeshMap->second.HasMorpherMetaData() )
 	{
 		RegisterMorphScripts();
 
 		const ulong uniqueHandle = mNewMaxNode->GetHandle();
 
-		const MorpherMetaData* morpherMetaData = meshMap->second.GetMorpherMetaData();
+		const MorpherMetaData* morpherMetaData = globalMeshMap->second.GetMorpherMetaData();
 		const std::vector<MorphChannelMetaData*>& morphChannelMetaData = morpherMetaData->morphTargetMetaData;
 
 		Modifier* mNewMorpherModifier = (Modifier*)this->MaxInterface->CreateInstance( OSM_CLASS_ID, MORPHER_CLASS_ID );
@@ -7865,7 +7866,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 		}
 		else
 		{
-			if( bHasMeshMap )
+			if( bHasGlobalMeshMap )
 			{
 				INode* mOriginalMaxNode = mMappedMaxNode;
 
