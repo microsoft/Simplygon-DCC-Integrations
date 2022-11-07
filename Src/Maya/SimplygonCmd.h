@@ -83,6 +83,8 @@ class SimplygonCmd
 	bool copyTextures;
 	bool clearGlobalMapping;
 
+	bool useQuadExportImport;
+
 	ExtractionType extractionType;
 
 	MString inputSceneFile;

@@ -5,7 +5,6 @@
 #include "PipelineHelper.h"
 #include "Shared.h"
 #include "SimplygonInit.h"
-#include "SgCodeAnalysisSetup.h"
 
 using namespace Simplygon;
 
@@ -54,11 +53,9 @@ INT64 PipelineHelper::CreateSettingsPipeline( std::basic_string<TCHAR> tPipeline
 	{
 		sgPipeline = spPipeline::SafeCast( sg->CreateReductionPipeline() );
 	}
-	else if( tPipelineType == _T("RemeshingLegacy") )
+	else if( tPipelineType == _T("QuadReduction") )
 	{
-		SG_WARNING_LEVEL_SET(4996,4)
-		sgPipeline = spPipeline::SafeCast( sg->CreateRemeshingLegacyPipeline() );
-		SG_WARNING_LEVEL_RESET(4996)
+		sgPipeline = spPipeline::SafeCast( sg->CreateQuadReductionPipeline() );
 	}
 	else if( tPipelineType == _T("Aggregation") )
 	{

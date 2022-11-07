@@ -13,11 +13,8 @@ namespace SimplygonUI.MayaUI
     public class SimplygonUICmd : MPxCommand, IMPxCommand
     {
         public static SimplygonMayaUI ui = null;
-#if SIMPLYGONMAYA2017UI
-        public static MDockingStation ds;
-#else
         public static MForeignWindowWrapper fww;
-#endif
+
         List<MDagPath> selectedDagPaths = new List<MDagPath>();
         public override void doIt(MArgList argl)
         {
@@ -35,28 +32,6 @@ namespace SimplygonUI.MayaUI
                 return;
             }
 
-#if SIMPLYGONMAYA2017UI
-            if (ui != null)
-            {
-                ui.Close();
-                // Maya does not clean up dockable window container automatically, force destroy to get rid of the window.
-                // Otherwise loading / unloading the UI plug-in will result in multiple empty windows stacking up.
-                ds.Dispose();
-                ds = null;
-            }
-            ui = new SimplygonMayaUI();
-            ui.Show();
-
-            // MDockingStation is the only docking option we have in 2017,
-            // unfortunately it does not offer the same capabilities as MEL / Python.
-            // Maya seems unaware of this window, so there are some refresh issues, and the window can not be used
-            // in combination with MEL / Python.
-            if (ds == null)
-            {
-                IntPtr mWindowHandle = new System.Windows.Interop.WindowInteropHelper(ui).Handle;
-                ds = new MDockingStation(mWindowHandle, true, MDockingStation.LeftDock | MDockingStation.RightDock, MDockingStation.RightDock);
-            }
-#else
             if (ui != null)
             {
                 ui.Close();
@@ -74,7 +49,7 @@ namespace SimplygonUI.MayaUI
             MGlobal.executeCommand(@"if (`workspaceControl -ex ""Simplygon""`) deleteUI ""Simplygon""");
             MGlobal.executeCommand(@"workspaceControl -visible true -tabToControl ""ChannelBoxLayerEditor"" 1 -iw 450 Simplygon");
             MGlobal.executeCommand(@"control -e -p Simplygon SimplygonUI");
-#endif
+
             MEventMessage.Event["SelectionChanged"] += SelectionChanged;
             MEventMessage.Event["SetModified"] += SetModified;
             MEventMessage.Event["NameChanged"] += NameChanged;

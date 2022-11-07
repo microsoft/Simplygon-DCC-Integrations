@@ -21,17 +21,17 @@ WorkDirectoryHandler::WorkDirectoryHandler()
 
 	std::basic_string<TCHAR> tSimplygonTempEnvironmentPath = _T("");
 
-	// try to fetch the SIMPLYGON_9_TEMP path
+	// try to fetch the SIMPLYGON_10_TEMP path
 	try
 	{
-		tSimplygonTempEnvironmentPath = GetSimplygonEnvironmentVariable( _T( SIMPLYGON_9_TEMP ) );
+		tSimplygonTempEnvironmentPath = GetSimplygonEnvironmentVariable( _T( SIMPLYGON_10_TEMP ) );
 	}
 	catch( const std::exception& )
 	{
 		// ignore error, use fallback below if not set
 	}
 
-	// use SIMPLYGON_9_TEMP if set, otherwise fall back to AppData/Local/Simplygon
+	// use SIMPLYGON_10_TEMP if set, otherwise fall back to AppData/Local/Simplygon
 	std::basic_string<TCHAR> tSimplygonTempFolder = tSimplygonTempEnvironmentPath.length() > 0 ? tSimplygonTempEnvironmentPath : GetSimplygonAppDataPath();
 
 	// add a guid-directory to make every WorkDirectoryHandler unique

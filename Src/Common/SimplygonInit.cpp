@@ -31,7 +31,7 @@ using namespace Simplygon;
 
 void AddDirectoriesToSimplygonSearchPaths()
 {
-	std::basic_string<TCHAR> tSimplygonEnvironmentPath = GetSimplygonEnvironmentVariable( _T( SIMPLYGON_9_PATH ) );
+	std::basic_string<TCHAR> tSimplygonEnvironmentPath = GetSimplygonEnvironmentVariable( _T( SIMPLYGON_10_PATH ) );
 	if( tSimplygonEnvironmentPath.size() > 0 )
 	{
 		AddPluginSearchPath( tSimplygonEnvironmentPath.c_str() );

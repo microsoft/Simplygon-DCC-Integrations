@@ -13,8 +13,10 @@ class MeshNode
 	INode* MaxNode;
 	Object* Objects;
 	TriObject* TriObjects;
+	PolyObject* PolyObjects;
 	Modifier* SkinModifiers;
 	Modifier* MorphTargetModifier;
+	Modifier* TurboSmoothModifier;
 	MorpherWrapper* MorphTargetData;
 
 	MaxMaterialMap* MeshMaterials;

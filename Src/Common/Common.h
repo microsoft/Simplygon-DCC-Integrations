@@ -13,12 +13,12 @@
 #include "Shared.h"
 #include <map>
 
-#ifndef SIMPLYGON_9_PATH
-#define SIMPLYGON_9_PATH "SIMPLYGON_9_PATH"
+#ifndef SIMPLYGON_10_PATH
+#define SIMPLYGON_10_PATH "SIMPLYGON_10_PATH"
 #endif
 
-#ifndef SIMPLYGON_9_TEMP
-#define SIMPLYGON_9_TEMP "SIMPLYGON_9_TEMP"
+#ifndef SIMPLYGON_10_TEMP
+#define SIMPLYGON_10_TEMP "SIMPLYGON_10_TEMP"
 #endif
 
 typedef unsigned int uint;

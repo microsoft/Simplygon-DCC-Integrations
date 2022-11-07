@@ -81,27 +81,25 @@ double SimplygonQueryCmd::GetLodSwitchDistanceAtFOV( double fov )
 				// get MaxDeviation
 				double maxDeviation = 0.0;
 				{
-					// Required for BinSkim compat
-					// TODO: Deprecated method, should be replaced!
-					SG_DISABLE_SPECIFIC_BEGIN( 4996 )
-					MPlug mPlug = mDepNode.findPlug( "MaxDeviation" );
-					SG_DISABLE_SPECIFIC_END
-					const MStatus status = mPlug.getValue( maxDeviation );
+					MStatus mStatus;
+					MPlug mPlug = mDepNode.findPlug( "MaxDeviation", mStatus );
+					if( mStatus != MStatus::kSuccess )
+						continue;
 
-					if( status != MStatus::kSuccess )
+					mStatus = mPlug.getValue( maxDeviation );
+					if( mStatus != MStatus::kSuccess )
 						continue;
 				}
 
 				// get SceneRadius
 				double sceneRadius = 0.0;
 				{
-					// Required for BinSkim compat
-					// TODO: Deprecated method, should be replaced!
-					SG_DISABLE_SPECIFIC_BEGIN( 4996 )
-					MPlug mPlug = mDepNode.findPlug( "SceneRadius" );
-					SG_DISABLE_SPECIFIC_END
-					const MStatus mStatus = mPlug.getValue( sceneRadius );
+					MStatus mStatus;
+					MPlug mPlug = mDepNode.findPlug( "SceneRadius", mStatus );
+					if( mStatus != MStatus::kSuccess )
+						continue;
 
+					mStatus = mPlug.getValue( sceneRadius );
 					if( mStatus != MStatus::kSuccess )
 						continue;
 				}

@@ -1,18 +1,16 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28803.202
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMaya2019", "Projects\Maya2019.vcxproj", "{43856CDC-4C9F-4910-ACD3-7C3BF9081AE4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMaya2018", "Projects\Maya2018.vcxproj", "{43856CDC-4C9F-4910-ACD3-7C3BF9081AE3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMaya2017", "Projects\Maya2017.vcxproj", "{43856CDC-4C9F-4910-ACD3-7C3BF9081AE2}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMaya2020", "Projects\Maya2020.vcxproj", "{43856CDC-4C9F-4910-ACD3-7C3BF9081AE9}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMaya2022", "Projects\Maya2022.vcxproj", "{2FE239CD-F424-4BB9-9031-F91395903F7B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMaya2017UI", "Maya\UI\MayaUI\SimplygonMaya2017UI.csproj", "{F80E4380-BA1F-4714-988E-DFE2458DA552}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMaya2023", "Projects\Maya2023.vcxproj", "{F60F12A8-84DA-477B-BA17-8AFFDA22A96D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMaya2018UI", "Maya\UI\MayaUI\SimplygonMaya2018UI.csproj", "{F5BA79AB-1AFF-46B7-B666-12A63258719D}"
 EndProject
@@ -21,6 +19,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMaya2020UI", "Maya\UI\MayaUI\SimplygonMaya2020UI.csproj", "{66D895B1-6ACB-4446-8E49-69C788ECDDBA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMaya2022UI", "Maya\UI\MayaUI\SimplygonMaya2022UI.csproj", "{FC5A984E-0BE3-43CA-8A8E-125ABC6A1A2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMaya2023UI", "Maya\UI\MayaUI\SimplygonMaya2023UI.csproj", "{361E0165-31AA-458E-B3B8-07EA875D74EB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonWPFUI", "WPF\SimplygonWPFUI\SimplygonWPFUI.csproj", "{CB949457-2014-4B66-A503-C481D3F0F317}"
 EndProject
@@ -38,10 +38,6 @@ Global
 		{43856CDC-4C9F-4910-ACD3-7C3BF9081AE3}.Debug|x64.Build.0 = Debug|x64
 		{43856CDC-4C9F-4910-ACD3-7C3BF9081AE3}.Release|x64.ActiveCfg = Release|x64
 		{43856CDC-4C9F-4910-ACD3-7C3BF9081AE3}.Release|x64.Build.0 = Release|x64
-		{43856CDC-4C9F-4910-ACD3-7C3BF9081AE2}.Debug|x64.ActiveCfg = Debug|x64
-		{43856CDC-4C9F-4910-ACD3-7C3BF9081AE2}.Debug|x64.Build.0 = Debug|x64
-		{43856CDC-4C9F-4910-ACD3-7C3BF9081AE2}.Release|x64.ActiveCfg = Release|x64
-		{43856CDC-4C9F-4910-ACD3-7C3BF9081AE2}.Release|x64.Build.0 = Release|x64
 		{43856CDC-4C9F-4910-ACD3-7C3BF9081AE9}.Debug|x64.ActiveCfg = Debug|x64
 		{43856CDC-4C9F-4910-ACD3-7C3BF9081AE9}.Debug|x64.Build.0 = Debug|x64
 		{43856CDC-4C9F-4910-ACD3-7C3BF9081AE9}.Release|x64.ActiveCfg = Release|x64
@@ -50,10 +46,10 @@ Global
 		{2FE239CD-F424-4BB9-9031-F91395903F7B}.Debug|x64.Build.0 = Debug|x64
 		{2FE239CD-F424-4BB9-9031-F91395903F7B}.Release|x64.ActiveCfg = Release|x64
 		{2FE239CD-F424-4BB9-9031-F91395903F7B}.Release|x64.Build.0 = Release|x64
-		{F80E4380-BA1F-4714-988E-DFE2458DA552}.Debug|x64.ActiveCfg = Debug|x64
-		{F80E4380-BA1F-4714-988E-DFE2458DA552}.Debug|x64.Build.0 = Debug|x64
-		{F80E4380-BA1F-4714-988E-DFE2458DA552}.Release|x64.ActiveCfg = Release|x64
-		{F80E4380-BA1F-4714-988E-DFE2458DA552}.Release|x64.Build.0 = Release|x64
+		{F60F12A8-84DA-477B-BA17-8AFFDA22A96D}.Debug|x64.ActiveCfg = Debug|x64
+		{F60F12A8-84DA-477B-BA17-8AFFDA22A96D}.Debug|x64.Build.0 = Debug|x64
+		{F60F12A8-84DA-477B-BA17-8AFFDA22A96D}.Release|x64.ActiveCfg = Release|x64
+		{F60F12A8-84DA-477B-BA17-8AFFDA22A96D}.Release|x64.Build.0 = Release|x64
 		{F5BA79AB-1AFF-46B7-B666-12A63258719D}.Debug|x64.ActiveCfg = Debug|x64
 		{F5BA79AB-1AFF-46B7-B666-12A63258719D}.Debug|x64.Build.0 = Debug|x64
 		{F5BA79AB-1AFF-46B7-B666-12A63258719D}.Release|x64.ActiveCfg = Release|x64
@@ -74,6 +70,10 @@ Global
 		{CB949457-2014-4B66-A503-C481D3F0F317}.Debug|x64.Build.0 = Debug|x64
 		{CB949457-2014-4B66-A503-C481D3F0F317}.Release|x64.ActiveCfg = Release|x64
 		{CB949457-2014-4B66-A503-C481D3F0F317}.Release|x64.Build.0 = Release|x64
+		{361E0165-31AA-458E-B3B8-07EA875D74EB}.Debug|x64.ActiveCfg = Debug|x64
+		{361E0165-31AA-458E-B3B8-07EA875D74EB}.Debug|x64.Build.0 = Debug|x64
+		{361E0165-31AA-458E-B3B8-07EA875D74EB}.Release|x64.ActiveCfg = Release|x64
+		{361E0165-31AA-458E-B3B8-07EA875D74EB}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

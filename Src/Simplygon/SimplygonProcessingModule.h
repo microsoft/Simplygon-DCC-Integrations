@@ -33,7 +33,6 @@ class SimplygonProcessingModule
 	                          std::basic_string<TCHAR> tNamePrefix = _T("") );
 
 	Simplygon::spScene RunReduction( const Simplygon::spScene sgInputScene, bool bBakeMaterials = false );
-	Simplygon::spScene RunRemeshing( const Simplygon::spScene sgInputScene, bool bBakeMaterials = false );
 	Simplygon::spScene RunAggregation( const Simplygon::spScene sgInputScene, bool bBakeMaterials = false );
 	Simplygon::spScene RunReductionTest_1( const Simplygon::spScene sgInputScene );
 

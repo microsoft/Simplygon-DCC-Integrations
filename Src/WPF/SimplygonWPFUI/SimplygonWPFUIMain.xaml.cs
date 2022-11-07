@@ -209,7 +209,7 @@ namespace SimplygonUI
 
         public bool IsObjectsSelected()
         {
-            if( SelectedObjectListBox != null && SelectedObjectListBox.ItemsSource != null )
+            if (SelectedObjectListBox != null && SelectedObjectListBox.ItemsSource != null)
             {
                 List<string> selectedObjects = SelectedObjectListBox.ItemsSource as List<string>;
                 if (selectedObjects != null)
@@ -253,10 +253,10 @@ namespace SimplygonUI
             Button target = sender as Button;
             ContextMenu cm = new ContextMenu();
             var editPipelineCM = new MenuItem() { Header = "Edit pipeline", ToolTip = "Customize the pipeline by hiding UI elements and changing default values." };
-            var savePipelineCM = new MenuItem() { Header = "Save pipeline", ToolTip = @"If you save the pipeline to the default location (%USERPROFILE%\Documents\Simplygon\9\Pipelines) it will be available as a LOD component automatically." };
+            var savePipelineCM = new MenuItem() { Header = "Save pipeline", ToolTip = @"If you save the pipeline to the default location (%USERPROFILE%\Documents\Simplygon\10\Pipelines) it will be available as a LOD component automatically." };
             var importSPLCM = new MenuItem() { Header = "Import legacy settings", ToolTip = "Import legacy .SPL and .ini settings." };
-            var batchImportLegacyCM = new MenuItem() { Header = "Batch import legacy settings", ToolTip = @"Batch import legacy .SPL and .ini settings to the default location (%USERPROFILE%\Documents\Simplygon\9\Pipelines)." };
-            var loadPipelineCM = new MenuItem() { Header = "Load pipeline", ToolTip = @"Load pipeline not in the default location (%USERPROFILE%\Documents\Simplygon\9\Pipelines)." };
+            var batchImportLegacyCM = new MenuItem() { Header = "Batch import legacy settings", ToolTip = @"Batch import legacy .SPL and .ini settings to the default location (%USERPROFILE%\Documents\Simplygon\10\Pipelines)." };
+            var loadPipelineCM = new MenuItem() { Header = "Load pipeline", ToolTip = @"Load pipeline not in the default location (%USERPROFILE%\Documents\Simplygon\10\Pipelines)." };
             var exportPipelineCM = new MenuItem() { Header = "Export pipeline", ToolTip = "Export pipeline and remove all UI metadata from the JSON file. Recommended if you plan to use the pipeline without using the Simplygon UI." };
             editPipelineCM.IsCheckable = true;
             editPipelineCM.IsEnabled = Pipelines.Count > 0;
@@ -302,7 +302,7 @@ namespace SimplygonUI
         {
             try
             {
-                string simplygon9Path = Environment.GetEnvironmentVariable("SIMPLYGON_9_PATH");
+                string simplygon9Path = Environment.GetEnvironmentVariable("SIMPLYGON_10_PATH");
 
                 if (!string.IsNullOrEmpty(simplygon9Path))
                 {
@@ -547,6 +547,42 @@ namespace SimplygonUI
             {
                 Log(Category.Error, "Could not save the pipeline to the following path (" + filePath + ") due to an error.\n\n Details: " + ex);
             }
+        }
+
+        private bool HasCascadedQuadPipeline(List<SimplygonPipeline> pipelines)
+        {
+            if (pipelines != null)
+            {
+                foreach (var pipeline in pipelines)
+                {
+                    if (pipeline.PipelineName == "QuadReductionPipeline")
+                    {
+                        return true;
+                    }
+                    else if (HasCascadedQuadPipeline(pipeline.CascadedPipelines))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public bool HasQuadPipeline()
+        {
+            foreach (var pipeline in Pipelines)
+            {
+                if (pipeline.PipelineName == "QuadReductionPipeline")
+                {
+                    return true;
+                }
+                else if (HasCascadedQuadPipeline(pipeline.CascadedPipelines))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)

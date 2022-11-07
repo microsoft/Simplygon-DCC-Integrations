@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 
+#include "Triangulator.h"
 #include "BlindData.h"
 
 class MaterialNode;
@@ -21,11 +22,11 @@ class MeshNodeLOD
 	MDagPath LODNodeShape;
 };
 
-class TriMeshSelectionSet
+class MeshNodeSelectionSet
 {
 	public:
-	std::string Name;           // the name of the set
-	std::vector<rid> Triangles; // the selected triangles in this set
+	std::string Name;                // the name of the set
+	std::vector<rid> PolygonIndices; // the selected triangles in this set
 };
 
 class MeshNodeBone
@@ -105,6 +106,8 @@ class MeshNode
 	uint BlendShapeCount;
 
 	protected:
+	std::vector<Simplygon::Triangulator::Triangle> triangulatedPolygons;
+
 	std::vector<MString> mMaterialNamesList;
 	std::vector<std::string> mMaterialMappingIds; // maps from Materials -> Simplygon material IDs
 
@@ -116,7 +119,7 @@ class MeshNode
 	std::vector<MString> ColorSets;
 
 	// list of the generic sets that has components in this object selected
-	std::vector<TriMeshSelectionSet> GenericSets;
+	std::vector<MeshNodeSelectionSet> GenericSets;
 
 	// blendshape structure
 	std::vector<BlendShape> blendShape;
@@ -145,9 +148,9 @@ class MeshNode
 	// the LODs of the node
 	std::vector<MeshNodeLOD> meshLODs;
 
-	// the back mapping of the reduced vtx/tris to the original ids
+	// the back mapping of the reduced vtx/polys to the original ids
 	std::map<rid, rid> VertexBackMapping;
-	std::map<rid, rid> TriangleBackMapping;
+	std::map<rid, rid> PolygonBackMapping;
 
 	BlindData blindData;
 
@@ -166,6 +169,7 @@ class MeshNode
 	// extract mesh data into the geometry data object, and also sets up the indices into the vector
 	// of materials, which material is used by which triangle.
 	MStatus ExtractMeshData( MaterialHandler* material_handler );
+	MStatus ExtractMeshData_Quad( MaterialHandler* material_handler );
 
 	// extracts blend shape data
 	MStatus ExtractBlendShapeData();
@@ -181,9 +185,13 @@ class MeshNode
 
 	// create a mesh data object from the (possibly modified) geometry data
 	MStatus WritebackGeometryData( spScene sgProcessedScene, size_t lodIndex, spSceneMesh sgMesh, MaterialHandler* material_handler, MDagPath& result_path );
+	MStatus
+	WritebackGeometryData_Quad( spScene sgProcessedScene, size_t lodIndex, spSceneMesh sgMesh, MaterialHandler* material_handler, MDagPath& result_path );
 
 	// write back normals
 	void WritebackNormals();
+	void WritebackNormals_Quad( uint numPolygons, uint numVertexIds );
+
 	void WritebackNormals_Deprecated();
 
 	// delete the modified mesh data, used for undo
@@ -209,6 +217,9 @@ class MeshNode
 
 	MDagPath GetOriginalNodeShape();
 
+	// Suboptimal triangulations counter
+	uint32_t numBadTriangulations;
+
 	protected:
 	// get the used UV set names
 	MStatus SetupUVSetNames();
@@ -221,15 +232,19 @@ class MeshNode
 
 	// extract the triangle data
 	MStatus ExtractTriangleData();
+	MStatus ExtractTriangleData_Quad();
 
 	// extract the material data per-triangle
 	MStatus ExtractTriangleMaterialData();
+	MStatus ExtractTriangleMaterialData_Quad( MIntArray& mPolygonIndexToTriangleIndex, MIntArray& mPolygonTriangleCount );
 
 	// extract the crease data. Both edge and vertex.
 	MStatus ExtractCreaseData();
+	MStatus ExtractCreaseData_Quad( MIntArray& mPolygonIndexToTriangleIndex, MIntArray& mPolygonTriangleCount );
 
 	// Write the crease data back to the Maya scene.
 	MStatus AddCreaseData();
+	MStatus AddCreaseData_Quad( std::vector<int> PolygonToTriangleIndices, std::vector<int> PolygonTriangleCount );
 
 	// extract all generic sets that has components of this object
 	MStatus SetupGenericSets();
@@ -248,6 +263,7 @@ class MeshNode
 
 	// setup a back mapping from the forward mapping id array
 	void SetupBackMapping();
+	void SetupBackMapping_Quad();
 
 	// reset all tweaks on an object (set them to 0)
 	MStatus ResetTweaks();

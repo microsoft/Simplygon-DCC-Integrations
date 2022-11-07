@@ -3,16 +3,17 @@
 
 #include <stdio.h>
 
-#define X(a, b) a,
-enum ShadingNodeType {
+#define X( a, b ) a,
+enum ShadingNodeType
+{
 #include "ShadingNodeTable.h"
-	};
+};
 #undef X
 
-#define X(a, b) b,
-static char *ShadingNetworkNodeTable[] = {
+#define X( a, b ) b,
+static char* ShadingNetworkNodeTable[] = {
 #include "ShadingNodeTable.h"
-	};
+};
 #undef X
 
 #include <process.h>
@@ -33,8 +34,8 @@ static char *ShadingNetworkNodeTable[] = {
 #include <SgCodeAnalysisSetup.h>
 #include "CriticalSection.h"
 
-#pragma warning(push)
-#pragma warning(disable : ALL_CODE_ANALYSIS_WARNINGS)
+#pragma warning( push )
+#pragma warning( disable : ALL_CODE_ANALYSIS_WARNINGS )
 #include <maya/MSelectionList.h>
 #include <maya/MDagModifier.h>
 #include <maya/MDagPath.h>
@@ -65,7 +66,7 @@ static char *ShadingNetworkNodeTable[] = {
 #include <maya/MPointArray.h>
 #include <maya/MPxCommand.h>
 #include <maya/MSelectionList.h>
-#include <maya/MString.h> 
+#include <maya/MString.h>
 #include <maya/MFnMesh.h>
 #include <maya/MFloatPointArray.h>
 #include <maya/MIntArray.h>
@@ -110,16 +111,21 @@ static char *ShadingNetworkNodeTable[] = {
 #include <maya/MTime.h>
 #include <maya/MAnimControl.h>
 #include <maya/MCommandResult.h>
-#include <maya/MFnEnumAttribute.h> 
+#include <maya/MFnEnumAttribute.h>
 #include <maya/MColorManagementUtilities.h>
-#pragma warning(pop)
+
+#if MAYA_API_VERSION >= 20180000
+#include "maya/MDGContextGuard.h"
+#endif
+
+#pragma warning( pop )
 #include "SimplygonLoader.h"
 #include "SimplygonInit.h"
 
 using namespace Simplygon;
 
 // the main sg pointer
-extern Simplygon::ISimplygon *sg;
+extern Simplygon::ISimplygon* sg;
 extern SimplygonInitClass* SimplygonInitInstance;
 
 // additional search paths for the simplygon process
@@ -165,98 +171,106 @@ extern int MayaAPIVersion;
 #define MAYA_MATERIAL_CHANNEL_TRANSLUECENCE_FOCUS "translucenceFocus"
 #endif // !MAYA_MATERIAL_CHANNEL_TRANSLUECENCE_FOCUS
 
+#ifndef MAYA_MATERIAL_CHANNEL_REFLECTEDCOLOR
+#define MAYA_MATERIAL_CHANNEL_REFLECTEDCOLOR "reflectedColor"
+#endif // !MAYA_MATERIAL_CHANNEL_REFLECTEDCOLOR
+
 #pragma endregion
 
 ////////////
 /* Macros */
 ////////////
 
-#define PI 3.14159265358979323846
-#define DEG2RAD(DEG) ((DEG)*((PI)/(180.0)))
+#define PI             3.14159265358979323846
+#define DEG2RAD( DEG ) ( ( DEG ) * ( ( PI ) / ( 180.0 ) ) )
 
 // MCheckStatus (Debugging tool)
 //
 #ifdef _DEBUG
-#	define MCheckStatus(status,message)			\
-		if( MS::kSuccess != status ) {			\
-			MString error("Status failed: ");	\
-			error += "Function: ";				\
-			error += __FUNCTION__;				\
-			error += "Message: ";				\
-			error += message;					\
-			MGlobal::displayError(error);		\
-			OutputDebugString( error.asChar() );	\
-			OutputDebugString( "\n" );				\
-			_CrtDbgBreak();						\
-			return status;						\
-		}
+#define MCheckStatus( status, message )      \
+	if( MS::kSuccess != status )             \
+	{                                        \
+		MString error( "Status failed: " );  \
+		error += "Function: ";               \
+		error += __FUNCTION__;               \
+		error += "Message: ";                \
+		error += message;                    \
+		MGlobal::displayError( error );      \
+		OutputDebugString( error.asChar() ); \
+		OutputDebugString( "\n" );           \
+		_CrtDbgBreak();                      \
+		return status;                       \
+	}
 #else
-#	define MCheckStatus(status,message) \
-		if( MS::kSuccess != status ) {			\
-			MString error("Status failed: ");	\
-			error += "Function: ";				\
-			error += __FUNCTION__;				\
-			error += "Message: ";				\
-			error += message;					\
-			MGlobal::displayError(error);		\
-			OutputDebugString( error.asChar() );	\
-			OutputDebugString( "\n" );				\
-			return status;						\
-		}
+#define MCheckStatus( status, message )      \
+	if( MS::kSuccess != status )             \
+	{                                        \
+		MString error( "Status failed: " );  \
+		error += "Function: ";               \
+		error += __FUNCTION__;               \
+		error += "Message: ";                \
+		error += message;                    \
+		MGlobal::displayError( error );      \
+		OutputDebugString( error.asChar() ); \
+		OutputDebugString( "\n" );           \
+		return status;                       \
+	}
 #endif
 
 // MAssert (Debugging tool)
 //
 #ifdef _DEBUG
-#	define MAssert(state,message)					\
-		if( !state ) {								\
-			MString error("Assertion failed: ");		\
-			error += "Function: ";					\
-			error += __FUNCTION__;					\
-			error += "Message: ";					\
-			error += message;						\
-			MGlobal::displayError(error);			\
-			OutputDebugString( error.asChar() );	\
-			OutputDebugString( "\n" );				\
-			_CrtDbgBreak();						\
-		}
+#define MAssert( state, message )              \
+	if( !state )                               \
+	{                                          \
+		MString error( "Assertion failed: " ); \
+		error += "Function: ";                 \
+		error += __FUNCTION__;                 \
+		error += "Message: ";                  \
+		error += message;                      \
+		MGlobal::displayError( error );        \
+		OutputDebugString( error.asChar() );   \
+		OutputDebugString( "\n" );             \
+		_CrtDbgBreak();                        \
+	}
 #else
-#	define MAssert(state,message)
+#define MAssert( state, message )
 #endif
 
-#define MSanityCheck(state) MAssert(state,"");
+#define MSanityCheck( state ) MAssert( state, "" );
 
 // MStatusAssert (Debugging tool)
 //
 #ifdef _DEBUG
-#	define MStatusAssert(state,message)				\
-		if( !state ) {								\
-			MString error("Assertion failed: ");	\
-			error += "Function: ";					\
-			error += __FUNCTION__;					\
-			error += "Message: ";					\
-			error += message;						\
-			MGlobal::displayError(error);			\
-			OutputDebugString( error.asChar() );	\
-			OutputDebugString( "\n" );				\
-			_CrtDbgBreak();						\
-			return MS::kFailure;					\
-		}
+#define MStatusAssert( state, message )        \
+	if( !state )                               \
+	{                                          \
+		MString error( "Assertion failed: " ); \
+		error += "Function: ";                 \
+		error += __FUNCTION__;                 \
+		error += "Message: ";                  \
+		error += message;                      \
+		MGlobal::displayError( error );        \
+		OutputDebugString( error.asChar() );   \
+		OutputDebugString( "\n" );             \
+		_CrtDbgBreak();                        \
+		return MS::kFailure;                   \
+	}
 #else
-#	define MStatusAssert(state,message)
+#define MStatusAssert( state, message )
 #endif
 
 #ifdef PRINT_DEBUG_INFO
 static MStatus executeGlobalCommand( const MString& command )
-	{
-	return MGlobal::executeCommand(command,true);
-	}
+{
+	return MGlobal::executeCommand( command, true );
+}
 
 #else
 static MStatus executeGlobalCommand( const MString& command )
-	{
-	return MGlobal::executeCommand(command,false);
-	}
+{
+	return MGlobal::executeCommand( command, false );
+}
 
 #endif
 
@@ -264,109 +278,110 @@ int GetMayaVersion();
 
 void nop();
 
-float ConvertFromColorToWeights(float c, float multiplier = 8.f );
-float ConvertFromWeightsToColor(float w, float multiplier = 8.f );
+float ConvertFromColorToWeights( float c, float multiplier = 8.f );
+float ConvertFromWeightsToColor( float w, float multiplier = 8.f );
 
 // compare filenames, ignore lower/uppercase and forward/backslash
-bool IsSamePath( const char *cPathA , const char *cPathB );
+bool IsSamePath( const char* cPathA, const char* cPathB );
 
-MStatus GetPathToNamedObject( MString name , MDagPath &path );
-MStatus getFloat3PlugValue( MPlug plug, MFloatVector & value );
+MStatus GetPathToNamedObject( MString name, MDagPath& path );
+MStatus getFloat3PlugValue( MPlug plug, MFloatVector& value );
 MStatus getFloat3asMObject( MFloatVector value, MObject& object );
-void SelectDAGPath( MDagPath node , bool add_to_list = true );
+void SelectDAGPath( const MDagPath& node, bool add_to_list = true );
 MStatus RemoveAllNonMeshShapeSubNodes( MDagPath node );
-MStatus ExecuteCommand( MString cmd );
-MStatus ExecuteCommand( MString cmd , MString &dest );
-MStatus ExecuteCommand( MString cmd , MStringArray &dest );
-MStatus ExecuteCommand( MString cmd , bool &result );
-MStatus DuplicateNodeWithShape( MDagPath node , MDagPath &resultNode , MStringArray *slist  , MString dupName , bool alternative_duplicate );
-MStatus ExecuteSelectedObjectCommand( MString cmd , MDagPath node , MObject component , MStringArray &dest );
-MStatus ExecuteSelectedObjectCommand( MString cmd , MDagPath node , MObject component , MDoubleArray &dest );
-MStatus ExecuteSelectedObjectCommand( MString cmd , MDagPath node , MObject component );
-MStatus RemoveConstructionHistoryOnNode( MDagPath node );
-MStatus GetMObjectOfNamedObject( MString name , MObject &ob );
-MStatus DeleteSkinningJointsOfNode( MDagPath node );
+MStatus ExecuteCommand( MString mCommand );
+MStatus ExecuteCommand( MString mCommand, MString& mDestination );
+MStatus ExecuteCommand( MString mCommand, MStringArray& mDestination );
+MStatus ExecuteCommand( MString mCommand, bool& result );
+MStatus DuplicateNodeWithShape( MDagPath mDagPath, MDagPath& mResultingDagPath, MStringArray* mResultList, MString mDupName, bool bAlternativeDuplication );
+
+MStatus ExecuteSelectedObjectCommand( const MString& mCommand, const MDagPath& mDagPath, const MObject& mComponent, MStringArray& mDestination );
+MStatus ExecuteSelectedObjectCommand( const MString& mCommand, const MDagPath& mDagPath, const MObject& mComponent, MDoubleArray& mDestination );
+MStatus ExecuteSelectedObjectCommand( const MString& mCommand, const MDagPath& mDagPath, const MObject& mComponent );
+MStatus RemoveConstructionHistoryOnNode( const MDagPath& mDagPath );
+MStatus GetMObjectOfNamedObject( MString name, MObject& ob );
+MStatus DeleteSkinningJointsOfNode( const MDagPath& mDagPath );
 
 // find the skinCluster node name of the meshnode (if one exists)
-MString GetSkinClusterNodeName( MDagPath meshnode );				
-MStringArray GetSkinJointsOfNode( MDagPath meshnode );
+MString GetSkinClusterNodeName( MDagPath mDagPath );
+MStringArray GetSkinJointsOfNode( MDagPath mDagPath );
 
-MStatus GetMayaWorkspaceTextureFolder( MString &dest );
-MString RemoveIllegalCharacters(MString name);
+MStatus GetMayaWorkspaceTextureFolder( MString& dest );
+MString RemoveIllegalCharacters( MString name );
 
-void RemoveNodeList( MStringArray &slist );
+void RemoveNodeList( MStringArray& slist );
 
 std::string GetSettingsFilePath();
-std::basic_string<TCHAR> string_format(const std::basic_string<TCHAR> fmt_str, ...);
-bool CompareStrings(std::basic_string<TCHAR> str1, std::basic_string<TCHAR> str2);
+std::basic_string<TCHAR> string_format( const std::basic_string<TCHAR> fmt_str, ... );
+bool CompareStrings( std::basic_string<TCHAR> str1, std::basic_string<TCHAR> str2 );
 
 // LPCTSTR ConstCharPtrToLPCTSTR(const char * stringToConvert);
 // const char* LPCTSTRToConstCharPtr(LPCTSTR stringToConvert);
 
-std::string StringTostring(std::string str);
-bool StringTobool(std::string str);
-int StringToint(std::string str);
-double StringTodouble(std::string str);
-float StringTofloat(std::string str);
-bool StringToNULL(std::basic_string<TCHAR> str);
+std::string StringTostring( std::string str );
+bool StringTobool( std::string str );
+int StringToint( std::string str );
+double StringTodouble( std::string str );
+float StringTofloat( std::string str );
+bool StringToNULL( std::basic_string<TCHAR> str );
 
-float _log2(float n);
+float _log2( float n );
 
 class VertexNormal
-	{
+{
 	public:
-		bool isInitialized;
-		bool isPerVertex;
-		double3 normal;
-	};
+	bool isInitialized;
+	bool isPerVertex;
+	double3 normal;
+};
 
-bool ObjectExists(MString object);
+bool ObjectExists( MString object );
 
-MString GetNonCollidingMeshName(MString lodName);
+MString GetNonCollidingMeshName( MString lodName );
 
-MStatus TryReuseDefaultUV(MFnMesh & mesh, MString requestedName);
+MStatus TryReuseDefaultUV( MFnMesh& mesh, MString requestedName );
 
-void GetPluginDir(char *dest);
+void GetPluginDir( char* dest );
 
-int TranslateDeviationToPixels(double radius, double deviation);
+int TranslateDeviationToPixels( double radius, double deviation );
 
-double TranslateDeviationToDistance(double radius, double deviation, double fovInRadians, double screenSize);
+double TranslateDeviationToDistance( double radius, double deviation, double fovInRadians, double screenSize );
 
 #ifndef Globals_
 #define Globals_
 
 class Globals
-	{
+{
 	public:
-		Globals();
-		~Globals();
-		void Lock();
-		void UnLock();
+	Globals();
+	~Globals();
+	void Lock();
+	void UnLock();
 
 	private:
-		CriticalSection uiLock;
-	};
+	CriticalSection uiLock;
+};
 
 #endif // !Globals_
 
 #ifndef UIHookHelper_
 #define UIHookHelper_
 class UIHookHelper
-	{
+{
 	public:
-		UIHookHelper();
-		~UIHookHelper();
+	UIHookHelper();
+	~UIHookHelper();
 
-		void RegisterUICallback();
+	void RegisterUICallback();
 
-		void ReadPresets(bool loop = true);
+	void ReadPresets( bool loop = true );
 
 	private:
-		HANDLE updateThreadHandle;
-		bool killUpdateThread;
+	HANDLE updateThreadHandle;
+	bool killUpdateThread;
 
-		static unsigned long __stdcall theFunction(void* v);
-	};
+	static unsigned long __stdcall theFunction( void* v );
+};
 #endif // !UIHookHelper_
 
-MString CreateQuotedText(MString text);
+MString CreateQuotedText( MString text );

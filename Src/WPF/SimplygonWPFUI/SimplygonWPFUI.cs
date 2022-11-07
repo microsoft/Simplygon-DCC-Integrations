@@ -17,15 +17,16 @@ namespace SimplygonUI
 {
     public class SimplygonVersion
     {
-        public static readonly string Version = "9.2";
-        public static readonly string Build = "9.2.10300.0";
-        public static readonly string Commit = "a36ca6f94f29d5bf7b199a784032a97c1c8322ab";
+        public static readonly string Version = "10.0";
+        public static readonly string Build = "10.0.6800.0";
+        public static readonly string Commit = "1da144f7a876a00a01bff8d88ae1a6a11fc8028d";
     }
 
     public enum SimplygonIntegrationType
     {
         Max,
         Max2021,
+        Max2023,
         Maya,
         Unity,
         Blender,
@@ -44,14 +45,14 @@ namespace SimplygonUI
 
         public static void Refresh()
         {
-            string simplygon9SharedDirectory = Environment.GetEnvironmentVariable("SIMPLYGON_9_SHARED");
-            if (string.IsNullOrWhiteSpace(simplygon9SharedDirectory))
+            string simplygonSharedDirectory = Environment.GetEnvironmentVariable("SIMPLYGON_10_SHARED");
+            if (string.IsNullOrWhiteSpace(simplygonSharedDirectory))
             {
-                simplygon9SharedDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Simplygon", "9");
+                simplygonSharedDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Simplygon", "10");
             }
 
-            simplygon9SharedDirectory = Environment.ExpandEnvironmentVariables(simplygon9SharedDirectory);
-            PipelineDirectory = System.IO.Path.Combine(simplygon9SharedDirectory, "Pipelines");
+            simplygonSharedDirectory = Environment.ExpandEnvironmentVariables(simplygonSharedDirectory);
+            PipelineDirectory = System.IO.Path.Combine(simplygonSharedDirectory, "Pipelines");
             if (!System.IO.Directory.Exists(PipelineDirectory))
             {
                 System.IO.Directory.CreateDirectory(PipelineDirectory);
@@ -65,6 +66,11 @@ namespace SimplygonUI
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
             {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.QuadReductionPipeline, "Template/Advanced/Quad Reduction", false));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
+            {
                 PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.RemeshingPipeline, "Template/Advanced/Remeshing", true));
             }
 
@@ -106,6 +112,11 @@ namespace SimplygonUI
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
             {
                 PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.ReductionPipeline, "Template/Basic/Reduction with material baking", true));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.QuadReductionPipeline, "Template/Basic/Quad Reduction", false));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max)
@@ -150,6 +161,11 @@ namespace SimplygonUI
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
             {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.QuadReductionPipeline, "Template/Advanced/Quad Reduction", false));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
                 PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.RemeshingPipeline, "Template/Advanced/Remeshing", true));
             }
 
@@ -191,6 +207,11 @@ namespace SimplygonUI
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
             {
                 PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.ReductionPipeline, "Template/Basic/Reduction with material baking", true));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.QuadReductionPipeline, "Template/Basic/Quad Reduction", false));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2021)
@@ -228,9 +249,109 @@ namespace SimplygonUI
                 PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.ImpostorFromSingleViewPipeline, "Template/Basic/Impostor from single view", true));
             }
 
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.ReductionPipeline, "Template/Advanced/Reduction", false));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.QuadReductionPipeline, "Template/Advanced/Quad Reduction", false));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.RemeshingPipeline, "Template/Advanced/Remeshing", true));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.AggregationPipeline, "Template/Advanced/Aggregation", false));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.BillboardCloudPipeline, "Template/Advanced/Billboard cloud", true));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.BillboardCloudVegetationPipeline, "Template/Advanced/Billboard cloud for vegetation", true));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.FlipbookPipeline, "Template/Advanced/Flipbook", true));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.ImpostorFromSingleViewPipeline, "Template/Advanced/Impostor from single view", true));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.OcclusionMeshPipeline, "Template/Advanced/Occlusion mesh", false));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.ReductionPipeline, "Template/Basic/Reduction", false));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.ReductionPipeline, "Template/Basic/Reduction with material baking", true));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.QuadReductionPipeline, "Template/Basic/Quad Reduction", false));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.RemeshingPipeline, "Template/Basic/Remeshing with material baking", true));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.AggregationPipeline, "Template/Basic/Aggregation", false));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.AggregationPipeline, "Template/Basic/Aggregation with material baking", true));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.BillboardCloudPipeline, "Template/Basic/Billboard cloud", true));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.BillboardCloudVegetationPipeline, "Template/Basic/Billboard cloud for vegetation", true));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.FlipbookPipeline, "Template/Basic/Flipbook", true));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.ImpostorFromSingleViewPipeline, "Template/Basic/Impostor from single view", true));
+            }
+
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
             {
                 PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.ReductionPipeline, "Template/Advanced/Reduction", false));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.QuadReductionPipeline, "Template/Advanced/Quad Reduction", false));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
@@ -276,6 +397,11 @@ namespace SimplygonUI
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
             {
                 PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.ReductionPipeline, "Template/Basic/Reduction with material baking", true));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                PipelineTemplates.Add(new SimplygonPipeline(ESimplygonPipeline.QuadReductionPipeline, "Template/Basic/Quad Reduction", false));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
@@ -695,6 +821,171 @@ namespace SimplygonUI
                 MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/Cutout"));
             }
 
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Advanced/ColorCaster"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity", "Template/Advanced/OpacityCaster"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal", "Template/Advanced/NormalCaster"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.DisplacementCaster, "Displacement", "Template/Advanced/DisplacementCaster"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.AmbientOcclusionCaster, "AmbientOcclusion", "Template/Advanced/AmbientOcclusionCaster"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.GeometryDataCaster, "GeometryData", "Template/Advanced/GeometryDataCaster"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.VertexColorCaster, "VertexColor", "Template/Advanced/VertexColorCaster"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/BaseWeight"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/BaseColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/Reflectivity"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/ReflColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/Roughness"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/Metalness"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/DiffuseRoughness"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.OpacityCaster, "Opacity", "Template/Physical/Transparency"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/TransparencyColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/TransparencyRoughness"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/Scattering"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/SSSColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/SSSScale"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/Emission"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/EmissionColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/SheenWeight"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/SheenColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/SheenRoughness"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/ThinFilm"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/CoatingWeight"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/CoatingColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/CoatingRoughness"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal", "Template/Physical/Bump"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.NormalCaster, "Normal", "Template/Physical/CoatingBump"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/Displacement"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Max2023)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Physical/Cutout"));
+            }
+
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
             {
                 MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Advanced/ColorCaster"));
@@ -923,7 +1214,7 @@ namespace SimplygonUI
                 var subDirectories = System.IO.Directory.EnumerateDirectories(directory);
                 foreach (var subDirectory in subDirectories)
                 {
-                    string subDirectoryName = System.IO.Path.GetFileNameWithoutExtension(subDirectory);
+                    string subDirectoryName = System.IO.Path.GetFileName(subDirectory);
                     LoadPipelines(string.IsNullOrEmpty(relativeDirectory) ? subDirectoryName : $"{relativeDirectory}/{subDirectoryName}");
                 }
 
@@ -1037,7 +1328,6 @@ namespace SimplygonUI
                 if(VertexColorImportanceUI.Visible) return true;
                 if(EdgeSetImportanceUI.Visible) return true;
                 if(SkinningImportanceUI.Visible) return true;
-                if(CurvatureImportanceUI.Visible) return true;
                 if(CreateGeomorphGeometryUI.Visible) return true;
                 if(AllowDegenerateTexCoordsUI.Visible) return true;
                 if(KeepSymmetryUI.Visible) return true;
@@ -1053,6 +1343,7 @@ namespace SimplygonUI
                 if(MergeGeometriesUI.Visible) return true;
                 if(KeepUnprocessedSceneMeshesUI.Visible) return true;
                 if(LockGeometricBorderUI.Visible) return true;
+                if(PreserveQuadFlagsUI.Visible) return true;
 
                 return false;
             }
@@ -1905,7 +2196,7 @@ namespace SimplygonUI
             public SimplygonReductionTargetStopConditionEx() : base("ReductionTargetStopCondition")
             {
                 Type = "enum";
-                HelpText = "The stop condition for the reducer.  Any -> the reducer will stop when any single one of the set reduction targets have been reached.  All -> the reducer will stop when all enabled reduction targets have been set.";
+                HelpText = "The stop condition for the reducer.  Any -> the reducer will stop when any single one of the set reduction targets have been reached.  All -> the reducer will stop when all enabled reduction targets have been reached.";
                 TypeOverride = "";
                 DefaultValue = EStopCondition.All;
                 Visible = true;
@@ -1914,7 +2205,7 @@ namespace SimplygonUI
             public SimplygonReductionTargetStopConditionEx(dynamic jsonData) : base("ReductionTargetStopCondition")
             {
                 Type = "enum";
-                HelpText = "The stop condition for the reducer.  Any -> the reducer will stop when any single one of the set reduction targets have been reached.  All -> the reducer will stop when all enabled reduction targets have been set.";
+                HelpText = "The stop condition for the reducer.  Any -> the reducer will stop when any single one of the set reduction targets have been reached.  All -> the reducer will stop when all enabled reduction targets have been reached.";
                 TypeOverride = "";
                 DefaultValue = EStopCondition.All;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -3021,133 +3312,6 @@ namespace SimplygonUI
             public SimplygonSkinningImportanceEx DeepCopy()
             {
                 return (SimplygonSkinningImportanceEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
-                return jsonData;
-            }
-
-        }
-
-        public float CurvatureImportance { get { return _CurvatureImportance; } set { _CurvatureImportance = value; OnPropertyChanged(); } }
-        private float _CurvatureImportance;
-        public SimplygonCurvatureImportanceEx CurvatureImportanceUI { get; set; }
-        public class SimplygonCurvatureImportanceEx : SimplygonSettingsProperty
-        {
-            public SimplygonReductionSettings Parent { get; set; }
-            public float Value
-            {
-                get
-                {
-                    return Parent.CurvatureImportance;
-                }
-
-                set
-                {
-                    bool needReload = Parent.CurvatureImportance != value;
-                    Parent.CurvatureImportance = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public float DefaultValue { get; set; }
-            public float MinValue { get; set; }
-            public float MaxValue { get; set; }
-            public float DefaultMinValue { get; set; }
-            public float DefaultMaxValue { get; set; }
-            public float TicksFrequencyValue { get; set; }
-
-            public SimplygonCurvatureImportanceEx() : base("CurvatureImportance")
-            {
-                Type = "real";
-                HelpText = "This importance is deprecated and disabled.";
-                TypeOverride = "";
-                DefaultValue = 0f;
-                MinValue = 0f;
-                MaxValue = 10f;
-                DefaultMinValue = 0f;
-                DefaultMaxValue = 10f;
-                TicksFrequencyValue = 1f;
-                Visible = true;
-            }
-
-            public SimplygonCurvatureImportanceEx(dynamic jsonData) : base("CurvatureImportance")
-            {
-                Type = "real";
-                HelpText = "This importance is deprecated and disabled.";
-                TypeOverride = "";
-                DefaultValue = 0f;
-                MinValue = 0f;
-                DefaultMinValue = 0f;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (float)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"CurvatureImportance: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 10f;
-                DefaultMaxValue = 10f;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (float)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"CurvatureImportance: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 1f;
-                }
-
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonCurvatureImportanceEx DeepCopy()
-            {
-                return (SimplygonCurvatureImportanceEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -4452,6 +4616,76 @@ namespace SimplygonUI
 
         }
 
+        public bool PreserveQuadFlags { get { return _PreserveQuadFlags; } set { _PreserveQuadFlags = value; OnPropertyChanged(); } }
+        private bool _PreserveQuadFlags;
+        public SimplygonPreserveQuadFlagsEx PreserveQuadFlagsUI { get; set; }
+        public class SimplygonPreserveQuadFlagsEx : SimplygonSettingsProperty
+        {
+            public SimplygonReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.PreserveQuadFlags;
+                }
+
+                set
+                {
+                    bool needReload = Parent.PreserveQuadFlags != value;
+                    Parent.PreserveQuadFlags = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonPreserveQuadFlagsEx() : base("PreserveQuadFlags")
+            {
+                Type = "bool";
+                HelpText = "If true, the QuadFlags triangle field in the input geometries (used for marking triangle pairs as quads for use in the QuadReductionProcessor) will be maintained in the processing geometries through the triangle reduction process as well as possible. This will cause most polygons involved in collapses performed by the triangle reducer to become triangles. This allows sequential triangle->quad reductions to handle mixed geometries. Setting this to false removes the QuadFlags triangle field entirely, ensuring the output geometry is 100% triangles with no implicit quads.";
+                TypeOverride = "";
+                DefaultValue = true;
+                Visible = true;
+            }
+
+            public SimplygonPreserveQuadFlagsEx(dynamic jsonData) : base("PreserveQuadFlags")
+            {
+                Type = "bool";
+                HelpText = "If true, the QuadFlags triangle field in the input geometries (used for marking triangle pairs as quads for use in the QuadReductionProcessor) will be maintained in the processing geometries through the triangle reduction process as well as possible. This will cause most polygons involved in collapses performed by the triangle reducer to become triangles. This allows sequential triangle->quad reductions to handle mixed geometries. Setting this to false removes the QuadFlags triangle field entirely, ensuring the output geometry is 100% triangles with no implicit quads.";
+                TypeOverride = "";
+                DefaultValue = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonPreserveQuadFlagsEx DeepCopy()
+            {
+                return (SimplygonPreserveQuadFlagsEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
 
         public SimplygonReductionSettings() : base("ReductionSettings")
         {
@@ -4528,10 +4762,6 @@ namespace SimplygonUI
             SkinningImportanceUI.Parent = this;
             SkinningImportance = SkinningImportanceUI.DefaultValue;
             Items.Add(SkinningImportanceUI);
-            CurvatureImportanceUI = new SimplygonCurvatureImportanceEx();
-            CurvatureImportanceUI.Parent = this;
-            CurvatureImportance = CurvatureImportanceUI.DefaultValue;
-            Items.Add(CurvatureImportanceUI);
             OutwardMoveMultiplierUI = new SimplygonOutwardMoveMultiplierEx();
             OutwardMoveMultiplierUI.Parent = this;
             OutwardMoveMultiplier = OutwardMoveMultiplierUI.DefaultValue;
@@ -4592,6 +4822,10 @@ namespace SimplygonUI
             KeepUnprocessedSceneMeshesUI.Parent = this;
             KeepUnprocessedSceneMeshes = KeepUnprocessedSceneMeshesUI.DefaultValue;
             Items.Add(KeepUnprocessedSceneMeshesUI);
+            PreserveQuadFlagsUI = new SimplygonPreserveQuadFlagsEx();
+            PreserveQuadFlagsUI.Parent = this;
+            PreserveQuadFlags = PreserveQuadFlagsUI.DefaultValue;
+            Items.Add(PreserveQuadFlagsUI);
         }
 
         public SimplygonReductionSettings(dynamic jsonData) : base("ReductionSettings")
@@ -4669,10 +4903,6 @@ namespace SimplygonUI
             SkinningImportanceUI.Parent = this;
             SkinningImportance = SkinningImportanceUI.DefaultValue;
             Items.Add(SkinningImportanceUI);
-            CurvatureImportanceUI = new SimplygonCurvatureImportanceEx(jsonData != null && ((JObject)jsonData).GetValue("CurvatureImportanceUI") != null ? jsonData.CurvatureImportanceUI : null);
-            CurvatureImportanceUI.Parent = this;
-            CurvatureImportance = CurvatureImportanceUI.DefaultValue;
-            Items.Add(CurvatureImportanceUI);
             OutwardMoveMultiplierUI = new SimplygonOutwardMoveMultiplierEx(jsonData != null && ((JObject)jsonData).GetValue("OutwardMoveMultiplierUI") != null ? jsonData.OutwardMoveMultiplierUI : null);
             OutwardMoveMultiplierUI.Parent = this;
             OutwardMoveMultiplier = OutwardMoveMultiplierUI.DefaultValue;
@@ -4733,6 +4963,10 @@ namespace SimplygonUI
             KeepUnprocessedSceneMeshesUI.Parent = this;
             KeepUnprocessedSceneMeshes = KeepUnprocessedSceneMeshesUI.DefaultValue;
             Items.Add(KeepUnprocessedSceneMeshesUI);
+            PreserveQuadFlagsUI = new SimplygonPreserveQuadFlagsEx(jsonData != null && ((JObject)jsonData).GetValue("PreserveQuadFlagsUI") != null ? jsonData.PreserveQuadFlagsUI : null);
+            PreserveQuadFlagsUI.Parent = this;
+            PreserveQuadFlags = PreserveQuadFlagsUI.DefaultValue;
+            Items.Add(PreserveQuadFlagsUI);
             LoadJson(jsonData);
         }
 
@@ -4794,9 +5028,6 @@ namespace SimplygonUI
             copy.SkinningImportanceUI = this.SkinningImportanceUI.DeepCopy();
             copy.SkinningImportanceUI.Parent = copy;
             copy.Items.Add(copy.SkinningImportanceUI);
-            copy.CurvatureImportanceUI = this.CurvatureImportanceUI.DeepCopy();
-            copy.CurvatureImportanceUI.Parent = copy;
-            copy.Items.Add(copy.CurvatureImportanceUI);
             copy.OutwardMoveMultiplierUI = this.OutwardMoveMultiplierUI.DeepCopy();
             copy.OutwardMoveMultiplierUI.Parent = copy;
             copy.Items.Add(copy.OutwardMoveMultiplierUI);
@@ -4842,6 +5073,9 @@ namespace SimplygonUI
             copy.KeepUnprocessedSceneMeshesUI = this.KeepUnprocessedSceneMeshesUI.DeepCopy();
             copy.KeepUnprocessedSceneMeshesUI.Parent = copy;
             copy.Items.Add(copy.KeepUnprocessedSceneMeshesUI);
+            copy.PreserveQuadFlagsUI = this.PreserveQuadFlagsUI.DeepCopy();
+            copy.PreserveQuadFlagsUI.Parent = copy;
+            copy.Items.Add(copy.PreserveQuadFlagsUI);
             return copy;
         }
 
@@ -4956,12 +5190,6 @@ namespace SimplygonUI
                 jsonData.SkinningImportanceUI = SkinningImportanceUI.SaveJson();
             }
 
-            jsonData.CurvatureImportance = CurvatureImportance;
-            if(serializeUIComponents)
-            {
-                jsonData.CurvatureImportanceUI = CurvatureImportanceUI.SaveJson();
-            }
-
             jsonData.CreateGeomorphGeometry = CreateGeomorphGeometry;
             if(serializeUIComponents)
             {
@@ -5050,6 +5278,12 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.LockGeometricBorderUI = LockGeometricBorderUI.SaveJson();
+            }
+
+            jsonData.PreserveQuadFlags = PreserveQuadFlags;
+            if(serializeUIComponents)
+            {
+                jsonData.PreserveQuadFlagsUI = PreserveQuadFlagsUI.SaveJson();
             }
 
             return jsonData;
@@ -5272,21 +5506,6 @@ namespace SimplygonUI
 
             }
 
-            if(jsonData.GetValue("CurvatureImportance") != null)
-            {
-                float newCurvatureImportance = (float)jsonData.CurvatureImportance;
-                if (newCurvatureImportance >= CurvatureImportanceUI.DefaultMinValue && newCurvatureImportance <= CurvatureImportanceUI.DefaultMaxValue)
-                {
-                    CurvatureImportance = newCurvatureImportance;
-                }
-
-                else
-                {
-                    UILogger.Instance.Log(Category.Warning, $"CurvatureImportance: Invalid value {newCurvatureImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {CurvatureImportance.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                }
-
-            }
-
             if(jsonData.GetValue("CreateGeomorphGeometry") != null)
             {
                 CreateGeomorphGeometry = (bool)jsonData.CreateGeomorphGeometry;
@@ -5402,6 +5621,11 @@ namespace SimplygonUI
                 LockGeometricBorder = (bool)jsonData.LockGeometricBorder;
             }
 
+            if(jsonData.GetValue("PreserveQuadFlags") != null)
+            {
+                PreserveQuadFlags = (bool)jsonData.PreserveQuadFlags;
+            }
+
         }
 
         public override void Reset()
@@ -5424,7 +5648,6 @@ namespace SimplygonUI
             VertexColorImportanceUI.Reset();
             EdgeSetImportanceUI.Reset();
             SkinningImportanceUI.Reset();
-            CurvatureImportanceUI.Reset();
             CreateGeomorphGeometryUI.Reset();
             AllowDegenerateTexCoordsUI.Reset();
             KeepSymmetryUI.Reset();
@@ -5440,6 +5663,7 @@ namespace SimplygonUI
             MergeGeometriesUI.Reset();
             KeepUnprocessedSceneMeshesUI.Reset();
             LockGeometricBorderUI.Reset();
+            PreserveQuadFlagsUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
@@ -5463,7 +5687,6 @@ namespace SimplygonUI
             VertexColorImportanceUI.IsEditEnabled = isEditEnabled;
             EdgeSetImportanceUI.IsEditEnabled = isEditEnabled;
             SkinningImportanceUI.IsEditEnabled = isEditEnabled;
-            CurvatureImportanceUI.IsEditEnabled = isEditEnabled;
             CreateGeomorphGeometryUI.IsEditEnabled = isEditEnabled;
             AllowDegenerateTexCoordsUI.IsEditEnabled = isEditEnabled;
             KeepSymmetryUI.IsEditEnabled = isEditEnabled;
@@ -5479,6 +5702,7 @@ namespace SimplygonUI
             MergeGeometriesUI.IsEditEnabled = isEditEnabled;
             KeepUnprocessedSceneMeshesUI.IsEditEnabled = isEditEnabled;
             LockGeometricBorderUI.IsEditEnabled = isEditEnabled;
+            PreserveQuadFlagsUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -10752,7 +10976,7 @@ namespace SimplygonUI
             public SimplygonUseVertexWeightsInReducerEx() : base("UseVertexWeightsInReducer")
             {
                 Type = "bool";
-                HelpText = "If set, and using the reduction processor, the reduction will be weighted based on the weights in the 'VertexWeights' vertex field.";
+                HelpText = "If set, and using the ReductionProcessor or QuadReductionProcessor, the reduction will be weighted based on the weights in the 'VertexWeights' vertex field.";
                 TypeOverride = "";
                 DefaultValue = false;
                 Visible = true;
@@ -10761,7 +10985,7 @@ namespace SimplygonUI
             public SimplygonUseVertexWeightsInReducerEx(dynamic jsonData) : base("UseVertexWeightsInReducer")
             {
                 Type = "bool";
-                HelpText = "If set, and using the reduction processor, the reduction will be weighted based on the weights in the 'VertexWeights' vertex field.";
+                HelpText = "If set, and using the ReductionProcessor or QuadReductionProcessor, the reduction will be weighted based on the weights in the 'VertexWeights' vertex field.";
                 TypeOverride = "";
                 DefaultValue = false;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -11564,6 +11788,71 @@ namespace SimplygonUI
 
     }
 
+    public class SimplygonAttributeTessellationSettings : SimplygonSettings
+    {
+        public override bool Visible
+        {
+            get
+            {
+                if (!VisibleOverride) return false;
+                if (Name == "InputMaterialSettings") return false;
+
+                return false;
+            }
+
+            set
+            {
+                OnPropertyChanged();
+            }
+
+        }
+
+        public SimplygonTreeViewItem Parent { get; set; }
+
+        public SimplygonAttributeTessellationSettings() : base("AttributeTessellationSettings")
+        {
+            Visible = true;
+        }
+
+        public SimplygonAttributeTessellationSettings(dynamic jsonData) : base("AttributeTessellationSettings")
+        {
+            Visible = true;
+            LoadJson(jsonData);
+        }
+
+        public override SimplygonSettings DeepCopy()
+        {
+            var copy = new SimplygonAttributeTessellationSettings();
+            copy.Items.Clear();
+            return copy;
+        }
+
+        public override JObject SaveJson(bool serializeUIComponents)
+        {
+            dynamic jsonData = new JObject();
+            return jsonData;
+        }
+
+        protected void LoadJson(dynamic jsonData)
+        {
+            if(jsonData == null)
+            {
+                return;
+            }
+
+        }
+
+        public override void Reset()
+        {
+        }
+
+        public override void SetEditMode(bool isEditEnabled)
+        {
+            IsEditEnabled = isEditEnabled;
+        }
+
+    }
+
     public class SimplygonPipelineSettings : SimplygonSettings
     {
         public override bool Visible
@@ -11576,7 +11865,7 @@ namespace SimplygonUI
                 if(SimplygonBatchPathUI.Visible) return true;
                 if(OutputMaterialNameUI.Visible) return true;
                 if(OutputUniqueMaterialNamesUI.Visible) return true;
-                if(EmbedReferencesUI.Visible) return true;
+                if(ReferenceExportModeUI.Visible) return true;
                 if(IntermediateStepUI.Visible) return true;
                 if(CascadedRunModeUI.Visible) return true;
 
@@ -11871,45 +12160,46 @@ namespace SimplygonUI
 
         }
 
-        public bool EmbedReferences { get { return _EmbedReferences; } set { _EmbedReferences = value; OnPropertyChanged(); } }
-        private bool _EmbedReferences;
-        public SimplygonEmbedReferencesEx EmbedReferencesUI { get; set; }
-        public class SimplygonEmbedReferencesEx : SimplygonSettingsProperty
+        public EReferenceExportMode ReferenceExportMode { get { return _ReferenceExportMode; } set { _ReferenceExportMode = value; OnPropertyChanged(); } }
+        private EReferenceExportMode _ReferenceExportMode;
+        public SimplygonReferenceExportModeEx ReferenceExportModeUI { get; set; }
+        public class SimplygonReferenceExportModeEx : SimplygonSettingsProperty
         {
             public SimplygonPipelineSettings Parent { get; set; }
-            public bool Value
+            public EReferenceExportMode Value
             {
                 get
                 {
-                    return Parent.EmbedReferences;
+                    return Parent.ReferenceExportMode;
                 }
 
                 set
                 {
-                    bool needReload = Parent.EmbedReferences != value;
-                    Parent.EmbedReferences = value;
+                    bool needReload = Parent.ReferenceExportMode != value;
+                    Parent.ReferenceExportMode = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public bool DefaultValue { get; set; }
+            public EReferenceExportMode DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EReferenceExportMode)); } }
 
-            public SimplygonEmbedReferencesEx() : base("EmbedReferences")
+            public SimplygonReferenceExportModeEx() : base("ReferenceExportMode")
             {
-                Type = "bool";
-                HelpText = "Set flag to control if output file formats that support embedding referenced resources (like textures) should do so.";
+                Type = "enum";
+                HelpText = "Export mode for referenced external files in the scene, such as references to textures. File formats which do not support external references will ignore the setting and always embed the data.";
                 TypeOverride = "";
-                DefaultValue = false;
+                DefaultValue = EReferenceExportMode.Copy;
                 Visible = true;
             }
 
-            public SimplygonEmbedReferencesEx(dynamic jsonData) : base("EmbedReferences")
+            public SimplygonReferenceExportModeEx(dynamic jsonData) : base("ReferenceExportMode")
             {
-                Type = "bool";
-                HelpText = "Set flag to control if output file formats that support embedding referenced resources (like textures) should do so.";
+                Type = "enum";
+                HelpText = "Export mode for referenced external files in the scene, such as references to textures. File formats which do not support external references will ignore the setting and always embed the data.";
                 TypeOverride = "";
-                DefaultValue = false;
+                DefaultValue = EReferenceExportMode.Copy;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -11927,9 +12217,9 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonEmbedReferencesEx DeepCopy()
+            public SimplygonReferenceExportModeEx DeepCopy()
             {
-                return (SimplygonEmbedReferencesEx)this.MemberwiseClone();
+                return (SimplygonReferenceExportModeEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -12102,10 +12392,10 @@ namespace SimplygonUI
             OutputUniqueMaterialNamesUI.Parent = this;
             OutputUniqueMaterialNames = OutputUniqueMaterialNamesUI.DefaultValue;
             Items.Add(OutputUniqueMaterialNamesUI);
-            EmbedReferencesUI = new SimplygonEmbedReferencesEx();
-            EmbedReferencesUI.Parent = this;
-            EmbedReferences = EmbedReferencesUI.DefaultValue;
-            Items.Add(EmbedReferencesUI);
+            ReferenceExportModeUI = new SimplygonReferenceExportModeEx();
+            ReferenceExportModeUI.Parent = this;
+            ReferenceExportMode = ReferenceExportModeUI.DefaultValue;
+            Items.Add(ReferenceExportModeUI);
             IntermediateStepUI = new SimplygonIntermediateStepEx();
             IntermediateStepUI.Parent = this;
             IntermediateStep = IntermediateStepUI.DefaultValue;
@@ -12135,10 +12425,10 @@ namespace SimplygonUI
             OutputUniqueMaterialNamesUI.Parent = this;
             OutputUniqueMaterialNames = OutputUniqueMaterialNamesUI.DefaultValue;
             Items.Add(OutputUniqueMaterialNamesUI);
-            EmbedReferencesUI = new SimplygonEmbedReferencesEx(jsonData != null && ((JObject)jsonData).GetValue("EmbedReferencesUI") != null ? jsonData.EmbedReferencesUI : null);
-            EmbedReferencesUI.Parent = this;
-            EmbedReferences = EmbedReferencesUI.DefaultValue;
-            Items.Add(EmbedReferencesUI);
+            ReferenceExportModeUI = new SimplygonReferenceExportModeEx(jsonData != null && ((JObject)jsonData).GetValue("ReferenceExportModeUI") != null ? jsonData.ReferenceExportModeUI : null);
+            ReferenceExportModeUI.Parent = this;
+            ReferenceExportMode = ReferenceExportModeUI.DefaultValue;
+            Items.Add(ReferenceExportModeUI);
             IntermediateStepUI = new SimplygonIntermediateStepEx(jsonData != null && ((JObject)jsonData).GetValue("IntermediateStepUI") != null ? jsonData.IntermediateStepUI : null);
             IntermediateStepUI.Parent = this;
             IntermediateStep = IntermediateStepUI.DefaultValue;
@@ -12166,9 +12456,9 @@ namespace SimplygonUI
             copy.OutputUniqueMaterialNamesUI = this.OutputUniqueMaterialNamesUI.DeepCopy();
             copy.OutputUniqueMaterialNamesUI.Parent = copy;
             copy.Items.Add(copy.OutputUniqueMaterialNamesUI);
-            copy.EmbedReferencesUI = this.EmbedReferencesUI.DeepCopy();
-            copy.EmbedReferencesUI.Parent = copy;
-            copy.Items.Add(copy.EmbedReferencesUI);
+            copy.ReferenceExportModeUI = this.ReferenceExportModeUI.DeepCopy();
+            copy.ReferenceExportModeUI.Parent = copy;
+            copy.Items.Add(copy.ReferenceExportModeUI);
             copy.IntermediateStepUI = this.IntermediateStepUI.DeepCopy();
             copy.IntermediateStepUI.Parent = copy;
             copy.Items.Add(copy.IntermediateStepUI);
@@ -12205,10 +12495,10 @@ namespace SimplygonUI
                 jsonData.OutputUniqueMaterialNamesUI = OutputUniqueMaterialNamesUI.SaveJson();
             }
 
-            jsonData.EmbedReferences = EmbedReferences;
+            jsonData.ReferenceExportMode = (int)ReferenceExportMode;
             if(serializeUIComponents)
             {
-                jsonData.EmbedReferencesUI = EmbedReferencesUI.SaveJson();
+                jsonData.ReferenceExportModeUI = ReferenceExportModeUI.SaveJson();
             }
 
             jsonData.IntermediateStep = IntermediateStep;
@@ -12253,9 +12543,9 @@ namespace SimplygonUI
                 OutputUniqueMaterialNames = (bool)jsonData.OutputUniqueMaterialNames;
             }
 
-            if(jsonData.GetValue("EmbedReferences") != null)
+            if(jsonData.GetValue("ReferenceExportMode") != null)
             {
-                EmbedReferences = (bool)jsonData.EmbedReferences;
+                ReferenceExportMode = (EReferenceExportMode)jsonData.ReferenceExportMode;
             }
 
             if(jsonData.GetValue("IntermediateStep") != null)
@@ -12276,7 +12566,7 @@ namespace SimplygonUI
             SimplygonBatchPathUI.Reset();
             OutputMaterialNameUI.Reset();
             OutputUniqueMaterialNamesUI.Reset();
-            EmbedReferencesUI.Reset();
+            ReferenceExportModeUI.Reset();
             IntermediateStepUI.Reset();
             CascadedRunModeUI.Reset();
         }
@@ -12288,7 +12578,7 @@ namespace SimplygonUI
             SimplygonBatchPathUI.IsEditEnabled = isEditEnabled;
             OutputMaterialNameUI.IsEditEnabled = isEditEnabled;
             OutputUniqueMaterialNamesUI.IsEditEnabled = isEditEnabled;
-            EmbedReferencesUI.IsEditEnabled = isEditEnabled;
+            ReferenceExportModeUI.IsEditEnabled = isEditEnabled;
             IntermediateStepUI.IsEditEnabled = isEditEnabled;
             CascadedRunModeUI.IsEditEnabled = isEditEnabled;
         }
@@ -16316,6 +16606,1504 @@ namespace SimplygonUI
         {
             IsEditEnabled = isEditEnabled;
             DefaultTangentCalculatorTypeUI.IsEditEnabled = isEditEnabled;
+        }
+
+    }
+
+    public class SimplygonQuadReductionSettings : SimplygonSettings
+    {
+        public override bool Visible
+        {
+            get
+            {
+                if (!VisibleOverride) return false;
+                if (Name == "InputMaterialSettings") return false;
+                if(ReductionTargetPolygonRatioEnabledUI.Visible) return true;
+                if(ReductionTargetPolygonRatioUI.Visible) return true;
+                if(ReductionTargetPolygonCountEnabledUI.Visible) return true;
+                if(ReductionTargetPolygonCountUI.Visible) return true;
+                if(ReductionTargetMaxDeviationEnabledUI.Visible) return true;
+                if(ReductionTargetMaxDeviationUI.Visible) return true;
+                if(ReductionTargetOnScreenSizeEnabledUI.Visible) return true;
+                if(ReductionTargetOnScreenSizeUI.Visible) return true;
+                if(ReductionTargetStopConditionUI.Visible) return true;
+                if(UseWeldingUI.Visible) return true;
+                if(MergeGeometriesUI.Visible) return true;
+                if(KeepUnprocessedSceneMeshesUI.Visible) return true;
+
+                return false;
+            }
+
+            set
+            {
+                OnPropertyChanged();
+            }
+
+        }
+
+        public SimplygonTreeViewItem Parent { get; set; }
+        public bool ReductionTargetPolygonRatioEnabled { get { return _ReductionTargetPolygonRatioEnabled; } set { _ReductionTargetPolygonRatioEnabled = value; OnPropertyChanged(); } }
+        private bool _ReductionTargetPolygonRatioEnabled;
+        public SimplygonReductionTargetPolygonRatioEnabledEx ReductionTargetPolygonRatioEnabledUI { get; set; }
+        public class SimplygonReductionTargetPolygonRatioEnabledEx : SimplygonSettingsProperty
+        {
+            public SimplygonQuadReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.ReductionTargetPolygonRatioEnabled;
+                }
+
+                set
+                {
+                    bool needReload = Parent.ReductionTargetPolygonRatioEnabled != value;
+                    Parent.ReductionTargetPolygonRatioEnabled = value;
+                    Parent.ReductionTargetPolygonRatioUI.Visible = Visible;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+            public override bool Visible { get { return false; } set { OnPropertyChanged(); } }
+            public override bool IsEditEnabled { get { return false; } set { OnPropertyChanged(); } }
+
+            public SimplygonReductionTargetPolygonRatioEnabledEx() : base("ReductionTargetPolygonRatioEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable Polygon ratio as a reduction target. The reducer will stop when the set Polygon-ratio has been reached. Note that a pair of two triangles linked by the QuadFlags field to designate a quad counts as *one* polygon, not two.";
+                TypeOverride = "";
+                DefaultValue = true;
+                Visible = true;
+            }
+
+            public SimplygonReductionTargetPolygonRatioEnabledEx(dynamic jsonData) : base("ReductionTargetPolygonRatioEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable Polygon ratio as a reduction target. The reducer will stop when the set Polygon-ratio has been reached. Note that a pair of two triangles linked by the QuadFlags field to designate a quad counts as *one* polygon, not two.";
+                TypeOverride = "";
+                DefaultValue = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonReductionTargetPolygonRatioEnabledEx DeepCopy()
+            {
+                return (SimplygonReductionTargetPolygonRatioEnabledEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public float ReductionTargetPolygonRatio { get { return _ReductionTargetPolygonRatio; } set { _ReductionTargetPolygonRatio = value; OnPropertyChanged(); } }
+        private float _ReductionTargetPolygonRatio;
+        public SimplygonReductionTargetPolygonRatioEx ReductionTargetPolygonRatioUI { get; set; }
+        public class SimplygonReductionTargetPolygonRatioEx : SimplygonSettingsProperty
+        {
+            public SimplygonQuadReductionSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.ReductionTargetPolygonRatio;
+                }
+
+                set
+                {
+                    bool needReload = Parent.ReductionTargetPolygonRatio != value;
+                    Parent.ReductionTargetPolygonRatio = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+            public bool DependencyObject { get { return Parent.ReductionTargetPolygonRatioEnabled; } set { Parent.ReductionTargetPolygonRatioEnabled = value; OnPropertyChanged(); } }
+
+            public SimplygonReductionTargetPolygonRatioEx() : base("ReductionTargetPolygonRatio")
+            {
+                Type = "real";
+                HelpText = "The wanted reduction ratio. The range is 0->1. Note that a pair of two triangles linked by the QuadFlags field to designate a quad counts as *one* polygon, not two.";
+                TypeOverride = "";
+                DefaultValue = 0.5f;
+                MinValue = 0f;
+                MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
+                TicksFrequencyValue = 0.1f;
+                HasDependencyObject = true;
+                Visible = true;
+            }
+
+            public SimplygonReductionTargetPolygonRatioEx(dynamic jsonData) : base("ReductionTargetPolygonRatio")
+            {
+                Type = "real";
+                HelpText = "The wanted reduction ratio. The range is 0->1. Note that a pair of two triangles linked by the QuadFlags field to designate a quad counts as *one* polygon, not two.";
+                TypeOverride = "";
+                DefaultValue = 0.5f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetPolygonRatio: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetPolygonRatio: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 0.1f;
+                }
+
+                HasDependencyObject = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonReductionTargetPolygonRatioEx DeepCopy()
+            {
+                return (SimplygonReductionTargetPolygonRatioEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public bool ReductionTargetPolygonCountEnabled { get { return _ReductionTargetPolygonCountEnabled; } set { _ReductionTargetPolygonCountEnabled = value; OnPropertyChanged(); } }
+        private bool _ReductionTargetPolygonCountEnabled;
+        public SimplygonReductionTargetPolygonCountEnabledEx ReductionTargetPolygonCountEnabledUI { get; set; }
+        public class SimplygonReductionTargetPolygonCountEnabledEx : SimplygonSettingsProperty
+        {
+            public SimplygonQuadReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.ReductionTargetPolygonCountEnabled;
+                }
+
+                set
+                {
+                    bool needReload = Parent.ReductionTargetPolygonCountEnabled != value;
+                    Parent.ReductionTargetPolygonCountEnabled = value;
+                    Parent.ReductionTargetPolygonCountUI.Visible = Visible;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+            public override bool Visible { get { return false; } set { OnPropertyChanged(); } }
+            public override bool IsEditEnabled { get { return false; } set { OnPropertyChanged(); } }
+
+            public SimplygonReductionTargetPolygonCountEnabledEx() : base("ReductionTargetPolygonCountEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable Polygon count as a reduction target. The reducer will stop when the set Polygon count has been reached. Note that a pair of two triangles linked by the QuadFlags field to designate a quad counts as *one* polygon, not two.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonReductionTargetPolygonCountEnabledEx(dynamic jsonData) : base("ReductionTargetPolygonCountEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable Polygon count as a reduction target. The reducer will stop when the set Polygon count has been reached. Note that a pair of two triangles linked by the QuadFlags field to designate a quad counts as *one* polygon, not two.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonReductionTargetPolygonCountEnabledEx DeepCopy()
+            {
+                return (SimplygonReductionTargetPolygonCountEnabledEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public int ReductionTargetPolygonCount { get { return _ReductionTargetPolygonCount; } set { _ReductionTargetPolygonCount = value; OnPropertyChanged(); } }
+        private int _ReductionTargetPolygonCount;
+        public SimplygonReductionTargetPolygonCountEx ReductionTargetPolygonCountUI { get; set; }
+        public class SimplygonReductionTargetPolygonCountEx : SimplygonSettingsProperty
+        {
+            public SimplygonQuadReductionSettings Parent { get; set; }
+            public int Value
+            {
+                get
+                {
+                    return Parent.ReductionTargetPolygonCount;
+                }
+
+                set
+                {
+                    bool needReload = Parent.ReductionTargetPolygonCount != value;
+                    Parent.ReductionTargetPolygonCount = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
+            public bool DependencyObject { get { return Parent.ReductionTargetPolygonCountEnabled; } set { Parent.ReductionTargetPolygonCountEnabled = value; OnPropertyChanged(); } }
+
+            public SimplygonReductionTargetPolygonCountEx() : base("ReductionTargetPolygonCount")
+            {
+                Type = "uint";
+                HelpText = "The wanted Polygon count. The range is 0->inf. Note that a pair of two triangles linked by the QuadFlags field to designate a quad counts as *one* polygon, not two.";
+                TypeOverride = "";
+                DefaultValue = 10000;
+                MinValue = 0;
+                MaxValue = 10000000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 10000000;
+                TicksFrequencyValue = 10000;
+                HasDependencyObject = true;
+                Visible = true;
+            }
+
+            public SimplygonReductionTargetPolygonCountEx(dynamic jsonData) : base("ReductionTargetPolygonCount")
+            {
+                Type = "uint";
+                HelpText = "The wanted Polygon count. The range is 0->inf. Note that a pair of two triangles linked by the QuadFlags field to designate a quad counts as *one* polygon, not two.";
+                TypeOverride = "";
+                DefaultValue = 10000;
+                MinValue = 0;
+                DefaultMinValue = 0;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetPolygonCount: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 10000000;
+                DefaultMaxValue = 10000000;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetPolygonCount: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 10000;
+                }
+
+                HasDependencyObject = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonReductionTargetPolygonCountEx DeepCopy()
+            {
+                return (SimplygonReductionTargetPolygonCountEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public bool ReductionTargetMaxDeviationEnabled { get { return _ReductionTargetMaxDeviationEnabled; } set { _ReductionTargetMaxDeviationEnabled = value; OnPropertyChanged(); } }
+        private bool _ReductionTargetMaxDeviationEnabled;
+        public SimplygonReductionTargetMaxDeviationEnabledEx ReductionTargetMaxDeviationEnabledUI { get; set; }
+        public class SimplygonReductionTargetMaxDeviationEnabledEx : SimplygonSettingsProperty
+        {
+            public SimplygonQuadReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.ReductionTargetMaxDeviationEnabled;
+                }
+
+                set
+                {
+                    bool needReload = Parent.ReductionTargetMaxDeviationEnabled != value;
+                    Parent.ReductionTargetMaxDeviationEnabled = value;
+                    Parent.ReductionTargetMaxDeviationUI.Visible = Visible;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+            public override bool Visible { get { return false; } set { OnPropertyChanged(); } }
+            public override bool IsEditEnabled { get { return false; } set { OnPropertyChanged(); } }
+
+            public SimplygonReductionTargetMaxDeviationEnabledEx() : base("ReductionTargetMaxDeviationEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable max deviation as a reduction target. The reducer will stop when the set max deviation has been reached.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonReductionTargetMaxDeviationEnabledEx(dynamic jsonData) : base("ReductionTargetMaxDeviationEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable max deviation as a reduction target. The reducer will stop when the set max deviation has been reached.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonReductionTargetMaxDeviationEnabledEx DeepCopy()
+            {
+                return (SimplygonReductionTargetMaxDeviationEnabledEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public float ReductionTargetMaxDeviation { get { return _ReductionTargetMaxDeviation; } set { _ReductionTargetMaxDeviation = value; OnPropertyChanged(); } }
+        private float _ReductionTargetMaxDeviation;
+        public SimplygonReductionTargetMaxDeviationEx ReductionTargetMaxDeviationUI { get; set; }
+        public class SimplygonReductionTargetMaxDeviationEx : SimplygonSettingsProperty
+        {
+            public SimplygonQuadReductionSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.ReductionTargetMaxDeviation;
+                }
+
+                set
+                {
+                    bool needReload = Parent.ReductionTargetMaxDeviation != value;
+                    Parent.ReductionTargetMaxDeviation = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+            public bool DependencyObject { get { return Parent.ReductionTargetMaxDeviationEnabled; } set { Parent.ReductionTargetMaxDeviationEnabled = value; OnPropertyChanged(); } }
+
+            public SimplygonReductionTargetMaxDeviationEx() : base("ReductionTargetMaxDeviation")
+            {
+                Type = "real";
+                HelpText = "The MaxDeviation value, the maximum surface-deviation between the reduced geometry and the original.";
+                TypeOverride = "";
+                DefaultValue = 1f;
+                MinValue = 0f;
+                MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
+                TicksFrequencyValue = 0.1f;
+                HasDependencyObject = true;
+                Visible = true;
+            }
+
+            public SimplygonReductionTargetMaxDeviationEx(dynamic jsonData) : base("ReductionTargetMaxDeviation")
+            {
+                Type = "real";
+                HelpText = "The MaxDeviation value, the maximum surface-deviation between the reduced geometry and the original.";
+                TypeOverride = "";
+                DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetMaxDeviation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetMaxDeviation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 0.1f;
+                }
+
+                HasDependencyObject = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonReductionTargetMaxDeviationEx DeepCopy()
+            {
+                return (SimplygonReductionTargetMaxDeviationEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public bool ReductionTargetOnScreenSizeEnabled { get { return _ReductionTargetOnScreenSizeEnabled; } set { _ReductionTargetOnScreenSizeEnabled = value; OnPropertyChanged(); } }
+        private bool _ReductionTargetOnScreenSizeEnabled;
+        public SimplygonReductionTargetOnScreenSizeEnabledEx ReductionTargetOnScreenSizeEnabledUI { get; set; }
+        public class SimplygonReductionTargetOnScreenSizeEnabledEx : SimplygonSettingsProperty
+        {
+            public SimplygonQuadReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.ReductionTargetOnScreenSizeEnabled;
+                }
+
+                set
+                {
+                    bool needReload = Parent.ReductionTargetOnScreenSizeEnabled != value;
+                    Parent.ReductionTargetOnScreenSizeEnabled = value;
+                    Parent.ReductionTargetOnScreenSizeUI.Visible = Visible;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+            public override bool Visible { get { return false; } set { OnPropertyChanged(); } }
+            public override bool IsEditEnabled { get { return false; } set { OnPropertyChanged(); } }
+
+            public SimplygonReductionTargetOnScreenSizeEnabledEx() : base("ReductionTargetOnScreenSizeEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable on screen size as a reduction target. The reducer will stop when the set on screen size has been reached.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonReductionTargetOnScreenSizeEnabledEx(dynamic jsonData) : base("ReductionTargetOnScreenSizeEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable on screen size as a reduction target. The reducer will stop when the set on screen size has been reached.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonReductionTargetOnScreenSizeEnabledEx DeepCopy()
+            {
+                return (SimplygonReductionTargetOnScreenSizeEnabledEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public int ReductionTargetOnScreenSize { get { return _ReductionTargetOnScreenSize; } set { _ReductionTargetOnScreenSize = value; OnPropertyChanged(); } }
+        private int _ReductionTargetOnScreenSize;
+        public SimplygonReductionTargetOnScreenSizeEx ReductionTargetOnScreenSizeUI { get; set; }
+        public class SimplygonReductionTargetOnScreenSizeEx : SimplygonSettingsProperty
+        {
+            public SimplygonQuadReductionSettings Parent { get; set; }
+            public int Value
+            {
+                get
+                {
+                    return Parent.ReductionTargetOnScreenSize;
+                }
+
+                set
+                {
+                    bool needReload = Parent.ReductionTargetOnScreenSize != value;
+                    Parent.ReductionTargetOnScreenSize = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
+            public bool DependencyObject { get { return Parent.ReductionTargetOnScreenSizeEnabled; } set { Parent.ReductionTargetOnScreenSizeEnabled = value; OnPropertyChanged(); } }
+
+            public SimplygonReductionTargetOnScreenSizeEx() : base("ReductionTargetOnScreenSize")
+            {
+                Type = "uint";
+                HelpText = "The OnScreenSize value, used to calculate the maximum surface-deviation allowed, by assuming errors less than 1 pixel onscreen will not be noticeable.";
+                TypeOverride = "";
+                DefaultValue = 300;
+                MinValue = 20;
+                MaxValue = 100000;
+                DefaultMinValue = 20;
+                DefaultMaxValue = 100000;
+                TicksFrequencyValue = 10;
+                HasDependencyObject = true;
+                Visible = true;
+            }
+
+            public SimplygonReductionTargetOnScreenSizeEx(dynamic jsonData) : base("ReductionTargetOnScreenSize")
+            {
+                Type = "uint";
+                HelpText = "The OnScreenSize value, used to calculate the maximum surface-deviation allowed, by assuming errors less than 1 pixel onscreen will not be noticeable.";
+                TypeOverride = "";
+                DefaultValue = 300;
+                MinValue = 20;
+                DefaultMinValue = 20;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetOnScreenSize: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 100000;
+                DefaultMaxValue = 100000;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"ReductionTargetOnScreenSize: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 10;
+                }
+
+                HasDependencyObject = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonReductionTargetOnScreenSizeEx DeepCopy()
+            {
+                return (SimplygonReductionTargetOnScreenSizeEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public EStopCondition ReductionTargetStopCondition { get { return _ReductionTargetStopCondition; } set { _ReductionTargetStopCondition = value; OnPropertyChanged(); } }
+        private EStopCondition _ReductionTargetStopCondition;
+        public SimplygonReductionTargetStopConditionEx ReductionTargetStopConditionUI { get; set; }
+        public class SimplygonReductionTargetStopConditionEx : SimplygonSettingsProperty
+        {
+            public SimplygonQuadReductionSettings Parent { get; set; }
+            public EStopCondition Value
+            {
+                get
+                {
+                    return Parent.ReductionTargetStopCondition;
+                }
+
+                set
+                {
+                    bool needReload = Parent.ReductionTargetStopCondition != value;
+                    Parent.ReductionTargetStopCondition = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EStopCondition DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EStopCondition)); } }
+
+            public SimplygonReductionTargetStopConditionEx() : base("ReductionTargetStopCondition")
+            {
+                Type = "enum";
+                HelpText = "The stop condition for the reducer.  Any -> the reducer will stop when any single one of the set reduction targets have been reached.  All -> the reducer will stop when all enabled reduction targets have been reached.";
+                TypeOverride = "";
+                DefaultValue = EStopCondition.All;
+                Visible = true;
+            }
+
+            public SimplygonReductionTargetStopConditionEx(dynamic jsonData) : base("ReductionTargetStopCondition")
+            {
+                Type = "enum";
+                HelpText = "The stop condition for the reducer.  Any -> the reducer will stop when any single one of the set reduction targets have been reached.  All -> the reducer will stop when all enabled reduction targets have been reached.";
+                TypeOverride = "";
+                DefaultValue = EStopCondition.All;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonReductionTargetStopConditionEx DeepCopy()
+            {
+                return (SimplygonReductionTargetStopConditionEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool UseWelding { get { return _UseWelding; } set { _UseWelding = value; OnPropertyChanged(); } }
+        private bool _UseWelding;
+        public SimplygonUseWeldingEx UseWeldingUI { get; set; }
+        public class SimplygonUseWeldingEx : SimplygonSettingsProperty
+        {
+            public SimplygonQuadReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.UseWelding;
+                }
+
+                set
+                {
+                    bool needReload = Parent.UseWelding != value;
+                    Parent.UseWelding = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonUseWeldingEx() : base("UseWelding")
+            {
+                Type = "bool";
+                HelpText = "If set, vertices occupying the same position in 3D space will be welded together, creating better connectivity for quad reduction.";
+                TypeOverride = "";
+                DefaultValue = true;
+                Visible = true;
+            }
+
+            public SimplygonUseWeldingEx(dynamic jsonData) : base("UseWelding")
+            {
+                Type = "bool";
+                HelpText = "If set, vertices occupying the same position in 3D space will be welded together, creating better connectivity for quad reduction.";
+                TypeOverride = "";
+                DefaultValue = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonUseWeldingEx DeepCopy()
+            {
+                return (SimplygonUseWeldingEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool MergeGeometries { get { return _MergeGeometries; } set { _MergeGeometries = value; OnPropertyChanged(); } }
+        private bool _MergeGeometries;
+        public SimplygonMergeGeometriesEx MergeGeometriesUI { get; set; }
+        public class SimplygonMergeGeometriesEx : SimplygonSettingsProperty
+        {
+            public SimplygonQuadReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.MergeGeometries;
+                }
+
+                set
+                {
+                    bool needReload = Parent.MergeGeometries != value;
+                    Parent.MergeGeometries = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonMergeGeometriesEx() : base("MergeGeometries")
+            {
+                Type = "bool";
+                HelpText = "The processor will merge all the geometries in the scene into a single geometry if MergeGeometries is enabled.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonMergeGeometriesEx(dynamic jsonData) : base("MergeGeometries")
+            {
+                Type = "bool";
+                HelpText = "The processor will merge all the geometries in the scene into a single geometry if MergeGeometries is enabled.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonMergeGeometriesEx DeepCopy()
+            {
+                return (SimplygonMergeGeometriesEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool KeepUnprocessedSceneMeshes { get { return _KeepUnprocessedSceneMeshes; } set { _KeepUnprocessedSceneMeshes = value; OnPropertyChanged(); } }
+        private bool _KeepUnprocessedSceneMeshes;
+        public SimplygonKeepUnprocessedSceneMeshesEx KeepUnprocessedSceneMeshesUI { get; set; }
+        public class SimplygonKeepUnprocessedSceneMeshesEx : SimplygonSettingsProperty
+        {
+            public SimplygonQuadReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.KeepUnprocessedSceneMeshes;
+                }
+
+                set
+                {
+                    bool needReload = Parent.KeepUnprocessedSceneMeshes != value;
+                    Parent.KeepUnprocessedSceneMeshes = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonKeepUnprocessedSceneMeshesEx() : base("KeepUnprocessedSceneMeshes")
+            {
+                Type = "bool";
+                HelpText = "If false, the processor will remove all geometry and scene meshes which were not selected for processing from the scene. If true, only the geometry in the ProcessSelectionSet will be replaced or updated, while the rest of the scene tree is kept intact. New geometry is always added as the last child of the scene root. If generating a mappingimage to cast materials, new materialIds will also be appended to the end of the old material table instead of replacing the old ones.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonKeepUnprocessedSceneMeshesEx(dynamic jsonData) : base("KeepUnprocessedSceneMeshes")
+            {
+                Type = "bool";
+                HelpText = "If false, the processor will remove all geometry and scene meshes which were not selected for processing from the scene. If true, only the geometry in the ProcessSelectionSet will be replaced or updated, while the rest of the scene tree is kept intact. New geometry is always added as the last child of the scene root. If generating a mappingimage to cast materials, new materialIds will also be appended to the end of the old material table instead of replacing the old ones.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonKeepUnprocessedSceneMeshesEx DeepCopy()
+            {
+                return (SimplygonKeepUnprocessedSceneMeshesEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+
+        public SimplygonQuadReductionSettings() : base("QuadReductionSettings")
+        {
+            Visible = true;
+            ReductionTargetPolygonRatioEnabledUI = new SimplygonReductionTargetPolygonRatioEnabledEx();
+            ReductionTargetPolygonRatioEnabledUI.Parent = this;
+            ReductionTargetPolygonRatioEnabled = ReductionTargetPolygonRatioEnabledUI.DefaultValue;
+            Items.Add(ReductionTargetPolygonRatioEnabledUI);
+            ReductionTargetPolygonRatioUI = new SimplygonReductionTargetPolygonRatioEx();
+            ReductionTargetPolygonRatioUI.Parent = this;
+            ReductionTargetPolygonRatio = ReductionTargetPolygonRatioUI.DefaultValue;
+            Items.Add(ReductionTargetPolygonRatioUI);
+            ReductionTargetPolygonCountEnabledUI = new SimplygonReductionTargetPolygonCountEnabledEx();
+            ReductionTargetPolygonCountEnabledUI.Parent = this;
+            ReductionTargetPolygonCountEnabled = ReductionTargetPolygonCountEnabledUI.DefaultValue;
+            Items.Add(ReductionTargetPolygonCountEnabledUI);
+            ReductionTargetPolygonCountUI = new SimplygonReductionTargetPolygonCountEx();
+            ReductionTargetPolygonCountUI.Parent = this;
+            ReductionTargetPolygonCount = ReductionTargetPolygonCountUI.DefaultValue;
+            Items.Add(ReductionTargetPolygonCountUI);
+            ReductionTargetMaxDeviationEnabledUI = new SimplygonReductionTargetMaxDeviationEnabledEx();
+            ReductionTargetMaxDeviationEnabledUI.Parent = this;
+            ReductionTargetMaxDeviationEnabled = ReductionTargetMaxDeviationEnabledUI.DefaultValue;
+            Items.Add(ReductionTargetMaxDeviationEnabledUI);
+            ReductionTargetMaxDeviationUI = new SimplygonReductionTargetMaxDeviationEx();
+            ReductionTargetMaxDeviationUI.Parent = this;
+            ReductionTargetMaxDeviation = ReductionTargetMaxDeviationUI.DefaultValue;
+            Items.Add(ReductionTargetMaxDeviationUI);
+            ReductionTargetOnScreenSizeEnabledUI = new SimplygonReductionTargetOnScreenSizeEnabledEx();
+            ReductionTargetOnScreenSizeEnabledUI.Parent = this;
+            ReductionTargetOnScreenSizeEnabled = ReductionTargetOnScreenSizeEnabledUI.DefaultValue;
+            Items.Add(ReductionTargetOnScreenSizeEnabledUI);
+            ReductionTargetOnScreenSizeUI = new SimplygonReductionTargetOnScreenSizeEx();
+            ReductionTargetOnScreenSizeUI.Parent = this;
+            ReductionTargetOnScreenSize = ReductionTargetOnScreenSizeUI.DefaultValue;
+            Items.Add(ReductionTargetOnScreenSizeUI);
+            ReductionTargetStopConditionUI = new SimplygonReductionTargetStopConditionEx();
+            ReductionTargetStopConditionUI.Parent = this;
+            ReductionTargetStopCondition = ReductionTargetStopConditionUI.DefaultValue;
+            Items.Add(ReductionTargetStopConditionUI);
+            UseWeldingUI = new SimplygonUseWeldingEx();
+            UseWeldingUI.Parent = this;
+            UseWelding = UseWeldingUI.DefaultValue;
+            Items.Add(UseWeldingUI);
+            MergeGeometriesUI = new SimplygonMergeGeometriesEx();
+            MergeGeometriesUI.Parent = this;
+            MergeGeometries = MergeGeometriesUI.DefaultValue;
+            Items.Add(MergeGeometriesUI);
+            KeepUnprocessedSceneMeshesUI = new SimplygonKeepUnprocessedSceneMeshesEx();
+            KeepUnprocessedSceneMeshesUI.Parent = this;
+            KeepUnprocessedSceneMeshes = KeepUnprocessedSceneMeshesUI.DefaultValue;
+            Items.Add(KeepUnprocessedSceneMeshesUI);
+        }
+
+        public SimplygonQuadReductionSettings(dynamic jsonData) : base("QuadReductionSettings")
+        {
+            Visible = true;
+            ReductionTargetPolygonRatioEnabledUI = new SimplygonReductionTargetPolygonRatioEnabledEx(jsonData != null && ((JObject)jsonData).GetValue("ReductionTargetPolygonRatioEnabledUI") != null ? jsonData.ReductionTargetPolygonRatioEnabledUI : null);
+            ReductionTargetPolygonRatioEnabledUI.Parent = this;
+            ReductionTargetPolygonRatioEnabled = ReductionTargetPolygonRatioEnabledUI.DefaultValue;
+            Items.Add(ReductionTargetPolygonRatioEnabledUI);
+            ReductionTargetPolygonRatioUI = new SimplygonReductionTargetPolygonRatioEx(jsonData != null && ((JObject)jsonData).GetValue("ReductionTargetPolygonRatioUI") != null ? jsonData.ReductionTargetPolygonRatioUI : null);
+            ReductionTargetPolygonRatioUI.Parent = this;
+            ReductionTargetPolygonRatio = ReductionTargetPolygonRatioUI.DefaultValue;
+            Items.Add(ReductionTargetPolygonRatioUI);
+            ReductionTargetPolygonCountEnabledUI = new SimplygonReductionTargetPolygonCountEnabledEx(jsonData != null && ((JObject)jsonData).GetValue("ReductionTargetPolygonCountEnabledUI") != null ? jsonData.ReductionTargetPolygonCountEnabledUI : null);
+            ReductionTargetPolygonCountEnabledUI.Parent = this;
+            ReductionTargetPolygonCountEnabled = ReductionTargetPolygonCountEnabledUI.DefaultValue;
+            Items.Add(ReductionTargetPolygonCountEnabledUI);
+            ReductionTargetPolygonCountUI = new SimplygonReductionTargetPolygonCountEx(jsonData != null && ((JObject)jsonData).GetValue("ReductionTargetPolygonCountUI") != null ? jsonData.ReductionTargetPolygonCountUI : null);
+            ReductionTargetPolygonCountUI.Parent = this;
+            ReductionTargetPolygonCount = ReductionTargetPolygonCountUI.DefaultValue;
+            Items.Add(ReductionTargetPolygonCountUI);
+            ReductionTargetMaxDeviationEnabledUI = new SimplygonReductionTargetMaxDeviationEnabledEx(jsonData != null && ((JObject)jsonData).GetValue("ReductionTargetMaxDeviationEnabledUI") != null ? jsonData.ReductionTargetMaxDeviationEnabledUI : null);
+            ReductionTargetMaxDeviationEnabledUI.Parent = this;
+            ReductionTargetMaxDeviationEnabled = ReductionTargetMaxDeviationEnabledUI.DefaultValue;
+            Items.Add(ReductionTargetMaxDeviationEnabledUI);
+            ReductionTargetMaxDeviationUI = new SimplygonReductionTargetMaxDeviationEx(jsonData != null && ((JObject)jsonData).GetValue("ReductionTargetMaxDeviationUI") != null ? jsonData.ReductionTargetMaxDeviationUI : null);
+            ReductionTargetMaxDeviationUI.Parent = this;
+            ReductionTargetMaxDeviation = ReductionTargetMaxDeviationUI.DefaultValue;
+            Items.Add(ReductionTargetMaxDeviationUI);
+            ReductionTargetOnScreenSizeEnabledUI = new SimplygonReductionTargetOnScreenSizeEnabledEx(jsonData != null && ((JObject)jsonData).GetValue("ReductionTargetOnScreenSizeEnabledUI") != null ? jsonData.ReductionTargetOnScreenSizeEnabledUI : null);
+            ReductionTargetOnScreenSizeEnabledUI.Parent = this;
+            ReductionTargetOnScreenSizeEnabled = ReductionTargetOnScreenSizeEnabledUI.DefaultValue;
+            Items.Add(ReductionTargetOnScreenSizeEnabledUI);
+            ReductionTargetOnScreenSizeUI = new SimplygonReductionTargetOnScreenSizeEx(jsonData != null && ((JObject)jsonData).GetValue("ReductionTargetOnScreenSizeUI") != null ? jsonData.ReductionTargetOnScreenSizeUI : null);
+            ReductionTargetOnScreenSizeUI.Parent = this;
+            ReductionTargetOnScreenSize = ReductionTargetOnScreenSizeUI.DefaultValue;
+            Items.Add(ReductionTargetOnScreenSizeUI);
+            ReductionTargetStopConditionUI = new SimplygonReductionTargetStopConditionEx(jsonData != null && ((JObject)jsonData).GetValue("ReductionTargetStopConditionUI") != null ? jsonData.ReductionTargetStopConditionUI : null);
+            ReductionTargetStopConditionUI.Parent = this;
+            ReductionTargetStopCondition = ReductionTargetStopConditionUI.DefaultValue;
+            Items.Add(ReductionTargetStopConditionUI);
+            UseWeldingUI = new SimplygonUseWeldingEx(jsonData != null && ((JObject)jsonData).GetValue("UseWeldingUI") != null ? jsonData.UseWeldingUI : null);
+            UseWeldingUI.Parent = this;
+            UseWelding = UseWeldingUI.DefaultValue;
+            Items.Add(UseWeldingUI);
+            MergeGeometriesUI = new SimplygonMergeGeometriesEx(jsonData != null && ((JObject)jsonData).GetValue("MergeGeometriesUI") != null ? jsonData.MergeGeometriesUI : null);
+            MergeGeometriesUI.Parent = this;
+            MergeGeometries = MergeGeometriesUI.DefaultValue;
+            Items.Add(MergeGeometriesUI);
+            KeepUnprocessedSceneMeshesUI = new SimplygonKeepUnprocessedSceneMeshesEx(jsonData != null && ((JObject)jsonData).GetValue("KeepUnprocessedSceneMeshesUI") != null ? jsonData.KeepUnprocessedSceneMeshesUI : null);
+            KeepUnprocessedSceneMeshesUI.Parent = this;
+            KeepUnprocessedSceneMeshes = KeepUnprocessedSceneMeshesUI.DefaultValue;
+            Items.Add(KeepUnprocessedSceneMeshesUI);
+            LoadJson(jsonData);
+        }
+
+        public override SimplygonSettings DeepCopy()
+        {
+            var copy = new SimplygonQuadReductionSettings();
+            copy.Items.Clear();
+            copy.ReductionTargetPolygonRatioEnabledUI = this.ReductionTargetPolygonRatioEnabledUI.DeepCopy();
+            copy.ReductionTargetPolygonRatioEnabledUI.Parent = copy;
+            copy.Items.Add(copy.ReductionTargetPolygonRatioEnabledUI);
+            copy.ReductionTargetPolygonRatioUI = this.ReductionTargetPolygonRatioUI.DeepCopy();
+            copy.ReductionTargetPolygonRatioUI.Parent = copy;
+            copy.Items.Add(copy.ReductionTargetPolygonRatioUI);
+            copy.ReductionTargetPolygonCountEnabledUI = this.ReductionTargetPolygonCountEnabledUI.DeepCopy();
+            copy.ReductionTargetPolygonCountEnabledUI.Parent = copy;
+            copy.Items.Add(copy.ReductionTargetPolygonCountEnabledUI);
+            copy.ReductionTargetPolygonCountUI = this.ReductionTargetPolygonCountUI.DeepCopy();
+            copy.ReductionTargetPolygonCountUI.Parent = copy;
+            copy.Items.Add(copy.ReductionTargetPolygonCountUI);
+            copy.ReductionTargetMaxDeviationEnabledUI = this.ReductionTargetMaxDeviationEnabledUI.DeepCopy();
+            copy.ReductionTargetMaxDeviationEnabledUI.Parent = copy;
+            copy.Items.Add(copy.ReductionTargetMaxDeviationEnabledUI);
+            copy.ReductionTargetMaxDeviationUI = this.ReductionTargetMaxDeviationUI.DeepCopy();
+            copy.ReductionTargetMaxDeviationUI.Parent = copy;
+            copy.Items.Add(copy.ReductionTargetMaxDeviationUI);
+            copy.ReductionTargetOnScreenSizeEnabledUI = this.ReductionTargetOnScreenSizeEnabledUI.DeepCopy();
+            copy.ReductionTargetOnScreenSizeEnabledUI.Parent = copy;
+            copy.Items.Add(copy.ReductionTargetOnScreenSizeEnabledUI);
+            copy.ReductionTargetOnScreenSizeUI = this.ReductionTargetOnScreenSizeUI.DeepCopy();
+            copy.ReductionTargetOnScreenSizeUI.Parent = copy;
+            copy.Items.Add(copy.ReductionTargetOnScreenSizeUI);
+            copy.ReductionTargetStopConditionUI = this.ReductionTargetStopConditionUI.DeepCopy();
+            copy.ReductionTargetStopConditionUI.Parent = copy;
+            copy.Items.Add(copy.ReductionTargetStopConditionUI);
+            copy.UseWeldingUI = this.UseWeldingUI.DeepCopy();
+            copy.UseWeldingUI.Parent = copy;
+            copy.Items.Add(copy.UseWeldingUI);
+            copy.MergeGeometriesUI = this.MergeGeometriesUI.DeepCopy();
+            copy.MergeGeometriesUI.Parent = copy;
+            copy.Items.Add(copy.MergeGeometriesUI);
+            copy.KeepUnprocessedSceneMeshesUI = this.KeepUnprocessedSceneMeshesUI.DeepCopy();
+            copy.KeepUnprocessedSceneMeshesUI.Parent = copy;
+            copy.Items.Add(copy.KeepUnprocessedSceneMeshesUI);
+            return copy;
+        }
+
+        public override JObject SaveJson(bool serializeUIComponents)
+        {
+            dynamic jsonData = new JObject();
+            jsonData.ReductionTargetPolygonRatioEnabled = ReductionTargetPolygonRatioEnabled;
+            if(serializeUIComponents)
+            {
+                jsonData.ReductionTargetPolygonRatioEnabledUI = ReductionTargetPolygonRatioEnabledUI.SaveJson();
+            }
+
+            jsonData.ReductionTargetPolygonRatio = ReductionTargetPolygonRatio;
+            if(serializeUIComponents)
+            {
+                jsonData.ReductionTargetPolygonRatioUI = ReductionTargetPolygonRatioUI.SaveJson();
+            }
+
+            jsonData.ReductionTargetPolygonCountEnabled = ReductionTargetPolygonCountEnabled;
+            if(serializeUIComponents)
+            {
+                jsonData.ReductionTargetPolygonCountEnabledUI = ReductionTargetPolygonCountEnabledUI.SaveJson();
+            }
+
+            jsonData.ReductionTargetPolygonCount = ReductionTargetPolygonCount;
+            if(serializeUIComponents)
+            {
+                jsonData.ReductionTargetPolygonCountUI = ReductionTargetPolygonCountUI.SaveJson();
+            }
+
+            jsonData.ReductionTargetMaxDeviationEnabled = ReductionTargetMaxDeviationEnabled;
+            if(serializeUIComponents)
+            {
+                jsonData.ReductionTargetMaxDeviationEnabledUI = ReductionTargetMaxDeviationEnabledUI.SaveJson();
+            }
+
+            jsonData.ReductionTargetMaxDeviation = ReductionTargetMaxDeviation;
+            if(serializeUIComponents)
+            {
+                jsonData.ReductionTargetMaxDeviationUI = ReductionTargetMaxDeviationUI.SaveJson();
+            }
+
+            jsonData.ReductionTargetOnScreenSizeEnabled = ReductionTargetOnScreenSizeEnabled;
+            if(serializeUIComponents)
+            {
+                jsonData.ReductionTargetOnScreenSizeEnabledUI = ReductionTargetOnScreenSizeEnabledUI.SaveJson();
+            }
+
+            jsonData.ReductionTargetOnScreenSize = ReductionTargetOnScreenSize;
+            if(serializeUIComponents)
+            {
+                jsonData.ReductionTargetOnScreenSizeUI = ReductionTargetOnScreenSizeUI.SaveJson();
+            }
+
+            jsonData.ReductionTargetStopCondition = (int)ReductionTargetStopCondition;
+            if(serializeUIComponents)
+            {
+                jsonData.ReductionTargetStopConditionUI = ReductionTargetStopConditionUI.SaveJson();
+            }
+
+            jsonData.UseWelding = UseWelding;
+            if(serializeUIComponents)
+            {
+                jsonData.UseWeldingUI = UseWeldingUI.SaveJson();
+            }
+
+            jsonData.MergeGeometries = MergeGeometries;
+            if(serializeUIComponents)
+            {
+                jsonData.MergeGeometriesUI = MergeGeometriesUI.SaveJson();
+            }
+
+            jsonData.KeepUnprocessedSceneMeshes = KeepUnprocessedSceneMeshes;
+            if(serializeUIComponents)
+            {
+                jsonData.KeepUnprocessedSceneMeshesUI = KeepUnprocessedSceneMeshesUI.SaveJson();
+            }
+
+            return jsonData;
+        }
+
+        protected void LoadJson(dynamic jsonData)
+        {
+            if(jsonData == null)
+            {
+                return;
+            }
+
+            if(jsonData.GetValue("ReductionTargetPolygonRatioEnabled") != null)
+            {
+                ReductionTargetPolygonRatioEnabled = (bool)jsonData.ReductionTargetPolygonRatioEnabled;
+            }
+
+            if(jsonData.GetValue("ReductionTargetPolygonRatio") != null)
+            {
+                float newReductionTargetPolygonRatio = (float)jsonData.ReductionTargetPolygonRatio;
+                if (newReductionTargetPolygonRatio >= ReductionTargetPolygonRatioUI.DefaultMinValue && newReductionTargetPolygonRatio <= ReductionTargetPolygonRatioUI.DefaultMaxValue)
+                {
+                    ReductionTargetPolygonRatio = newReductionTargetPolygonRatio;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ReductionTargetPolygonRatio: Invalid value {newReductionTargetPolygonRatio.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {ReductionTargetPolygonRatio.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("ReductionTargetPolygonCountEnabled") != null)
+            {
+                ReductionTargetPolygonCountEnabled = (bool)jsonData.ReductionTargetPolygonCountEnabled;
+            }
+
+            if(jsonData.GetValue("ReductionTargetPolygonCount") != null)
+            {
+                var newReductionTargetPolygonCount = (int)jsonData.ReductionTargetPolygonCount;
+                if (newReductionTargetPolygonCount >= ReductionTargetPolygonCountUI.DefaultMinValue && newReductionTargetPolygonCount <= ReductionTargetPolygonCountUI.DefaultMaxValue)
+                {
+                    ReductionTargetPolygonCount = newReductionTargetPolygonCount;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ReductionTargetPolygonCount: Invalid value {newReductionTargetPolygonCount}, using default value {ReductionTargetPolygonCount.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("ReductionTargetMaxDeviationEnabled") != null)
+            {
+                ReductionTargetMaxDeviationEnabled = (bool)jsonData.ReductionTargetMaxDeviationEnabled;
+            }
+
+            if(jsonData.GetValue("ReductionTargetMaxDeviation") != null)
+            {
+                float newReductionTargetMaxDeviation = (float)jsonData.ReductionTargetMaxDeviation;
+                if (newReductionTargetMaxDeviation >= ReductionTargetMaxDeviationUI.DefaultMinValue && newReductionTargetMaxDeviation <= ReductionTargetMaxDeviationUI.DefaultMaxValue)
+                {
+                    ReductionTargetMaxDeviation = newReductionTargetMaxDeviation;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ReductionTargetMaxDeviation: Invalid value {newReductionTargetMaxDeviation.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {ReductionTargetMaxDeviation.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("ReductionTargetOnScreenSizeEnabled") != null)
+            {
+                ReductionTargetOnScreenSizeEnabled = (bool)jsonData.ReductionTargetOnScreenSizeEnabled;
+            }
+
+            if(jsonData.GetValue("ReductionTargetOnScreenSize") != null)
+            {
+                var newReductionTargetOnScreenSize = (int)jsonData.ReductionTargetOnScreenSize;
+                if (newReductionTargetOnScreenSize >= ReductionTargetOnScreenSizeUI.DefaultMinValue && newReductionTargetOnScreenSize <= ReductionTargetOnScreenSizeUI.DefaultMaxValue)
+                {
+                    ReductionTargetOnScreenSize = newReductionTargetOnScreenSize;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"ReductionTargetOnScreenSize: Invalid value {newReductionTargetOnScreenSize}, using default value {ReductionTargetOnScreenSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("ReductionTargetStopCondition") != null)
+            {
+                ReductionTargetStopCondition = (EStopCondition)jsonData.ReductionTargetStopCondition;
+            }
+
+            if(jsonData.GetValue("UseWelding") != null)
+            {
+                UseWelding = (bool)jsonData.UseWelding;
+            }
+
+            if(jsonData.GetValue("MergeGeometries") != null)
+            {
+                MergeGeometries = (bool)jsonData.MergeGeometries;
+            }
+
+            if(jsonData.GetValue("KeepUnprocessedSceneMeshes") != null)
+            {
+                KeepUnprocessedSceneMeshes = (bool)jsonData.KeepUnprocessedSceneMeshes;
+            }
+
+        }
+
+        public override void Reset()
+        {
+            ReductionTargetPolygonRatioEnabledUI.Reset();
+            ReductionTargetPolygonRatioUI.Reset();
+            ReductionTargetPolygonCountEnabledUI.Reset();
+            ReductionTargetPolygonCountUI.Reset();
+            ReductionTargetMaxDeviationEnabledUI.Reset();
+            ReductionTargetMaxDeviationUI.Reset();
+            ReductionTargetOnScreenSizeEnabledUI.Reset();
+            ReductionTargetOnScreenSizeUI.Reset();
+            ReductionTargetStopConditionUI.Reset();
+            UseWeldingUI.Reset();
+            MergeGeometriesUI.Reset();
+            KeepUnprocessedSceneMeshesUI.Reset();
+        }
+
+        public override void SetEditMode(bool isEditEnabled)
+        {
+            IsEditEnabled = isEditEnabled;
+            ReductionTargetPolygonRatioEnabledUI.IsEditEnabled = isEditEnabled;
+            ReductionTargetPolygonRatioUI.IsEditEnabled = isEditEnabled;
+            ReductionTargetPolygonCountEnabledUI.IsEditEnabled = isEditEnabled;
+            ReductionTargetPolygonCountUI.IsEditEnabled = isEditEnabled;
+            ReductionTargetMaxDeviationEnabledUI.IsEditEnabled = isEditEnabled;
+            ReductionTargetMaxDeviationUI.IsEditEnabled = isEditEnabled;
+            ReductionTargetOnScreenSizeEnabledUI.IsEditEnabled = isEditEnabled;
+            ReductionTargetOnScreenSizeUI.IsEditEnabled = isEditEnabled;
+            ReductionTargetStopConditionUI.IsEditEnabled = isEditEnabled;
+            UseWeldingUI.IsEditEnabled = isEditEnabled;
+            MergeGeometriesUI.IsEditEnabled = isEditEnabled;
+            KeepUnprocessedSceneMeshesUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -21336,7 +23124,7 @@ namespace SimplygonUI
             public SimplygonMaxPlaneCountEx() : base("MaxPlaneCount")
             {
                 Type = "uint";
-                HelpText = "Determines the maximum billboard count. When this criteria is met, it is not guaranteed that all triangles in the scene have been accurately mapped to a billboard yet. Triangles that have not been mapped to a billboard within the BillboardMaxDeviation distance will be mapped to an existing billboard that best represents the triangle.";
+                HelpText = "Determines the maximum amount of planes that are computed for the scene initially. When this criteria is met, it is not guaranteed that all triangles in the scene have been accurately mapped to a billboard. It is not a definite hard limit on the number of billboards because the planes can be split up into multiple planes when they're being cut to match their projections. For instance: if GeometricComplexity is high and there are two completely separated projections on a billboard, then the billboard will be split up into two billboards.";
                 TypeOverride = "";
                 DefaultValue = 10;
                 MinValue = 0;
@@ -21350,7 +23138,7 @@ namespace SimplygonUI
             public SimplygonMaxPlaneCountEx(dynamic jsonData) : base("MaxPlaneCount")
             {
                 Type = "uint";
-                HelpText = "Determines the maximum billboard count. When this criteria is met, it is not guaranteed that all triangles in the scene have been accurately mapped to a billboard yet. Triangles that have not been mapped to a billboard within the BillboardMaxDeviation distance will be mapped to an existing billboard that best represents the triangle.";
+                HelpText = "Determines the maximum amount of planes that are computed for the scene initially. When this criteria is met, it is not guaranteed that all triangles in the scene have been accurately mapped to a billboard. It is not a definite hard limit on the number of billboards because the planes can be split up into multiple planes when they're being cut to match their projections. For instance: if GeometricComplexity is high and there are two completely separated projections on a billboard, then the billboard will be split up into two billboards.";
                 TypeOverride = "";
                 DefaultValue = 10;
                 MinValue = 0;
@@ -26933,6 +28721,7 @@ namespace SimplygonUI
                 if(DilationUI.Visible) return true;
                 if(OutputOpacityTypeUI.Visible) return true;
                 if(OutputPixelFormatUI.Visible) return true;
+                if(OutputToTessellatedAttributesUI.Visible) return true;
 
                 return false;
             }
@@ -27851,6 +29640,76 @@ namespace SimplygonUI
 
         }
 
+        public bool OutputToTessellatedAttributes { get { return _OutputToTessellatedAttributes; } set { _OutputToTessellatedAttributes = value; OnPropertyChanged(); } }
+        private bool _OutputToTessellatedAttributes;
+        public SimplygonOutputToTessellatedAttributesEx OutputToTessellatedAttributesUI { get; set; }
+        public class SimplygonOutputToTessellatedAttributesEx : SimplygonSettingsProperty
+        {
+            public SimplygonOpacityCasterSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.OutputToTessellatedAttributes;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OutputToTessellatedAttributes != value;
+                    Parent.OutputToTessellatedAttributes = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonOutputToTessellatedAttributesEx() : base("OutputToTessellatedAttributes")
+            {
+                Type = "bool";
+                HelpText = "If set to true, the opacity data will be output directly to tessellated attributes in the scene geometries, rather than to an image. This setting requires that the Scene object is set in the caster.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonOutputToTessellatedAttributesEx(dynamic jsonData) : base("OutputToTessellatedAttributes")
+            {
+                Type = "bool";
+                HelpText = "If set to true, the opacity data will be output directly to tessellated attributes in the scene geometries, rather than to an image. This setting requires that the Scene object is set in the caster.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOutputToTessellatedAttributesEx DeepCopy()
+            {
+                return (SimplygonOutputToTessellatedAttributesEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
 
         public SimplygonOpacityCasterSettings() : base("OpacityCasterSettings")
         {
@@ -27899,6 +29758,10 @@ namespace SimplygonUI
             OutputDDSCompressionTypeUI.Parent = this;
             OutputDDSCompressionType = OutputDDSCompressionTypeUI.DefaultValue;
             Items.Add(OutputDDSCompressionTypeUI);
+            OutputToTessellatedAttributesUI = new SimplygonOutputToTessellatedAttributesEx();
+            OutputToTessellatedAttributesUI.Parent = this;
+            OutputToTessellatedAttributes = OutputToTessellatedAttributesUI.DefaultValue;
+            Items.Add(OutputToTessellatedAttributesUI);
             OutputOpacityTypeUI = new SimplygonOutputOpacityTypeEx();
             OutputOpacityTypeUI.Parent = this;
             OutputOpacityType = OutputOpacityTypeUI.DefaultValue;
@@ -27952,6 +29815,10 @@ namespace SimplygonUI
             OutputDDSCompressionTypeUI.Parent = this;
             OutputDDSCompressionType = OutputDDSCompressionTypeUI.DefaultValue;
             Items.Add(OutputDDSCompressionTypeUI);
+            OutputToTessellatedAttributesUI = new SimplygonOutputToTessellatedAttributesEx(jsonData != null && ((JObject)jsonData).GetValue("OutputToTessellatedAttributesUI") != null ? jsonData.OutputToTessellatedAttributesUI : null);
+            OutputToTessellatedAttributesUI.Parent = this;
+            OutputToTessellatedAttributes = OutputToTessellatedAttributesUI.DefaultValue;
+            Items.Add(OutputToTessellatedAttributesUI);
             OutputOpacityTypeUI = new SimplygonOutputOpacityTypeEx(jsonData != null && ((JObject)jsonData).GetValue("OutputOpacityTypeUI") != null ? jsonData.OutputOpacityTypeUI : null);
             OutputOpacityTypeUI.Parent = this;
             OutputOpacityType = OutputOpacityTypeUI.DefaultValue;
@@ -27996,6 +29863,9 @@ namespace SimplygonUI
             copy.OutputDDSCompressionTypeUI = this.OutputDDSCompressionTypeUI.DeepCopy();
             copy.OutputDDSCompressionTypeUI.Parent = copy;
             copy.Items.Add(copy.OutputDDSCompressionTypeUI);
+            copy.OutputToTessellatedAttributesUI = this.OutputToTessellatedAttributesUI.DeepCopy();
+            copy.OutputToTessellatedAttributesUI.Parent = copy;
+            copy.Items.Add(copy.OutputToTessellatedAttributesUI);
             copy.OutputOpacityTypeUI = this.OutputOpacityTypeUI.DeepCopy();
             copy.OutputOpacityTypeUI.Parent = copy;
             copy.Items.Add(copy.OutputOpacityTypeUI);
@@ -28075,6 +29945,12 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
+            }
+
+            jsonData.OutputToTessellatedAttributes = OutputToTessellatedAttributes;
+            if(serializeUIComponents)
+            {
+                jsonData.OutputToTessellatedAttributesUI = OutputToTessellatedAttributesUI.SaveJson();
             }
 
             return jsonData;
@@ -28157,6 +30033,11 @@ namespace SimplygonUI
                 OutputPixelFormat = (EPixelFormat)jsonData.OutputPixelFormat;
             }
 
+            if(jsonData.GetValue("OutputToTessellatedAttributes") != null)
+            {
+                OutputToTessellatedAttributes = (bool)jsonData.OutputToTessellatedAttributes;
+            }
+
         }
 
         public override void Reset()
@@ -28173,6 +30054,7 @@ namespace SimplygonUI
             DilationUI.Reset();
             OutputOpacityTypeUI.Reset();
             OutputPixelFormatUI.Reset();
+            OutputToTessellatedAttributesUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
@@ -28190,6 +30072,7 @@ namespace SimplygonUI
             DilationUI.IsEditEnabled = isEditEnabled;
             OutputOpacityTypeUI.IsEditEnabled = isEditEnabled;
             OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
+            OutputToTessellatedAttributesUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -29781,6 +31664,7 @@ namespace SimplygonUI
                 if(OutputPixelFormatUI.Visible) return true;
                 if(GenerateTangentSpaceDisplacementUI.Visible) return true;
                 if(NormalMapTexCoordLevelUI.Visible) return true;
+                if(OutputToTessellatedAttributesUI.Visible) return true;
 
                 return false;
             }
@@ -30952,6 +32836,76 @@ namespace SimplygonUI
 
         }
 
+        public bool OutputToTessellatedAttributes { get { return _OutputToTessellatedAttributes; } set { _OutputToTessellatedAttributes = value; OnPropertyChanged(); } }
+        private bool _OutputToTessellatedAttributes;
+        public SimplygonOutputToTessellatedAttributesEx OutputToTessellatedAttributesUI { get; set; }
+        public class SimplygonOutputToTessellatedAttributesEx : SimplygonSettingsProperty
+        {
+            public SimplygonDisplacementCasterSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.OutputToTessellatedAttributes;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OutputToTessellatedAttributes != value;
+                    Parent.OutputToTessellatedAttributes = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonOutputToTessellatedAttributesEx() : base("OutputToTessellatedAttributes")
+            {
+                Type = "bool";
+                HelpText = "If set to true, the displacement data will be output directly to tessellated attributes in the scene geometries, rather than to an image. This setting requires that the Scene object is set in the caster.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonOutputToTessellatedAttributesEx(dynamic jsonData) : base("OutputToTessellatedAttributes")
+            {
+                Type = "bool";
+                HelpText = "If set to true, the displacement data will be output directly to tessellated attributes in the scene geometries, rather than to an image. This setting requires that the Scene object is set in the caster.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOutputToTessellatedAttributesEx DeepCopy()
+            {
+                return (SimplygonOutputToTessellatedAttributesEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
 
         public SimplygonDisplacementCasterSettings() : base("DisplacementCasterSettings")
         {
@@ -31004,6 +32958,10 @@ namespace SimplygonUI
             GenerateScalarDisplacementUI.Parent = this;
             GenerateScalarDisplacement = GenerateScalarDisplacementUI.DefaultValue;
             Items.Add(GenerateScalarDisplacementUI);
+            OutputToTessellatedAttributesUI = new SimplygonOutputToTessellatedAttributesEx();
+            OutputToTessellatedAttributesUI.Parent = this;
+            OutputToTessellatedAttributes = OutputToTessellatedAttributesUI.DefaultValue;
+            Items.Add(OutputToTessellatedAttributesUI);
             GenerateTangentSpaceDisplacementUI = new SimplygonGenerateTangentSpaceDisplacementEx();
             GenerateTangentSpaceDisplacementUI.Parent = this;
             GenerateTangentSpaceDisplacement = GenerateTangentSpaceDisplacementUI.DefaultValue;
@@ -31065,6 +33023,10 @@ namespace SimplygonUI
             GenerateScalarDisplacementUI.Parent = this;
             GenerateScalarDisplacement = GenerateScalarDisplacementUI.DefaultValue;
             Items.Add(GenerateScalarDisplacementUI);
+            OutputToTessellatedAttributesUI = new SimplygonOutputToTessellatedAttributesEx(jsonData != null && ((JObject)jsonData).GetValue("OutputToTessellatedAttributesUI") != null ? jsonData.OutputToTessellatedAttributesUI : null);
+            OutputToTessellatedAttributesUI.Parent = this;
+            OutputToTessellatedAttributes = OutputToTessellatedAttributesUI.DefaultValue;
+            Items.Add(OutputToTessellatedAttributesUI);
             GenerateTangentSpaceDisplacementUI = new SimplygonGenerateTangentSpaceDisplacementEx(jsonData != null && ((JObject)jsonData).GetValue("GenerateTangentSpaceDisplacementUI") != null ? jsonData.GenerateTangentSpaceDisplacementUI : null);
             GenerateTangentSpaceDisplacementUI.Parent = this;
             GenerateTangentSpaceDisplacement = GenerateTangentSpaceDisplacementUI.DefaultValue;
@@ -31116,6 +33078,9 @@ namespace SimplygonUI
             copy.GenerateScalarDisplacementUI = this.GenerateScalarDisplacementUI.DeepCopy();
             copy.GenerateScalarDisplacementUI.Parent = copy;
             copy.Items.Add(copy.GenerateScalarDisplacementUI);
+            copy.OutputToTessellatedAttributesUI = this.OutputToTessellatedAttributesUI.DeepCopy();
+            copy.OutputToTessellatedAttributesUI.Parent = copy;
+            copy.Items.Add(copy.OutputToTessellatedAttributesUI);
             copy.GenerateTangentSpaceDisplacementUI = this.GenerateTangentSpaceDisplacementUI.DeepCopy();
             copy.GenerateTangentSpaceDisplacementUI.Parent = copy;
             copy.Items.Add(copy.GenerateTangentSpaceDisplacementUI);
@@ -31210,6 +33175,12 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.NormalMapTexCoordLevelUI = NormalMapTexCoordLevelUI.SaveJson();
+            }
+
+            jsonData.OutputToTessellatedAttributes = OutputToTessellatedAttributes;
+            if(serializeUIComponents)
+            {
+                jsonData.OutputToTessellatedAttributesUI = OutputToTessellatedAttributesUI.SaveJson();
             }
 
             return jsonData;
@@ -31322,6 +33293,11 @@ namespace SimplygonUI
 
             }
 
+            if(jsonData.GetValue("OutputToTessellatedAttributes") != null)
+            {
+                OutputToTessellatedAttributes = (bool)jsonData.OutputToTessellatedAttributes;
+            }
+
         }
 
         public override void Reset()
@@ -31340,6 +33316,7 @@ namespace SimplygonUI
             OutputPixelFormatUI.Reset();
             GenerateTangentSpaceDisplacementUI.Reset();
             NormalMapTexCoordLevelUI.Reset();
+            OutputToTessellatedAttributesUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
@@ -31359,6 +33336,7 @@ namespace SimplygonUI
             OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
             GenerateTangentSpaceDisplacementUI.IsEditEnabled = isEditEnabled;
             NormalMapTexCoordLevelUI.IsEditEnabled = isEditEnabled;
+            OutputToTessellatedAttributesUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -38317,6 +40295,391 @@ namespace SimplygonUI
                     ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Advanced/ColorCaster"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "base_color";
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        ColorCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    }
+
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Advanced/OpacityCaster"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        OpacityCasterSettings.MaterialChannel = "transparency";
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        OpacityCasterSettings.FillMode = EAtlasFillMode.NoFill;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                    {
+                        OpacityCasterSettings.Dilation = 0;
+                    }
+
+                    OpacityCasterSettings.OutputPixelFormat = EPixelFormat.R8;
+                    OpacityCasterSettings.OpacityChannel = "transparency";
+                    OpacityCasterSettings.OutputOpacityType = EOpacityType.Transparency;
+                    OpacityCasterSettings.OpacityChannelComponent = EColorComponent.Red;
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Advanced/NormalCaster"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        NormalCasterSettings.MaterialChannel = "bump";
+                    }
+
+                    NormalCasterSettings.OutputPixelFormat = EPixelFormat.R8G8B8;
+                    NormalCasterSettings.OpacityChannel = "transparency";
+                    NormalCasterSettings.CalculateBitangentPerFragment = false;
+                    NormalCasterSettings.NormalizeInterpolatedTangentSpace = true;
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.DisplacementCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Advanced/DisplacementCaster"))
+                {
+                    DisplacementCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.AmbientOcclusionCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Advanced/AmbientOcclusionCaster"))
+                {
+                    AmbientOcclusionCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.GeometryDataCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Advanced/GeometryDataCaster"))
+                {
+                    GeometryDataCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.VertexColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Advanced/VertexColorCaster"))
+                {
+                    VertexColorCasterSettings.OpacityChannel = "transparency";
+                    VertexColorCasterSettings.OutputColorName = "0";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/BaseWeight"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "base_weight";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/BaseColor"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "base_color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/Reflectivity"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "reflectivity";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/ReflColor"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "refl_color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/Roughness"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "roughness";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/Metalness"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "metalness";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/DiffuseRoughness"))
+                {
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.OpacityCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/Transparency"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        OpacityCasterSettings.MaterialChannel = "transparency";
+                    }
+
+                    OpacityCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    OpacityCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/TransparencyColor"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "trans_color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/TransparencyRoughness"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "trans_rough";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/Scattering"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "sss_scatter";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/SSSColor"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "sss_color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/SSSScale"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "sss_scale";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/Emission"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "emission";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/EmissionColor"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "emission_color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/SheenWeight"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "sheen";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/SheenColor"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "sheen_color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/SheenRoughness"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "sheen_roughness";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/ThinFilm"))
+                {
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/CoatingWeight"))
+                {
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/CoatingColor"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "coat_color";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/CoatingRoughness"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "coat_roughness";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/Bump"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        NormalCasterSettings.MaterialChannel = "bump";
+                    }
+
+                    NormalCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    NormalCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.NormalCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/CoatingBump"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        NormalCasterSettings.MaterialChannel = "coat_bump";
+                    }
+
+                    NormalCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    NormalCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/Displacement"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "displacement";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && (MenuPath == "Template/Physical/Cutout"))
+                {
+                    if (allowMaterialChannelOverride)
+                    {
+                        ColorCasterSettings.MaterialChannel = "cutout";
+                    }
+
+                    ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
                 if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Advanced/ColorCaster"))
                 {
                     if (allowMaterialChannelOverride)
@@ -38823,6 +41186,7 @@ namespace SimplygonUI
                         VertexColorCasterSettings.MaterialChannel = "Basecolor";
                     }
 
+                    VertexColorCasterSettings.MaterialChannelUI.VisibleOverride = true;
                     VertexColorCasterSettings.OpacityChannel = "Opacity";
                     VertexColorCasterSettings.OpacityChannelUI.Visible = false;
                     VertexColorCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
@@ -38955,6 +41319,7 @@ namespace SimplygonUI
                         VertexColorCasterSettings.MaterialChannel = "diffuseColor";
                     }
 
+                    VertexColorCasterSettings.MaterialChannelUI.VisibleOverride = true;
                     VertexColorCasterSettings.OpacityChannel = "diffuseColor";
                     VertexColorCasterSettings.OpacityChannelUI.Visible = false;
                     VertexColorCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
@@ -38973,6 +41338,7 @@ namespace SimplygonUI
     public enum ESimplygonPipeline
     {
         ReductionPipeline,
+        QuadReductionPipeline,
         RemeshingPipeline,
         AggregationPipeline,
         BillboardCloudPipeline,
@@ -39092,9 +41458,58 @@ namespace SimplygonUI
                     return (SimplygonVertexWeightSettings)Settings[5];
                 }
 
+                if (PipelineType == ESimplygonPipeline.QuadReductionPipeline)
+                {
+                    return (SimplygonVertexWeightSettings)Settings[1];
+                }
+
                 if (PipelineType == ESimplygonPipeline.AggregationPipeline)
                 {
                     return (SimplygonVertexWeightSettings)Settings[3];
+                }
+
+                return null;
+            }
+
+        }
+
+        public SimplygonAttributeTessellationSettings AttributeTessellationSettings
+        {
+            get
+            {
+                if (PipelineType == ESimplygonPipeline.ReductionPipeline)
+                {
+                    return (SimplygonAttributeTessellationSettings)Settings[6];
+                }
+
+                if (PipelineType == ESimplygonPipeline.RemeshingPipeline)
+                {
+                    return (SimplygonAttributeTessellationSettings)Settings[4];
+                }
+
+                if (PipelineType == ESimplygonPipeline.AggregationPipeline)
+                {
+                    return (SimplygonAttributeTessellationSettings)Settings[4];
+                }
+
+                if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
+                {
+                    return (SimplygonAttributeTessellationSettings)Settings[1];
+                }
+
+                if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
+                {
+                    return (SimplygonAttributeTessellationSettings)Settings[1];
+                }
+
+                if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
+                {
+                    return (SimplygonAttributeTessellationSettings)Settings[1];
+                }
+
+                if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
+                {
+                    return (SimplygonAttributeTessellationSettings)Settings[1];
                 }
 
                 return null;
@@ -39144,37 +41559,51 @@ namespace SimplygonUI
             {
                 if (PipelineType == ESimplygonPipeline.ReductionPipeline)
                 {
-                    return (SimplygonMappingImageSettings)Settings[6];
+                    return (SimplygonMappingImageSettings)Settings[7];
                 }
 
                 if (PipelineType == ESimplygonPipeline.RemeshingPipeline)
                 {
-                    return (SimplygonMappingImageSettings)Settings[4];
+                    return (SimplygonMappingImageSettings)Settings[5];
                 }
 
                 if (PipelineType == ESimplygonPipeline.AggregationPipeline)
                 {
-                    return (SimplygonMappingImageSettings)Settings[4];
+                    return (SimplygonMappingImageSettings)Settings[5];
                 }
 
                 if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
                 {
-                    return (SimplygonMappingImageSettings)Settings[1];
+                    return (SimplygonMappingImageSettings)Settings[2];
                 }
 
                 if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
                 {
-                    return (SimplygonMappingImageSettings)Settings[1];
+                    return (SimplygonMappingImageSettings)Settings[2];
                 }
 
                 if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
                 {
-                    return (SimplygonMappingImageSettings)Settings[1];
+                    return (SimplygonMappingImageSettings)Settings[2];
                 }
 
                 if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
                 {
-                    return (SimplygonMappingImageSettings)Settings[1];
+                    return (SimplygonMappingImageSettings)Settings[2];
+                }
+
+                return null;
+            }
+
+        }
+
+        public SimplygonQuadReductionSettings QuadReductionSettings
+        {
+            get
+            {
+                if (PipelineType == ESimplygonPipeline.QuadReductionPipeline)
+                {
+                    return (SimplygonQuadReductionSettings)Settings[0];
                 }
 
                 return null;
@@ -39332,7 +41761,14 @@ namespace SimplygonUI
                 Settings.Add(new SimplygonVisibilitySettings());
                 Settings.Add(new SimplygonBoneSettings());
                 Settings.Add(new SimplygonVertexWeightSettings());
+                Settings.Add(new SimplygonAttributeTessellationSettings());
                 Settings.Add(new SimplygonMappingImageSettings());
+            }
+
+            if (PipelineType == ESimplygonPipeline.QuadReductionPipeline)
+            {
+                Settings.Add(new SimplygonQuadReductionSettings());
+                Settings.Add(new SimplygonVertexWeightSettings());
             }
 
             if (PipelineType == ESimplygonPipeline.RemeshingPipeline)
@@ -39341,6 +41777,7 @@ namespace SimplygonUI
                 Settings.Add(new SimplygonBoneSettings());
                 Settings.Add(new SimplygonGeometryCullingSettings());
                 Settings.Add(new SimplygonVisibilitySettings());
+                Settings.Add(new SimplygonAttributeTessellationSettings());
                 Settings.Add(new SimplygonMappingImageSettings());
             }
 
@@ -39350,30 +41787,35 @@ namespace SimplygonUI
                 Settings.Add(new SimplygonVisibilitySettings());
                 Settings.Add(new SimplygonGeometryCullingSettings());
                 Settings.Add(new SimplygonVertexWeightSettings());
+                Settings.Add(new SimplygonAttributeTessellationSettings());
                 Settings.Add(new SimplygonMappingImageSettings());
             }
 
             if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline)
             {
                 Settings.Add(new SimplygonBillboardCloudSettings());
+                Settings.Add(new SimplygonAttributeTessellationSettings());
                 Settings.Add(new SimplygonMappingImageSettings());
             }
 
             if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline)
             {
                 Settings.Add(new SimplygonBillboardCloudSettings());
+                Settings.Add(new SimplygonAttributeTessellationSettings());
                 Settings.Add(new SimplygonMappingImageSettings());
             }
 
             if (PipelineType == ESimplygonPipeline.FlipbookPipeline)
             {
                 Settings.Add(new SimplygonFlipbookSettings());
+                Settings.Add(new SimplygonAttributeTessellationSettings());
                 Settings.Add(new SimplygonMappingImageSettings());
             }
 
             if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline)
             {
                 Settings.Add(new SimplygonImpostorFromSingleViewSettings());
+                Settings.Add(new SimplygonAttributeTessellationSettings());
                 Settings.Add(new SimplygonMappingImageSettings());
             }
 
@@ -39442,6 +41884,11 @@ namespace SimplygonUI
                 jsonData.Pipeline = "Reduction";
             }
 
+            if (PipelineType == ESimplygonPipeline.QuadReductionPipeline)
+            {
+                jsonData.Pipeline = "QuadReduction";
+            }
+
             if (PipelineType == ESimplygonPipeline.RemeshingPipeline)
             {
                 jsonData.Pipeline = "Remeshing";
@@ -39477,15 +41924,20 @@ namespace SimplygonUI
                 jsonData.Pipeline = "OcclusionMesh";
             }
 
-            jsonData.Version = "9.2";
-            jsonData.Build = "9.2.10300.0";
-            jsonData.Commit = "a36ca6f94f29d5bf7b199a784032a97c1c8322ab";
+            jsonData.Version = "10.0";
+            jsonData.Build = "10.0.6800.0";
+            jsonData.Commit = "1da144f7a876a00a01bff8d88ae1a6a11fc8028d";
             jsonData.Settings.GlobalSettings = GlobalSettings.SaveJson(serializeUIComponents);
             jsonData.Settings.PipelineSettings = PipelineSettings.SaveJson(serializeUIComponents);
 
             if (PipelineType == ESimplygonPipeline.ReductionPipeline)
             {
                 jsonData.Settings.ReductionProcessor = SaveJsonReductionPipeline(serializeUIComponents);
+            }
+
+            if (PipelineType == ESimplygonPipeline.QuadReductionPipeline)
+            {
+                jsonData.Settings.QuadReductionProcessor = SaveJsonQuadReductionPipeline(serializeUIComponents);
             }
 
             if (PipelineType == ESimplygonPipeline.RemeshingPipeline)
@@ -39547,7 +41999,16 @@ namespace SimplygonUI
             jsonData.VisibilitySettings = VisibilitySettings.SaveJson(serializeUIComponents);
             jsonData.BoneSettings = BoneSettings.SaveJson(serializeUIComponents);
             jsonData.VertexWeightSettings = VertexWeightSettings.SaveJson(serializeUIComponents);
+            jsonData.AttributeTessellationSettings = AttributeTessellationSettings.SaveJson(serializeUIComponents);
             jsonData.MappingImageSettings = MappingImageSettings.SaveJson(serializeUIComponents);
+            return jsonData;
+        }
+
+        public JObject SaveJsonQuadReductionPipeline(bool serializeUIComponents)
+        {
+            dynamic jsonData = new JObject();
+            jsonData.QuadReductionSettings = QuadReductionSettings.SaveJson(serializeUIComponents);
+            jsonData.VertexWeightSettings = VertexWeightSettings.SaveJson(serializeUIComponents);
             return jsonData;
         }
 
@@ -39558,6 +42019,7 @@ namespace SimplygonUI
             jsonData.BoneSettings = BoneSettings.SaveJson(serializeUIComponents);
             jsonData.GeometryCullingSettings = GeometryCullingSettings.SaveJson(serializeUIComponents);
             jsonData.VisibilitySettings = VisibilitySettings.SaveJson(serializeUIComponents);
+            jsonData.AttributeTessellationSettings = AttributeTessellationSettings.SaveJson(serializeUIComponents);
             jsonData.MappingImageSettings = MappingImageSettings.SaveJson(serializeUIComponents);
             return jsonData;
         }
@@ -39569,6 +42031,7 @@ namespace SimplygonUI
             jsonData.VisibilitySettings = VisibilitySettings.SaveJson(serializeUIComponents);
             jsonData.GeometryCullingSettings = GeometryCullingSettings.SaveJson(serializeUIComponents);
             jsonData.VertexWeightSettings = VertexWeightSettings.SaveJson(serializeUIComponents);
+            jsonData.AttributeTessellationSettings = AttributeTessellationSettings.SaveJson(serializeUIComponents);
             jsonData.MappingImageSettings = MappingImageSettings.SaveJson(serializeUIComponents);
             return jsonData;
         }
@@ -39579,6 +42042,7 @@ namespace SimplygonUI
             jsonData.ImpostorSettings = new JObject();
             jsonData.ImpostorSettings.BillboardCloudSettings = BillboardCloudSettings.SaveJson(serializeUIComponents);
             jsonData.ImpostorSettings.ImpostorType = EImpostorType.BillboardCloud;
+            jsonData.AttributeTessellationSettings = AttributeTessellationSettings.SaveJson(serializeUIComponents);
             jsonData.MappingImageSettings = MappingImageSettings.SaveJson(serializeUIComponents);
             return jsonData;
         }
@@ -39589,6 +42053,7 @@ namespace SimplygonUI
             jsonData.ImpostorSettings = new JObject();
             jsonData.ImpostorSettings.BillboardCloudSettings = BillboardCloudSettings.SaveJson(serializeUIComponents);
             jsonData.ImpostorSettings.ImpostorType = EImpostorType.BillboardCloud;
+            jsonData.AttributeTessellationSettings = AttributeTessellationSettings.SaveJson(serializeUIComponents);
             jsonData.MappingImageSettings = MappingImageSettings.SaveJson(serializeUIComponents);
             return jsonData;
         }
@@ -39599,6 +42064,7 @@ namespace SimplygonUI
             jsonData.ImpostorSettings = new JObject();
             jsonData.ImpostorSettings.FlipbookSettings = FlipbookSettings.SaveJson(serializeUIComponents);
             jsonData.ImpostorSettings.ImpostorType = EImpostorType.Flipbook;
+            jsonData.AttributeTessellationSettings = AttributeTessellationSettings.SaveJson(serializeUIComponents);
             jsonData.MappingImageSettings = MappingImageSettings.SaveJson(serializeUIComponents);
             return jsonData;
         }
@@ -39609,6 +42075,7 @@ namespace SimplygonUI
             jsonData.ImpostorSettings = new JObject();
             jsonData.ImpostorSettings.ImpostorFromSingleViewSettings = ImpostorFromSingleViewSettings.SaveJson(serializeUIComponents);
             jsonData.ImpostorSettings.ImpostorType = EImpostorType.FromSingleView;
+            jsonData.AttributeTessellationSettings = AttributeTessellationSettings.SaveJson(serializeUIComponents);
             jsonData.MappingImageSettings = MappingImageSettings.SaveJson(serializeUIComponents);
             return jsonData;
         }
@@ -39642,14 +42109,19 @@ namespace SimplygonUI
                 PipelineType = ESimplygonPipeline.Passthrough;
             }
 
-            if ((string)jsonData.Version != "9.2")
+            if ((string)jsonData.Version != "10.0")
             {
-                UILogger.Instance.Log(Category.Warning, $"Pipeline '{FilePath}' updated to version 9.2. Please save the updated pipeline so it can be used with the Simplygon 9.2 API.");
+                UILogger.Instance.Log(Category.Warning, $"Pipeline '{FilePath}' updated to version 10.0. Please save the updated pipeline so it can be used with the Simplygon 10.0 API.");
             }
 
             if ((string)jsonData.Pipeline == "Reduction")
             {
                 PipelineType = ESimplygonPipeline.ReductionPipeline;
+            }
+
+            if ((string)jsonData.Pipeline == "QuadReduction")
+            {
+                PipelineType = ESimplygonPipeline.QuadReductionPipeline;
             }
 
             if ((string)jsonData.Pipeline == "Remeshing")
@@ -39702,6 +42174,11 @@ namespace SimplygonUI
             if (PipelineType == ESimplygonPipeline.ReductionPipeline)
             {
                 LoadJsonReductionPipeline(jsonData.Settings.ReductionProcessor);
+            }
+
+            if (PipelineType == ESimplygonPipeline.QuadReductionPipeline)
+            {
+                LoadJsonQuadReductionPipeline(jsonData.Settings.QuadReductionProcessor);
             }
 
             if (PipelineType == ESimplygonPipeline.RemeshingPipeline)
@@ -39779,7 +42256,19 @@ namespace SimplygonUI
             Settings.Add(new SimplygonVisibilitySettings(jsonData.VisibilitySettings));
             Settings.Add(new SimplygonBoneSettings(jsonData.BoneSettings));
             Settings.Add(new SimplygonVertexWeightSettings(jsonData.VertexWeightSettings));
+            Settings.Add(new SimplygonAttributeTessellationSettings(jsonData.AttributeTessellationSettings));
             Settings.Add(new SimplygonMappingImageSettings(jsonData.MappingImageSettings));
+        }
+
+        protected void LoadJsonQuadReductionPipeline(dynamic jsonData)
+        {
+            if(jsonData == null)
+            {
+                return;
+            }
+
+            Settings.Add(new SimplygonQuadReductionSettings(jsonData.QuadReductionSettings));
+            Settings.Add(new SimplygonVertexWeightSettings(jsonData.VertexWeightSettings));
         }
 
         protected void LoadJsonRemeshingPipeline(dynamic jsonData)
@@ -39793,6 +42282,7 @@ namespace SimplygonUI
             Settings.Add(new SimplygonBoneSettings(jsonData.BoneSettings));
             Settings.Add(new SimplygonGeometryCullingSettings(jsonData.GeometryCullingSettings));
             Settings.Add(new SimplygonVisibilitySettings(jsonData.VisibilitySettings));
+            Settings.Add(new SimplygonAttributeTessellationSettings(jsonData.AttributeTessellationSettings));
             Settings.Add(new SimplygonMappingImageSettings(jsonData.MappingImageSettings));
         }
 
@@ -39807,6 +42297,7 @@ namespace SimplygonUI
             Settings.Add(new SimplygonVisibilitySettings(jsonData.VisibilitySettings));
             Settings.Add(new SimplygonGeometryCullingSettings(jsonData.GeometryCullingSettings));
             Settings.Add(new SimplygonVertexWeightSettings(jsonData.VertexWeightSettings));
+            Settings.Add(new SimplygonAttributeTessellationSettings(jsonData.AttributeTessellationSettings));
             Settings.Add(new SimplygonMappingImageSettings(jsonData.MappingImageSettings));
         }
 
@@ -39818,6 +42309,7 @@ namespace SimplygonUI
             }
 
             Settings.Add(new SimplygonBillboardCloudSettings(jsonData.ImpostorSettings.BillboardCloudSettings));
+            Settings.Add(new SimplygonAttributeTessellationSettings(jsonData.AttributeTessellationSettings));
             Settings.Add(new SimplygonMappingImageSettings(jsonData.MappingImageSettings));
         }
 
@@ -39829,6 +42321,7 @@ namespace SimplygonUI
             }
 
             Settings.Add(new SimplygonBillboardCloudSettings(jsonData.ImpostorSettings.BillboardCloudSettings));
+            Settings.Add(new SimplygonAttributeTessellationSettings(jsonData.AttributeTessellationSettings));
             Settings.Add(new SimplygonMappingImageSettings(jsonData.MappingImageSettings));
         }
 
@@ -39840,6 +42333,7 @@ namespace SimplygonUI
             }
 
             Settings.Add(new SimplygonFlipbookSettings(jsonData.ImpostorSettings.FlipbookSettings));
+            Settings.Add(new SimplygonAttributeTessellationSettings(jsonData.AttributeTessellationSettings));
             Settings.Add(new SimplygonMappingImageSettings(jsonData.MappingImageSettings));
         }
 
@@ -39851,6 +42345,7 @@ namespace SimplygonUI
             }
 
             Settings.Add(new SimplygonImpostorFromSingleViewSettings(jsonData.ImpostorSettings.ImpostorFromSingleViewSettings));
+            Settings.Add(new SimplygonAttributeTessellationSettings(jsonData.AttributeTessellationSettings));
             Settings.Add(new SimplygonMappingImageSettings(jsonData.MappingImageSettings));
         }
 
@@ -39878,6 +42373,10 @@ namespace SimplygonUI
                     MappingImageSettings.GenerateMappingImageUI.Value = MaterialCasters.Count > 0;
                     MappingImageSettings.UseFullRetexturingUI.Value = MaterialCasters.Count > 0;
                     MappingImageSettings.ApplyNewMaterialIdsUI.Value = MaterialCasters.Count > 0;
+                }
+
+                if (PipelineType == ESimplygonPipeline.QuadReductionPipeline)
+                {
                 }
 
                 if (PipelineType == ESimplygonPipeline.RemeshingPipeline)
@@ -39943,6 +42442,10 @@ namespace SimplygonUI
                 MappingImageSettings.ApplyNewMaterialIdsUI.Value = MaterialCasters.Count > 0;
             }
 
+            if (PipelineType == ESimplygonPipeline.QuadReductionPipeline)
+            {
+            }
+
             if (PipelineType == ESimplygonPipeline.RemeshingPipeline)
             {
                 MappingImageSettings.GenerateMappingImageUI.Value = MaterialCasters.Count > 0;
@@ -40000,6 +42503,10 @@ namespace SimplygonUI
                 MappingImageSettings.GenerateMappingImageUI.Value = MaterialCasters.Count > 0;
                 MappingImageSettings.UseFullRetexturingUI.Value = MaterialCasters.Count > 0;
                 MappingImageSettings.ApplyNewMaterialIdsUI.Value = MaterialCasters.Count > 0;
+            }
+
+            if (PipelineType == ESimplygonPipeline.QuadReductionPipeline)
+            {
             }
 
             if (PipelineType == ESimplygonPipeline.RemeshingPipeline)
@@ -40109,6 +42616,11 @@ namespace SimplygonUI
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
+            if (PipelineType == ESimplygonPipeline.QuadReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max && MenuPath == "Template/Advanced/Quad Reduction")
+            {
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
             if (PipelineType == ESimplygonPipeline.RemeshingPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max && MenuPath == "Template/Advanced/Remeshing")
             {
                 MappingImageSettings.TexCoordName = "MaterialLOD";
@@ -40180,6 +42692,7 @@ namespace SimplygonUI
 
             if (PipelineType == ESimplygonPipeline.ReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max && MenuPath == "Template/Basic/Reduction")
             {
+                ReductionSettings.PreserveQuadFlagsUI.VisibleOverride = false;
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "Diffuse_Color";
@@ -40196,7 +42709,6 @@ namespace SimplygonUI
                 ReductionSettings.VertexColorImportanceUI.VisibleOverride = false;
                 ReductionSettings.EdgeSetImportanceUI.VisibleOverride = false;
                 ReductionSettings.SkinningImportanceUI.VisibleOverride = false;
-                ReductionSettings.CurvatureImportanceUI.VisibleOverride = false;
                 ReductionSettings.OutwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.InwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.KeepSymmetryUI.VisibleOverride = false;
@@ -40213,11 +42725,13 @@ namespace SimplygonUI
                 BoneSettings.VisibleOverride = false;
                 MappingImageSettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
             if (PipelineType == ESimplygonPipeline.ReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max && MenuPath == "Template/Basic/Reduction with material baking")
             {
+                ReductionSettings.PreserveQuadFlagsUI.VisibleOverride = false;
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "Diffuse_Color";
@@ -40234,7 +42748,6 @@ namespace SimplygonUI
                 ReductionSettings.VertexColorImportanceUI.VisibleOverride = false;
                 ReductionSettings.EdgeSetImportanceUI.VisibleOverride = false;
                 ReductionSettings.SkinningImportanceUI.VisibleOverride = false;
-                ReductionSettings.CurvatureImportanceUI.VisibleOverride = false;
                 ReductionSettings.OutwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.InwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.KeepSymmetryUI.VisibleOverride = false;
@@ -40250,6 +42763,7 @@ namespace SimplygonUI
                 VisibilitySettings.VisibleOverride = false;
                 BoneSettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
@@ -40271,6 +42785,18 @@ namespace SimplygonUI
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
+            if (PipelineType == ESimplygonPipeline.QuadReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max && MenuPath == "Template/Basic/Quad Reduction")
+            {
+                QuadReductionSettings.ReductionTargetPolygonCountUI.VisibleOverride = false;
+                QuadReductionSettings.ReductionTargetMaxDeviationUI.VisibleOverride = false;
+                QuadReductionSettings.ReductionTargetOnScreenSizeUI.VisibleOverride = false;
+                QuadReductionSettings.ReductionTargetStopConditionUI.VisibleOverride = false;
+                QuadReductionSettings.MergeGeometriesUI.VisibleOverride = false;
+                QuadReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                VertexWeightSettings.VisibleOverride = false;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
             if (PipelineType == ESimplygonPipeline.RemeshingPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max && MenuPath == "Template/Basic/Remeshing with material baking")
             {
                 MappingImageSettings.TexCoordName = "MaterialLOD";
@@ -40289,6 +42815,7 @@ namespace SimplygonUI
                 BoneSettings.VisibleOverride = false;
                 GeometryCullingSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
@@ -40319,6 +42846,7 @@ namespace SimplygonUI
                 AggregationSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 MappingImageSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
@@ -40349,6 +42877,7 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
@@ -40384,6 +42913,7 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -40417,6 +42947,7 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -40448,6 +42979,7 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -40477,6 +43009,7 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 ImpostorFromSingleViewSettings.TwoSidedUI.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -40485,6 +43018,11 @@ namespace SimplygonUI
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.QuadReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && MenuPath == "Template/Advanced/Quad Reduction")
+            {
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -40559,6 +43097,7 @@ namespace SimplygonUI
 
             if (PipelineType == ESimplygonPipeline.ReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && MenuPath == "Template/Basic/Reduction")
             {
+                ReductionSettings.PreserveQuadFlagsUI.VisibleOverride = false;
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
@@ -40575,7 +43114,6 @@ namespace SimplygonUI
                 ReductionSettings.VertexColorImportanceUI.VisibleOverride = false;
                 ReductionSettings.EdgeSetImportanceUI.VisibleOverride = false;
                 ReductionSettings.SkinningImportanceUI.VisibleOverride = false;
-                ReductionSettings.CurvatureImportanceUI.VisibleOverride = false;
                 ReductionSettings.OutwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.InwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.KeepSymmetryUI.VisibleOverride = false;
@@ -40592,11 +43130,13 @@ namespace SimplygonUI
                 BoneSettings.VisibleOverride = false;
                 MappingImageSettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
             if (PipelineType == ESimplygonPipeline.ReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && MenuPath == "Template/Basic/Reduction with material baking")
             {
+                ReductionSettings.PreserveQuadFlagsUI.VisibleOverride = false;
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
@@ -40613,7 +43153,6 @@ namespace SimplygonUI
                 ReductionSettings.VertexColorImportanceUI.VisibleOverride = false;
                 ReductionSettings.EdgeSetImportanceUI.VisibleOverride = false;
                 ReductionSettings.SkinningImportanceUI.VisibleOverride = false;
-                ReductionSettings.CurvatureImportanceUI.VisibleOverride = false;
                 ReductionSettings.OutwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.InwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.KeepSymmetryUI.VisibleOverride = false;
@@ -40629,6 +43168,7 @@ namespace SimplygonUI
                 VisibilitySettings.VisibleOverride = false;
                 BoneSettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
@@ -40650,6 +43190,18 @@ namespace SimplygonUI
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
+            if (PipelineType == ESimplygonPipeline.QuadReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && MenuPath == "Template/Basic/Quad Reduction")
+            {
+                QuadReductionSettings.ReductionTargetPolygonCountUI.VisibleOverride = false;
+                QuadReductionSettings.ReductionTargetMaxDeviationUI.VisibleOverride = false;
+                QuadReductionSettings.ReductionTargetOnScreenSizeUI.VisibleOverride = false;
+                QuadReductionSettings.ReductionTargetStopConditionUI.VisibleOverride = false;
+                QuadReductionSettings.MergeGeometriesUI.VisibleOverride = false;
+                QuadReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                VertexWeightSettings.VisibleOverride = false;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
             if (PipelineType == ESimplygonPipeline.RemeshingPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2021 && MenuPath == "Template/Basic/Remeshing with material baking")
             {
                 MappingImageSettings.TexCoordName = "MaterialLOD";
@@ -40668,6 +43220,7 @@ namespace SimplygonUI
                 BoneSettings.VisibleOverride = false;
                 GeometryCullingSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
@@ -40698,6 +43251,7 @@ namespace SimplygonUI
                 AggregationSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 MappingImageSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
@@ -40728,6 +43282,7 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
@@ -40763,6 +43318,7 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -40796,6 +43352,7 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -40827,6 +43384,7 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -40856,6 +43414,412 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 ImpostorFromSingleViewSettings.TwoSidedUI.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.ReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Advanced/Reduction")
+            {
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.QuadReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Advanced/Quad Reduction")
+            {
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.RemeshingPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Advanced/Remeshing")
+            {
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.AggregationPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Advanced/Aggregation")
+            {
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Advanced/Billboard cloud")
+            {
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
+                BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Advanced/Billboard cloud for vegetation")
+            {
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
+                BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.FlipbookPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Advanced/Flipbook")
+            {
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                FlipbookSettings.ViewDirectionX = 0;
+                FlipbookSettings.ViewDirectionY = 1;
+                FlipbookSettings.ViewDirectionZ = 0;
+                FlipbookSettings.UpVectorX = 0;
+                FlipbookSettings.UpVectorY = 0;
+                FlipbookSettings.UpVectorZ = 1;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Advanced/Impostor from single view")
+            {
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                ImpostorFromSingleViewSettings.ViewDirectionX = 0;
+                ImpostorFromSingleViewSettings.ViewDirectionY = 1;
+                ImpostorFromSingleViewSettings.ViewDirectionZ = 0;
+                ImpostorFromSingleViewSettings.TwoSidedUI.VisibleOverride = false;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.OcclusionMeshPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Advanced/Occlusion mesh")
+            {
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.ReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Basic/Reduction")
+            {
+                ReductionSettings.PreserveQuadFlagsUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                ReductionSettings.ReductionTargetTriangleCountUI.VisibleOverride = false;
+                ReductionSettings.ReductionTargetMaxDeviationUI.VisibleOverride = false;
+                ReductionSettings.ReductionTargetOnScreenSizeUI.VisibleOverride = false;
+                ReductionSettings.ReductionTargetStopConditionUI.VisibleOverride = false;
+                ReductionSettings.ReductionHeuristicsUI.VisibleOverride = false;
+                ReductionSettings.GeometryImportanceUI.VisibleOverride = false;
+                ReductionSettings.MaterialImportanceUI.VisibleOverride = false;
+                ReductionSettings.TextureImportanceUI.VisibleOverride = false;
+                ReductionSettings.ShadingImportanceUI.VisibleOverride = false;
+                ReductionSettings.GroupImportanceUI.VisibleOverride = false;
+                ReductionSettings.VertexColorImportanceUI.VisibleOverride = false;
+                ReductionSettings.EdgeSetImportanceUI.VisibleOverride = false;
+                ReductionSettings.SkinningImportanceUI.VisibleOverride = false;
+                ReductionSettings.OutwardMoveMultiplierUI.VisibleOverride = false;
+                ReductionSettings.InwardMoveMultiplierUI.VisibleOverride = false;
+                ReductionSettings.KeepSymmetryUI.VisibleOverride = false;
+                ReductionSettings.CreateGeomorphGeometryUI.VisibleOverride = false;
+                ReductionSettings.DataCreationPreferencesUI.VisibleOverride = false;
+                ReductionSettings.UseHighQualityNormalCalculationUI.VisibleOverride = false;
+                ReductionSettings.LockGeometricBorderUI.VisibleOverride = false;
+                ReductionSettings.MergeGeometriesUI.VisibleOverride = false;
+                ReductionSettings.AllowDegenerateTexCoordsUI.VisibleOverride = false;
+                ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                RepairSettings.VisibleOverride = false;
+                NormalCalculationSettings.VisibleOverride = false;
+                VisibilitySettings.VisibleOverride = false;
+                BoneSettings.VisibleOverride = false;
+                MappingImageSettings.VisibleOverride = false;
+                VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.ReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Basic/Reduction with material baking")
+            {
+                ReductionSettings.PreserveQuadFlagsUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                ReductionSettings.ReductionTargetTriangleCountUI.VisibleOverride = false;
+                ReductionSettings.ReductionTargetMaxDeviationUI.VisibleOverride = false;
+                ReductionSettings.ReductionTargetOnScreenSizeUI.VisibleOverride = false;
+                ReductionSettings.ReductionTargetStopConditionUI.VisibleOverride = false;
+                ReductionSettings.ReductionHeuristicsUI.VisibleOverride = false;
+                ReductionSettings.GeometryImportanceUI.VisibleOverride = false;
+                ReductionSettings.MaterialImportanceUI.VisibleOverride = false;
+                ReductionSettings.TextureImportanceUI.VisibleOverride = false;
+                ReductionSettings.ShadingImportanceUI.VisibleOverride = false;
+                ReductionSettings.GroupImportanceUI.VisibleOverride = false;
+                ReductionSettings.VertexColorImportanceUI.VisibleOverride = false;
+                ReductionSettings.EdgeSetImportanceUI.VisibleOverride = false;
+                ReductionSettings.SkinningImportanceUI.VisibleOverride = false;
+                ReductionSettings.OutwardMoveMultiplierUI.VisibleOverride = false;
+                ReductionSettings.InwardMoveMultiplierUI.VisibleOverride = false;
+                ReductionSettings.KeepSymmetryUI.VisibleOverride = false;
+                ReductionSettings.CreateGeomorphGeometryUI.VisibleOverride = false;
+                ReductionSettings.DataCreationPreferencesUI.VisibleOverride = false;
+                ReductionSettings.UseHighQualityNormalCalculationUI.VisibleOverride = false;
+                ReductionSettings.LockGeometricBorderUI.VisibleOverride = false;
+                ReductionSettings.MergeGeometriesUI.VisibleOverride = false;
+                ReductionSettings.AllowDegenerateTexCoordsUI.VisibleOverride = false;
+                ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                RepairSettings.VisibleOverride = false;
+                NormalCalculationSettings.VisibleOverride = false;
+                VisibilitySettings.VisibleOverride = false;
+                BoneSettings.VisibleOverride = false;
+                VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
+                MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
+                MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
+                MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
+                MappingImageSettings.UseFullRetexturingUI.VisibleOverride = false;
+                MappingImageSettings.ApplyNewMaterialIdsUI.VisibleOverride = false;
+                MappingImageSettings.UseAutomaticTextureSizeUI.VisibleOverride = false;
+                MappingImageSettings.AutomaticTextureSizeMultiplierUI.VisibleOverride = false;
+                MappingImageSettings.ForcePower2TextureUI.VisibleOverride = false;
+                MappingImageSettings.OnlyParameterizeInvalidUVsUI.VisibleOverride = false;
+                MappingImageSettings.AllowTransparencyMappingUI.VisibleOverride = false;
+                MappingImageSettings.MaximumLayersUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordLevelUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordNameUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordGeneratorTypeUI.VisibleOverride = false;
+                MappingImageSettings.ParameterizerSettings.VisibleOverride = false;
+                MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
+                MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
+                MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.QuadReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Basic/Quad Reduction")
+            {
+                QuadReductionSettings.ReductionTargetPolygonCountUI.VisibleOverride = false;
+                QuadReductionSettings.ReductionTargetMaxDeviationUI.VisibleOverride = false;
+                QuadReductionSettings.ReductionTargetOnScreenSizeUI.VisibleOverride = false;
+                QuadReductionSettings.ReductionTargetStopConditionUI.VisibleOverride = false;
+                QuadReductionSettings.MergeGeometriesUI.VisibleOverride = false;
+                QuadReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                VertexWeightSettings.VisibleOverride = false;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.RemeshingPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Basic/Remeshing with material baking")
+            {
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                RemeshingSettings.RemeshingModeManualPositionXUI.VisibleOverride = false;
+                RemeshingSettings.RemeshingModeManualPositionYUI.VisibleOverride = false;
+                RemeshingSettings.RemeshingModeManualPositionZUI.VisibleOverride = false;
+                RemeshingSettings.ForceSoftEdgesWithinTextureChartsUI.VisibleOverride = false;
+                RemeshingSettings.HoleFillingUI.VisibleOverride = false;
+                RemeshingSettings.RemeshingModeUI.VisibleOverride = false;
+                RemeshingSettings.SurfaceTransferModeUI.VisibleOverride = false;
+                RemeshingSettings.HardEdgeAngleUI.VisibleOverride = false;
+                RemeshingSettings.TransferNormalsUI.VisibleOverride = false;
+                RemeshingSettings.TransferColorsUI.VisibleOverride = false;
+                RemeshingSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                BoneSettings.VisibleOverride = false;
+                GeometryCullingSettings.VisibleOverride = false;
+                VisibilitySettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
+                MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
+                MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
+                MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
+                MappingImageSettings.UseFullRetexturingUI.VisibleOverride = false;
+                MappingImageSettings.ApplyNewMaterialIdsUI.VisibleOverride = false;
+                MappingImageSettings.UseAutomaticTextureSizeUI.VisibleOverride = false;
+                MappingImageSettings.AutomaticTextureSizeMultiplierUI.VisibleOverride = false;
+                MappingImageSettings.ForcePower2TextureUI.VisibleOverride = false;
+                MappingImageSettings.OnlyParameterizeInvalidUVsUI.VisibleOverride = false;
+                MappingImageSettings.AllowTransparencyMappingUI.VisibleOverride = false;
+                MappingImageSettings.MaximumLayersUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordLevelUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordNameUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordGeneratorTypeUI.VisibleOverride = false;
+                MappingImageSettings.ParameterizerSettings.VisibleOverride = false;
+                MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
+                MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
+                MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.AggregationPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Basic/Aggregation")
+            {
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                AggregationSettings.SubdivideGeometryBasedOnUVTilesUI.VisibleOverride = false;
+                AggregationSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                VisibilitySettings.VisibleOverride = false;
+                VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
+                MappingImageSettings.VisibleOverride = false;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.AggregationPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Basic/Aggregation with material baking")
+            {
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                AggregationSettings.SubdivideGeometryBasedOnUVTilesUI.VisibleOverride = false;
+                AggregationSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
+                MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
+                MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
+                MappingImageSettings.UseFullRetexturingUI.VisibleOverride = false;
+                MappingImageSettings.ApplyNewMaterialIdsUI.VisibleOverride = false;
+                MappingImageSettings.UseAutomaticTextureSizeUI.VisibleOverride = false;
+                MappingImageSettings.AutomaticTextureSizeMultiplierUI.VisibleOverride = false;
+                MappingImageSettings.ForcePower2TextureUI.VisibleOverride = false;
+                MappingImageSettings.OnlyParameterizeInvalidUVsUI.VisibleOverride = false;
+                MappingImageSettings.AllowTransparencyMappingUI.VisibleOverride = false;
+                MappingImageSettings.MaximumLayersUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordLevelUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordNameUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordGeneratorTypeUI.VisibleOverride = false;
+                MappingImageSettings.ParameterizerSettings.VisibleOverride = false;
+                MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
+                MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
+                MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                VisibilitySettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
+                VertexWeightSettings.VisibleOverride = false;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Basic/Billboard cloud")
+            {
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
+                BillboardCloudSettings.BillboardDensityUI.VisibleOverride = false;
+                BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = false;
+                BillboardCloudSettings.GeometricComplexityUI.VisibleOverride = false;
+                BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
+                BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
+                MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
+                MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
+                MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
+                MappingImageSettings.UseFullRetexturingUI.VisibleOverride = false;
+                MappingImageSettings.ApplyNewMaterialIdsUI.VisibleOverride = false;
+                MappingImageSettings.UseAutomaticTextureSizeUI.VisibleOverride = false;
+                MappingImageSettings.AutomaticTextureSizeMultiplierUI.VisibleOverride = false;
+                MappingImageSettings.ForcePower2TextureUI.VisibleOverride = false;
+                MappingImageSettings.OnlyParameterizeInvalidUVsUI.VisibleOverride = false;
+                MappingImageSettings.AllowTransparencyMappingUI.VisibleOverride = false;
+                MappingImageSettings.MaximumLayersUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordLevelUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordNameUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordGeneratorTypeUI.VisibleOverride = false;
+                MappingImageSettings.ParameterizerSettings.VisibleOverride = false;
+                MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
+                MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
+                MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
+                AttributeTessellationSettings.VisibleOverride = false;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Basic/Billboard cloud for vegetation")
+            {
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
+                BillboardCloudSettings.BillboardDensityUI.VisibleOverride = false;
+                BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = false;
+                BillboardCloudSettings.GeometricComplexityUI.VisibleOverride = false;
+                BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
+                MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
+                MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
+                MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
+                MappingImageSettings.UseFullRetexturingUI.VisibleOverride = false;
+                MappingImageSettings.ApplyNewMaterialIdsUI.VisibleOverride = false;
+                MappingImageSettings.UseAutomaticTextureSizeUI.VisibleOverride = false;
+                MappingImageSettings.AutomaticTextureSizeMultiplierUI.VisibleOverride = false;
+                MappingImageSettings.ForcePower2TextureUI.VisibleOverride = false;
+                MappingImageSettings.OnlyParameterizeInvalidUVsUI.VisibleOverride = false;
+                MappingImageSettings.AllowTransparencyMappingUI.VisibleOverride = false;
+                MappingImageSettings.MaximumLayersUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordLevelUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordNameUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordGeneratorTypeUI.VisibleOverride = false;
+                MappingImageSettings.ParameterizerSettings.VisibleOverride = false;
+                MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
+                MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
+                MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorX = 0;
+                BillboardCloudSettings.UpVectorY = 0;
+                BillboardCloudSettings.UpVectorZ = 1;
+                AttributeTessellationSettings.VisibleOverride = false;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.FlipbookPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Basic/Flipbook")
+            {
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                FlipbookSettings.ViewDirectionX = 0;
+                FlipbookSettings.ViewDirectionY = 1;
+                FlipbookSettings.ViewDirectionZ = 0;
+                FlipbookSettings.UpVectorX = 0;
+                FlipbookSettings.UpVectorY = 0;
+                FlipbookSettings.UpVectorZ = 1;
+                MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
+                MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
+                MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
+                MappingImageSettings.UseFullRetexturingUI.VisibleOverride = false;
+                MappingImageSettings.ApplyNewMaterialIdsUI.VisibleOverride = false;
+                MappingImageSettings.UseAutomaticTextureSizeUI.VisibleOverride = false;
+                MappingImageSettings.AutomaticTextureSizeMultiplierUI.VisibleOverride = false;
+                MappingImageSettings.ForcePower2TextureUI.VisibleOverride = false;
+                MappingImageSettings.OnlyParameterizeInvalidUVsUI.VisibleOverride = false;
+                MappingImageSettings.AllowTransparencyMappingUI.VisibleOverride = false;
+                MappingImageSettings.MaximumLayersUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordLevelUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordNameUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordGeneratorTypeUI.VisibleOverride = false;
+                MappingImageSettings.ParameterizerSettings.VisibleOverride = false;
+                MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
+                MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
+                MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
+            }
+
+            if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Max2023 && MenuPath == "Template/Basic/Impostor from single view")
+            {
+                MappingImageSettings.TexCoordName = "MaterialLOD";
+                MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                ImpostorFromSingleViewSettings.ViewDirectionX = 0;
+                ImpostorFromSingleViewSettings.ViewDirectionY = 1;
+                ImpostorFromSingleViewSettings.ViewDirectionZ = 0;
+                MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
+                MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
+                MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
+                MappingImageSettings.UseFullRetexturingUI.VisibleOverride = false;
+                MappingImageSettings.ApplyNewMaterialIdsUI.VisibleOverride = false;
+                MappingImageSettings.UseAutomaticTextureSizeUI.VisibleOverride = false;
+                MappingImageSettings.AutomaticTextureSizeMultiplierUI.VisibleOverride = false;
+                MappingImageSettings.ForcePower2TextureUI.VisibleOverride = false;
+                MappingImageSettings.OnlyParameterizeInvalidUVsUI.VisibleOverride = false;
+                MappingImageSettings.AllowTransparencyMappingUI.VisibleOverride = false;
+                MappingImageSettings.MaximumLayersUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordLevelUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordNameUI.VisibleOverride = false;
+                MappingImageSettings.TexCoordGeneratorTypeUI.VisibleOverride = false;
+                MappingImageSettings.ParameterizerSettings.VisibleOverride = false;
+                MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
+                MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
+                MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                ImpostorFromSingleViewSettings.TwoSidedUI.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -40864,6 +43828,11 @@ namespace SimplygonUI
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "color";
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
+            }
+
+            if (PipelineType == ESimplygonPipeline.QuadReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && MenuPath == "Template/Advanced/Quad Reduction")
+            {
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -40932,6 +43901,7 @@ namespace SimplygonUI
 
             if (PipelineType == ESimplygonPipeline.ReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && MenuPath == "Template/Basic/Reduction")
             {
+                ReductionSettings.PreserveQuadFlagsUI.VisibleOverride = false;
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "color";
@@ -40948,7 +43918,6 @@ namespace SimplygonUI
                 ReductionSettings.VertexColorImportanceUI.VisibleOverride = false;
                 ReductionSettings.EdgeSetImportanceUI.VisibleOverride = false;
                 ReductionSettings.SkinningImportanceUI.VisibleOverride = false;
-                ReductionSettings.CurvatureImportanceUI.VisibleOverride = false;
                 ReductionSettings.OutwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.InwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.KeepSymmetryUI.VisibleOverride = false;
@@ -40965,11 +43934,13 @@ namespace SimplygonUI
                 BoneSettings.VisibleOverride = false;
                 MappingImageSettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
             if (PipelineType == ESimplygonPipeline.ReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && MenuPath == "Template/Basic/Reduction with material baking")
             {
+                ReductionSettings.PreserveQuadFlagsUI.VisibleOverride = false;
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "color";
@@ -40986,7 +43957,6 @@ namespace SimplygonUI
                 ReductionSettings.VertexColorImportanceUI.VisibleOverride = false;
                 ReductionSettings.EdgeSetImportanceUI.VisibleOverride = false;
                 ReductionSettings.SkinningImportanceUI.VisibleOverride = false;
-                ReductionSettings.CurvatureImportanceUI.VisibleOverride = false;
                 ReductionSettings.OutwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.InwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.KeepSymmetryUI.VisibleOverride = false;
@@ -41002,6 +43972,7 @@ namespace SimplygonUI
                 VisibilitySettings.VisibleOverride = false;
                 BoneSettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
@@ -41023,6 +43994,18 @@ namespace SimplygonUI
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
+            if (PipelineType == ESimplygonPipeline.QuadReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && MenuPath == "Template/Basic/Quad Reduction")
+            {
+                QuadReductionSettings.ReductionTargetPolygonCountUI.VisibleOverride = false;
+                QuadReductionSettings.ReductionTargetMaxDeviationUI.VisibleOverride = false;
+                QuadReductionSettings.ReductionTargetOnScreenSizeUI.VisibleOverride = false;
+                QuadReductionSettings.ReductionTargetStopConditionUI.VisibleOverride = false;
+                QuadReductionSettings.MergeGeometriesUI.VisibleOverride = false;
+                QuadReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                VertexWeightSettings.VisibleOverride = false;
+                GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
+            }
+
             if (PipelineType == ESimplygonPipeline.RemeshingPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && MenuPath == "Template/Basic/Remeshing with material baking")
             {
                 MappingImageSettings.TexCoordName = "MaterialLOD";
@@ -41041,6 +44024,7 @@ namespace SimplygonUI
                 BoneSettings.VisibleOverride = false;
                 GeometryCullingSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
@@ -41071,6 +44055,7 @@ namespace SimplygonUI
                 AggregationSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 MappingImageSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
@@ -41101,6 +44086,7 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
@@ -41133,6 +44119,7 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -41163,6 +44150,7 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -41194,6 +44182,7 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -41223,6 +44212,7 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 ImpostorFromSingleViewSettings.TwoSidedUI.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -41307,6 +44297,7 @@ namespace SimplygonUI
 
             if (PipelineType == ESimplygonPipeline.ReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Blender && MenuPath == "Template/Basic/Reduction")
             {
+                ReductionSettings.PreserveQuadFlagsUI.VisibleOverride = false;
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "Basecolor";
                 ReductionSettings.ReductionTargetTriangleCountUI.VisibleOverride = false;
@@ -41322,7 +44313,6 @@ namespace SimplygonUI
                 ReductionSettings.VertexColorImportanceUI.VisibleOverride = false;
                 ReductionSettings.EdgeSetImportanceUI.VisibleOverride = false;
                 ReductionSettings.SkinningImportanceUI.VisibleOverride = false;
-                ReductionSettings.CurvatureImportanceUI.VisibleOverride = false;
                 ReductionSettings.OutwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.InwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.KeepSymmetryUI.VisibleOverride = false;
@@ -41339,6 +44329,7 @@ namespace SimplygonUI
                 BoneSettings.VisibleOverride = false;
                 MappingImageSettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
                 ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
                 BoneSettings.LockBoneSelectionSetNameUI.VisibleOverride = false;
@@ -41349,6 +44340,7 @@ namespace SimplygonUI
 
             if (PipelineType == ESimplygonPipeline.ReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Blender && MenuPath == "Template/Basic/Reduction with material baking")
             {
+                ReductionSettings.PreserveQuadFlagsUI.VisibleOverride = false;
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "Basecolor";
                 ReductionSettings.ReductionTargetTriangleCountUI.VisibleOverride = false;
@@ -41364,7 +44356,6 @@ namespace SimplygonUI
                 ReductionSettings.VertexColorImportanceUI.VisibleOverride = false;
                 ReductionSettings.EdgeSetImportanceUI.VisibleOverride = false;
                 ReductionSettings.SkinningImportanceUI.VisibleOverride = false;
-                ReductionSettings.CurvatureImportanceUI.VisibleOverride = false;
                 ReductionSettings.OutwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.InwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.KeepSymmetryUI.VisibleOverride = false;
@@ -41380,6 +44371,7 @@ namespace SimplygonUI
                 VisibilitySettings.VisibleOverride = false;
                 BoneSettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
@@ -41423,6 +44415,7 @@ namespace SimplygonUI
                 BoneSettings.VisibleOverride = false;
                 GeometryCullingSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
@@ -41458,6 +44451,7 @@ namespace SimplygonUI
                 AggregationSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 MappingImageSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
                 AggregationSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
@@ -41491,6 +44485,7 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
                 AggregationSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
@@ -41529,6 +44524,7 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -41561,6 +44557,7 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -41589,6 +44586,7 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 ImpostorFromSingleViewSettings.TwoSidedUI.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -41653,6 +44651,7 @@ namespace SimplygonUI
 
             if (PipelineType == ESimplygonPipeline.ReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && MenuPath == "Template/Basic/Reduction")
             {
+                ReductionSettings.PreserveQuadFlagsUI.VisibleOverride = false;
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
                 ReductionSettings.ReductionTargetTriangleCountUI.VisibleOverride = false;
@@ -41668,7 +44667,6 @@ namespace SimplygonUI
                 ReductionSettings.VertexColorImportanceUI.VisibleOverride = false;
                 ReductionSettings.EdgeSetImportanceUI.VisibleOverride = false;
                 ReductionSettings.SkinningImportanceUI.VisibleOverride = false;
-                ReductionSettings.CurvatureImportanceUI.VisibleOverride = false;
                 ReductionSettings.OutwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.InwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.KeepSymmetryUI.VisibleOverride = false;
@@ -41685,11 +44683,13 @@ namespace SimplygonUI
                 BoneSettings.VisibleOverride = false;
                 MappingImageSettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
             if (PipelineType == ESimplygonPipeline.ReductionPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && MenuPath == "Template/Basic/Reduction with material baking")
             {
+                ReductionSettings.PreserveQuadFlagsUI.VisibleOverride = false;
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
                 ReductionSettings.ReductionTargetTriangleCountUI.VisibleOverride = false;
@@ -41705,7 +44705,6 @@ namespace SimplygonUI
                 ReductionSettings.VertexColorImportanceUI.VisibleOverride = false;
                 ReductionSettings.EdgeSetImportanceUI.VisibleOverride = false;
                 ReductionSettings.SkinningImportanceUI.VisibleOverride = false;
-                ReductionSettings.CurvatureImportanceUI.VisibleOverride = false;
                 ReductionSettings.OutwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.InwardMoveMultiplierUI.VisibleOverride = false;
                 ReductionSettings.KeepSymmetryUI.VisibleOverride = false;
@@ -41721,6 +44720,7 @@ namespace SimplygonUI
                 VisibilitySettings.VisibleOverride = false;
                 BoneSettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
@@ -41759,6 +44759,7 @@ namespace SimplygonUI
                 BoneSettings.VisibleOverride = false;
                 GeometryCullingSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTangentsUI.VisibleOverride = false;
@@ -41789,6 +44790,7 @@ namespace SimplygonUI
                 AggregationSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 MappingImageSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
@@ -41819,6 +44821,7 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 VertexWeightSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
@@ -41850,6 +44853,7 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -41879,6 +44883,7 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -41907,6 +44912,7 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 ImpostorFromSingleViewSettings.TwoSidedUI.VisibleOverride = false;
+                AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 

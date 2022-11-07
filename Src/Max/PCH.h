@@ -59,6 +59,7 @@
 #include <maxscript/util/listener.h>
 
 #include <iepoly.h>
+#include "polyobj.h"
 
 #include "IFileResolutionManager.h"
 #include "assetmanagement\AssetType.h"

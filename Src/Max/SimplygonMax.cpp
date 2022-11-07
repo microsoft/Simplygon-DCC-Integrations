@@ -19,6 +19,7 @@
 #include <sstream>
 #include <iosfwd>
 #include "HelperFunctions.h"
+#include "SimplygonConvenienceTemplates.h"
 #include "Common.h"
 #include <SimplygonProcessingModule.h>
 #include "SimplygonInit.h"
@@ -57,6 +58,7 @@ extern HINSTANCE hInstance;
 SimplygonMax* SimplygonMaxInstance = nullptr;
 extern SimplygonInitClass* SimplygonInitInstance;
 
+#define TURBOSMOOTH_CLASS_ID       Class_ID( 225606462L, 1226647975L )
 #define MORPHER_CLASS_ID           Class_ID( 398157908L, 2781586083L )
 #define PHYSICAL_MATERIAL_CLASS_ID Class_ID( 1030429932L, 3735928833L )
 
@@ -1567,10 +1569,14 @@ spShadingNode MaterialNodes::RunTintNode( Texmap* mTexMap, MaterialNodes::Materi
 
 	int isEnabled = 0;
 	const bool bEnableMapsFound = GetTexMapProperty<int>( mTexMap, _T("map1Enabled"), mMaterialChannel.mTime, &isEnabled );
-	const bool mIsEnabled = isEnabled == 1;
+	const bool bIsEnabled = isEnabled == 1;
 
 	Texmap* mSubTexMap = mTexMap->GetSubTexmap( 0 );
 	ShadingNode = SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel );
+	if( ShadingNode == NullPtr )
+	{
+		return NullPtr;
+	}
 
 	return MaterialNodes::SetUpTintShadingNode( ShadingNode, mMaterialChannel.mMaterialName, mRedChannel, mGreenChannel, mBlueChannel, mMaterialChannel.mTime );
 }
@@ -1586,7 +1592,6 @@ MaterialNodes::RunBitmapNode( Texmap* mTexMap, MaterialNodes::MaterialChannelDat
 	// allocate and writedata to TextureData
 	MaterialNodes::TextureData mTextureData( mTexMap );
 
-	TCHAR tTexturePath[ MAX_PATH ] = { 0 };
 	bool bIsSRGB = false;
 
 	// change sRGB based on gamma
@@ -1595,9 +1600,12 @@ MaterialNodes::RunBitmapNode( Texmap* mTexMap, MaterialNodes::MaterialChannelDat
 	{
 		bIsSRGB = true;
 	}
-	GetImageFullFilePath( mTextureData.mBitmap->GetMapName(), tTexturePath );
+	// GetImageFullFilePath( mTextureData.mBitmap->GetMapName(), tTexturePath );
+	std::basic_string<TCHAR> tTexturePath = mTextureData.mBitmap->GetMapName();
 
-	if( _tcslen( tTexturePath ) > 0 )
+	// if the path length is > 0, try to import texture to temporary directory, if the full path can not be resolved in ImportTexture a stand-in texture will be
+	// written and warning message outputted.
+	if( tTexturePath.length() > 0 )
 	{
 		// if normal map, disable sRGB
 		if( mMaterialChannel.mMaxChannelId == ID_BU )
@@ -1623,7 +1631,8 @@ MaterialNodes::RunBitmapNode( Texmap* mTexMap, MaterialNodes::MaterialChannelDat
 
 			if( tTexturePathOverride.length() > 0 )
 			{
-				_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
+				tTexturePath = tTexturePathOverride;
+				//_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
 			}
 		}
 
@@ -1649,7 +1658,7 @@ MaterialNodes::RunBitmapNode( Texmap* mTexMap, MaterialNodes::MaterialChannelDat
 			}
 		}
 
-		mTextureData.mTexturePathWithName = tTexturePath;
+		mTextureData.mTexturePathWithName = SimplygonMaxInstance->ImportTexture( tTexturePath );
 		mTextureData.mTextureName = GetTitleOfFile( mTextureData.mTexturePathWithName );
 		mTextureData.mTextureExtension = GetExtensionOfFile( mTextureData.mTexturePathWithName );
 		mTextureData.mTextureNameWithExtension = mTextureData.mTextureName + mTextureData.mTextureExtension;
@@ -1668,14 +1677,28 @@ MaterialNodes::RunBitmapNode( Texmap* mTexMap, MaterialNodes::MaterialChannelDat
 			mTextureData.mPremultipliedAlpha =
 			    textureSettingsOverride->mEnabledPremultOverride ? textureSettingsOverride->mPremultipliedAlpha : mTextureData.mPremultipliedAlpha;
 		}
+
+		// map TextureData
+		SimplygonMaxInstance->CreateAndLinkTexture( mTextureData );
+
+		// setup the bitmapNode
+		return MaterialNodes::SetUpBitmapShadingNode(
+		    mMaterialChannel.mMaterialName, tMaxMappingChannel, mTextureData, mMaterialChannel.mMaxChannelId, mMaterialChannel.mTime );
 	}
+	// nodes with null/empty paths
+	else
+	{
+		MSTR nodeInfo = mTexMap->GetFullName();
 
-	// map TextureData
-	SimplygonMaxInstance->CreateAndLinkTexture( mTextureData );
+		mMaterialChannel.mWarningMessage += _T("An empty (or unknown) material node with id: ");
+		mMaterialChannel.mWarningMessage += nodeInfo;
+		mMaterialChannel.mWarningMessage += _T(" was detected in material ");
+		mMaterialChannel.mWarningMessage += mMaterialChannel.mMaterialName;
+		mMaterialChannel.mWarningMessage += _T(" on channel ");
+		mMaterialChannel.mWarningMessage += mMaterialChannel.mChannelName;
 
-	// setup the bitmapNode
-	return MaterialNodes::SetUpBitmapShadingNode(
-	    mMaterialChannel.mMaterialName, tMaxMappingChannel, mTextureData, mMaterialChannel.mMaxChannelId, mMaterialChannel.mTime );
+		return NullPtr;
+	}
 }
 
 spShadingNode MaterialNodes::RunMultiplyNode( Texmap* mTexMap, MaterialNodes::MaterialChannelData& mMaterialChannel )
@@ -1689,24 +1712,32 @@ spShadingNode MaterialNodes::RunMultiplyNode( Texmap* mTexMap, MaterialNodes::Ma
 	                              GetTexMapProperty<Color>( mTexMap, _T("color2"), mMaterialChannel.mTime, &mColors[ 1 ] ) };
 
 	//
-	int isEnabled[ 2 ] = { 0, 0 };
-	const bool bEnableMapsFound[ 2 ] = { GetTexMapProperty<int>( mTexMap, _T("map1Enabled"), mMaterialChannel.mTime, &isEnabled[ 0 ] ),
-	                                     GetTexMapProperty<int>( mTexMap, _T("map2Enabled"), mMaterialChannel.mTime, &isEnabled[ 1 ] ) };
+	int bIsEnabled[ 2 ] = { 0, 0 };
+	const bool bEnableMapsFound[ 2 ] = { GetTexMapProperty<int>( mTexMap, _T("map1Enabled"), mMaterialChannel.mTime, &bIsEnabled[ 0 ] ),
+	                                     GetTexMapProperty<int>( mTexMap, _T("map2Enabled"), mMaterialChannel.mTime, &bIsEnabled[ 1 ] ) };
 
 	//
 	int alphaFrom = 0;
-	const bool alphaFromFound = GetTexMapProperty<int>( mTexMap, _T("alphaFrom"), mMaterialChannel.mTime, &alphaFrom );
+	const bool bAlphaFromFound = GetTexMapProperty<int>( mTexMap, _T("alphaFrom"), mMaterialChannel.mTime, &alphaFrom );
 	MaterialNodes::MultiplyNodeAlphaFrom mAlphaFrom = (MaterialNodes::MultiplyNodeAlphaFrom)alphaFrom;
 
 	// Map TextureData
 	for( int i = 0; i < 2; ++i )
 	{
 		Texmap* mSubTexMap = mTexMap->GetSubTexmap( i );
-		if( isEnabled[ i ] )
+		bool bWriteColor = !bIsEnabled[ i ];
+
+		if( bIsEnabled[ i ] )
 		{
 			mShadingNodes[ i ] = SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel );
+			if( mShadingNodes[ i ] == NullPtr )
+			{
+				return NullPtr;
+			}
 		}
-		else
+
+		// if the slot is disabled, write the colors for the corresponding slots
+		if( bWriteColor )
 		{
 			spShadingColorNode sgColorNode = sg->CreateShadingColorNode();
 			sgColorNode->SetColor( mColors[ i ].r, mColors[ i ].g, mColors[ i ].b, 1.0f );
@@ -1750,7 +1781,12 @@ spShadingNode MaterialNodes::RunCompositeNode( Texmap* mTexMap, MaterialNodes::M
 		{
 			Texmap* mSubTexMap = mTexMap->GetSubTexmap( i );
 
-			mTextureNodes.emplace_back( SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel ) );
+			spShadingNode shadingNode = SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel );
+			if( shadingNode == NullPtr )
+			{
+				return NullPtr;
+			}
+			mTextureNodes.emplace_back( shadingNode );
 		}
 		else
 		{
@@ -1770,7 +1806,13 @@ spShadingNode MaterialNodes::RunCompositeNode( Texmap* mTexMap, MaterialNodes::M
 			textureOverride.mEnabledSRGBOverride = true;
 			textureOverride.mSRGB = false;
 
-			mMaskNodes.emplace_back( SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel, &textureOverride ) );
+			spShadingNode shadingNode = SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel, &textureOverride );
+			if( shadingNode == NullPtr )
+			{
+				return NullPtr;
+			}
+
+			mMaskNodes.emplace_back( shadingNode );
 		}
 		else
 		{
@@ -1878,11 +1920,17 @@ spShadingNode MaterialNodes::RunColorCorrectionNode( Texmap* mTexMap, MaterialNo
 	colorCorrectionData.mEnableB = enableBlue == 1;
 
 	Texmap* mSubTexMap = mTexMap->GetSubTexmap( 0 );
+	bool bWriteColor = mSubTexMap == nullptr;
 	if( mSubTexMap )
 	{
 		node = SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel );
+		if( node == NullPtr )
+		{
+			return NullPtr;
+		}
 	}
-	else
+
+	if( bWriteColor )
 	{
 		spShadingColorNode sgColorNode = sg->CreateShadingColorNode();
 		sgColorNode->SetColor( mColor.r, mColor.g, mColor.b, mColor.a );
@@ -2376,7 +2424,7 @@ class PhysicalMaterial
 
 									if( bTextureInUse )
 									{
-										sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingPath(
+										sgTexture = MaxReference->GetSceneHandler()->sgScene->GetTextureTable()->FindTextureUsingFilePath(
 										    LPCTSTRToConstCharPtr( tTexturePathWithName.c_str() ) );
 									}
 									else
@@ -2855,7 +2903,6 @@ class PhysicalMaterial
 					sgSwizzleNode->SetBlueComponent( 0 );
 					sgSwizzleNode->SetAlphaComponent( 0 );
 				}
-
 				sgMaterial->SetShadingNetwork( cChannelName, sgSwizzleNode );
 			}
 			else
@@ -3467,6 +3514,11 @@ class PhysicalMaterial
 
 			sgMaterial->SetShadingNetwork( cChannelName, sgColorNode );
 		}
+
+		// new to max 2023
+#if MAX_VERSION_MAJOR >= 25
+
+		// Clearcoat
 		if( !sgMaterial->HasMaterialChannel( "coat_affect_color" ) )
 		{
 			const char* cChannelName = "coat_affect_color";
@@ -3494,6 +3546,201 @@ class PhysicalMaterial
 			sgMaterial->SetShadingNetwork( cChannelName, sgColorNode );
 		}
 
+		// Sheen Maps
+		if( !sgMaterial->HasMaterialChannel( "sheen" ) )
+		{
+			const char* cChannelName = "sheen";
+			const TCHAR* tChannelName = ConstCharPtrToLPCTSTR( cChannelName );
+
+			this->CreateMaterialChannel( sgMaterial, tChannelName );
+
+			float mSheenWeight = this->GetFloat( _T("sheen") );
+			Texmap* mSheenWeightMap = this->GetMap( _T("sheen_map") );
+			bool mSheenWeightMapOn = this->GetBool( _T("sheen_map_on") );
+
+			if( HasValidTexMap( mSheenWeightMap, mSheenWeightMapOn ) )
+			{
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mSheenWeightMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
+			}
+			else
+			{
+				// if there is a texmap of unsupported type enabled, output warning
+				if( mSheenWeightMap && mSheenWeightMapOn )
+				{
+					MaxReference->LogMaterialNodeMessage( mSheenWeightMap, tMaterialName, tChannelName );
+				}
+
+				spShadingColorNode sgColorNode = CreateColorShadingNetwork( mSheenWeight, mSheenWeight, mSheenWeight, 1.0f );
+
+				sgMaterial->SetShadingNetwork( cChannelName, sgColorNode );
+			}
+		}
+		if( !sgMaterial->HasMaterialChannel( "sheen_color" ) )
+		{
+			const char* cChannelName = "sheen_color";
+			const TCHAR* tChannelName = ConstCharPtrToLPCTSTR( cChannelName );
+
+			this->CreateMaterialChannel( sgMaterial, tChannelName );
+
+			Point4* mSheenColor = this->GetColor4( _T("sheen_color") );
+			Texmap* mSheenColorMap = this->GetMap( _T("sheen_color_map") );
+			bool mSheenColorMapOn = this->GetBool( _T("sheen_color_map_on") );
+
+			if( HasValidTexMap( mSheenColorMap, mSheenColorMapOn ) )
+			{
+				spShadingNode sgShadingNode =
+				    MaxReference->CreateSgMaterialPBRChannel( mSheenColorMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
+			}
+			else
+			{
+				// if there is a texmap of unsupported type enabled, output warning
+				if( mSheenColorMap && mSheenColorMapOn )
+				{
+					MaxReference->LogMaterialNodeMessage( mSheenColorMap, tMaterialName, tChannelName );
+				}
+
+				spShadingColorNode sgColorNode = CreateColorShadingNetwork( mSheenColor->x, mSheenColor->y, mSheenColor->z, 1.0f );
+
+				sgMaterial->SetShadingNetwork( cChannelName, sgColorNode );
+			}
+		}
+		if( !sgMaterial->HasMaterialChannel( "sheen_roughness" ) )
+		{
+			const char* cChannelName = "sheen_roughness";
+			const TCHAR* tChannelName = ConstCharPtrToLPCTSTR( cChannelName );
+
+			this->CreateMaterialChannel( sgMaterial, tChannelName );
+
+			float mSheenRoughness = this->GetFloat( _T("sheen_roughness") );
+			Texmap* mSheenRoughMap = this->GetMap( _T("sheen_rough_map") );
+			bool mSheenRoughMapOn = this->GetBool( _T("sheen_rough_map_on") );
+			bool mSheenRoughnessInv = this->GetBool( _T("sheen_roughness_inv") );
+
+			if( HasValidTexMap( mSheenRoughMap, mSheenRoughMapOn ) )
+			{
+				MaterialNodes::TextureSettingsOverride textureSettingsOverride = MaterialNodes::TextureSettingsOverride();
+				textureSettingsOverride.mEnabledAlphaSourceOverride = true;
+				textureSettingsOverride.mAlphaSource = ALPHA_FILE;
+
+				spShadingNode sgShadingNode =
+				    MaxReference->CreateSgMaterialPBRChannel( mSheenRoughMap, maxChannelID, cMaterialName, cChannelName, &textureSettingsOverride );
+
+				spShadingNode sgExitNode;
+				if( mSheenRoughnessInv )
+				{
+					spShadingColorNode sgNegativeNode = sg->CreateShadingColorNode();
+					sgNegativeNode->SetColor( -1.0f, -1.0f, -1.0f, 1.0f );
+
+					spShadingColorNode sgPositiveNode = sg->CreateShadingColorNode();
+					sgPositiveNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
+
+					spShadingMultiplyNode sgMultiplyNode = sg->CreateShadingMultiplyNode();
+					sgMultiplyNode->SetInput( 0, sgNegativeNode );
+					sgMultiplyNode->SetInput( 1, sgShadingNode );
+
+					spShadingAddNode sgAddNode = sg->CreateShadingAddNode();
+					sgAddNode->SetInput( 0, sgMultiplyNode );
+					sgAddNode->SetInput( 1, sgPositiveNode );
+
+					sgExitNode = (spShadingNode)sgAddNode;
+				}
+				else
+				{
+					sgExitNode = sgShadingNode;
+				}
+
+				sgMaterial->SetShadingNetwork( cChannelName, sgExitNode );
+			}
+			else
+			{
+				// if there is a texmap of unsupported type enabled, output warning
+				if( mSheenRoughMap && mSheenRoughMapOn )
+				{
+					MaxReference->LogMaterialNodeMessage( mSheenRoughMap, tMaterialName, tChannelName );
+				}
+
+				spShadingColorNode sgColorNode;
+
+				if( mSheenRoughnessInv )
+				{
+					sgColorNode = CreateColorShadingNetwork( 1.0f - mSheenRoughness, 1.0f - mSheenRoughness, 1.0f - mSheenRoughness, 1.0f );
+				}
+				else
+				{
+					sgColorNode = CreateColorShadingNetwork( mSheenRoughness, mSheenRoughness, mSheenRoughness, 1.0f );
+				}
+
+				sgMaterial->SetShadingNetwork( cChannelName, sgColorNode );
+			}
+		}
+
+		// Thin Film
+		if( !sgMaterial->HasMaterialChannel( "thin_film" ) )
+		{
+			const char* cChannelName = "thin_film";
+			const TCHAR* tChannelName = ConstCharPtrToLPCTSTR( cChannelName );
+
+			this->CreateMaterialChannel( sgMaterial, tChannelName );
+
+			float mThinFilmWeight = this->GetFloat( _T("thin_film") );
+			float mThinFilmThickness = this->GetFloat( _T("thin_film_thickness") );
+			Texmap* mThinFilmWeightMap = this->GetMap( _T("thin_film_map") );
+			bool mThinFilmWeightMapOn = this->GetBool( _T("thin_film_map_on") );
+
+			if( HasValidTexMap( mThinFilmWeightMap, mThinFilmWeightMapOn ) )
+			{
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mThinFilmWeightMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
+			}
+			else
+			{
+				// if there is a texmap of unsupported type enabled, output warning
+				if( mThinFilmWeightMap && mThinFilmWeightMapOn )
+				{
+					MaxReference->LogMaterialNodeMessage( mThinFilmWeightMap, tMaterialName, tChannelName );
+				}
+
+				spShadingColorNode sgColorNode = CreateColorShadingNetwork( mThinFilmWeight, mThinFilmWeight, mThinFilmWeight, 1.0f );
+
+				sgMaterial->SetShadingNetwork( cChannelName, sgColorNode );
+			}
+		}
+		if( !sgMaterial->HasMaterialChannel( "thin_film_ior" ) )
+		{
+			const char* cChannelName = "thin_film_ior";
+			const TCHAR* tChannelName = ConstCharPtrToLPCTSTR( cChannelName );
+
+			this->CreateMaterialChannel( sgMaterial, tChannelName );
+
+			Texmap* mThinFilmIORMap = this->GetMap( _T("thin_film_ior_map") );
+			float mThinFilmIOR = this->GetFloat( _T("thin_film_ior") );
+			bool mThinFilmIORMapOn = this->GetBool( _T("thin_film_ior_map_on") );
+
+			if( HasValidTexMap( mThinFilmIORMap, mThinFilmIORMapOn ) )
+			{
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mThinFilmIORMap, maxChannelID, cMaterialName, cChannelName );
+				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
+			}
+			else
+			{
+				// if there is a texmap of unsupported type enabled, output warning
+				if( mThinFilmIORMap && mThinFilmIORMapOn )
+				{
+					MaxReference->LogMaterialNodeMessage( mThinFilmIORMap, tMaterialName, tChannelName );
+				}
+
+				// fit IOR of 0 - 5 into 0 - 1
+				float divisor = 5.0f;
+				float mCorrectedIOR = clamp( mThinFilmIOR / divisor, 0.0f, 1.0f );
+
+				spShadingColorNode sgScaleColorNode = CreateColorShadingNetwork( mCorrectedIOR, mCorrectedIOR, mCorrectedIOR, 1.0f );
+
+				sgMaterial->SetShadingNetwork( cChannelName, sgScaleColorNode );
+			}
+		}
+#endif
 		return true;
 	}
 
@@ -3621,6 +3868,8 @@ SimplygonMax::SimplygonMax()
 
 	this->PipelineRunMode = 1;
 
+	this->QuadMode = false;
+
 	this->AllowUnsafeImport = false;
 
 	this->ShowProgress = true;
@@ -3638,6 +3887,8 @@ SimplygonMax::SimplygonMax()
 	this->mapMaterials = true;
 	this->mapMeshes = true;
 	this->copyTextures = true;
+
+	this->numBadTriangulations = 0;
 
 	this->Reset();
 
@@ -3704,6 +3955,9 @@ void SimplygonMax::Reset()
 	this->RunDebugger = false;
 
 	this->PipelineRunMode = 1;
+
+	this->QuadMode = false;
+	this->numBadTriangulations = 0;
 
 	this->AllowUnsafeImport = false;
 
@@ -4060,7 +4314,7 @@ bool SimplygonMax::CreateSceneGraph( INode* mMaxNode, spSceneNode sgNode, std::v
 	bool bPostAddCameraToSelectionSet = false;
 
 	// is this node a mesh?
-	const bool bIsMesh = this->IsMesh( mMaxNode );
+	const bool bIsMesh = this->QuadMode ? this->IsMesh_Quad( mMaxNode ) : this->IsMesh( mMaxNode );
 
 	// if so, does it exist in an active set?
 	const bool bMeshExistsInSet = bIsMesh ? NodeExistsInActiveSets( mMaxNode ) : false;
@@ -4101,12 +4355,6 @@ bool SimplygonMax::CreateSceneGraph( INode* mMaxNode, spSceneNode sgNode, std::v
 
 	ULONG mUniquehandle = mMaxNode->GetHandle();
 	sgCreatedNode->SetUserData( "MAX_UniqueHandle", &mUniquehandle, sizeof( ULONG ) );
-
-	// IsFrozen is deprecated in 9.2
-#pragma warning( push )
-#pragma warning( disable : 4996 )
-	sgCreatedNode->SetIsFrozen( mMaxNode->IsFrozen() > 0 );
-#pragma warning( pop )
 
 	sgNode->AddChild( sgCreatedNode );
 
@@ -4612,7 +4860,7 @@ bool SimplygonMax::HasSelectedChildren( INode* mMaxNode )
 	return false;
 }
 
-// Returns true if node (INode) is a mesh
+// Returns true if node (INode) is a tri mesh
 bool SimplygonMax::IsMesh( INode* mMaxNode )
 {
 	Object* mMaxObject = mMaxNode->GetObjectRef();
@@ -4625,6 +4873,24 @@ bool SimplygonMax::IsMesh( INode* mMaxNode )
 	if( !mMaxObjectState.obj->CanConvertToType( triObjectClassID ) )
 	{
 		return false; // this is not a tri-mesh object, skip it, go on
+	}
+
+	return true;
+}
+
+// Returns true if node (INode) is a poly mesh
+bool SimplygonMax::IsMesh_Quad( INode* mMaxNode )
+{
+	Object* mMaxObject = mMaxNode->GetObjectRef();
+	ObjectState mMaxObjectState = mMaxNode->EvalWorldState( this->CurrentTime );
+	if( !mMaxObjectState.obj )
+	{
+		return false; // we have no object, skip it, go on
+	}
+
+	if( !(PolyObject*)mMaxObjectState.obj->ConvertToType( this->CurrentTime, polyObjectClassID ) )
+	{
+		return false; // this is not a poly-mesh object, skip it, go on
 	}
 
 	return true;
@@ -4756,14 +5022,42 @@ void SimplygonMax::MakeCameraTargetRelative( INode* mMaxNode, spSceneNode sgNode
 bool SimplygonMax::ExtractAllGeometries()
 {
 	// extract the geometry data
-	for( size_t meshIndex = 0; meshIndex < this->SelectedMeshCount; ++meshIndex )
+	this->numBadTriangulations = 0;
+	if( this->QuadMode == true )
 	{
-		if( !this->ExtractGeometry( meshIndex ) )
+		uint32_t oldNumBadTriangulations = 0;
+		uint32_t numBadTriangulationMesh = 0;
+		for( size_t meshIndex = 0; meshIndex < this->SelectedMeshCount; ++meshIndex )
 		{
-			return false;
+			if( !this->ExtractGeometry_Quad( meshIndex ) )
+			{
+				return false;
+			}
+
+			if( numBadTriangulations > oldNumBadTriangulations )
+			{
+				oldNumBadTriangulations = numBadTriangulations;
+				++numBadTriangulationMesh;
+			}
+		}
+
+		if( numBadTriangulations > 0 )
+		{
+			std::string sWarning = "Quad export - found " + std::to_string( numBadTriangulations ) + " polygons in " +
+			                       std::to_string( numBadTriangulationMesh ) + " meshes which could not be optimally triangulated";
+			LogToWindow( ConstCharPtrToLPCWSTRr( sWarning.c_str() ), ErrorType::Warning );
 		}
 	}
-
+	else
+	{
+		for( size_t meshIndex = 0; meshIndex < this->SelectedMeshCount; ++meshIndex )
+		{
+			if( !this->ExtractGeometry( meshIndex ) )
+			{
+				return false;
+			}
+		}
+	}
 	return true;
 }
 
@@ -4775,12 +5069,6 @@ spSceneBone SimplygonMax::ReplaceNodeWithBone( spSceneNode sgNode )
 	sgBoneNode->SetOriginalName( sgNode->GetOriginalName().c_str() );
 	sgBoneNode->GetRelativeTransform()->DeepCopy( sgNode->GetRelativeTransform() );
 	sgBoneNode->SetNodeGUID( sgNode->GetNodeGUID().c_str() );
-
-	// IsFrozen is deprecated in 9.2
-#pragma warning( push )
-#pragma warning( disable : 4996 )
-	sgBoneNode->SetIsFrozen( sgNode->GetIsFrozen() );
-#pragma warning( pop )
 
 	while( sgNode->GetChildCount() > 0 )
 	{
@@ -6469,6 +6757,630 @@ bool SimplygonMax::ExtractGeometry( size_t meshIndex )
 	return true;
 }
 
+// Creates Simplygon geometry from Max geometry
+bool SimplygonMax::ExtractGeometry_Quad( size_t meshIndex )
+{
+	// fetch max and sg meshes
+	MeshNode* meshNode = this->SelectedMeshNodes[ meshIndex ];
+
+	INode* mMaxNode = meshNode->MaxNode;
+	spSceneMesh sgMesh = meshNode->sgMesh;
+
+	spGeometryData sgMeshData = sg->CreateGeometryData();
+	sgMesh->SetGeometry( sgMeshData );
+	sgMeshData->AddQuadFlags();
+	spCharArray sgQuadFlags = sgMeshData->GetQuadFlags();
+
+	this->LogToWindow( std::basic_string<TCHAR>( _T("Extracting node: ") ) + mMaxNode->GetName() );
+
+	// skinning modifiers
+	Object* mMaxObject = mMaxNode->GetObjectRef();
+
+	// check if the object has a skinning modifier
+	// start by checking if it is a derived object
+	if( mMaxObject != nullptr && mMaxObject->SuperClassID() == GEN_DERIVOB_CLASS_ID )
+	{
+		IDerivedObject* mMaxDerivedObject = static_cast<IDerivedObject*>( mMaxObject );
+
+		// derived object, look through the modifier list for a skinning modifier
+		for( int modifierIndex = 0; modifierIndex < mMaxDerivedObject->NumModifiers(); ++modifierIndex )
+		{
+			Modifier* mModifier = mMaxDerivedObject->GetModifier( modifierIndex );
+			if( mModifier != nullptr && mModifier->ClassID() == SKIN_CLASSID )
+			{
+				meshNode->SkinModifiers = mModifier;
+				break;
+			}
+		}
+
+		// derived object, look through the modifier list for a morph modifier
+		for( int modifierIndex = 0; modifierIndex < mMaxDerivedObject->NumModifiers(); ++modifierIndex )
+		{
+			Modifier* mModifier = mMaxDerivedObject->GetModifier( modifierIndex );
+			if( mModifier != nullptr && mModifier->ClassID() == MORPHER_CLASS_ID && mModifier->IsEnabled() )
+			{
+				RegisterMorphScripts();
+				meshNode->MorphTargetModifier = mModifier;
+				break;
+			}
+		}
+
+		for( int modifierIndex = 0; modifierIndex < mMaxDerivedObject->NumModifiers(); ++modifierIndex )
+		{
+			Modifier* mModifier = mMaxDerivedObject->GetModifier( modifierIndex );
+			if( mModifier != nullptr && mModifier->ClassID() == TURBOSMOOTH_CLASS_ID && mModifier->IsEnabled() )
+			{
+				meshNode->TurboSmoothModifier = mModifier;
+				break;
+			}
+		}
+	}
+
+	// if there is a morph modifier, temporarily disable if enabled, and store current state
+	BOOL bMorphTargetModifier = FALSE;
+	if( meshNode->MorphTargetModifier != nullptr )
+	{
+		bMorphTargetModifier = meshNode->MorphTargetModifier->IsEnabled();
+		meshNode->MorphTargetModifier->DisableMod();
+
+		meshNode->MorphTargetData = new MorpherWrapper( meshNode->MorphTargetModifier, mMaxNode, this->CurrentTime );
+	}
+
+	// if there is a skinning modifier, temporarily disable if enabled, and store current state
+	BOOL bSkinModifierEnabled = FALSE;
+	if( meshNode->SkinModifiers != nullptr )
+	{
+		bSkinModifierEnabled = meshNode->SkinModifiers->IsEnabled();
+		meshNode->SkinModifiers->DisableMod();
+	}
+
+	BOOL bTurboSmoothModifierEnabled = FALSE;
+	if( meshNode->TurboSmoothModifier != nullptr )
+	{
+		bTurboSmoothModifierEnabled = meshNode->TurboSmoothModifier->IsEnabled();
+		meshNode->TurboSmoothModifier->DisableMod();
+	}
+
+	ObjectState mMaxNodeObjectState = mMaxNode->EvalWorldState( this->CurrentTime );
+	PolyObject* mMaxPolyObject = (PolyObject*)mMaxNodeObjectState.obj->ConvertToType( this->CurrentTime, polyObjectClassID );
+
+	meshNode->Objects = mMaxNodeObjectState.obj;
+	meshNode->PolyObjects = mMaxPolyObject;
+
+	// extract mesh data
+	MNMesh& mMaxMesh = mMaxPolyObject->GetMesh();
+
+	const uint vertexCount = mMaxMesh.VNum();
+	const uint polygonCount = mMaxMesh.FNum();
+	const uint triangleCount = mMaxMesh.TriNum();
+
+	sgMeshData->SetVertexCount( vertexCount );
+	sgMeshData->SetTriangleCount( triangleCount );
+
+	uint32_t currentQuadFlagTriangleIndex = 0;
+	uint32_t currentVertexIndex = 0;
+
+	spRidArray sgVertexIds = sgMeshData->GetVertexIds();
+	spRealArray sgCoords = sgMeshData->GetCoords();
+	for( uint vid = 0; vid < vertexCount; ++vid )
+	{
+		const MNVert& mCoord = mMaxMesh.v[ vid ];
+		const float coord[ 3 ] = { mCoord.p.x, mCoord.p.y, mCoord.p.z };
+		sgCoords->SetTuple( vid, coord );
+	}
+
+	std::vector<Triangulator::vec3> sgGLMVertices;
+	SetVectorFromArray<Triangulator::vec3, 3>( sgGLMVertices, sgCoords );
+
+	std::vector<Triangulator::vec3> sgTexCoords;
+	sgTexCoords.resize( vertexCount );
+
+	std::vector<Triangulator::Triangle> sgGlobalPolygonTriangles;
+	sgGlobalPolygonTriangles.reserve( triangleCount );
+
+	std::vector<Triangulator::Triangle> sgLocalPolygonTriangles;
+	const Triangulator& sgTriangulator = Triangulator( sgGLMVertices.data(), vertexCount );
+
+	uint sgPolygonIndex = 0;
+	for( uint32_t polygonIndex = 0; polygonIndex < polygonCount; ++polygonIndex )
+	{
+		const int deg = mMaxMesh.F( polygonIndex )->deg;
+		const bool bIsQuad = deg == 4;
+
+		sgLocalPolygonTriangles.resize( deg - 2 );
+		if( bIsQuad )
+		{
+			{
+				const char cQuadFlagToken = SG_QUADFLAG_FIRST;
+				sgQuadFlags->SetItem( currentQuadFlagTriangleIndex++, cQuadFlagToken );
+			}
+			{
+				const char cQuadFlagToken = SG_QUADFLAG_SECOND;
+				sgQuadFlags->SetItem( currentQuadFlagTriangleIndex++, cQuadFlagToken );
+			}
+		}
+		else
+		{
+			const char cQuadFlagToken = SG_QUADFLAG_TRIANGLE;
+			sgQuadFlags->SetItem( currentQuadFlagTriangleIndex++, cQuadFlagToken );
+		}
+
+		const uint* indexArray = reinterpret_cast<const uint*>( mMaxMesh.F( polygonIndex )->vtx );
+		const bool triangulationFailed = !sgTriangulator.TriangulatePolygon( sgLocalPolygonTriangles.data(), indexArray, deg );
+
+		if( triangulationFailed )
+		{
+			++numBadTriangulations;
+		}
+
+		for( int i = 0; i < sgLocalPolygonTriangles.size(); ++i, ++sgPolygonIndex )
+		{
+			auto localTriangle = sgLocalPolygonTriangles[ i ];
+
+			for( uint c = 0; c < 3; ++c )
+			{
+				int cid = sgPolygonIndex * 3 + c;
+				int localIndex = localTriangle.c[ c ];
+				sgVertexIds->SetItem( cid, indexArray[ localIndex ] );
+			}
+
+			sgGlobalPolygonTriangles.emplace_back( localTriangle );
+		}
+
+		for( int i = 0; i < deg; ++i )
+		{
+			int index = mMaxMesh.F( polygonIndex )->vtx[ i ];
+			Point3& vertex = mMaxMesh.v[ index ].p;
+			sgTexCoords[ index ] = glm::vec3( vertex.x, vertex.y, vertex.z );
+		}
+	}
+
+	std::vector<uint32_t> mPolygonIndexToTriangleIndex;
+	mPolygonIndexToTriangleIndex.resize( polygonCount );
+
+	std::vector<uint32_t> mNumPolygonTriangles;
+	mNumPolygonTriangles.resize( polygonCount );
+
+	uint triCount = 0;
+	for( uint polygonIndex = 0; polygonIndex < polygonCount; ++polygonIndex )
+	{
+		IntTab triangles;
+		mMaxMesh.F( polygonIndex )->GetTriangles( triangles );
+		uint32_t numTri = triangles.Count() / 3;
+
+		mPolygonIndexToTriangleIndex[ polygonIndex ] = triCount;
+
+		mNumPolygonTriangles[ polygonIndex ] = numTri;
+		triCount += numTri;
+	}
+
+	// copy vertex locks
+	if( this->LockSelectedVertices )
+	{
+		spBoolArray sgVertexLocks = sgMeshData->GetVertexLocks();
+		if( sgVertexLocks.IsNull() )
+		{
+			sgMeshData->AddVertexLocks();
+			sgVertexLocks = sgMeshData->GetVertexLocks();
+		}
+
+		for( uint vid = 0; vid < vertexCount; ++vid )
+		{
+			BitArray selectedBitArray;
+			mMaxMesh.getVertexSel( selectedBitArray );
+			sgVertexLocks->SetItem( vid, selectedBitArray[ vid ] > 0 );
+		}
+	}
+
+	// extract mapping channels (vertex colors and UVs)
+	this->ExtractMapping_Quad( meshIndex, mMaxMesh, sgGlobalPolygonTriangles, mPolygonIndexToTriangleIndex, mNumPolygonTriangles );
+
+	// shading groups
+	spUnsignedIntArray sgShadingGroups = spUnsignedIntArray::SafeCast( sgMeshData->GetUserTriangleField( "ShadingGroupIds" ) );
+	if( sgShadingGroups.IsNull() )
+	{
+		sgShadingGroups = spUnsignedIntArray::SafeCast( sgMeshData->AddBaseTypeUserTriangleField( EBaseTypes::TYPES_ID_UINT, "ShadingGroupIds", 1 ) );
+	}
+
+	for( uint polyIndex = 0; polyIndex < mPolygonIndexToTriangleIndex.size(); ++polyIndex )
+	{
+		uint startTriangleIndex = mPolygonIndexToTriangleIndex[ polyIndex ];
+		uint countTriangleIndex = mNumPolygonTriangles[ polyIndex ];
+		auto smoothingGroup = mMaxMesh.F( polyIndex )->smGroup;
+
+		for( uint i = startTriangleIndex; i < startTriangleIndex + countTriangleIndex; ++i )
+		{
+			sgShadingGroups->SetItem( i, smoothingGroup );
+		}
+	}
+
+	// add material to material map
+	const MaxMaterialMap* materialMap = this->AddMaterial( mMaxNode->GetMtl(), sgMeshData );
+	if( materialMap != nullptr && materialMap->NumActiveMaterials > 0 )
+	{
+		spRidArray sgMaterialIds = sgMeshData->GetMaterialIds();
+		spRidArray sgParentMaterialIds;
+
+		if( sgMaterialIds.IsNull() )
+		{
+			sgMeshData->AddMaterialIds();
+			sgMaterialIds = sgMeshData->GetMaterialIds();
+		}
+
+		for( uint polyIndex = 0; polyIndex < mPolygonIndexToTriangleIndex.size(); ++polyIndex )
+		{
+			uint startTriangleIndex = mPolygonIndexToTriangleIndex[ polyIndex ];
+			uint countTriangleIndex = mNumPolygonTriangles[ polyIndex ];
+
+			const int mid = materialMap->GetSimplygonMaterialId( mMaxMesh.F( polyIndex )->material );
+			for( uint i = startTriangleIndex; i < startTriangleIndex + countTriangleIndex; ++i )
+			{
+				sgMaterialIds->SetItem( i, mid );
+			}
+		}
+	}
+
+	// skinning
+	if( meshNode->SkinModifiers != nullptr )
+	{
+		this->LogToWindow( _T("Setting up skinning data...") );
+
+		ISkin* mSkin = (ISkin*)meshNode->SkinModifiers->GetInterface( I_SKIN );
+		ISkinContextData* mSkinContextData = mSkin->GetContextInterface( mMaxNode );
+
+		// first pass decides if there is a dummy node in the root
+		const uint numBones = mSkin->GetNumBones();
+
+		if( numBones > 0 )
+		{
+			bool bHasExcessiveNodesInRoot = true;
+			for( uint boneIndex = 0; boneIndex < numBones; ++boneIndex )
+			{
+				INode* mBoneNode = mSkin->GetBone( boneIndex );
+
+				if( mBoneNode->IsRootNode() )
+				{
+					bHasExcessiveNodesInRoot = false;
+					break;
+				}
+
+				INode* mParentNode = mBoneNode->GetParentNode();
+				if( mParentNode->IsRootNode() )
+				{
+					bHasExcessiveNodesInRoot = false;
+					break;
+				}
+			}
+
+			// second pass
+			for( uint boneIndex = 0; boneIndex < numBones; ++boneIndex )
+			{
+				INode* mBoneNode = mSkin->GetBone( boneIndex );
+
+				if( bHasExcessiveNodesInRoot )
+				{
+					while( mBoneNode->GetParentNode()->GetParentNode()->IsRootNode() ==
+					       0 ) // Traverse upwards in the node tree (the traverse will stop when child of root is reached)
+					{
+						const int sgBoneIndex = this->AddBone( mBoneNode );
+						mBoneNode = mBoneNode->GetParentNode();
+					}
+				}
+				else
+				{
+					while( mBoneNode->GetParentNode()->IsRootNode() ==
+					       0 ) // Traverse upwards in the node tree (the traverse will stop when child of root is reached)
+					{
+						const int sgBoneIndex = this->AddBone( mBoneNode );
+						mBoneNode = mBoneNode->GetParentNode();
+					}
+				}
+			}
+
+			// count the maximum bones used by any vertex
+			uint maxBonesPerVertex = 1;
+			for( uint vid = 0; vid < vertexCount; ++vid )
+			{
+				const int numBonesForThisVertex = mSkinContextData->GetNumAssignedBones( vid ); // number of bones affecting the vertex
+				if( (uint)numBonesForThisVertex > maxBonesPerVertex )
+				{
+					maxBonesPerVertex = (uint)numBonesForThisVertex;
+				}
+			}
+
+			// lower bones per vertex count if lower than specified value, otherwise use previous limit
+			if( !( maxBonesPerVertex < this->MaxNumBonesPerVertex ) )
+			{
+				maxBonesPerVertex = this->MaxNumBonesPerVertex;
+			}
+
+			sgMeshData->AddBoneWeights( maxBonesPerVertex );
+
+			spRidArray sgBoneIds = sgMeshData->GetBoneIds();
+			spRealArray sgBoneWeights = sgMeshData->GetBoneWeights();
+
+			int* boneIds = new int[ maxBonesPerVertex ];
+			float* boneWeights = new float[ maxBonesPerVertex ];
+
+			// get the data, place into array
+			for( uint vid = 0; vid < vertexCount; ++vid )
+			{
+				const int numAssignedBones = mSkinContextData->GetNumAssignedBones( vid ); // number of bones affecting the vertex
+				skinning_bone_set vtx_bones;
+
+				// get all bones
+				int* srcBoneIds = new int[ numAssignedBones ];
+				float* srcBoneWeights = new float[ numAssignedBones ];
+				for( int b = 0; b < numAssignedBones; ++b )
+				{
+					const int bIndex = mSkinContextData->GetAssignedBone( vid, b ); // Get the index for one of the bones affecting vertex v
+					if( bIndex == -1 )
+						continue;
+
+					srcBoneIds[ b ] = this->AddBone( mSkin->GetBone( bIndex ) );
+					srcBoneWeights[ b ] = mSkinContextData->GetBoneWeight( vid, b );
+				}
+
+				// extract the most important bones
+				uint boneIndex = 0;
+				for( ; boneIndex < maxBonesPerVertex; ++boneIndex )
+				{
+					// look through the list, find the largest weight value
+					int largestIndex = -1;
+					float largestWeight = 0;
+					bool largestFound = false;
+					for( int b = 0; b < numAssignedBones; ++b )
+					{
+						if( srcBoneWeights[ b ] > largestWeight )
+						{
+							largestFound = true;
+							largestIndex = b;
+							largestWeight = srcBoneWeights[ b ];
+						}
+					}
+
+					if( !largestFound )
+						break;
+
+					// add into tuple
+					boneIds[ boneIndex ] = srcBoneIds[ largestIndex ];
+					boneWeights[ boneIndex ] = srcBoneWeights[ largestIndex ];
+
+					// mark as used
+					srcBoneIds[ largestIndex ] = -1;
+					srcBoneWeights[ largestIndex ] = float( -1 );
+				}
+
+				delete[] srcBoneIds;
+				delete[] srcBoneWeights;
+
+				// reset the rest of the tuple
+				for( ; boneIndex < maxBonesPerVertex; ++boneIndex )
+				{
+					boneIds[ boneIndex ] = -1;
+					boneWeights[ boneIndex ] = 0.f;
+				}
+
+				// apply to field
+				sgBoneIds->SetTuple( vid, boneIds );
+				sgBoneWeights->SetTuple( vid, boneWeights );
+			}
+
+			delete[] boneIds;
+			delete[] boneWeights;
+		}
+	}
+
+	// normals
+	spRealArray sgNormals = sgMeshData->GetNormals();
+	if( sgNormals.IsNull() )
+	{
+		sgMeshData->AddNormals();
+		sgNormals = sgMeshData->GetNormals();
+	}
+
+	// compute normals
+	ComputeVertexNormals( sgMeshData );
+
+	// copy explicit normals
+	MNNormalSpec* mMeshNormals = mMaxMesh.GetSpecifiedNormals();
+	if( mMeshNormals )
+	{
+		uint32_t numFaces = mMeshNormals->GetNumFaces();
+		MNNormalFace* faceArray = mMeshNormals->GetFaceArray();
+
+		uint32_t sgIndex = 0;
+		for( uint32_t fid = 0; fid < numFaces; ++fid )
+		{
+			uint startTriangleIndex = mPolygonIndexToTriangleIndex[ fid ];
+			uint numTriangleIndex = mNumPolygonTriangles[ fid ];
+
+			for( uint triIndex = startTriangleIndex; triIndex < startTriangleIndex + numTriangleIndex; ++triIndex )
+			{
+				Triangulator::Triangle& localTri = sgGlobalPolygonTriangles[ triIndex ];
+
+				for( int c = 0; c < 3; ++c, ++sgIndex )
+				{
+					int localIndex = localTri.c[ c ];
+
+					// get normal index
+					const int normalIndex = faceArray[ fid ].GetNormalID( localIndex );
+
+					// ignore if invalid
+					if( normalIndex < 0 || normalIndex >= mMeshNormals->GetNumNormals() )
+					{
+						continue;
+					}
+
+					// is the normal explicit and valid?
+					if( mMeshNormals->GetNormalExplicit( normalIndex ) )
+					{
+						const Point3& mNormal = mMeshNormals->Normal( normalIndex );
+						const float normal[ 3 ] = { mNormal.x, mNormal.y, mNormal.z };
+						sgNormals->SetTuple( sgIndex, normal );
+					}
+				}
+			}
+		}
+	}
+
+	// morph targets
+	if( false /*meshNode->MorphTargetData*/ )
+	{
+		const ulong uniqueHandle = mMaxNode->GetHandle();
+		const spString rSgMeshId = sgMesh->GetNodeGUID();
+		const char* cSgMeshId = rSgMeshId.c_str();
+
+		const std::map<std::string, GlobalMeshMap>::iterator& meshMap = this->GlobalGuidToMaxNodeMap.find( cSgMeshId );
+
+		MorpherMetaData* morpherMetaData = meshMap->second.CreateMorpherMetaData();
+		morpherMetaData->globalSettings = meshNode->MorphTargetData->globalSettings;
+
+		std::vector<MorphChannelMetaData*>& morphTargetMetaData = morpherMetaData->morphTargetMetaData;
+
+		TCHAR tTargetVertexFieldName[ MAX_PATH ] = { 0 };
+		for( size_t activeChannelIndex = 0; activeChannelIndex < meshNode->MorphTargetData->NumChannels(); ++activeChannelIndex )
+		{
+			MorphChannel* morphChannel = meshNode->MorphTargetData->GetChannel( activeChannelIndex );
+			if( morphChannel && morphChannel->IsValid() )
+			{
+				const int morphChannelIndex = morphChannel->GetIndex() - 1;
+
+				MorphChannelMetaData* morphChannelMetaData = morphChannel->GetSettings();
+
+				for( size_t progressiveIndex = 0; progressiveIndex < morphChannel->NumProgressiveMorphTargets(); ++progressiveIndex )
+				{
+					ProgressiveMorphTarget* progressiveMorphTarget = morphChannel->GetProgressiveMorphTarget( progressiveIndex );
+
+					_stprintf_s( tTargetVertexFieldName, MAX_PATH, _T("%s%u_%zu"), _T("BlendShapeTargetVertexField"), morphChannelIndex, progressiveIndex );
+					const char* cTargetVertexFieldName = LPCTSTRToConstCharPtr( tTargetVertexFieldName );
+
+					spRealArray sgMorphTargetDeltas =
+					    spRealArray::SafeCast( sgMeshData->AddBaseTypeUserVertexField( Simplygon::EBaseTypes::TYPES_ID_REAL, cTargetVertexFieldName, 3 ) );
+
+					const TSTR tMorphTargetName = morphChannel->GetName();
+					const char* cMorphTargetName = LPCTSTRToConstCharPtr( tMorphTargetName );
+					sgMorphTargetDeltas->SetAlternativeName( cMorphTargetName );
+
+					std::vector<Point3>& morphTargetVertices = progressiveMorphTarget->targetDeltas;
+					for( int vid = 0; vid < morphChannel->GetVertexCount(); ++vid )
+					{
+						const Point3& mCoord = morphTargetVertices[ vid ];
+						const float coord[ 3 ] = { mCoord.x, mCoord.y, mCoord.z };
+						sgMorphTargetDeltas->SetTuple( vid, coord );
+					}
+
+					morphChannelMetaData->AddProgressiveMorphTarget(
+					    progressiveIndex, std::basic_string<TCHAR>( tMorphTargetName ), progressiveMorphTarget->targetWeight );
+				}
+
+				morphTargetMetaData.push_back( morphChannelMetaData );
+			}
+		}
+	}
+
+	// loop through the map of selected sets
+	this->LogToWindow( _T("Loop through selection sets...") );
+
+	// selection sets
+	this->AddToObjectSelectionSet( mMaxNode );
+	// this->AddEdgeCollapse_Quad( mMaxNode, sgMeshData );
+
+	// re-enable morph in the original geometry
+	if( bMorphTargetModifier )
+	{
+		meshNode->MorphTargetModifier->EnableMod();
+	}
+
+	// re-enable skinning in the original geometry
+	if( bSkinModifierEnabled )
+	{
+		meshNode->SkinModifiers->EnableMod();
+	}
+
+	if( bTurboSmoothModifierEnabled )
+	{
+		meshNode->TurboSmoothModifier->EnableMod();
+	}
+
+	if( bMorphTargetModifier || bSkinModifierEnabled )
+	{
+		mMaxNode->EvalWorldState( this->CurrentTime );
+	}
+
+	return true;
+}
+
+void SimplygonMax::AddEdgeCollapse_Quad( INode* mMaxNode, spGeometryData sgMeshData )
+{
+	const uint cornerCount = sgMeshData->GetTriangleCount() * 3;
+	const ulong uniqueHandle = mMaxNode->GetHandle();
+
+	TCHAR tSelectionSetNameBuffer[ MAX_PATH ] = { 0 };
+	uint numSelectionSets = 0;
+
+	std::map<std::basic_string<TCHAR>, SelectionSetEdgePair>::const_iterator& selectionSetIterator = this->SelectionSetEdgesMap.begin();
+	while( !( selectionSetIterator == this->SelectionSetEdgesMap.end() ) )
+	{
+		const SelectionSetEdgePair& tempSelectionSetPair = selectionSetIterator->second;
+		if( uniqueHandle == tempSelectionSetPair.first )
+		{
+			_stprintf_s( tSelectionSetNameBuffer, MAX_PATH, _T("SelectionSet%u"), numSelectionSets );
+			numSelectionSets++;
+
+			spBoolArray sgSelectedEdgeField = spBoolArray::SafeCast( sgMeshData->GetUserCornerField( LPCTSTRToConstCharPtr( tSelectionSetNameBuffer ) ) );
+			if( sgSelectedEdgeField.IsNull() )
+			{
+				sgSelectedEdgeField = spBoolArray::SafeCast(
+				    sgMeshData->AddBaseTypeUserCornerField( EBaseTypes::TYPES_ID_BOOL, LPCTSTRToConstCharPtr( tSelectionSetNameBuffer ), 1 ) );
+				sgSelectedEdgeField->SetAlternativeName( LPCTSTRToConstCharPtr( selectionSetIterator->first.c_str() ) );
+
+				for( uint c = 0; c < cornerCount; ++c )
+				{
+					sgSelectedEdgeField->SetItem( c, false );
+				}
+			}
+
+			const std::vector<int>& edgeIndices = tempSelectionSetPair.second;
+			for( uint c = 0; c < (uint)edgeIndices.size(); c++ )
+			{
+				sgSelectedEdgeField->SetItem( edgeIndices[ c ] - 1, true );
+			}
+
+			// if this field is named force
+			TCHAR tForceCollapseNameBuffer[ MAX_PATH ] = { 0 };
+			const float selectedEdgeValue = -1.0f;
+			const float defaultEdgeValue = 1.0f;
+
+			_stprintf( tForceCollapseNameBuffer, _T("ForceCollapseAlongEdge") );
+
+			if( _tcscmp( selectionSetIterator->first.c_str(), tForceCollapseNameBuffer ) == 0 )
+			{
+				spRealArray sgSelectedEdgeWeights = spRealArray::SafeCast( sgMeshData->GetUserCornerField( LPCTSTRToConstCharPtr( _T("EdgeWeights") ) ) );
+				if( sgSelectedEdgeWeights.IsNull() )
+				{
+					sgSelectedEdgeWeights = spRealArray::SafeCast(
+					    sgMeshData->AddBaseTypeUserCornerField( EBaseTypes::TYPES_ID_REAL, LPCTSTRToConstCharPtr( _T("EdgeWeights") ), 1 ) );
+					sgSelectedEdgeWeights->SetAlternativeName( LPCTSTRToConstCharPtr( selectionSetIterator->first.c_str() ) );
+				}
+
+				for( uint c = 0; c < cornerCount; ++c )
+				{
+					sgSelectedEdgeWeights->SetItem( c, defaultEdgeValue );
+				}
+
+				for( uint c = 0; c < (uint)edgeIndices.size(); ++c )
+				{
+					sgSelectedEdgeWeights->SetItem( edgeIndices[ c ] - 1, selectedEdgeValue );
+				}
+			}
+		}
+
+		// go to next set
+		selectionSetIterator++;
+	}
+}
+
 void SimplygonMax::AddEdgeCollapse( INode* mMaxNode, spGeometryData sgMeshData )
 {
 	const uint cornerCount = sgMeshData->GetTriangleCount() * 3;
@@ -6537,6 +7449,209 @@ void SimplygonMax::AddEdgeCollapse( INode* mMaxNode, spGeometryData sgMeshData )
 		// go to next set
 		selectionSetIterator++;
 	}
+}
+
+bool SimplygonMax::ExtractMapping_Quad( size_t meshIndex,
+                                        MNMesh& mMaxMesh,
+                                        std::vector<Triangulator::Triangle>& polygonTriangles,
+                                        std::vector<uint32_t> mPolygonIndexToTriangleIndex,
+                                        std::vector<uint32_t> mNumPolygonTriangles )
+{
+	TCHAR tBuffer[ MAX_PATH ] = { 0 };
+
+	const MeshNode* meshNode = this->SelectedMeshNodes[ meshIndex ];
+
+	spGeometryData sgMeshData = meshNode->sgMesh->GetGeometry();
+
+	int numberOfColMaps = 0;
+	int numberOfUVMaps = 0;
+
+	// extract all channels
+	int numChannels = mMaxMesh.MNum();
+	for( int maxChannel = -2; maxChannel < numChannels; ++maxChannel )
+	{
+		if( mMaxMesh.M( maxChannel ) == nullptr )
+			continue; // map not in the mesh
+
+		// the map is in the mesh, get it and check which type it is
+		const MNMap& mMaxMeshMap = *mMaxMesh.M( maxChannel );
+
+		if( mMaxMeshMap.numv == 0 )
+			continue;
+
+		bool bIsVertexColor = false;
+		bool bIsTexCoord = true;
+
+		int sgChannel = -1;
+
+		// mapping channel -2 is always alpha
+		if( maxChannel == -2 )
+		{
+			bIsVertexColor = true;
+			bIsTexCoord = false;
+		}
+		// mapping channel -1 is always illumination
+		else if( maxChannel == -1 )
+		{
+			bIsVertexColor = true;
+			bIsTexCoord = false;
+		}
+		// mapping channel 0 is always vertex color
+		else if( maxChannel == 0 )
+		{
+			bIsVertexColor = true;
+			bIsTexCoord = false;
+		}
+		// mapping channel 1 is always uv
+		else if( maxChannel == 1 )
+		{
+			bIsVertexColor = false;
+			bIsTexCoord = true;
+		}
+		// mapping channel 2 is ? (reserved)
+		else if( maxChannel == 2 )
+		{
+			bIsVertexColor = false;
+			bIsTexCoord = true;
+		}
+		else
+		{
+			bool bVertexColorOverrideFound = false;
+
+			for( size_t c = 0; c < this->MaxVertexColorOverrides.size(); ++c )
+			{
+				if( this->MaxVertexColorOverrides[ c ] == maxChannel )
+				{
+					bVertexColorOverrideFound = true;
+					bIsVertexColor = true;
+					bIsTexCoord = false;
+				}
+			}
+		}
+
+		if( bIsTexCoord )
+		{
+			sgChannel = numberOfUVMaps;
+
+			if( numberOfUVMaps < (int)( SG_NUM_SUPPORTED_TEXTURE_CHANNELS - 1 ) )
+			{
+				numberOfUVMaps++;
+
+				// add the channel if it does not already exist
+				spRealArray sgTexCoords = sgMeshData->GetTexCoords( sgChannel );
+				if( sgTexCoords.IsNull() )
+				{
+					sgMeshData->AddTexCoords( sgChannel );
+					sgTexCoords = sgMeshData->GetTexCoords( sgChannel );
+				}
+
+				// assign alternative name (for back-mapping purposes)
+				_stprintf_s( tBuffer, MAX_PATH, _T("%d"), maxChannel );
+				sgTexCoords->SetAlternativeName( LPCTSTRToConstCharPtr( tBuffer ) );
+
+				// copy the uv data
+				real texcoord[ 2 ] = { 0 };
+
+				uint32_t texCoordIndex = 0;
+				for( int fid = 0; fid < mMaxMeshMap.FNum(); ++fid )
+				{
+					MNMapFace& mMaxMapFace = *mMaxMesh.MF( maxChannel, fid );
+					uint startTriangleIndex = mPolygonIndexToTriangleIndex[ fid ];
+					uint numTriangleIndex = mNumPolygonTriangles[ fid ];
+
+					for( uint triIndex = startTriangleIndex; triIndex < startTriangleIndex + numTriangleIndex; ++triIndex )
+					{
+						Triangulator::Triangle& localTri = polygonTriangles[ triIndex ];
+
+						for( int c = 0; c < 3; ++c )
+						{
+							auto localIndex = localTri.c[ c ];
+
+							const rid tv = mMaxMapFace.tv[ localIndex ];
+							const UVVert& mMaxUVVert = mMaxMesh.MV( maxChannel, tv );
+
+							// remap tex-coords
+							if( this->TextureCoordinateRemapping == 0 )
+							{
+								texcoord[ 0 ] = mMaxUVVert.x;
+								texcoord[ 1 ] = mMaxUVVert.y;
+							}
+							else if( this->TextureCoordinateRemapping == 1 )
+							{
+								texcoord[ 0 ] = mMaxUVVert.x;
+								texcoord[ 1 ] = mMaxUVVert.z;
+							}
+							else if( this->TextureCoordinateRemapping == 2 )
+							{
+								texcoord[ 0 ] = mMaxUVVert.y;
+								texcoord[ 1 ] = mMaxUVVert.z;
+							}
+
+							sgTexCoords->SetTuple( texCoordIndex++, texcoord );
+						}
+					}
+				}
+			}
+		}
+
+		// add a color set
+		else if( bIsVertexColor )
+		{
+			sgChannel = numberOfColMaps;
+
+			if( numberOfColMaps < (int)( SG_NUM_SUPPORTED_COLOR_CHANNELS - 1 ) )
+			{
+				numberOfColMaps++;
+
+				// add the channel if it does not already exist
+				spRealArray sgVertexColors = sgMeshData->GetColors( sgChannel );
+
+				if( sgVertexColors.IsNull() )
+				{
+					sgMeshData->AddColors( sgChannel );
+					sgVertexColors = sgMeshData->GetColors( sgChannel );
+				}
+
+				// assign alternative name (for use in Simplygon)
+				_stprintf_s( tBuffer, MAX_PATH, _T("%d"), maxChannel );
+				sgVertexColors->SetAlternativeName( LPCTSTRToConstCharPtr( tBuffer ) );
+
+				// copy the data, store as RGB data
+				uint32_t texCoordIndex = 0;
+				for( int fid = 0; fid < mMaxMeshMap.FNum(); ++fid )
+				{
+					MNMapFace& mMaxMapFace = *mMaxMesh.MF( maxChannel, fid );
+					uint startTriangleIndex = mPolygonIndexToTriangleIndex[ fid ];
+					uint numTriangleIndex = mNumPolygonTriangles[ fid ];
+
+					for( uint triIndex = startTriangleIndex; triIndex < startTriangleIndex + numTriangleIndex; ++triIndex )
+					{
+						Triangulator::Triangle& localTri = polygonTriangles[ triIndex ];
+
+						for( int c = 0; c < 3; ++c )
+						{
+							auto localIndex = localTri.c[ c ];
+							const rid tv = mMaxMapFace.tv[ localIndex ];
+
+							const UVVert& mMaxUVVert = mMaxMesh.MV( maxChannel, tv );
+
+							const real coord[ 4 ] = { mMaxUVVert.x, mMaxUVVert.y, mMaxUVVert.z, 1.0f };
+							sgVertexColors->SetTuple( texCoordIndex++, coord );
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			// unspecified channel type
+			// if this section is reached,
+			// there is probably a bug...
+		}
+	}
+
+	// done extracting mesh data
+	return true;
 }
 
 // extracts mapping channels (vertex colors and UVs)
@@ -6767,7 +7882,16 @@ bool SimplygonMax::ImportProcessedScenes()
 
 			const spString rNodeGuid = sgProcessedMesh->GetNodeGUID();
 
-			const bool bWriteBackSucceeded = this->WritebackGeometry( sgProcessedScene, logicalLodIndex, sgProcessedMesh, meshNodesThatNeedsParents );
+			bool bWriteBackSucceeded = false;
+			if( QuadMode == true )
+			{
+				bWriteBackSucceeded = this->WritebackGeometry_Quad( sgProcessedScene, logicalLodIndex, sgProcessedMesh, meshNodesThatNeedsParents );
+			}
+			else
+			{
+				bWriteBackSucceeded = this->WritebackGeometry( sgProcessedScene, logicalLodIndex, sgProcessedMesh, meshNodesThatNeedsParents );
+			}
+
 			if( !bWriteBackSucceeded )
 			{
 				return false;
@@ -7031,6 +8155,1188 @@ GenerateFormattedName( const std::basic_string<TCHAR>& tFormatString, const std:
 	}
 
 	return tFormattedName;
+}
+
+bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
+                                           size_t logicalLodIndex,
+                                           spSceneMesh sgProcessedMesh,
+                                           std::map<std::string, INode*>& meshNodesThatNeedsParents )
+{
+	// clean up locally used mapping
+	this->ImportedUvNameToMaxIndex.clear();
+	this->ImportedMaxIndexToUv.clear();
+
+	const spString rSgMeshId = sgProcessedMesh->GetNodeGUID();
+	const char* cSgMeshId = rSgMeshId.c_str();
+
+	// try to find mesh map via global lookup
+	const std::map<std::string, GlobalMeshMap>::const_iterator& globalMeshMap = this->GlobalGuidToMaxNodeMap.find( cSgMeshId );
+	bool bHasGlobalMeshMap = ( this->mapMeshes || this->extractionType == BATCH_PROCESSOR ) ? globalMeshMap != this->GlobalGuidToMaxNodeMap.end() : nullptr;
+
+	// try to find original Max mesh from map handle
+	INode* mMappedMaxNode = bHasGlobalMeshMap ? this->MaxInterface->GetINodeByHandle( globalMeshMap->second.GetMaxId() ) : nullptr;
+	if( mMappedMaxNode )
+	{
+		// if the name does not match, try to get Max mesh by name (fallback)
+		if( mMappedMaxNode->GetName() != globalMeshMap->second.GetName() )
+		{
+			mMappedMaxNode = bHasGlobalMeshMap ? this->MaxInterface->GetINodeByName( globalMeshMap->second.GetName().c_str() ) : nullptr;
+		}
+	}
+	// only use this fallback on user request (sgsdk_AllowUnsafeImport()),
+	// may result in unexpected behavior if used incorrectly.
+	else if( this->AllowUnsafeImport )
+	{
+		spUnsignedCharData sgUniqueHandleData = sgProcessedMesh->GetUserData( "MAX_UniqueHandle" );
+		if( !sgUniqueHandleData.IsNullOrEmpty() )
+		{
+			const ULONG* mUniquehandle = (const ULONG*)sgUniqueHandleData.Data();
+			mMappedMaxNode = this->MaxInterface->GetINodeByHandle( *mUniquehandle );
+		}
+	}
+
+	bHasGlobalMeshMap = mMappedMaxNode != nullptr;
+	const bool bHasSceneMeshMap = bHasGlobalMeshMap ? globalMeshMap != this->GlobalGuidToMaxNodeMap.end() : false;
+
+	// fetch the geometry from the mesh node
+	spGeometryData sgMeshData = sgProcessedMesh->GetGeometry();
+	spString rProcessedMeshName = sgProcessedMesh->GetName();
+	const char* cProcessedMeshName = rProcessedMeshName.c_str();
+	std::basic_string<TCHAR> tMaxOriginalNodeName = ConstCharPtrToLPCTSTR( cProcessedMeshName );
+
+	if( sgMeshData->GetTriangleCount() == 0 )
+	{
+		std::basic_string<TCHAR> tWarningMessage = _T("Zero triangle mesh detected when importing node: ");
+		tWarningMessage += tMaxOriginalNodeName;
+		this->LogToWindow( tWarningMessage, Warning );
+		return true;
+	}
+
+	// create new max node and assign the same material as before
+	PolyObject* mNewMaxQuadObject = CreateEditablePolyObject();
+	INode* mNewMaxNode = this->MaxInterface->CreateObjectNode( mNewMaxQuadObject );
+	MNMesh& mNewMaxMesh = mNewMaxQuadObject->GetMesh();
+
+	Mtl* mOriginalMaxMaterial = nullptr;
+	MaxMaterialMap* globalMaterialMap = nullptr;
+
+	// if mesh map, map back the mesh to the original node's location
+	if( bHasGlobalMeshMap )
+	{
+		INode* mOriginalMaxNode = mMappedMaxNode;
+		tMaxOriginalNodeName = mOriginalMaxNode->GetName();
+
+		mNewMaxNode->SetMtl( mOriginalMaxNode->GetMtl() );
+		mOriginalMaxMaterial = mOriginalMaxNode->GetMtl();
+
+		if( mOriginalMaxMaterial )
+		{
+			// only use material map if we want to map original materials
+			globalMaterialMap = this->mapMaterials ? this->GetGlobalMaterialMap( mOriginalMaxMaterial ) : nullptr;
+
+			// allow unsafe mapping, if enabled
+			if( !globalMaterialMap && this->AllowUnsafeImport )
+			{
+				globalMaterialMap = this->mapMaterials ? this->GetGlobalMaterialMapUnsafe( mOriginalMaxMaterial ) : nullptr;
+			}
+		}
+
+		INode* mOriginalMaxParentNode = mOriginalMaxNode->GetParentNode();
+		if( !mOriginalMaxParentNode->IsRootNode() )
+		{
+			mOriginalMaxParentNode->AttachChild( mNewMaxNode );
+		}
+
+		// Set the transform
+		mNewMaxNode->SetNodeTM( this->CurrentTime, mOriginalMaxNode->GetNodeTM( this->CurrentTime ) );
+
+		// set the same wire-frame color
+		mNewMaxNode->SetWireColor( mOriginalMaxNode->GetWireColor() );
+
+		// Set the other node properties:
+		mNewMaxNode->CopyProperties( mOriginalMaxNode );
+		mNewMaxNode->FlagForeground( this->CurrentTime, FALSE );
+		mNewMaxNode->SetObjOffsetPos( mOriginalMaxNode->GetObjOffsetPos() );
+		mNewMaxNode->SetObjOffsetRot( mOriginalMaxNode->GetObjOffsetRot() );
+		mNewMaxNode->SetObjOffsetScale( mOriginalMaxNode->GetObjOffsetScale() );
+	}
+
+	// if no mapping found, insert the mesh into the root of the scene
+	// TODO: copy transforms if no map was found.
+	// Also link parents as in the Simplygon scene.
+	else
+	{
+		Matrix3 mNodeMatrix;
+
+		// sg to Max conversion
+		spMatrix4x4 sgTransform = sg->CreateMatrix4x4();
+		sgProcessedMesh->EvaluateDefaultGlobalTransformation( sgTransform );
+
+		const Point4 mRow0(
+		    sgTransform->GetElement( 0, 0 ), sgTransform->GetElement( 1, 0 ), sgTransform->GetElement( 2, 0 ), sgTransform->GetElement( 3, 0 ) );
+		const Point4 mRow1(
+		    sgTransform->GetElement( 0, 1 ), sgTransform->GetElement( 1, 1 ), sgTransform->GetElement( 2, 1 ), sgTransform->GetElement( 3, 1 ) );
+		const Point4 mRow2(
+		    sgTransform->GetElement( 0, 2 ), sgTransform->GetElement( 1, 2 ), sgTransform->GetElement( 2, 2 ), sgTransform->GetElement( 3, 2 ) );
+
+		mNodeMatrix.SetColumn( 0, mRow0 );
+		mNodeMatrix.SetColumn( 1, mRow1 );
+		mNodeMatrix.SetColumn( 2, mRow2 );
+
+		mNewMaxNode->SetNodeTM( this->CurrentTime, mNodeMatrix );
+
+		meshNodesThatNeedsParents.insert( std::pair<std::string, INode*>( cSgMeshId, mNewMaxNode ) );
+	}
+
+	spCharArray sgQuadFlags = sgMeshData->GetQuadFlags();
+	if( sgQuadFlags.IsNull() )
+	{
+		sgMeshData->AddQuadFlags();
+		sgQuadFlags = sgMeshData->GetQuadFlags();
+
+		for( uint i = 0; i < sgQuadFlags->GetItemCount(); ++i )
+		{
+			sgQuadFlags->SetItem( i, SG_QUADFLAG_TRIANGLE );
+		}
+
+		std::string sWarning = "QuadFlags not detected in geometry (";
+		sWarning += cProcessedMeshName;
+		sWarning += "), assuming that all polygons are triangles!";
+		LogToWindow( ConstCharPtrToLPCWSTRr( sWarning.c_str() ), ErrorType::Warning );
+	}
+
+	bool bHasInvalidQuadFlags = false;
+
+	uint cornerCount = 0;
+	uint triangleCount = 0;
+	uint faceCount = 0;
+	for( uint fid = 0; fid < sgQuadFlags.GetItemCount(); fid++ )
+	{
+		char q1 = sgQuadFlags.GetItem( fid );
+		if( q1 == SG_QUADFLAG_FIRST )
+		{
+			char q2 = sgQuadFlags.GetItem( ++fid );
+			if( q2 == SG_QUADFLAG_SECOND )
+			{
+				++faceCount;
+				cornerCount += 4;
+				triangleCount += 2;
+			}
+			else
+			{
+				bHasInvalidQuadFlags = true;
+				break;
+			}
+		}
+		else if( q1 == SG_QUADFLAG_TRIANGLE )
+		{
+			++faceCount;
+			++triangleCount;
+			cornerCount += 3;
+		}
+		else
+		{
+			bHasInvalidQuadFlags = true;
+			break;
+		}
+	}
+
+	if( bHasInvalidQuadFlags == true )
+	{
+		std::string sError = "QuadFlags import - invalid quad flags in geometry (";
+		sError += cProcessedMeshName;
+		sError += ")";
+
+		LogToWindow( ConstCharPtrToLPCWSTRr( sError.c_str() ), ErrorType::Error );
+		return false;
+	}
+
+	// mesh data
+	const uint vertexCount = sgMeshData->GetVertexCount();
+
+	mNewMaxMesh.setNumVerts( vertexCount );
+
+	spRealArray sgCoords = sgMeshData->GetCoords();
+	spRidArray sgVertexIds = sgMeshData->GetVertexIds();
+	spRidArray sgMaterialIds = sgMeshData->GetMaterialIds();
+	spUnsignedIntArray sgShadingGroups = spUnsignedIntArray::SafeCast( sgMeshData->GetUserTriangleField( "ShadingGroupIds" ) );
+
+	// setup vertices
+	for( uint vid = 0; vid < vertexCount; ++vid )
+	{
+		spRealData sgCoord = sgCoords->GetTuple( vid );
+		const Point3 p( sgCoord[ 0 ], sgCoord[ 1 ], sgCoord[ 2 ] );
+		mNewMaxMesh.v[ vid ].p = p;
+	}
+
+	uint sgCornerIndex = 0;
+	std::vector<int> gFacesIndices;
+	for( uint tid = 0; tid < sgQuadFlags.GetItemCount(); ++tid )
+	{
+		char q1 = sgQuadFlags.GetItem( tid );
+		if( q1 == SG_QUADFLAG_FIRST )
+		{
+			char q2 = sgQuadFlags.GetItem( ++tid );
+			if( q2 == SG_QUADFLAG_SECOND )
+			{
+				int indices[ 6 ] = { sgVertexIds.GetItem( sgCornerIndex++ ),
+				                     sgVertexIds.GetItem( sgCornerIndex++ ),
+				                     sgVertexIds.GetItem( sgCornerIndex++ ),
+				                     sgVertexIds.GetItem( sgCornerIndex++ ),
+				                     sgVertexIds.GetItem( sgCornerIndex++ ),
+				                     sgVertexIds.GetItem( sgCornerIndex++ ) };
+
+				int quadIndices[ 4 ];
+				ConvertToQuad( indices, quadIndices );
+
+				const uint smoothingGroup = sgShadingGroups.IsNull() ? 1 : sgShadingGroups->GetItem( tid );
+				int mid = 0;
+				if( !sgMaterialIds.IsNull() && globalMaterialMap )
+				{
+					mid = globalMaterialMap->GetMaxMaterialId( sgMaterialIds->GetItem( tid ) );
+				}
+				else if( !sgMaterialIds.IsNull() )
+				{
+					mid = sgMaterialIds->GetItem( tid );
+				}
+
+				int faceIndex = mNewMaxMesh.NewQuad( quadIndices, smoothingGroup, static_cast<MtlID>( mid >= 0 ? mid : 0 ) );
+				gFacesIndices.emplace_back( faceIndex );
+			}
+		}
+		else if( q1 == SG_QUADFLAG_TRIANGLE )
+		{
+			rid indices[ 3 ] = { sgVertexIds.GetItem( sgCornerIndex++ ), sgVertexIds.GetItem( sgCornerIndex++ ), sgVertexIds.GetItem( sgCornerIndex++ ) };
+
+			const uint smoothingGroup = sgShadingGroups.IsNull() ? 1 : sgShadingGroups->GetItem( tid );
+			int mid = 0;
+			if( !sgMaterialIds.IsNull() && globalMaterialMap )
+			{
+				mid = globalMaterialMap->GetMaxMaterialId( sgMaterialIds->GetItem( tid ) );
+			}
+			else if( !sgMaterialIds.IsNull() )
+			{
+				mid = sgMaterialIds->GetItem( tid );
+			}
+
+			int faceIndex = mNewMaxMesh.NewTri( indices, smoothingGroup, static_cast<MtlID>( mid >= 0 ? mid : 0 ) );
+			gFacesIndices.emplace_back( faceIndex );
+		}
+	}
+
+	const bool bWritebackMappingSucceeded = this->WritebackMapping_Quad( logicalLodIndex, faceCount, cornerCount, mNewMaxMesh, sgProcessedMesh );
+	if( !bWritebackMappingSucceeded )
+	{
+		std::basic_string<TCHAR> tErrorMessage = _T("Error - Writeback of mapping channel failed when importing node: ");
+		tErrorMessage += tMaxOriginalNodeName;
+		tErrorMessage += _T(".");
+		this->LogToWindow( tErrorMessage, Error );
+		return false;
+	}
+
+	// build normals
+	mNewMaxMesh.buildNormals();
+
+	// specify normals, if any.
+	// TODO: merge shared normals!
+	spRealArray sgNormals = sgMeshData->GetNormals();
+	if( !sgNormals.IsNull() )
+	{
+		if( mNewMaxMesh.GetSpecifiedNormals() )
+		{
+			mNewMaxMesh.ClearSpecifiedNormals();
+		}
+
+		mNewMaxMesh.SpecifyNormals();
+		MNNormalSpec* mNormalSpec = mNewMaxMesh.GetSpecifiedNormals();
+
+		if( mNormalSpec )
+		{
+			mNormalSpec->Initialize();
+			if( mNormalSpec->FAlloc( faceCount ) )
+			{
+				mNormalSpec->SetParent( &mNewMaxMesh );
+				mNormalSpec->CheckNormals();
+			}
+
+			mNormalSpec->SetNumFaces( faceCount );
+			mNormalSpec->SetNumNormals( cornerCount ); // per-corner normals
+
+			//
+			uint sgIndex = 0;
+			uint mIndex = 0;
+			for( uint fid = 0; fid < faceCount; ++fid )
+			{
+				MNNormalFace& mNormalFace = mNormalSpec->Face( fid );
+				uint deg = mNewMaxMesh.F( gFacesIndices[ fid ] )->deg;
+
+				mNormalFace.SetDegree( deg );
+				mNormalFace.SpecifyAll();
+
+				if( deg == 4 )
+				{
+					rid indices[ 6 ] = { sgVertexIds.GetItem( sgIndex + 0 ),
+					                     sgVertexIds.GetItem( sgIndex + 1 ),
+					                     sgVertexIds.GetItem( sgIndex + 2 ),
+					                     sgVertexIds.GetItem( sgIndex + 3 ),
+					                     sgVertexIds.GetItem( sgIndex + 4 ),
+					                     sgVertexIds.GetItem( sgIndex + 5 ) };
+
+					int quadIndices[ 4 ];
+					int originalIndices[ 4 ];
+					ConvertToQuad( indices, quadIndices, sgIndex, originalIndices );
+
+					for( uint c = 0; c < 4; c++ )
+					{
+						int quadIndex = quadIndices[ c ];
+						int orgQuadIndex = originalIndices[ c ];
+
+						spRealData sgNormal = sgNormals->GetTuple( orgQuadIndex );
+						Point3 mNormal = Point3( sgNormal[ 0 ], sgNormal[ 1 ], sgNormal[ 2 ] );
+
+						mNormalSpec->Normal( mIndex ) = mNormal;
+						mNormalSpec->SetNormalExplicit( mIndex, true );
+
+						mNormalFace.SetNormalID( c, mIndex );
+						mIndex++;
+					}
+					sgIndex += 6;
+				}
+				else if( deg == 3 )
+				{
+					for( uint c = 0; c < 3; c++ )
+					{
+						spRealData sgNormal = sgNormals->GetTuple( sgIndex++ );
+						Point3 mNormal = Point3( sgNormal[ 0 ], sgNormal[ 1 ], sgNormal[ 2 ] );
+
+						mNormalSpec->Normal( mIndex ) = mNormal;
+						mNormalSpec->SetNormalExplicit( mIndex, true );
+
+						mNormalFace.SetNormalID( c, mIndex++ );
+					}
+				}
+			}
+			mNormalSpec->CheckNormals();
+		}
+	}
+
+	// create a valid mesh name
+	std::basic_string<TCHAR> tMeshName = bHasGlobalMeshMap ? tMaxOriginalNodeName.c_str() : tMaxOriginalNodeName.c_str();
+
+	// format mesh name based on user string and lod index
+	std::basic_string<TCHAR> tFormattedMeshName =
+	    GenerateFormattedName( this->meshFormatString, tMeshName, ConstCharPtrToLPCTSTR( std::to_string( logicalLodIndex ).c_str() ) );
+
+	// make unique, if needed
+	TSTR tIndexedNodeName = GetNonCollidingMeshName( tFormattedMeshName.c_str() );
+
+	// assign name to Max mesh node
+	mNewMaxNode->SetName( tIndexedNodeName );
+
+	bool bMeshHasNewMappedMaterials = false;
+	spTextureTable sgTextureTable = sgProcessedScene->GetTextureTable();
+	spMaterialTable sgMaterialTable = sgProcessedScene->GetMaterialTable();
+	std::map<int, std::string> sNewMaterialIndexToIdMap;
+	std::set<int> sgMIds;
+
+	int maximumMaterialIndex = 0;
+
+	// find material that does not already exist
+	std::map<int, NewMaterialMap*> newMaterialIndicesMap;
+
+	if( !sgMaterialIds.IsNull() && sgMaterialTable.GetMaterialsCount() > 0 )
+	{
+		for( uint tid = 0; tid < faceCount; ++tid )
+		{
+			const int mid = sgMaterialIds->GetItem( tid );
+			if( mid < 0 )
+				continue;
+
+			if( mid > maximumMaterialIndex )
+			{
+				maximumMaterialIndex = mid;
+			}
+
+			sgMIds.insert( mid );
+
+			if( mid >= static_cast<int>( sgMaterialTable->GetMaterialsCount() ) )
+			{
+				std::basic_string<TCHAR> tErrorMessage = _T("Writeback of material(s) failed due to an out-of-range material id when importing node ");
+				tErrorMessage += tIndexedNodeName;
+				tErrorMessage += _T("!");
+				this->LogToWindow( tErrorMessage, Error );
+				return false;
+			}
+
+			spMaterial sgMaterial = sgMaterialTable->GetMaterial( mid );
+			const spString rMaterialGuid = sgMaterial->GetMaterialGUID();
+			const char* cMaterialGuid = rMaterialGuid.c_str();
+
+			sNewMaterialIndexToIdMap.insert( std::pair<int, std::string>( mid, cMaterialGuid ) );
+
+			const MaxMaterialMap* subMaterialMap = this->mapMaterials ? this->GetGlobalMaterialMap( cMaterialGuid ) : nullptr;
+
+			const bool bPossibleMaterialLOD = subMaterialMap == nullptr;
+			if( bPossibleMaterialLOD )
+			{
+				// loop through all material channels to create a uv-to-texture map
+				/*
+				const uint channelCount = sgMaterial->GetChannelCount();
+				for (uint c = 0; c < channelCount; ++c)
+				    {
+				    const spString rChannelName = sgMaterial->GetChannelFromIndex(c);
+				    const char* cChannelName = rChannelName.c_str();
+
+				    spShadingNode sgExitNode = sgMaterial->GetShadingNetwork(cChannelName);
+				    if (sgExitNode.IsNull())
+				        continue;
+
+				    // fetch all textures for this material channel
+				    std::map<std::basic_string<TCHAR>, spShadingTextureNode> texNodeMap;
+				    FindAllUpStreamTextureNodes(sgExitNode, texNodeMap);
+
+				    // fetch texture id and uv for each texture node
+				    for (std::map<std::basic_string<TCHAR>, spShadingTextureNode>::const_iterator& texIterator = texNodeMap.begin(); texIterator !=
+				texNodeMap.end(); texIterator++)
+				        {
+				        const spString rNewMaterialName = texIterator->second->GetTexCoordName();
+				        if (rNewMaterialName.IsNull())
+				            continue;
+
+				        if (!rNewMaterialName.c_str())
+				            continue;
+
+				        const char* cTexCoordName = rNewMaterialName.c_str();
+				        sNewMappedMaterialTexCoordName = cTexCoordName;
+
+				        const spString rTextureName = texIterator->second->GetTextureName();
+				        const char* cTextureName = rTextureName.c_str();
+
+				        spTexture sgTexture = SafeCast<ITexture>(sgTextureTable->FindItem(cTextureName));
+				        const spString rTextureId = sgTexture->GetName();
+				        const char* cTextureId = rTextureId.c_str();
+
+				        //sgTextureToUvSet.insert(std::pair<std::string, std::string>(cTextureId, cTexCoordName));
+				        }
+				    }*/
+
+				newMaterialIndicesMap.insert( std::pair<int, NewMaterialMap*>( mid, new NewMaterialMap( mid, cMaterialGuid, true ) ) );
+
+				// this material is new!
+				bMeshHasNewMappedMaterials = true;
+			}
+		}
+	}
+
+	// add new material if one exists
+	if( bMeshHasNewMappedMaterials )
+	{
+		// const int numMaterials = sgMIds.size();
+		const bool bIsMultiMaterial = sgMIds.size() > 1;
+		const bool bIsSingleMaterial = sgMIds.size() == 1;
+
+		if( bIsMultiMaterial )
+		{
+			const TSTR tIndexedMaterialName = GetUniqueMaterialName( _T("SimplygonMultiMaterial") );
+
+			mOriginalMaxMaterial = NewDefaultMultiMtl();
+			mOriginalMaxMaterial->SetName( tIndexedMaterialName );
+			( (MultiMtl*)mOriginalMaxMaterial )->SetNumSubMtls( 0 );
+
+			for( std::set<int>::const_iterator& mIterator = sgMIds.begin(); mIterator != sgMIds.end(); mIterator++ )
+			{
+				const int mid = *mIterator;
+
+				spMaterial sgMaterial = sgMaterialTable->GetMaterial( mid );
+				std::string sMaterialId = sgMaterial->GetMaterialGUID().c_str();
+
+				const spString rMaterialName = sgMaterial->GetName();
+				const char* cMaterialName = rMaterialName.c_str();
+				std::basic_string<TCHAR> tMaterialName = ConstCharPtrToLPCTSTR( rMaterialName.c_str() );
+
+				// create the material
+				Mtl* mNewMaxMaterial = this->CreateMaterial(
+				    sgProcessedScene, sgProcessedMesh, logicalLodIndex, std::basic_string<TCHAR>( tIndexedNodeName ), tMaterialName, mid );
+
+				if( mNewMaxMaterial )
+				{
+					//( (MultiMtl*)mOriginalMaxMaterial )->SetSubMtlAndName( physicalMaterialIndex, mNewMaxMaterial, mNewMaxMaterial->GetName() );
+					( (MultiMtl*)mOriginalMaxMaterial )->AddMtl( mNewMaxMaterial, mid, mNewMaxMaterial->GetName() );
+				}
+			}
+
+			// remove automatically created sub-material
+			( (MultiMtl*)mOriginalMaxMaterial )->RemoveMtl( 0 );
+		}
+
+		else if( bIsSingleMaterial )
+		{
+			const std::set<int>::const_iterator& mIterator = sgMIds.begin();
+
+			const int mid = *mIterator;
+
+			spMaterial sgMaterial = sgMaterialTable->GetMaterial( mid );
+			std::string sMaterialId = sgMaterial->GetMaterialGUID().c_str();
+
+			const spString rMaterialName = sgMaterial->GetName();
+			const char* cMaterialName = rMaterialName.c_str();
+			std::basic_string<TCHAR> tMaterialName = ConstCharPtrToLPCTSTR( rMaterialName.c_str() );
+
+			// create the material
+			Mtl* mNewMaxMaterial =
+			    this->CreateMaterial( sgProcessedScene, sgProcessedMesh, logicalLodIndex, std::basic_string<TCHAR>( tIndexedNodeName ), tMaterialName, mid );
+
+			if( mNewMaxMaterial )
+			{
+				mOriginalMaxMaterial = mNewMaxMaterial;
+			}
+		}
+
+		if( this->GetGenerateMaterial() )
+		{
+			mNewMaxNode->SetMtl( mOriginalMaxMaterial );
+		}
+
+		newMaterialIndicesMap.clear();
+
+		// add mesh and materials to material info handler, if any
+		if( mOriginalMaxMaterial != nullptr )
+		{
+			std::basic_string<TCHAR> tMaterialName = mOriginalMaxMaterial->GetName();
+
+			for( int subMaterialIndex = 0; subMaterialIndex < mOriginalMaxMaterial->NumSubMtls(); ++subMaterialIndex )
+			{
+				Mtl* mMaxSubMaterial = mOriginalMaxMaterial->GetSubMtl( subMaterialIndex );
+
+				if( mMaxSubMaterial != nullptr )
+				{
+					std::basic_string<TCHAR> tSubMaterialName = mMaxSubMaterial->GetName();
+					this->materialInfoHandler->Add( std::basic_string<TCHAR>( tIndexedNodeName ), tMaterialName, tSubMaterialName, subMaterialIndex, false );
+				}
+			}
+
+			this->materialInfoHandler->Add( std::basic_string<TCHAR>( tIndexedNodeName ), tMaterialName, false );
+		}
+
+		// if no material, add mesh
+		else
+		{
+			this->materialInfoHandler->Add( std::basic_string<TCHAR>( tIndexedNodeName ) );
+		}
+	}
+	else
+	{
+		const bool bHasMeshMapMaterial = mOriginalMaxMaterial != nullptr;
+		if( !mOriginalMaxMaterial )
+		{
+			const bool bIsMultiMaterial = sgMIds.size() > 1;
+			const bool bIsSingleMaterial = sgMIds.size() == 1;
+
+			if( bIsMultiMaterial )
+			{
+				const TSTR tIndexedMaterialName = GetUniqueMaterialName( _T("SimplygonMultiMaterial") );
+
+				mOriginalMaxMaterial = NewDefaultMultiMtl();
+				mOriginalMaxMaterial->SetName( tIndexedMaterialName );
+				( (MultiMtl*)mOriginalMaxMaterial )->SetNumSubMtls( maximumMaterialIndex + 1 );
+
+				for( std::set<int>::const_iterator& mIterator = sgMIds.begin(); mIterator != sgMIds.end(); mIterator++ )
+				{
+					const int mid = *mIterator;
+
+					spMaterial sgMaterial = sgMaterialTable->GetMaterial( mid );
+					std::string sMaterialId = sgMaterial->GetMaterialGUID().c_str();
+
+					const spString rMaterialName = sgMaterial->GetName();
+					const char* cMaterialName = rMaterialName.c_str();
+					const TCHAR* tMaterialName = ConstCharPtrToLPCTSTR( cMaterialName );
+
+					// fetch global guid map
+					globalMaterialMap = this->GetGlobalMaterialMap( sMaterialId );
+					if( !globalMaterialMap )
+					{
+						std::basic_string<TCHAR> tWarningMessage = _T("Multi-material '");
+						tWarningMessage += tIndexedMaterialName + _T( "', sub-material '" );
+						tWarningMessage += tMaterialName;
+						tWarningMessage += _T("' - Could not find a material map between Simplygon and 3ds Max, ignoring material.");
+						this->LogToWindow( tWarningMessage, Warning );
+
+						continue;
+					}
+
+					Mtl* mGlobalMaxMaterial = nullptr;
+
+					// get mapped material from in-memory guid map
+					mGlobalMaxMaterial = GetExistingMappedMaterial( globalMaterialMap->sgMaterialId );
+					if( !mGlobalMaxMaterial )
+					{
+						// if not there, fallback to name based fetch
+						mGlobalMaxMaterial = GetExistingMaterial( globalMaterialMap->sgMaterialName );
+						if( !mGlobalMaxMaterial )
+						{
+							std::basic_string<TCHAR> tWarningMessage = _T("Multi-material '");
+							tWarningMessage += tIndexedMaterialName + _T( "', sub-material '" );
+							tWarningMessage += tMaterialName;
+							tWarningMessage +=
+							    _T("' - There is mapping data that indicates that the current scene should contain original materials, are you importing the ")
+							    _T("asset into an empty (or incorrect) scene? For multi-materials to get reused properly the original mesh has to exist ")
+							    _T("in the current scene. Without the original mesh the sub-materials will get assigned to a generated multi-material, as ")
+							    _T("long as there isn't any mapping data that indicates something else. Ignoring material.");
+							this->LogToWindow( tWarningMessage, Warning );
+						}
+					}
+
+					if( mGlobalMaxMaterial )
+					{
+						( (MultiMtl*)mOriginalMaxMaterial )->SetSubMtlAndName( mid, mGlobalMaxMaterial, mGlobalMaxMaterial->GetName() );
+					}
+				}
+
+				// remove material-slots that are not in use
+				for( int mid = maximumMaterialIndex; mid >= 0; mid-- )
+				{
+					std::set<int>::const_iterator& midIterator = sgMIds.find( mid );
+					if( midIterator == sgMIds.end() )
+					{
+						( (MultiMtl*)mOriginalMaxMaterial )->RemoveMtl( mid );
+					}
+				}
+			}
+
+			else if( bIsSingleMaterial )
+			{
+				const std::set<int>::const_iterator& mIterator = sgMIds.begin();
+
+				const int mid = *mIterator;
+
+				spMaterial sgMaterial = sgMaterialTable->GetMaterial( mid );
+				std::string sMaterialId = sgMaterial->GetMaterialGUID().c_str();
+
+				const spString rMaterialName = sgMaterial->GetName();
+				const char* cMaterialName = rMaterialName.c_str();
+				const TCHAR* tMaterialName = ConstCharPtrToLPCTSTR( cMaterialName );
+
+				globalMaterialMap = this->GetGlobalMaterialMap( sMaterialId );
+
+				if( globalMaterialMap )
+				{
+					// get mapped material from in-memory guid map
+					Mtl* mGlobalMaxMaterial = GetExistingMappedMaterial( globalMaterialMap->sgMaterialId );
+					if( !mGlobalMaxMaterial )
+					{
+						// if not there, fallback to name based fetch
+						mGlobalMaxMaterial = GetExistingMaterial( globalMaterialMap->sgMaterialName );
+
+						if( !mGlobalMaxMaterial )
+						{
+							std::basic_string<TCHAR> tWarningMessage =
+							    _T("There is mapping data that indicates that the current scene should contain original materials, are you importing the ")
+							    _T("asset into an empty (or incorrect) scene? For multi-materials to get reused properly the original mesh has to exist ")
+							    _T("in the current scene. Without the original mesh the sub-materials will get assigned to a generated multi-material, as ")
+							    _T("long as there isn't any mapping data that indicates something else. Ignoring single-material...");
+							this->LogToWindow( tWarningMessage, Warning );
+						}
+					}
+					mOriginalMaxMaterial = mGlobalMaxMaterial;
+				}
+				else
+				{
+					std::basic_string<TCHAR> tWarningMessage = _T( "Single-material '" );
+					tWarningMessage += tMaterialName;
+					tWarningMessage += _T("' - Could not find a material map between Simplygon and 3ds Max, ignoring material.");
+					this->LogToWindow( tWarningMessage, Warning );
+				}
+			}
+		}
+
+		if( this->GetGenerateMaterial() )
+		{
+			mNewMaxNode->SetMtl( mOriginalMaxMaterial );
+		}
+
+		// add original mesh and materials to material info handler, if any
+		if( mOriginalMaxMaterial != nullptr )
+		{
+			std::basic_string<TCHAR> tMaterialName = mOriginalMaxMaterial->GetName();
+
+			bool bHasActiveSubMaterials = false;
+			for( int subMaterialIndex = 0; subMaterialIndex < mOriginalMaxMaterial->NumSubMtls(); ++subMaterialIndex )
+			{
+				Mtl* mMaxSubMaterial = mOriginalMaxMaterial->GetSubMtl( subMaterialIndex );
+
+				if( mMaxSubMaterial != nullptr )
+				{
+					std::basic_string<TCHAR> tSubMaterialName = mMaxSubMaterial->GetName();
+					this->materialInfoHandler->Add( std::basic_string<TCHAR>( tIndexedNodeName ), tMaterialName, tSubMaterialName, subMaterialIndex, true );
+				}
+			}
+
+			this->materialInfoHandler->Add(
+			    std::basic_string<TCHAR>( tIndexedNodeName ), tMaterialName, mOriginalMaxMaterial->NumSubMtls() > 0 ? bHasMeshMapMaterial : false );
+		}
+
+		// if no material, add mesh
+		else
+		{
+			this->materialInfoHandler->Add( std::basic_string<TCHAR>( tIndexedNodeName ) );
+		}
+	}
+
+	// if the original object had morph targets, add a morph modifier
+	// after the new mesh in the modifier stack
+	if( false /*bHasSceneMeshMap && globalMeshMap->second.HasMorpherMetaData()*/ )
+	{
+		RegisterMorphScripts();
+
+		const ulong uniqueHandle = mNewMaxNode->GetHandle();
+
+		const MorpherMetaData* morpherMetaData = globalMeshMap->second.GetMorpherMetaData();
+		const std::vector<MorphChannelMetaData*>& morphChannelMetaData = morpherMetaData->morphTargetMetaData;
+
+		Modifier* mNewMorpherModifier = (Modifier*)this->MaxInterface->CreateInstance( OSM_CLASS_ID, MORPHER_CLASS_ID );
+
+		// make the object into a derived object
+		IDerivedObject* mDerivedObject = CreateDerivedObject();
+		mDerivedObject->TransferReferences( mNewMaxQuadObject );
+		mDerivedObject->ReferenceObject( mNewMaxQuadObject );
+
+		mDerivedObject->AddModifier( mNewMorpherModifier );
+
+		TCHAR tTargetVertexFieldNameBuffer[ MAX_PATH ] = { 0 };
+		TCHAR tMorphTargetNameBuffer[ MAX_PATH ] = { 0 };
+
+		for( const MorphChannelMetaData* morphChannelMetaData : morphChannelMetaData )
+		{
+			const size_t originalMorphChannelIndex = morphChannelMetaData->GetOriginalIndex();
+			const size_t maxMorphChannelIndex = originalMorphChannelIndex + 1;
+
+			SetMorphChannelWeight( uniqueHandle, maxMorphChannelIndex, morphChannelMetaData->morphWeight );
+
+			std::map<size_t, float> logicalProgressiveIndexToWeight;
+			size_t numValidProgressiveMorphTargets = 0;
+
+			for( const MorphTargetMetaData* morphTargetMetaData : morphChannelMetaData->morphTargetMetaData )
+			{
+				const size_t originalMorphTargetIndex = morphTargetMetaData->GetIndex();
+
+				_stprintf_s( tTargetVertexFieldNameBuffer,
+				             MAX_PATH,
+				             _T("%s%zu_%zu"),
+				             _T("BlendShapeTargetVertexField"),
+				             originalMorphChannelIndex,
+				             originalMorphTargetIndex );
+				const char* cTargetVertexFieldName = LPCTSTRToConstCharPtr( tTargetVertexFieldNameBuffer );
+
+				spRealArray sgMorphTargetDeltas = spRealArray::SafeCast( sgMeshData->GetUserVertexField( cTargetVertexFieldName ) );
+				if( sgMorphTargetDeltas.NonNull() )
+				{
+					spString sgMorphTargetName = sgMorphTargetDeltas->GetAlternativeName();
+					std::basic_string<TCHAR> tMorphTargetName = ConstCharPtrToLPCTSTR( sgMorphTargetName.c_str() );
+					_stprintf_s( tMorphTargetNameBuffer,
+					             MAX_PATH,
+					             _T("%s_MorphTarget_%s_%zu_%zu"),
+					             tMeshName.c_str(),
+					             tMorphTargetName.c_str(),
+					             originalMorphChannelIndex,
+					             originalMorphTargetIndex );
+
+					std::basic_string<TCHAR> tFormattedMorphTargetName = GenerateFormattedName(
+					    this->meshFormatString, tMorphTargetNameBuffer, ConstCharPtrToLPCTSTR( std::to_string( logicalLodIndex ).c_str() ) );
+
+					TSTR tIndexedMorphTargetName = GetNonCollidingMeshName( tFormattedMorphTargetName.c_str() );
+
+					// create new max node and assign the same material as before
+					PolyObject* mMorphTargetTriObject = CreateEditablePolyObject();
+					INode* mMorpTargetNode = this->MaxInterface->CreateObjectNode( mMorphTargetTriObject );
+					MNMesh& mMorphTargetMesh = mMorphTargetTriObject->GetMesh();
+
+					mMorphTargetMesh.setNumVerts( vertexCount );
+					mMorphTargetMesh.setNumFaces( faceCount );
+
+					// setup vertices
+					for( uint vid = 0; vid < vertexCount; ++vid )
+					{
+						spRealData sgCoord = sgCoords->GetTuple( vid );
+						spRealData sgMorphDelta = sgMorphTargetDeltas->GetTuple( vid );
+
+						const Point3 mMorphVertex( sgCoord[ 0 ] + sgMorphDelta[ 0 ], sgCoord[ 1 ] + sgMorphDelta[ 1 ], sgCoord[ 2 ] + sgMorphDelta[ 2 ] );
+						mMorphTargetMesh.V( vid )->p = mMorphVertex;
+					}
+
+					uint vIndex = 0;
+					for( uint fid = 0; fid < faceCount; ++fid )
+					{
+						int deg = mMorphTargetMesh.F( fid )->deg;
+
+						if( deg == 4 )
+						{
+							rid indices[ 6 ] = { sgVertexIds.GetItem( vIndex++ ),
+							                     sgVertexIds.GetItem( vIndex++ ),
+							                     sgVertexIds.GetItem( vIndex++ ),
+							                     sgVertexIds.GetItem( vIndex++ ),
+							                     sgVertexIds.GetItem( vIndex++ ),
+							                     sgVertexIds.GetItem( vIndex++ ) };
+
+							int quadIndices[ 4 ];
+							ConvertToQuad( indices, quadIndices );
+
+							for( int c = 0; c < deg; ++c )
+							{
+								mMorphTargetMesh.F( fid )->vtx[ c ] = sgVertexIds->GetItem( quadIndices[ c ] );
+							}
+						}
+						else
+						{
+							rid triIndices[ 3 ] = { sgVertexIds.GetItem( vIndex++ ), sgVertexIds.GetItem( vIndex++ ), sgVertexIds.GetItem( vIndex++ ) };
+
+							for( int c = 0; c < deg; ++c )
+							{
+								mMorphTargetMesh.F( fid )->vtx[ c ] = sgVertexIds->GetItem( triIndices[ c ] );
+							}
+						}
+
+						mMorphTargetMesh.F( fid )->SetFlag( EDGE_ALL );
+					}
+
+					INode* mOriginalMaxNode = mMappedMaxNode;
+					INode* mOriginalMaxParentNode = mOriginalMaxNode->GetParentNode();
+
+					mMorpTargetNode->SetName( tIndexedMorphTargetName );
+
+					if( !mOriginalMaxParentNode->IsRootNode() )
+					{
+						mOriginalMaxParentNode->AttachChild( mMorpTargetNode );
+					}
+
+					// Set the transform
+					mMorpTargetNode->SetNodeTM( this->CurrentTime, mOriginalMaxNode->GetNodeTM( this->CurrentTime ) );
+
+					// set the same wire-frame color
+					mMorpTargetNode->SetWireColor( mOriginalMaxNode->GetWireColor() );
+
+					// Set the other node properties:
+					mMorpTargetNode->FlagForeground( this->CurrentTime, FALSE );
+					mMorpTargetNode->SetObjOffsetPos( mOriginalMaxNode->GetObjOffsetPos() );
+					mMorpTargetNode->SetObjOffsetRot( mOriginalMaxNode->GetObjOffsetRot() );
+					mMorpTargetNode->SetObjOffsetScale( mOriginalMaxNode->GetObjOffsetScale() );
+
+					// set as regular morph target
+					if( numValidProgressiveMorphTargets == 0 )
+					{
+						SetMorphTarget( uniqueHandle, mMorpTargetNode->GetHandle(), originalMorphChannelIndex + 1 );
+					}
+
+					// set as progressive morph target
+					else
+					{
+						AddProgressiveMorphTarget( uniqueHandle, mMorpTargetNode->GetHandle(), originalMorphChannelIndex + 1 );
+					}
+
+					// store indices for later
+					logicalProgressiveIndexToWeight.insert( std::pair<size_t, float>( numValidProgressiveMorphTargets + 1, morphTargetMetaData->weight ) );
+					numValidProgressiveMorphTargets++;
+				}
+			}
+
+			// progressive morph target parameter update for the specific morph channel,
+			// must be done when all progressive targets have been written,
+			// or the weights will be recalculated.
+			for( const std::pair<size_t, float>& progressiveIndexWeightPair : logicalProgressiveIndexToWeight )
+			{
+				SetProgressiveMorphTargetWeight( uniqueHandle, maxMorphChannelIndex, progressiveIndexWeightPair.first, progressiveIndexWeightPair.second );
+			}
+
+			// apply per-channel settings (some of these are order dependent!)
+			SetMorphChannelTension( uniqueHandle, maxMorphChannelIndex, morphChannelMetaData->tension );
+			SetChannelUseLimits( uniqueHandle, maxMorphChannelIndex, morphChannelMetaData->useLimits );
+			SetChannelMinLimit( uniqueHandle, maxMorphChannelIndex, morphChannelMetaData->minLimit );
+			SetChannelMaxLimit( uniqueHandle, maxMorphChannelIndex, morphChannelMetaData->maxLimit );
+			SetChannelUseVertexSelection( uniqueHandle, maxMorphChannelIndex, morphChannelMetaData->useVertexSelection );
+		}
+
+		// apply global settings
+		MorpherWrapper::ApplyGlobalSettings( mNewMorpherModifier, morpherMetaData->globalSettings, 0 );
+	}
+
+	// if the original object had skinning, add a skinning modifier
+	// after the new mesh in the modifier stack
+	spSceneBoneTable sgBoneTable = sgProcessedScene->GetBoneTable();
+	spRidArray sgBoneIds = sgMeshData->GetBoneIds();
+
+	const bool bHasSkinning = sgBoneIds.IsNull() ? false : sgBoneIds->GetItemCount() > 0;
+
+	// skinning modifiers
+	if( bHasSkinning )
+	{
+		// make the object into a derived object
+		IDerivedObject* mDerivedObject = CreateDerivedObject();
+		mDerivedObject->TransferReferences( mNewMaxQuadObject );
+		mDerivedObject->ReferenceObject( mNewMaxQuadObject );
+
+		// add the skinning modifier
+		Modifier* mNewSkinModifier = (Modifier*)this->MaxInterface->CreateInstance( OSM_CLASS_ID, SKIN_CLASSID );
+
+#if MAX_VERSION_MAJOR < 24
+		ModContext* mSkinModContext = new ModContext( new Matrix3( 1 ), nullptr, nullptr );
+#else
+		ModContext* mSkinModContext = new ModContext( new Matrix3(), nullptr, nullptr );
+#endif
+
+		mDerivedObject->AddModifier( mNewSkinModifier, mSkinModContext );
+		ISkinImportData* mSkinImportData = (ISkinImportData*)mNewSkinModifier->GetInterface( I_SKINIMPORTDATA );
+
+		bool bHasInvalidBoneReference = false;
+
+		std::map<INode*, int> boneToIdInUseMap;
+		std::map<int, INode*> boneIdToBoneInUseMap;
+
+		const uint numBonesPerVertex = sgBoneIds->GetTupleSize();
+		for( uint vid = 0; vid < vertexCount; ++vid )
+		{
+			spRidData sgBoneId = sgBoneIds->GetTuple( vid );
+
+			for( uint b = 0; b < numBonesPerVertex; ++b )
+			{
+				const int globalBoneIndex = sgBoneId[ b ];
+
+				if( globalBoneIndex >= 0 )
+				{
+					const std::map<int, INode*>::const_iterator& boneIterator = boneIdToBoneInUseMap.find( globalBoneIndex );
+					if( boneIterator != boneIdToBoneInUseMap.end() )
+						continue;
+
+					spSceneBone sgBone = sgBoneTable->GetBone( globalBoneIndex );
+
+					const spString rBoneId = sgBone->GetNodeGUID();
+					const char* cBoneId = rBoneId.c_str();
+					const spString rBoneName = sgBone->GetName();
+					const char* cBoneName = rBoneName.c_str();
+
+					INode* mBone = this->MaxInterface->GetINodeByName( ConstCharPtrToLPCTSTR( cBoneName ) );
+					if( !mBone )
+					{
+						bHasInvalidBoneReference = true;
+						break;
+					}
+
+					boneToIdInUseMap.insert( std::pair<INode*, int>( mBone, globalBoneIndex ) );
+					boneIdToBoneInUseMap.insert( std::pair<int, INode*>( globalBoneIndex, mBone ) );
+				}
+			}
+		}
+
+		if( bHasInvalidBoneReference )
+		{
+			boneToIdInUseMap.clear();
+			boneIdToBoneInUseMap.clear();
+
+			std::basic_string<TCHAR> tWarningMessage = tIndexedNodeName;
+			tWarningMessage +=
+			    _T(" - Mapping data indicates reuse of existing bone hierarchy but was unable to get a valid bone reference. Ignoring skinning...");
+
+			this->LogToWindow( tWarningMessage, Warning );
+		}
+		else
+		{
+			if( bHasGlobalMeshMap )
+			{
+				INode* mOriginalMaxNode = mMappedMaxNode;
+
+				Modifier* skinModifier = nullptr;
+				Object* mMaxObject = mOriginalMaxNode->GetObjectRef();
+
+				// check if the object has a skinning modifier
+				// start by checking if it is a derived object
+				if( mMaxObject != nullptr && mMaxObject->SuperClassID() == GEN_DERIVOB_CLASS_ID )
+				{
+					IDerivedObject* mMaxDerivedObject = dynamic_cast<IDerivedObject*>( mMaxObject );
+
+					// derived object, look through the modifier list for a skinning modifier
+					for( int modifierIndex = 0; modifierIndex < mMaxDerivedObject->NumModifiers(); ++modifierIndex )
+					{
+						Modifier* mModifier = mMaxDerivedObject->GetModifier( modifierIndex );
+						if( mModifier != nullptr && mModifier->ClassID() == SKIN_CLASSID )
+						{
+							// found a skin, use it
+							skinModifier = mModifier;
+							break;
+						}
+					}
+				}
+
+				if( skinModifier )
+				{
+					// add all bones from the original mesh
+					ISkin* mSkin = (ISkin*)skinModifier->GetInterface( I_SKIN );
+					for( int boneIndex = 0; boneIndex < mSkin->GetNumBones(); ++boneIndex )
+					{
+						INode* mBone = mSkin->GetBone( boneIndex );
+						if( boneToIdInUseMap.find( mBone ) != boneToIdInUseMap.end() )
+						{
+							mSkinImportData->AddBoneEx( mBone, FALSE );
+
+							Matrix3 mTransformation;
+							mSkin->GetBoneInitTM( mBone, mTransformation, false );
+							mSkinImportData->SetBoneTm( mBone, mTransformation, mTransformation );
+						}
+					}
+				}
+			}
+			else
+			{
+				// copy bone transformations for every bone
+				for( std::map<std::string, GlobalMeshMap>::const_iterator& nodeIterator = this->GlobalGuidToMaxNodeMap.begin();
+				     nodeIterator != this->GlobalGuidToMaxNodeMap.end();
+				     nodeIterator++ )
+				{
+					INode* mOriginalMaxNode = this->MaxInterface->GetINodeByHandle( nodeIterator->second.GetMaxId() );
+					if( mOriginalMaxNode )
+					{
+						// if the name does not match, try to get Max mesh by name (fallback)
+						if( mOriginalMaxNode->GetName() != nodeIterator->second.GetName() )
+						{
+							mOriginalMaxNode = this->MaxInterface->GetINodeByName( nodeIterator->second.GetName().c_str() );
+						}
+					}
+
+					// if null, possible root node
+					if( !mOriginalMaxNode )
+						continue;
+
+					Modifier* mCurrentSkinModifier = nullptr;
+
+					// skinning modifiers
+					Object* mMaxObject = mOriginalMaxNode->GetObjectRef();
+
+					// check if the object has a skinning modifier
+					// start by checking if it is a derived object
+					if( mMaxObject != nullptr && mMaxObject->SuperClassID() == GEN_DERIVOB_CLASS_ID )
+					{
+						IDerivedObject* mMaxDerivedObject = dynamic_cast<IDerivedObject*>( mMaxObject );
+
+						// derived object, look through the modifier list for a skinning modifier
+						for( int modifierIndex = 0; modifierIndex < mMaxDerivedObject->NumModifiers(); ++modifierIndex )
+						{
+							Modifier* mModifier = mMaxDerivedObject->GetModifier( modifierIndex );
+							if( mModifier != nullptr && mModifier->ClassID() == SKIN_CLASSID )
+							{
+								// found a skin, use it
+								mCurrentSkinModifier = mModifier;
+								break;
+							}
+						}
+					}
+
+					if( mCurrentSkinModifier == nullptr )
+						continue;
+
+					// add all bones from the original mesh
+					ISkin* mSkin = (ISkin*)mCurrentSkinModifier->GetInterface( I_SKIN );
+					for( int boneIndex = 0; boneIndex < mSkin->GetNumBones(); ++boneIndex )
+					{
+						INode* mBone = mSkin->GetBone( boneIndex );
+
+						std::map<INode*, int>::iterator& boneInUseIterator = boneToIdInUseMap.find( mBone );
+						if( boneInUseIterator != boneToIdInUseMap.end() )
+						{
+							mSkinImportData->AddBoneEx( mBone, FALSE );
+
+							Matrix3 mTransformation;
+							mSkin->GetBoneInitTM( mBone, mTransformation, false );
+							mSkinImportData->SetBoneTm( mBone, mTransformation, mTransformation );
+
+							boneToIdInUseMap.erase( boneInUseIterator );
+						}
+					}
+				}
+			}
+
+			// update the derived object. this is needed to create a context data
+			ObjectState MObjectState = mDerivedObject->Eval( 0 );
+
+			spRealArray sgBoneWeights = sgMeshData->GetBoneWeights();
+
+			// set the bone weights per-vertex
+			for( uint vid = 0; vid < vertexCount; ++vid )
+			{
+				Tab<INode*> mBonesArray;
+				Tab<float> mWeightsArray;
+				mBonesArray.SetCount( numBonesPerVertex );
+				mWeightsArray.SetCount( numBonesPerVertex );
+
+				// get the tuple data
+				spRidData sgBoneId = sgBoneIds->GetTuple( vid );
+				spRealData sgBoneWeight = sgBoneWeights->GetTuple( vid );
+
+				uint boneCount = 0;
+				for( uint boneIndex = 0; boneIndex < numBonesPerVertex; ++boneIndex )
+				{
+					const int globalBoneIndex = sgBoneId[ boneIndex ];
+
+					if( globalBoneIndex >= 0 )
+					{
+						spSceneBone sgBone = sgBoneTable->GetBone( globalBoneIndex );
+
+						const std::map<int, INode*>::const_iterator& boneIterator = boneIdToBoneInUseMap.find( globalBoneIndex );
+						if( boneIterator == boneIdToBoneInUseMap.end() )
+							continue;
+
+						INode* mBone = boneIterator->second;
+
+						mBonesArray[ boneCount ] = mBone;
+						mWeightsArray[ boneCount ] = sgBoneWeight[ boneIndex ];
+						++boneCount;
+					}
+				}
+
+				// resize arrays to actual count of bones added
+				mBonesArray.SetCount( boneCount );
+				mWeightsArray.SetCount( boneCount );
+
+				// set the vertex weights
+				// TODO: set all in same call!
+				const bool bWeightAdded = mSkinImportData->AddWeights( mNewMaxNode, vid, mBonesArray, mWeightsArray ) == TRUE;
+				if( !bWeightAdded )
+				{
+					std::basic_string<TCHAR> tWarningMessage = tIndexedNodeName;
+					tWarningMessage += _T(" - Could not add bone weights to the given node, ignoring weights.");
+
+					this->LogToWindow( tWarningMessage, Warning );
+					return false;
+				}
+			}
+		}
+	}
+	// clear shading network info
+	this->ClearShadingNetworkInfo();
+
+	mNewMaxMesh.InvalidateGeomCache();
+	// mNewMaxMesh.InvalidateTopologyCache();
+
+	// add custom attributes
+
+	// max deviation
+	spRealArray sgMaxDeviation = spRealArray::SafeCast( sgProcessedScene->GetCustomField( "MaxDeviation" ) );
+	if( !sgMaxDeviation.IsNull() )
+	{
+		const real maxDev = sgMaxDeviation->GetItem( 0 );
+		mNewMaxNode->SetUserPropFloat( _T("MaxDeviation"), maxDev );
+	}
+
+	// scene radius
+	const real sceneRadius = sgProcessedScene->GetRadius();
+	mNewMaxNode->SetUserPropFloat( _T("SceneRadius"), sceneRadius );
+
+	// original node name
+	mNewMaxNode->SetUserPropString( _T("OriginalNodeName"), tMaxOriginalNodeName.c_str() );
+
+	// intended node name
+	mNewMaxNode->SetUserPropString( _T("IntendedNodeName"), tFormattedMeshName.c_str() );
+
+	// imported node name
+	mNewMaxNode->SetUserPropString( _T("ImportedNodeName"), tIndexedNodeName );
+
+	return true;
 }
 
 // Write back data to max
@@ -7297,6 +9603,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 	// find material that does not already exist
 	std::map<int, NewMaterialMap*> newMaterialIndicesMap;
 
+	// if there are no material ids or empty materialcount skip mapping material back
 	if( !sgMaterialIds.IsNull() && sgMaterialTable.GetMaterialsCount() > 0 )
 	{
 		for( uint tid = 0; tid < triangleCount; ++tid )
@@ -8065,6 +10372,377 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 	mNewMaxNode->SetUserPropString( _T("ImportedNodeName"), tIndexedNodeName );
 
 	return true;
+}
+
+void SimplygonMax::WriteSGTexCoordsToMaxChannel_Quad( spRealArray sgTexCoords, MNMesh& mMaxMesh, int maxChannel, uint cornerCount, uint faceCount )
+{
+	// setup objects
+	// mMaxMesh.setMapSupport( maxChannel );
+	mMaxMesh.InitMap( maxChannel );
+
+	UVWMapper mUVWMapper;
+	mMaxMesh.ApplyMapper( mUVWMapper, maxChannel );
+
+	// setup and copy the corners
+	spRidArray sgVertexIds = sg->CreateRidArray();
+	spRealArray sgPackedTexCoords = spRealArray::SafeCast( sgTexCoords->NewPackedCopy( sgVertexIds ) );
+
+	MNMap* mMaxMeshMap = mMaxMesh.M( maxChannel );
+	if( mMaxMeshMap != nullptr )
+	{
+		// setup data channels
+		// mMaxMeshMap.setNumFaces( faceCount );
+		mMaxMeshMap->setNumVerts( sgPackedTexCoords->GetTupleCount() );
+
+		// copy vertex data
+		for( uint vid = 0; vid < sgPackedTexCoords->GetTupleCount(); ++vid )
+		{
+			// get the tuple
+			spRealData sgTexCoord = sgPackedTexCoords->GetTuple( vid );
+
+			// remap
+			if( this->TextureCoordinateRemapping == 0 )
+			{
+				mMaxMeshMap->v[ vid ].x = sgTexCoord[ 0 ];
+				mMaxMeshMap->v[ vid ].y = sgTexCoord[ 1 ];
+				mMaxMeshMap->v[ vid ].z = 0;
+			}
+			else if( this->TextureCoordinateRemapping == 1 )
+			{
+				mMaxMeshMap->v[ vid ].x = sgTexCoord[ 0 ];
+				mMaxMeshMap->v[ vid ].z = sgTexCoord[ 1 ];
+				mMaxMeshMap->v[ vid ].y = 0;
+			}
+			else if( this->TextureCoordinateRemapping == 2 )
+			{
+				mMaxMeshMap->v[ vid ].y = sgTexCoord[ 0 ];
+				mMaxMeshMap->v[ vid ].z = sgTexCoord[ 1 ];
+				mMaxMeshMap->v[ vid ].x = 0;
+			}
+		}
+
+		uint sgIndex = 0;
+		for( uint fid = 0; fid < faceCount; ++fid )
+		{
+			int deg = mMaxMeshMap->f[ fid ].deg;
+
+			if( deg == 3 )
+			{
+				for( int c = 0; c < deg; ++c )
+				{
+					const rid vid = sgVertexIds->GetItem( sgIndex++ );
+					mMaxMeshMap->f[ fid ].tv[ c ] = vid;
+				}
+			}
+			if( deg == 4 )
+			{
+				int indices[ 6 ] = { sgVertexIds.GetItem( sgIndex + 0 ),
+				                     sgVertexIds.GetItem( sgIndex + 1 ),
+				                     sgVertexIds.GetItem( sgIndex + 2 ),
+				                     sgVertexIds.GetItem( sgIndex + 3 ),
+				                     sgVertexIds.GetItem( sgIndex + 4 ),
+				                     sgVertexIds.GetItem( sgIndex + 5 ) };
+
+				int quadIndices[ 4 ];
+				int originalCornerIndices[ 4 ];
+				ConvertToQuad( indices, quadIndices, sgIndex, originalCornerIndices );
+
+				for( int c = 0; c < deg; ++c )
+				{
+					const rid vid = sgVertexIds->GetItem( originalCornerIndices[ c ] );
+					mMaxMeshMap->f[ fid ].tv[ c ] = vid;
+				}
+				sgIndex += 6;
+			}
+		}
+	}
+	else
+	{
+		std::string sWarning = "Quad texcoords import - mappingchannel ";
+		sWarning += std::to_string( maxChannel );
+		sWarning += " wasnt able to initiate";
+	}
+}
+
+void SimplygonMax::ConvertToQuad( int* triangleVertexIndices, int* quadVertexIndices )
+{
+	quadVertexIndices[ 0 ] = triangleVertexIndices[ 1 ];
+	quadVertexIndices[ 1 ] = triangleVertexIndices[ 2 ];
+	quadVertexIndices[ 2 ] = triangleVertexIndices[ 5 ];
+	quadVertexIndices[ 3 ] = triangleVertexIndices[ 0 ];
+}
+
+void SimplygonMax::ConvertToQuad( int* triangleVertexIndices, int* quadVertexIndices, int originalQuadIndexStart, int* originalQuadIndices )
+{
+	quadVertexIndices[ 0 ] = triangleVertexIndices[ 1 ];
+	quadVertexIndices[ 1 ] = triangleVertexIndices[ 2 ];
+	quadVertexIndices[ 2 ] = triangleVertexIndices[ 5 ];
+	quadVertexIndices[ 3 ] = triangleVertexIndices[ 0 ];
+
+	originalQuadIndices[ 0 ] = 1 + originalQuadIndexStart;
+	originalQuadIndices[ 1 ] = 2 + originalQuadIndexStart;
+	originalQuadIndices[ 2 ] = 5 + originalQuadIndexStart;
+	originalQuadIndices[ 3 ] = 0 + originalQuadIndexStart;
+}
+
+bool SimplygonMax::WritebackMapping_Quad( size_t lodIndex, uint faceCount, const uint cornerCount, MNMesh& newMaxMesh, spSceneMesh sgMesh )
+{
+	spGeometryData sgMeshData = sgMesh->GetGeometry();
+
+	// mesh info
+	const uint vertexCount = sgMeshData->GetVertexCount();
+
+	// do a pre-pass to find out mappable texcoords
+	std::set<int> mappingChannelsInUse;
+
+	std::map<int, int> indexedTexCoordFieldMap;
+	std::map<std::string, int> unNamedTexCoordFieldMap;
+
+	// find texcoords
+	for( uint texCoordIndex = 0; texCoordIndex < SG_NUM_SUPPORTED_TEXTURE_CHANNELS; ++texCoordIndex )
+	{
+		spRealArray sgTexCoords = sgMeshData->GetTexCoords( texCoordIndex );
+		if( sgTexCoords.IsNull() )
+			continue;
+
+		const spString rTexCoordName = sgTexCoords->GetAlternativeName();
+		if( rTexCoordName.IsNullOrEmpty() )
+		{
+			unNamedTexCoordFieldMap.insert( std::pair<std::string, int>( std::string( "TexCoords" ) + std::to_string( texCoordIndex ), texCoordIndex ) );
+			continue;
+		}
+
+		const char* cTexCoordName = rTexCoordName.c_str();
+		if( !cTexCoordName )
+		{
+			unNamedTexCoordFieldMap.insert( std::pair<std::string, int>( std::string( "TexCoords" ) + std::to_string( texCoordIndex ), texCoordIndex ) );
+			continue;
+		}
+
+		if( IsNumber( cTexCoordName ) )
+		{
+			const int mappingChannelInUse = atoi( cTexCoordName );
+			indexedTexCoordFieldMap.insert( std::pair<int, int>( mappingChannelInUse, texCoordIndex ) );
+			mappingChannelsInUse.insert( texCoordIndex );
+		}
+		else
+		{
+			unNamedTexCoordFieldMap.insert( std::pair<std::string, int>( cTexCoordName, texCoordIndex ) );
+		}
+	}
+
+	std::map<int, int> indexedVertexColorFieldMap;
+	std::map<std::string, int> unNamedVertexColorFieldMap;
+
+	// find vertex colors
+	for( uint vertexColorIndex = 0; vertexColorIndex < SG_NUM_SUPPORTED_COLOR_CHANNELS; ++vertexColorIndex )
+	{
+		spRealArray sgVertexColors = sgMeshData->GetColors( vertexColorIndex );
+		if( sgVertexColors.IsNull() )
+			continue;
+
+		const spString rVertexColorName = sgVertexColors->GetAlternativeName();
+		if( rVertexColorName.IsNullOrEmpty() )
+		{
+			unNamedVertexColorFieldMap.insert( std::pair<std::string, int>( std::string( "Colors" ) + std::to_string( vertexColorIndex ), vertexColorIndex ) );
+			continue;
+		}
+
+		const char* cVertexColorName = rVertexColorName.c_str();
+		if( !cVertexColorName )
+		{
+			unNamedVertexColorFieldMap.insert( std::pair<std::string, int>( std::string( "Colors" ) + std::to_string( vertexColorIndex ), vertexColorIndex ) );
+			continue;
+		}
+
+		if( IsNumber( cVertexColorName ) )
+		{
+			const int mappingChannelInUse = atoi( cVertexColorName );
+			indexedVertexColorFieldMap.insert( std::pair<int, int>( mappingChannelInUse, vertexColorIndex ) );
+			mappingChannelsInUse.insert( vertexColorIndex );
+		}
+		else
+		{
+			unNamedVertexColorFieldMap.insert( std::pair<std::string, int>( cVertexColorName, vertexColorIndex ) );
+		}
+	}
+
+	// write texcoords with valid index
+	for( std::map<int, int>::const_iterator& texIterator = indexedTexCoordFieldMap.begin(); texIterator != indexedTexCoordFieldMap.end(); texIterator++ )
+	{
+		const int maxChannel = texIterator->first;
+		const int texCoordIndex = texIterator->second;
+
+		if( maxChannel >= 1 && maxChannel < MAX_MESHMAPS )
+		{
+			spRealArray sgTexCoords = sgMeshData->GetTexCoords( texCoordIndex );
+			this->WriteSGTexCoordsToMaxChannel_Quad( sgTexCoords, newMaxMesh, maxChannel, cornerCount, faceCount );
+
+			const spString rTexCoordName = sgTexCoords->GetAlternativeName();
+			if( rTexCoordName.IsNullOrEmpty() )
+				continue;
+
+			const char* cTexCoordName = rTexCoordName.c_str();
+			if( !cTexCoordName )
+				continue;
+
+			this->ImportedUvNameToMaxIndex.insert( std::pair<std::string, int>( cTexCoordName, maxChannel ) );
+			this->ImportedMaxIndexToUv.insert( std::pair<int, std::string>( maxChannel, cTexCoordName ) );
+		}
+	}
+
+	// write vertex colors with valid index
+	for( std::map<int, int>::const_iterator& vertexColorIterator = indexedVertexColorFieldMap.begin(); vertexColorIterator != indexedVertexColorFieldMap.end();
+	     vertexColorIterator++ )
+	{
+		const int maxChannel = vertexColorIterator->first;
+		const int vertexColorIndex = vertexColorIterator->second;
+
+		if( maxChannel >= -2 && maxChannel < MAX_MESHMAPS )
+		{
+			spRealArray sgVertexColors = sgMeshData->GetColors( vertexColorIndex );
+			this->WriteSGVertexColorsToMaxChannel_Quad( sgVertexColors, newMaxMesh, maxChannel, cornerCount, faceCount );
+		}
+	}
+
+	// write unmapped texcoords
+	uint targetTexCoordMaxChannel = 1;
+	for( std::map<std::string, int>::const_iterator& texIterator = unNamedTexCoordFieldMap.begin(); texIterator != unNamedTexCoordFieldMap.end();
+	     texIterator++ )
+	{
+		const std::string sTexCoordName = texIterator->first;
+		const int texCoordIndex = texIterator->second;
+
+		while( true )
+		{
+			const std::set<int>::const_iterator& texCoordMap = mappingChannelsInUse.find( targetTexCoordMaxChannel );
+			if( texCoordMap == mappingChannelsInUse.end() )
+			{
+				break;
+			}
+
+			targetTexCoordMaxChannel++;
+		}
+
+		if( targetTexCoordMaxChannel >= 1 && targetTexCoordMaxChannel < MAX_MESHMAPS )
+		{
+			spRealArray sgTexCoords = sgMeshData->GetTexCoords( texCoordIndex );
+			this->WriteSGTexCoordsToMaxChannel_Quad( sgTexCoords, newMaxMesh, targetTexCoordMaxChannel, cornerCount, faceCount );
+
+			mappingChannelsInUse.insert( targetTexCoordMaxChannel );
+
+			const char* cTexCoordName = texIterator->first.c_str();
+			if( !cTexCoordName )
+				continue;
+
+			this->ImportedUvNameToMaxIndex.insert( std::pair<std::string, int>( cTexCoordName, targetTexCoordMaxChannel ) );
+			this->ImportedMaxIndexToUv.insert( std::pair<int, std::string>( targetTexCoordMaxChannel, cTexCoordName ) );
+		}
+	}
+
+	// write unmapped vertex colors
+	int targetVertexColorMaxChannel = 0;
+	for( std::map<std::string, int>::const_iterator& vertexColorIterator = unNamedVertexColorFieldMap.begin();
+	     vertexColorIterator != unNamedVertexColorFieldMap.end();
+	     vertexColorIterator++ )
+	{
+		const std::string sVertexColorName = vertexColorIterator->first;
+		const int vertexColorIndex = vertexColorIterator->second;
+
+		while( true )
+		{
+			const std::set<int>::const_iterator& vertexColorMap = mappingChannelsInUse.find( targetVertexColorMaxChannel );
+			if( vertexColorMap == mappingChannelsInUse.end() )
+			{
+				break;
+			}
+
+			targetVertexColorMaxChannel++;
+		}
+
+		if( targetVertexColorMaxChannel >= -2 && targetVertexColorMaxChannel < MAX_MESHMAPS )
+		{
+			spRealArray sgVertexColors = sgMeshData->GetColors( vertexColorIndex );
+			this->WriteSGVertexColorsToMaxChannel_Quad( sgVertexColors, newMaxMesh, targetVertexColorMaxChannel, cornerCount, faceCount );
+
+			mappingChannelsInUse.insert( targetVertexColorMaxChannel );
+		}
+	}
+
+	return true;
+}
+
+// writes Simplygon vertex-colors back to Max
+void SimplygonMax::WriteSGVertexColorsToMaxChannel_Quad( spRealArray sgVertexColors, MNMesh& mMaxMesh, int maxChannel, uint cornerCount, uint faceCount )
+{
+	// setup objects
+	// mMaxMesh.setMapSupport( maxChannel );
+	mMaxMesh.InitMap( maxChannel );
+
+	// setup and copy the corners
+	spRidArray sgVertexIds = sg->CreateRidArray();
+	spRealArray sgPackedVertexColors = spRealArray::SafeCast( sgVertexColors->NewPackedCopy( sgVertexIds ) );
+
+	MNMap* mMaxMeshMap = mMaxMesh.M( maxChannel );
+	if( mMaxMeshMap != nullptr )
+	{
+		// setup data channels
+		// mMaxMeshMap.setNumFaces( faceCount );
+		mMaxMeshMap->setNumVerts( sgPackedVertexColors->GetTupleCount() );
+
+		// copy vertex data
+		for( uint vid = 0; vid < sgPackedVertexColors->GetTupleCount(); ++vid )
+		{
+			// get the tuple
+			spRealData sgColor = sgPackedVertexColors->GetTuple( vid );
+
+			mMaxMeshMap->v[ vid ].x = sgColor[ 0 ];
+			mMaxMeshMap->v[ vid ].y = sgColor[ 1 ];
+			mMaxMeshMap->v[ vid ].z = sgColor[ 2 ];
+		}
+
+		uint sgIndex = 0;
+		for( uint fid = 0; fid < faceCount; ++fid )
+		{
+			int deg = mMaxMeshMap->f[ fid ].deg;
+
+			if( deg == 3 )
+			{
+				for( int c = 0; c < deg; ++c )
+				{
+					const rid cid = sgVertexIds->GetItem( sgIndex++ );
+					mMaxMeshMap->f[ fid ].tv[ c ] = cid;
+				}
+			}
+			if( deg == 4 )
+			{
+				int indices[ 6 ] = { sgVertexIds.GetItem( sgIndex + 0 ),
+				                     sgVertexIds.GetItem( sgIndex + 1 ),
+				                     sgVertexIds.GetItem( sgIndex + 2 ),
+				                     sgVertexIds.GetItem( sgIndex + 3 ),
+				                     sgVertexIds.GetItem( sgIndex + 4 ),
+				                     sgVertexIds.GetItem( sgIndex + 5 ) };
+
+				int quadIndices[ 4 ];
+				int originalCornerIndices[ 4 ];
+				ConvertToQuad( indices, quadIndices, sgIndex, originalCornerIndices );
+
+				for( int c = 0; c < deg; ++c )
+				{
+					const rid cid = sgVertexIds->GetItem( originalCornerIndices[ c ] );
+					mMaxMeshMap->f[ fid ].tv[ c ] = cid;
+				}
+				sgIndex += 6;
+			}
+		}
+	}
+	else
+	{
+		std::string sWarning = "Quad vertexcolors import - mappingchannel ";
+		sWarning += std::to_string( maxChannel );
+		sWarning += " wasnt able to initiate";
+		LogToWindow( ConstCharPtrToLPCWSTRr( sWarning.c_str() ), ErrorType::Warning );
+	}
 }
 
 // writes Simplygon tex-coords back to Max
@@ -9271,7 +11949,7 @@ bool SimplygonMax::ProcessScene()
 		std::basic_string<TCHAR> tFinalExternalBatchPath = _T("");
 
 		// if there is a environment path, use it
-		std::basic_string<TCHAR> tEnvironmentPath = GetSimplygonEnvironmentVariable( _T( SIMPLYGON_9_PATH ) );
+		std::basic_string<TCHAR> tEnvironmentPath = GetSimplygonEnvironmentVariable( _T( SIMPLYGON_10_PATH ) );
 		if( tEnvironmentPath.size() > 0 )
 		{
 			tFinalExternalBatchPath = tEnvironmentPath;
@@ -9279,7 +11957,7 @@ bool SimplygonMax::ProcessScene()
 		else
 		{
 			std::string sErrorMessage = "Invalid environment path: ";
-			sErrorMessage += SIMPLYGON_9_PATH;
+			sErrorMessage += SIMPLYGON_10_PATH;
 			throw std::exception( sErrorMessage.c_str() );
 		}
 
@@ -10084,7 +12762,8 @@ bool HasActiveTransparency( BitmapTex* mBitmapTex )
 	return false;
 }
 
-spShadingNode SimplygonMax::CreateSgMaterialPBRChannel( Texmap* mTexMap, long maxChannelId, const char* cMaterialName, const char* cChannelName )
+spShadingNode SimplygonMax::CreateSgMaterialPBRChannel(
+    Texmap* mTexMap, long maxChannelId, const char* cMaterialName, const char* cChannelName, MaterialNodes::TextureSettingsOverride* textureSettingsOverride )
 {
 	std::basic_string<TCHAR> tMaterialName = ConstCharPtrToLPCTSTR( cMaterialName );
 	std::basic_string<TCHAR> tChannelName = ConstCharPtrToLPCTSTR( cChannelName );
@@ -10092,7 +12771,18 @@ spShadingNode SimplygonMax::CreateSgMaterialPBRChannel( Texmap* mTexMap, long ma
 	MaterialNodes::MaterialChannelData mChannelData = MaterialNodes::MaterialChannelData(
 	    tMaterialName, tChannelName, maxChannelId, nullptr, Simplygon::NullPtr, &this->MaterialTextureOverrides, this->CurrentTime, true );
 
-	spShadingNode sgShadingNode = CreateSgMaterial( mTexMap, mChannelData );
+	spShadingNode sgShadingNode = CreateSgMaterial( mTexMap, mChannelData, textureSettingsOverride );
+
+	if( sgShadingNode == NullPtr )
+	{
+		mChannelData.mWarningMessage += _T(", replacing with black color node.");
+		SimplygonMaxInstance->LogToWindow( mChannelData.mWarningMessage, Warning );
+
+		spShadingColorNode sgBlackNode = sg->CreateShadingColorNode();
+		sgBlackNode->SetColor( 0.0f, 0.0f, 0.0f, 1.0f );
+
+		sgShadingNode = sgBlackNode;
+	}
 
 	return sgShadingNode;
 }
@@ -10111,7 +12801,7 @@ void SimplygonMax::CreateAndLinkTexture( MaterialNodes::TextureData& rTextureDat
 		if( bTextureInUse )
 		{
 			sgTexture =
-			    this->SceneHandler->sgScene->GetTextureTable()->FindTextureUsingPath( LPCTSTRToConstCharPtr( rTextureData.mTexturePathWithName.c_str() ) );
+			    this->SceneHandler->sgScene->GetTextureTable()->FindTextureUsingFilePath( LPCTSTRToConstCharPtr( rTextureData.mTexturePathWithName.c_str() ) );
 		}
 		else
 		{
@@ -10244,7 +12934,7 @@ spShadingNode SimplygonMax::CreateSgMaterial( Texmap* mTexMap,
                                               MaterialNodes::MaterialChannelData& mMaterialChannel,
                                               MaterialNodes::TextureSettingsOverride* textureSettingsOverride )
 {
-	spShadingNode sgNode;
+	spShadingNode sgNode = NullPtr;
 
 	if( mTexMap && ( mTexMap->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) || ( mTexMap->ClassID() == GNORMAL_CLASS_ID ) ||
 	                 ( mTexMap->ClassID() == Class_ID( RGBMULT_CLASS_ID, 0 ) ) || ( mTexMap->ClassID() == Class_ID( TINT_CLASS_ID, 0 ) ) ||
@@ -10302,7 +12992,12 @@ spShadingNode SimplygonMax::CreateSgMaterial( Texmap* mTexMap,
 		// if there is a texmap of unsupported type, output warning
 		if( mTexMap )
 		{
-			LogMaterialNodeMessage( mTexMap, mMaterialChannel.mMaterialName, mMaterialChannel.mChannelName );
+			Class_ID nodeClassId = mTexMap->ClassID();
+			TSTR nodeClassName = _T("Unknown");
+			mTexMap->GetClassName( nodeClassName );
+
+			mMaterialChannel.mWarningMessage = mMaterialChannel.mMaterialName + _T(" (") + mMaterialChannel.mChannelName + _T(") - ") +
+			                                   std::basic_string<TCHAR>( nodeClassName ) + _T(" texture node is not supported");
 		}
 
 		if( mMaterialChannel.IsSTD() )
@@ -10373,14 +13068,6 @@ spShadingNode SimplygonMax::CreateSgMaterial( Texmap* mTexMap,
 				sgNode = MaterialNodes::RunBitmapNode( mTexMap, mMaterialChannel );
 			}
 		}
-
-		if( sgNode.IsNull() )
-		{
-			spShadingColorNode sgWhiteReplacementNode = sg->CreateShadingColorNode();
-			sgWhiteReplacementNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
-
-			sgNode = sgWhiteReplacementNode;
-		}
 	}
 
 	return sgNode;
@@ -10427,6 +13114,17 @@ void SimplygonMax::CreateSgMaterialSTDChannel( long maxChannelId, StdMat2* mMaxS
 		    tMaterialName, tChannelName, maxChannelId, mMaxStdMaterial, sgMaterial, &this->MaterialTextureOverrides, this->CurrentTime, false );
 
 		spShadingNode sgShadingNode = CreateSgMaterial( mTexMap, mChannelData );
+
+		if( sgShadingNode == NullPtr )
+		{
+			mChannelData.mWarningMessage += _T(", replacing with basecolor node.");
+			SimplygonMaxInstance->LogToWindow( mChannelData.mWarningMessage, Warning );
+
+			spShadingColorNode sgBaseColorNode = sg->CreateShadingColorNode();
+			sgBaseColorNode->SetColor( mColor.r, mColor.g, mColor.b, 1.0f );
+
+			sgShadingNode = sgBaseColorNode;
+		}
 
 		const char* cChannelName = LPCTSTRToConstCharPtr( tChannelName.c_str() );
 
@@ -10968,7 +13666,7 @@ std::pair<std::string, int> SimplygonMax::AddMaxMaterialToSgScene( Mtl* mMaxMate
 
 					if( bTextureInUse )
 					{
-						sgTexture = this->SceneHandler->sgScene->GetTextureTable()->FindTextureUsingPath( LPCTSTRToConstCharPtr( tTexturePath.c_str() ) );
+						sgTexture = this->SceneHandler->sgScene->GetTextureTable()->FindTextureUsingFilePath( LPCTSTRToConstCharPtr( tTexturePath.c_str() ) );
 					}
 					else
 					{
@@ -11245,11 +13943,11 @@ std::basic_string<TCHAR> SimplygonMax::ImportTexture( std::basic_string<TCHAR> t
 		{
 			std::basic_string<TCHAR> tWarningMessage;
 
-			tWarningMessage += _T("Warning: Failed to import texture: ");
+			tWarningMessage += _T("Failed to import texture: ");
 			tWarningMessage += tSourcePath.c_str();
 			tWarningMessage += _T(", using a stand-in texture");
 
-			this->LogMessageToScriptEditor( tWarningMessage );
+			this->LogToWindow( tWarningMessage, Warning );
 
 			WriteStandinTexture( tImportPath.c_str() );
 		}
@@ -12587,6 +15285,18 @@ Mtl* SimplygonMax::SetupPhysicalMaterial( spScene sgProcessedScene, std::basic_s
 	mMaxPhysicalMaterial->SetName( tPhysicalMaterialName.c_str() );
 	mMaxPhysicalMaterial->SetMtlFlag( MTL_TEX_DISPLAY_ENABLED | MTL_HW_TEX_ENABLED | MTL_HW_MAT_ENABLED );
 
+	SetShaderParameter( mMaxPhysicalMaterial, _T("emission"), 0.f );
+	SetShaderParameter( mMaxPhysicalMaterial, _T("emission_map_on"), false );
+
+	SetShaderParameter( mMaxPhysicalMaterial, _T("emit_color"), Point4( 0.f, 0.f, 0.f, 1.f ) );
+	SetShaderParameter( mMaxPhysicalMaterial, _T("emit_color_map_on"), false );
+
+	// new to max 2023
+#if MAX_VERSION_MAJOR >= 25
+	SetShaderParameter( mMaxPhysicalMaterial, _T("sheen_color"), Point4( 1.f, 1.f, 1.f, 1.f ) );
+	SetShaderParameter( mMaxPhysicalMaterial, _T("sheen_color_map_on"), false );
+#endif
+
 	for( uint channelIndex = 0; channelIndex < numMaterialChannels; ++channelIndex )
 	{
 		spString rChannelName = sgMaterial->GetMaterialChannelFromIndex( channelIndex );
@@ -12725,23 +15435,17 @@ Mtl* SimplygonMax::SetupPhysicalMaterial( spScene sgProcessedScene, std::basic_s
 		}
 		else if( tChannelName == _T("emission") )
 		{
-			// disable emission rendering for now due to weird behavior
-			SetShaderParameter( mMaxPhysicalMaterial, _T("emission"), 0.f );
-			SetShaderParameter( mMaxPhysicalMaterial, _T("emission_map_on"), false );
-
-			SetShaderParameter( mMaxPhysicalMaterial, _T("emit_color"), Point4( 0.f, 0.f, 0.f, 1.f ) );
-			SetShaderParameter( mMaxPhysicalMaterial, _T("emit_color_map_on"), false );
+			// disable emission rendering for now due to weird behavior in viewport ( works in offline renderer )
+			SetShaderParameter( mMaxPhysicalMaterial, _T("emission"), 1.0f );
 
 			mMaxPhysicalMaterial->SetSubTexmap( 16, mBitmapTex );
 		}
 		else if( tChannelName == _T("emit_color") )
 		{
-			// disable emission rendering for now due to weird behavior
-			SetShaderParameter( mMaxPhysicalMaterial, _T("emission"), 0.f );
-			SetShaderParameter( mMaxPhysicalMaterial, _T("emission_map_on"), false );
+			// disable emission rendering for now due to weird behavior in viewport ( works in offline renderer )
+			SetShaderParameter( mMaxPhysicalMaterial, _T("emission"), 1.f );
 
 			SetShaderParameter( mMaxPhysicalMaterial, _T("emit_color"), Point4( 0.f, 0.f, 0.f, 1.f ) );
-			SetShaderParameter( mMaxPhysicalMaterial, _T("emit_color_map_on"), false );
 
 			mMaxPhysicalMaterial->SetSubTexmap( 17, mBitmapTex );
 		}
@@ -12760,6 +15464,45 @@ Mtl* SimplygonMax::SetupPhysicalMaterial( spScene sgProcessedScene, std::basic_s
 			SetShaderParameter( mMaxPhysicalMaterial, _T("coat_rough"), 0.f );
 			mMaxPhysicalMaterial->SetSubTexmap( 20, mBitmapTex );
 		}
+		// new to max 2023
+#if MAX_VERSION_MAJOR >= 25
+		else if( tChannelName == _T("coat_anistropy") )
+		{
+			//SetShaderParameter( mMaxPhysicalMaterial, _T("coat_anistropy"), 1.0f );
+			mMaxPhysicalMaterial->SetSubTexmap( 21, mBitmapTex );
+		}
+		else if( tChannelName == _T("coat_anisoangle") )
+		{
+			//SetShaderParameter( mMaxPhysicalMaterial, _T("coat_anisoangle"), 0.f );
+			mMaxPhysicalMaterial->SetSubTexmap( 22, mBitmapTex );
+		}
+		else if( tChannelName == _T("sheen") )
+		{
+			SetShaderParameter( mMaxPhysicalMaterial, _T("sheen"), 1.0f );
+			mMaxPhysicalMaterial->SetSubTexmap( 23, mBitmapTex );
+		}
+		else if( tChannelName == _T("sheen_color") )
+		{
+			SetShaderParameter( mMaxPhysicalMaterial, _T("sheen"), 1.0f );
+			SetShaderParameter( mMaxPhysicalMaterial, _T("sheen_color_map_on"), true );
+			mMaxPhysicalMaterial->SetSubTexmap( 24, mBitmapTex );
+		}
+		else if( tChannelName == _T("sheen_roughness") )
+		{
+			SetShaderParameter( mMaxPhysicalMaterial, _T("sheen_roughness"), 1.0f );
+			mMaxPhysicalMaterial->SetSubTexmap( 25, mBitmapTex );
+		}
+		else if( tChannelName == _T("thin_film") )
+		{
+			SetShaderParameter( mMaxPhysicalMaterial, _T("thin_film"), 0.0f );
+			mMaxPhysicalMaterial->SetSubTexmap( 26, mBitmapTex );
+		}
+		else if( tChannelName == _T("thin_film_ior") )
+		{
+			SetShaderParameter( mMaxPhysicalMaterial, _T("thin_film_ior"), 0.0f );
+			mMaxPhysicalMaterial->SetSubTexmap( 27, mBitmapTex );
+		}
+#endif
 		else if( tChannelName == _T("bump") )
 		{
 			// SetShaderParameter( mMaxPhysicalMaterial, _T("bump_map_amt"), 1.0f );

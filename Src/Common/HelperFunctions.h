@@ -17,6 +17,9 @@ enum ColorSpaceType
 	SRGB = 2
 };
 
+std::basic_string<TCHAR> ToLower( std::basic_string<TCHAR> tString );
+std::string ToUpper( std::string string );
+
 bool CompareStrings( std::basic_string<TCHAR> tString1, std::basic_string<TCHAR> tString2 );
 
 bool IsSubstringPartOfString( std::basic_string<TCHAR> tSourceString, std::basic_string<TCHAR> tPartString );

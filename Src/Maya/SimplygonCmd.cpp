@@ -38,6 +38,8 @@ SimplygonCmd::SimplygonCmd()
 
 	SimplygonInitInstance->SetRelay( this );
 
+	this->useQuadExportImport = false;
+
 	this->extractionType = BATCH_PROCESSOR;
 	this->inputSceneFile = "";
 	this->outputSceneFile = "";
@@ -319,6 +321,8 @@ const char* cInitialLodIndex = "-ili"; // 9.0
 
 const char* cBlendShapeNameFormat = "-bnf"; // 9.0+
 
+const char* cQuadMode = "-qm"; // 10.0
+
 MStatus SimplygonCmd::ParseArguments( const MArgList& mArgs )
 {
 	MStatus mStatus = MStatus::kSuccess;
@@ -334,6 +338,9 @@ MStatus SimplygonCmd::ParseArguments( const MArgList& mArgs )
 	const bool bCopyTextures = mArgData.isFlagSet( cCopyTextures );
 	const bool bLinkMaterials = mArgData.isFlagSet( cLinkMaterials );
 	const bool bLinkMeshes = mArgData.isFlagSet( cLinkMeshes );
+
+	// quad mode needs to happen before any scene import / export
+	this->useQuadExportImport = mArgData.isFlagSet( cQuadMode );
 
 	if( ( bSettingsFile || bSettingsObject ) && ( bImportFromFile || bExportToFile ) )
 	{
@@ -1382,6 +1389,8 @@ MSyntax SimplygonCmd::createSyntax()
 
 	mStatus = mSyntax.addFlag( cBlendShapeNameFormat, "-BlendShapeNameFormat", MSyntax::kString );
 
+	mStatus = mSyntax.addFlag( cQuadMode, "-QuadMode" );
+
 	return mSyntax;
 }
 
@@ -1564,10 +1573,10 @@ MStatus SimplygonCmd::RegisterGlobalScripts()
 	    "	 }\n"
 	    "	};\n"
 	    "proc string[] SimplygonMaya_createPhongMaterial(string $srcshape, string $shader_name, string $ambient, string $diffuse, string $specular, "
-	    "string $normals, string $transparency, string $translucence, string $translucence_depth, string $translucence_focus, string $incandescence, float "
+	    "string $normals, string $transparency, string $translucence, string $translucence_depth, string $translucence_focus, string $incandescence, string $reflectedcolor, float "
 	    "$base_cosine_power, string $ambient_uv, string $diffuse_uv, string $specular_uv, string $normals_uv, string $transparency_uv, string "
-	    "$translucence_uv, string $translucence_depth_uv, string $translucence_focus_uv, string $incandescence_uv, int $ambient_srgb, int $diffuse_srgb, int "
-	    "$specular_srgb, int $transparency_srgb, int $translucence_srgb, int $translucence_depth_srgb, int $translucence_focus_srgb, int $incandescence_srgb "
+	    "$translucence_uv, string $translucence_depth_uv, string $translucence_focus_uv, string $incandescence_uv, string $reflectedcolor_uv, int $ambient_srgb, int $diffuse_srgb, int "
+	    "$specular_srgb, int $transparency_srgb, int $translucence_srgb, int $translucence_depth_srgb, int $translucence_focus_srgb, int $incandescence_srgb, int $reflectedcolor_srgb "
 	    ")\n"
 	    "	{\n"
 	    "	string $file_node;\n"
@@ -1677,6 +1686,16 @@ MStatus SimplygonCmd::RegisterGlobalScripts()
 	    "	 CreateLink($srcshape, $incandescence_uv, $incandescence_file_node); \n"
 	    "   }"
 	    "	\n"
+	    "   string $reflectedcolor_file_node;"
+	    "   if( $reflectedcolor != \"\"){\n"
+	    "	 $reflectedcolor_file_node = `shadingNode -isColorManaged -asTexture file`;\n"
+	    "	 SimplygonMaya_setColorSpace($reflectedcolor_file_node, $reflectedcolor_srgb == 1 ? \"sRGB\" : \"Raw\");\n"
+	    "	 SimplygonMaya_addPlacementNode( $reflectedcolor_file_node );\n"
+	    "	 setAttr ($reflectedcolor_file_node+\".fileTextureName\") -type \"string\" $reflectedcolor;\n"
+	    "	 connectAttr -f ($reflectedcolor_file_node+\".outColor\") ($shader_node+\".reflectedColor\");\n"
+	    "	 CreateLink($srcshape, $reflectedcolor_uv, $reflectedcolor_file_node); \n"
+	    "   }"
+	    "	\n"
 	    "	return $shader;\n"
 	    "	}\n"
 	    "proc SimplygonMaya_copyObjectLevelBlindData( string $srcshape , string $destshape )\n"
@@ -1706,6 +1725,11 @@ MStatus SimplygonCmd::RegisterGlobalScripts()
 	    "				continue;\n"
 	    "				}\n"
 	    "			if( $userInfoValue == \"double\" ){\n"
+	    "				float $val[] = `polyQueryBlindData -id $id -associationType \"object\" -ldn $userInfoName $srcshape`;\n"
+	    "				if( size($val) > 0 ) { string $result[] = `polyBlindData -id $id -associationType \"object\" -ldn $userInfoName -dbd $val[0] "
+	    "$destshape`; }\n"
+	    "				}\n"
+	    "			else if( $userInfoValue == \"float\" ){\n"
 	    "				float $val[] = `polyQueryBlindData -id $id -associationType \"object\" -ldn $userInfoName $srcshape`;\n"
 	    "				if( size($val) > 0 ) { string $result[] = `polyBlindData -id $id -associationType \"object\" -ldn $userInfoName -dbd $val[0] "
 	    "$destshape`; }\n"
@@ -1974,6 +1998,8 @@ MStatus SimplygonCmd::ExtractScene()
 	// extract the mesh and geometry data from the nodes, and delete the duplicated, temporary nodes
 	this->SetCurrentProgressRange( 0, (int)numMeshes );
 
+	uint32_t numTriangulationWarnings = 0;
+	uint32_t numMeshesWarningsFoundIn = 0;
 	tStaticNodeText = "Extracting mesh ";
 	for( size_t meshIndex = 0; meshIndex < numMeshes; ++meshIndex )
 	{
@@ -1985,11 +2011,25 @@ MStatus SimplygonCmd::ExtractScene()
 		mayaSgNodeMap->mayaNode->vertexLockSets = this->vertexLockSets;
 		mayaSgNodeMap->mayaNode->vertexLockMaterials = this->vertexLockMaterials;
 
-		mStatus = mayaSgNodeMap->mayaNode->ExtractMeshData( this->materialHandler );
+		if( this->useQuadExportImport )
+		{
+			mStatus = mayaSgNodeMap->mayaNode->ExtractMeshData_Quad( this->materialHandler );
+		}
+		else
+		{
+			mStatus = mayaSgNodeMap->mayaNode->ExtractMeshData( this->materialHandler );
+		}
+
 		if( !mStatus )
 		{
 			MGlobal::displayError( MString( "Simplygon: Failed to extract geometry from node " ) + mayaSgNodeMap->mayaNode->GetOriginalNode().fullPathName() );
 			return mStatus;
+		}
+
+		if( mayaSgNodeMap->mayaNode->numBadTriangulations > 0 ) 
+		{
+			numTriangulationWarnings += mayaSgNodeMap->mayaNode->numBadTriangulations;
+			++numMeshesWarningsFoundIn;
 		}
 
 		// store in node_mesh object, and scene mesh
@@ -2003,6 +2043,14 @@ MStatus SimplygonCmd::ExtractScene()
 			                       mayaSgNodeMap->mayaNode->GetOriginalNode().fullPathName() );
 			return MStatus::kFailure;
 		}
+	}
+
+	if( numTriangulationWarnings > 0 )
+	{
+		std::string bWarning = "Quad export - Found " + std::to_string( numTriangulationWarnings ) + " polygons in " +
+		                       std::to_string( numMeshesWarningsFoundIn ) + " meshes which could not be optimally triangulated";
+
+		MGlobal::displayWarning( MString( bWarning.c_str() ) );
 	}
 
 	EnableBlendShapes();
@@ -2188,7 +2236,7 @@ MStatus SimplygonCmd::ProcessScene()
 		std::basic_string<TCHAR> tFinalExternalBatchPath = _T("");
 
 		// if there is a environment path, use it
-		std::basic_string<TCHAR> tEnvironmentPath = GetSimplygonEnvironmentVariable( SIMPLYGON_9_PATH );
+		std::basic_string<TCHAR> tEnvironmentPath = GetSimplygonEnvironmentVariable( SIMPLYGON_10_PATH );
 		if( tEnvironmentPath.size() > 0 )
 		{
 			tFinalExternalBatchPath = tEnvironmentPath;
@@ -2196,7 +2244,7 @@ MStatus SimplygonCmd::ProcessScene()
 		else
 		{
 			std::string sErrorMessage = "Invalid environment path: ";
-			sErrorMessage += SIMPLYGON_9_PATH;
+			sErrorMessage += SIMPLYGON_10_PATH;
 			throw std::exception( sErrorMessage.c_str() );
 		}
 
@@ -2353,8 +2401,26 @@ MStatus SimplygonCmd::RunPlugin( const MArgList& mArgList )
 			}
 		}
 
+		// clear current selection
 		MGlobal::clearSelectionList();
-		MGlobal::setActiveSelectionList( this->InitialSelectionList );
+
+		// build new valid selection list
+		MSelectionList mValidSelectionList;
+		for( uint selectionIndex = 0; selectionIndex < this->InitialSelectionList.length(); ++selectionIndex )
+		{
+			MDagPath mTempDagPath;
+			this->InitialSelectionList.getDagPath( selectionIndex, mTempDagPath );
+			if( mTempDagPath.isValid() )
+			{
+				mValidSelectionList.add( mTempDagPath );
+			}
+		}
+
+		// assign new selection to the scene
+		if( mValidSelectionList.length() > 0 )
+		{
+			MGlobal::setActiveSelectionList( mValidSelectionList );
+		}
 
 		// if automatic clear flag is set,
 		// clear global mapping data.
@@ -2679,7 +2745,15 @@ MStatus SimplygonCmd::ImportScenes()
 				newMeshNode = new MeshNode( this );
 			}
 
-			mStatus = newMeshNode->WritebackGeometryData( sgProcessedScene, logicalLodIndex, sgProcessedSceneMesh, this->GetMaterialHandler(), mDagPath );
+			if( this->useQuadExportImport )
+			{
+				mStatus =
+				    newMeshNode->WritebackGeometryData_Quad( sgProcessedScene, logicalLodIndex, sgProcessedSceneMesh, this->GetMaterialHandler(), mDagPath );
+			}
+			else
+			{
+				mStatus = newMeshNode->WritebackGeometryData( sgProcessedScene, logicalLodIndex, sgProcessedSceneMesh, this->GetMaterialHandler(), mDagPath );
+			}
 
 			if( !mStatus )
 			{

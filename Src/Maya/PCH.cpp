@@ -15,14 +15,14 @@ extern SimplygonInitClass* SimplygonInitInstance;
 
 vector<string> SimplygonProcessAdditionalSearchPaths;
 
-bool IsSamePath( const char* path1, const char* path2 )
+bool IsSamePath( const char* cPath1, const char* cPath2 )
 {
 	uint counter = 0;
 	const char forwardslash = '/';
 	const char backslash = '\\';
 
-	const size_t len1 = strlen( path1 );
-	const size_t len2 = strlen( path2 );
+	const size_t len1 = strlen( cPath1 );
+	const size_t len2 = strlen( cPath2 );
 
 	if( len1 != len2 )
 	{
@@ -31,13 +31,13 @@ bool IsSamePath( const char* path1, const char* path2 )
 
 	for( counter = 0; counter < len1; ++counter )
 	{
-		if( tolower( path1[ counter ] ) != tolower( path2[ counter ] ) )
+		if( tolower( cPath1[ counter ] ) != tolower( cPath2[ counter ] ) )
 		{
-			if( path1[ counter ] == forwardslash && path2[ counter ] == backslash )
+			if( cPath1[ counter ] == forwardslash && cPath2[ counter ] == backslash )
 			{
 				continue;
 			}
-			else if( path2[ counter ] == forwardslash && path1[ counter ] == backslash )
+			else if( cPath2[ counter ] == forwardslash && cPath1[ counter ] == backslash )
 			{
 				continue;
 			}
@@ -51,65 +51,65 @@ bool IsSamePath( const char* path1, const char* path2 )
 	return true;
 }
 
-MStatus GetPathToNamedObject( MString name, MDagPath& path )
+MStatus GetPathToNamedObject( MString mName, MDagPath& mDagPath )
 {
-	MSelectionList list;
-	if( !list.add( name ) )
+	MSelectionList mSelectionList;
+	if( !mSelectionList.add( mName ) )
 	{
 		return MStatus::kFailure;
 	}
-	if( !list.getDagPath( 0, path ) )
+	if( !mSelectionList.getDagPath( 0, mDagPath ) )
 	{
 		return MStatus::kFailure;
 	}
 	return MStatus::kSuccess;
 }
 
-MStatus getFloat3PlugValue( MPlug plug, MFloatVector& value )
+MStatus getFloat3PlugValue( MPlug mPlug, MFloatVector& mFloatVector )
 {
 	// Retrieve the value as an MObject
 	//
-	MObject object;
-	plug.getValue( object );
+	MObject mObject;
+	mPlug.getValue( mObject );
 
 	// Convert the MObject to a float3
 	//
-	MFnNumericData numDataFn( object );
-	numDataFn.getData( value[ 0 ], value[ 1 ], value[ 2 ] );
+	MFnNumericData mNumData( mObject );
+	mNumData.getData( mFloatVector[ 0 ], mFloatVector[ 1 ], mFloatVector[ 2 ] );
 	return MStatus::kSuccess;
 }
 
-MStatus getFloat3asMObject( MFloatVector value, MObject& object )
+MStatus getFloat3asMObject( MFloatVector mFloatVector, MObject& mObject )
 {
 	// Convert the float value into an MObject
 	//
 	MFnNumericData numDataFn;
-	object = numDataFn.create( MFnNumericData::k3Float );
-	numDataFn.setData( value[ 0 ], value[ 1 ], value[ 2 ] );
+	mObject = numDataFn.create( MFnNumericData::k3Float );
+	numDataFn.setData( mFloatVector[ 0 ], mFloatVector[ 1 ], mFloatVector[ 2 ] );
 	return MStatus::kSuccess;
 }
 
-MStatus ExecuteCommand( MString cmd )
+MStatus ExecuteCommand( MString mCommand )
 {
-	if( !MGlobal::executeCommand( cmd, false ) )
+	if( !MGlobal::executeCommand( mCommand, false ) )
 	{
 		return MStatus::kFailure;
 	}
 	return MStatus::kSuccess;
 }
 
-MStatus ExecuteCommand( MString cmd, MString& dest )
+MStatus ExecuteCommand( MString mCommand, MString& mDestination )
 {
-	if( !MGlobal::executeCommand( cmd, dest, false ) )
+	if( !MGlobal::executeCommand( mCommand, mDestination, false ) )
 	{
 		return MStatus::kFailure;
 	}
 	return MStatus::kSuccess;
 }
 
-MStatus ExecuteCommand( MString cmd, MStringArray& dest )
+MStatus ExecuteCommand( MString mCommand, MStringArray& mDestination )
 {
-	if( !MGlobal::executeCommand( cmd, dest, false ) )
+	if( !MGlobal::executeCommand( mCommand, mDestination, false ) )
 	{
 		return MStatus::kFailure;
 	}
@@ -117,84 +117,76 @@ MStatus ExecuteCommand( MString cmd, MStringArray& dest )
 }
 
 // Execute the command and get the resulting boolean value
-MStatus ExecuteCommand( MString cmd, bool& result )
+MStatus ExecuteCommand( MString mCommand, bool& bResult )
 {
-	MCommandResult commandResult;
+	MCommandResult mCommandResult;
 #ifdef PRINT_DEBUG_INFO
-	if( !MGlobal::executeCommand( cmd, commandResult, true, true ) )
+	if( !MGlobal::executeCommand( mCommand, mCommandResult, true, true ) )
 #else
-	if( !MGlobal::executeCommand( cmd, commandResult, false, false ) )
+	if( !MGlobal::executeCommand( mCommand, mCommandResult, false, false ) )
 #endif
 	{
-		result = false;
+		bResult = false;
 		return MStatus::kFailure;
 	}
 
 	// Did the executed command return true or false?
-	int boolValue = 0;
-	commandResult.getResult( boolValue );
-	if( boolValue == 1 )
+	int bValue = 0;
+	mCommandResult.getResult( bValue );
+	if( bValue == 1 )
 	{
-		result = true;
+		bResult = true;
 	}
 	else
 	{
-		result = false;
+		bResult = false;
 	}
 	return MStatus::kSuccess;
 }
 
-void SelectDAGPath( MDagPath node, bool add_to_list )
+void SelectDAGPath( const MDagPath& mDagPath, bool bAddToSelectionList )
 {
-	if( add_to_list )
+	if( bAddToSelectionList )
 	{
-		// Required for BinSkim compat
-		// TODO: Deprecated method, should be replaced!
-		SG_DISABLE_SPECIFIC_BEGIN( 4996 )
-		MGlobal::select( node, MObject::kNullObj, MGlobal::kAddToList );
-		SG_DISABLE_SPECIFIC_END
+		MGlobal::select( mDagPath, MObject::kNullObj, MGlobal::kAddToList );
 	}
 	else
 	{
-		// Required for BinSkim compat
-		// TODO: Deprecated method, should be replaced!
-		SG_DISABLE_SPECIFIC_BEGIN( 4996 )
-		MGlobal::select( node, MObject::kNullObj, MGlobal::kReplaceList );
-		SG_DISABLE_SPECIFIC_END
+		MGlobal::select( mDagPath, MObject::kNullObj, MGlobal::kReplaceList );
 	}
 }
 
 // This function removes any node below this node, which is NOT a shape node
-MStatus RemoveAllNonMeshShapeSubNodes( MDagPath node )
+MStatus RemoveAllNonMeshShapeSubNodes( MDagPath mDagPath )
 {
 	// unselect all
-	bool anything_selected = false;
+	bool bHasSelection = false;
 
 	// look through all child nodes
-	for( uint i = 0; i < node.childCount(); ++i )
+	for( uint i = 0; i < mDagPath.childCount(); ++i )
 	{
 		// get the path to the child
-		MDagPath child_path = node;
-		child_path.push( node.child( i ) );
+		MDagPath mChildDagpath = mDagPath;
+		mChildDagpath.push( mDagPath.child( i ) );
 
 		// check the type
-		const MFn::Type child_type = child_path.apiType();
+		const MFn::Type mChildType = mChildDagpath.apiType();
 
 		// HACK:: Orignallly was only removing object if they were not meshes.
 		// if meshes are praented. then this removes child element. therefore checking for transform
-		if( child_type != MFn::kMesh && child_type != MFn::kTransform )
+		if( mChildType != MFn::kMesh && mChildType != MFn::kTransform )
 		{
 			// select it, we will remove it
-			SelectDAGPath( child_path, anything_selected );
-			anything_selected = true;
+			SelectDAGPath( mChildDagpath, bHasSelection );
+			bHasSelection = true;
 		}
 	}
 
 	// delete the selected objects
-	if( anything_selected )
+	if( bHasSelection )
 	{
-		MStringArray retlist;
-		if( !ExecuteCommand( "delete;", retlist ) )
+		MStringArray mReturnList;
+		if( !ExecuteCommand( "delete;", mReturnList ) )
 		{
 			return MStatus::kFailure;
 		}
@@ -205,75 +197,67 @@ MStatus RemoveAllNonMeshShapeSubNodes( MDagPath node )
 
 // This function duplicates a node with its shape, and makes sure to remove
 // any other node that is below the duplicate
-MStatus DuplicateNodeWithShape( MDagPath node, MDagPath& resultNode, MStringArray* slist, MString dupName, bool alternative_duplicate )
+MStatus DuplicateNodeWithShape( MDagPath mDagPath, MDagPath& mResultingDagPath, MStringArray* mResultList, MString mDupName, bool bAlternativeDuplication )
 {
-	MDagPath shapeNode = node;
-	if( shapeNode.extendToShape() )
+	MDagPath mShapeNode = mDagPath;
+	if( mShapeNode.extendToShape() )
 	{
-		// Required for BinSkim compat
-		// TODO: Deprecated method, should be replaced!
-		SG_DISABLE_SPECIFIC_BEGIN( 4996 )
-		bool selected = MGlobal::select( node, MObject::kNullObj, MGlobal::kReplaceList );
-		SG_DISABLE_SPECIFIC_END
-		if( alternative_duplicate )
+		bool bIsSelected = MGlobal::select( (const MDagPath&)mDagPath, MObject::kNullObj, MGlobal::kReplaceList );
+		if( bAlternativeDuplication )
 		{
-			// Required for BinSkim compat
-			// TODO: Deprecated method, should be replaced!
-			SG_DISABLE_SPECIFIC_BEGIN( 4996 )
-			selected &= MGlobal::select( shapeNode, MObject::kNullObj, MGlobal::kAddToList );
-			SG_DISABLE_SPECIFIC_END
+			bIsSelected &= MGlobal::select( (const MDagPath&)mShapeNode, MObject::kNullObj, MGlobal::kAddToList );
 		}
 
 		// select the node and mesh to duplicate
-		if( selected )
+		if( bIsSelected )
 		{
-			MStringArray retlist;
+			MStringArray mReturnList;
 
-			MString cmd = "duplicate -rc -ic";
-			if( alternative_duplicate )
+			MString mCommand = "duplicate -rc -ic";
+			if( bAlternativeDuplication )
 			{
-				cmd += " -po";
+				mCommand += " -po";
 			}
-			if( dupName != "" )
+			if( mDupName != "" )
 			{
-				cmd += "-n ";
-				cmd += dupName;
+				mCommand += "-n ";
+				mCommand += mDupName;
 			}
-			cmd += ";";
+			mCommand += ";";
 
-			if( ::ExecuteCommand( cmd, retlist ) )
+			if( ::ExecuteCommand( mCommand, mReturnList ) )
 			{
-				MStatus succ = MStatus::kFailure;
+				MStatus mStatus = MStatus::kFailure;
 
 				// we should assume the returned list is at least 2 items long. get the returned item as a
 				// dag path, and the rest as a selection list, if wanted
 
 				// we have the duplicate, get its DAG path
-				if( retlist.length() > 1 )
+				if( mReturnList.length() > 1 )
 				{
 					// try the second item first
-					succ = ::GetPathToNamedObject( retlist[ 1 ], resultNode );
+					mStatus = ::GetPathToNamedObject( mReturnList[ 1 ], mResultingDagPath );
 				}
-				if( !succ )
+				if( !mStatus )
 				{
 					// failed with the second item, use the first
-					succ = ::GetPathToNamedObject( retlist[ 0 ], resultNode );
+					mStatus = ::GetPathToNamedObject( mReturnList[ 0 ], mResultingDagPath );
 				}
 
-				MSanityCheck( succ );
+				MSanityCheck( mStatus );
 
-				if( succ )
+				if( mStatus )
 				{
 					// remove all childnodes that are not mesh shapes
-					if( ::RemoveAllNonMeshShapeSubNodes( resultNode ) )
+					if( ::RemoveAllNonMeshShapeSubNodes( mResultingDagPath ) )
 					{
 						// get all other returned nodes into a selection list
-						if( slist != NULL )
+						if( mResultList != NULL )
 						{
-							slist->clear();
-							for( uint i = 2; i < retlist.length(); ++i )
+							mResultList->clear();
+							for( uint i = 2; i < mReturnList.length(); ++i )
 							{
-								slist->append( retlist[ i ] );
+								mResultList->append( mReturnList[ i ] );
 							}
 						}
 
@@ -287,60 +271,47 @@ MStatus DuplicateNodeWithShape( MDagPath node, MDagPath& resultNode, MStringArra
 	return MStatus::kFailure;
 }
 
-MStatus ExecuteSelectedObjectCommand( MString cmd, MDagPath node, MObject component, MStringArray& dest )
+MStatus ExecuteSelectedObjectCommand( const MString& mCommand, const MDagPath& mDagPath, const MObject& mComponent, MStringArray& mDestination )
 {
-	MStatusAssert( node.isValid(), "ExecuteSelectedObjectCommand: invalid node" );
-
-	// Required for BinSkim compat
-	// TODO: Deprecated method, should be replaced!
-	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
-	if( !MGlobal::select( node, component, MGlobal::kReplaceList ) )
+	MStatusAssert( mDagPath.isValid(), "ExecuteSelectedObjectCommand: invalid node" );
+	if( !MGlobal::select( mDagPath, mComponent, MGlobal::kReplaceList ) )
 	{
 		return MStatus::kFailure;
 	}
-	SG_DISABLE_SPECIFIC_END
 
-	if( !MGlobal::executeCommand( cmd, dest, false ) )
+	if( !MGlobal::executeCommand( mCommand, mDestination, false ) )
 	{
 		return MStatus::kFailure;
 	}
 	return MStatus::kSuccess;
 }
 
-MStatus ExecuteSelectedObjectCommand( MString cmd, MDagPath node, MObject component, MDoubleArray& dest )
+MStatus ExecuteSelectedObjectCommand( const MString& mCommand, const MDagPath& mDagPath, const MObject& mComponent, MDoubleArray& mDestination )
 {
-	MStatusAssert( node.isValid(), "ExecuteSelectedObjectCommand: invalid node" );
+	MStatusAssert( mDagPath.isValid(), "ExecuteSelectedObjectCommand: invalid node" );
 
-	// Required for BinSkim compat
-	// TODO: Deprecated method, should be replaced!
-	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
-	if( !MGlobal::select( node, component, MGlobal::kReplaceList ) )
+	if( !MGlobal::select( mDagPath, mComponent, MGlobal::kReplaceList ) )
 	{
 		return MStatus::kFailure;
 	}
-	SG_DISABLE_SPECIFIC_END
 
-	if( !MGlobal::executeCommand( cmd, dest, false ) )
+	if( !MGlobal::executeCommand( mCommand, mDestination, false ) )
 	{
 		return MStatus::kFailure;
 	}
 	return MStatus::kSuccess;
 }
 
-MStatus ExecuteSelectedObjectCommand( MString cmd, MDagPath node, MObject component )
+MStatus ExecuteSelectedObjectCommand( const MString& mCommand, const MDagPath& mDagPath, const MObject& mComponent )
 {
-	MStatusAssert( node.isValid(), "ExecuteSelectedObjectCommand: invalid node" );
+	MStatusAssert( mDagPath.isValid(), "ExecuteSelectedObjectCommand: invalid node" );
 
-	// Required for BinSkim compat
-	// TODO: Deprecated method, should be replaced!
-	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
-	if( !MGlobal::select( node, component, MGlobal::kReplaceList ) )
+	if( !MGlobal::select( mDagPath, mComponent, MGlobal::kReplaceList ) )
 	{
 		return MStatus::kFailure;
 	}
-	SG_DISABLE_SPECIFIC_END
 
-	if( !MGlobal::executeCommand( cmd, false ) )
+	if( !MGlobal::executeCommand( mCommand, false ) )
 	{
 		return MStatus::kFailure;
 	}
@@ -348,36 +319,33 @@ MStatus ExecuteSelectedObjectCommand( MString cmd, MDagPath node, MObject compon
 	return MStatus::kSuccess;
 }
 
-MStatus RemoveConstructionHistoryOnNode( MDagPath node )
+MStatus RemoveConstructionHistoryOnNode( const MDagPath& mDagPath )
 {
-	return ::ExecuteSelectedObjectCommand( "delete -ch", node, MObject::kNullObj );
+	return ::ExecuteSelectedObjectCommand( "delete -ch", mDagPath, MObject::kNullObj );
 }
 
-MStatus GetMObjectOfNamedObject( MString name, MObject& ob )
+MStatus GetMObjectOfNamedObject( MString mName, MObject& mObject )
 {
-	MSelectionList list;
-	if( !list.add( name ) )
+	MSelectionList mSelectionList;
+	if( !mSelectionList.add( mName ) )
 	{
 		return MStatus::kFailure;
 	}
-	if( !list.getDependNode( 0, ob ) )
+	if( !mSelectionList.getDependNode( 0, mObject ) )
 	{
 		return MStatus::kFailure;
 	}
 	return MStatus::kSuccess;
 }
 
-MStatus DeleteSkinningJointsOfNode( MDagPath node )
+MStatus DeleteSkinningJointsOfNode( const MDagPath& mDagPath )
 {
-	MSanityCheck( node.isValid() );
+	MSanityCheck( mDagPath.isValid() );
 	MStatus mStatus;
 
-	// Required for BinSkim compat
-	// TODO: Deprecated method, should be replaced!
-	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	// select the object
-	mStatus = MGlobal::select( node, MObject::kNullObj, MGlobal::kReplaceList );
-	SG_DISABLE_SPECIFIC_END
+	mStatus = MGlobal::select( mDagPath, MObject::kNullObj, MGlobal::kReplaceList );
+
 	MCheckStatus( mStatus, "DeleteSkinningJointsOfNode: Node selection failed" );
 
 	// select the skin cluster of the object
@@ -405,13 +373,9 @@ MString GetSkinClusterNodeName( MDagPath mMeshDagPath )
 	MString mSkinClusterName;
 	MFnDagNode mMeshDagNode( mMeshDagPath ); // path to the visible mesh
 
-	// Required for BinSkim compat
-	// TODO: Deprecated method, should be replaced!
-	SG_DISABLE_SPECIFIC_BEGIN( 4996 )
 	// the deformed mesh comes into the visible mesh
 	// through its "inmesh" plug
-	MPlug mInMeshPlug = mMeshDagNode.findPlug( "inMesh", &mStatus );
-	SG_DISABLE_SPECIFIC_END
+	MPlug mInMeshPlug = mMeshDagNode.findPlug( "inMesh", true, &mStatus );
 
 	if( mStatus == MStatus::kSuccess && mInMeshPlug.isConnected() )
 	{
@@ -425,11 +389,7 @@ MString GetSkinClusterNodeName( MDagPath mMeshDagPath )
 
 			for( ; !mDependencyIterator.isDone(); mDependencyIterator.next() )
 			{
-				// Required for BinSkim compat
-				// TODO: Deprecated method, should be replaced!
-				SG_DISABLE_SPECIFIC_BEGIN( 4996 )
-				MObject mNodeObject = mDependencyIterator.thisNode();
-				SG_DISABLE_SPECIFIC_END
+				MObject mNodeObject = mDependencyIterator.currentItem();
 
 				// go until we find a skinCluster
 				if( mNodeObject.apiType() == MFn::kSkinClusterFilter )
@@ -445,55 +405,56 @@ MString GetSkinClusterNodeName( MDagPath mMeshDagPath )
 	return mSkinClusterName;
 }
 
-MStringArray GetSkinJointsOfNode( MDagPath meshnode )
+MStringArray GetSkinJointsOfNode( MDagPath mMeshDagPath )
 {
-	MStringArray ret;
-	MString cmd = "skinCluster -q -inf";
-	::ExecuteSelectedObjectCommand( cmd, meshnode, MObject::kNullObj, ret );
-	return ret;
+	MStringArray mReturnList;
+	MString mCommand = "skinCluster -q -inf";
+	::ExecuteSelectedObjectCommand( mCommand, mMeshDagPath, MObject::kNullObj, mReturnList );
+	return mReturnList;
 }
 
-MStatus GetMayaWorkspaceTextureFolder( MString& dest )
+MStatus GetMayaWorkspaceTextureFolder( MString& mDirectory )
 {
-	MStatus result;
+	MStatus mStatus;
 
 	// retrieve the root folder of the workspace
-	MString wspath;
-	MStringArray wsarray;
-	MString cmd = "toNativePath( `workspace -q -rootDirectory` );";
-	result = ::ExecuteCommand( cmd, wsarray );
-	if( !result )
+	MString mWorkspacePath;
+	MStringArray mWorkspaceArray;
+
+	MString mCommand = "toNativePath( `workspace -q -rootDirectory` );";
+	mStatus = ::ExecuteCommand( mCommand, mWorkspaceArray );
+	if( !mStatus )
 	{
 		MGlobal::displayError( "Failed to retrieve the workspace folder. Please set a workspace." );
-		return result;
+		return mStatus;
 	}
-	dest = wsarray[ 0 ];
+	mDirectory = mWorkspaceArray[ 0 ];
 
 	// now, retrieve the textures relative path
-	cmd = "toNativePath( `workspace -q -fileRuleEntry textures`);";
-	result = ::ExecuteCommand( cmd, wsarray );
-	if( !result )
+	mCommand = "toNativePath( `workspace -q -fileRuleEntry textures`);";
+	mStatus = ::ExecuteCommand( mCommand, mWorkspaceArray );
+	if( !mStatus )
 	{
 		MGlobal::displayError( "Failed to retrieve the textures workspace folder. Please set a workspace and textures path." );
-		return result;
+		return mStatus;
 	}
-	dest += wsarray[ 0 ];
+	mDirectory += mWorkspaceArray[ 0 ];
 
 	return MStatus::kSuccess;
 }
 
-void RemoveNodeList( MStringArray& slist )
+void RemoveNodeList( MStringArray& mNodeList )
 {
-	for( uint q = 0; q < slist.length(); ++q )
+	for( uint q = 0; q < mNodeList.length(); ++q )
 	{
-		MString nodename = slist[ q ];
-		MDagPath p;
+		MString mNodeName = mNodeList[ q ];
+		MDagPath mNodeDagPath;
 
 		// get the path to the object
-		if( GetPathToNamedObject( nodename, p ) )
+		if( GetPathToNamedObject( mNodeName, mNodeDagPath ) )
 		{
 			// if found, select and delete
-			const MStatus mStatus = ExecuteSelectedObjectCommand( MString( "delete" ), p, MObject::kNullObj );
+			const MStatus mStatus = ExecuteSelectedObjectCommand( MString( "delete" ), mNodeDagPath, MObject::kNullObj );
 			MSanityCheck( mStatus );
 		}
 	}
@@ -501,8 +462,8 @@ void RemoveNodeList( MStringArray& slist )
 
 float ConvertFromColorToWeights( float c, float multiplier )
 {
-	const float exponent = _log2( multiplier ) * 2;     // what we need to raise 2 to, to get multiplier squared
-	return pow( 2.f, c * exponent ) / multiplier; // get a value 1/multiplier to multiplier
+	const float exponent = _log2( multiplier ) * 2; // what we need to raise 2 to, to get multiplier squared
+	return pow( 2.f, c * exponent ) / multiplier;   // get a value 1/multiplier to multiplier
 }
 
 float ConvertFromWeightsToColor( float w, float multiplier )
@@ -516,29 +477,29 @@ float ConvertFromWeightsToColor( float w, float multiplier )
 	else if( w > max )
 		w = max;
 
-	const float exponent = _log2( multiplier ) * 2;  // what we need to raise 2 to, to get multiplier squared
-	return _log2( w * multiplier ) / exponent; // from value 1/multiplier to multiplier, get range 0->1
+	const float exponent = _log2( multiplier ) * 2; // what we need to raise 2 to, to get multiplier squared
+	return _log2( w * multiplier ) / exponent;      // from value 1/multiplier to multiplier, get range 0->1
 }
 
-MString RemoveIllegalCharacters( MString name )
+MString RemoveIllegalCharacters( MString mName )
 {
-	if( name.index( ':' ) == -1 )
+	if( mName.index( ':' ) == -1 )
 	{
-		return name;
+		return mName;
 	}
 
-	MString returnString;
-	MStringArray splitString;
+	MString mReturnString;
+	MStringArray mSplitArray;
 
-	const MStatus mStatus = name.split( ':', splitString );
+	const MStatus mStatus = mName.split( ':', mSplitArray );
 	if( mStatus == MStatus::kSuccess )
 	{
-		for( int index = 0; index < (int)splitString.length(); index++ )
+		for( int index = 0; index < (int)mSplitArray.length(); ++index )
 		{
-			returnString += splitString[ index ];
+			mReturnString += mSplitArray[ index ];
 		}
 	}
-	return returnString;
+	return mReturnString;
 }
 
 std::basic_string<TCHAR> string_format( const std::basic_string<TCHAR> fmt_str, ... )
@@ -562,12 +523,12 @@ std::basic_string<TCHAR> string_format( const std::basic_string<TCHAR> fmt_str, 
 	return std::basic_string<TCHAR>( formatted.get() );
 }
 
-bool contains( std::vector<std::basic_string<TCHAR>> strCollection, std::basic_string<TCHAR> val )
+bool contains( std::vector<std::basic_string<TCHAR>> tStringCollection, std::basic_string<TCHAR> tString )
 {
-	std::vector<std::basic_string<TCHAR>>::iterator it;
-	for( it = strCollection.begin(); it < strCollection.end(); it++ )
+	std::vector<std::basic_string<TCHAR>>::iterator stringIterator;
+	for( stringIterator = tStringCollection.begin(); stringIterator < tStringCollection.end(); stringIterator++ )
 	{
-		if( *it == val )
+		if( *stringIterator == tString )
 			return true;
 	}
 
@@ -576,18 +537,18 @@ bool contains( std::vector<std::basic_string<TCHAR>> strCollection, std::basic_s
 
 int GetMayaVersion()
 {
-	std::string verString = MGlobal::mayaVersion().asChar();
-	const int ver = atoi( verString.c_str() );
+	std::string sVersionString = MGlobal::mayaVersion().asChar();
+	const int versionNumber = atoi( sVersionString.c_str() );
 
-	return ver;
+	return versionNumber;
 }
 
-int StringToint( std::string str )
+int StringToint( std::string sString )
 {
 	int v = 0;
 	try
 	{
-		v = atoi( str.c_str() );
+		v = atoi( sString.c_str() );
 	}
 	catch( std::exception ex )
 	{
@@ -597,12 +558,12 @@ int StringToint( std::string str )
 	return v;
 }
 
-double StringTodouble( std::string str )
+double StringTodouble( std::string sString )
 {
 	double v = 0;
 	try
 	{
-		v = atof( str.c_str() );
+		v = atof( sString.c_str() );
 	}
 	catch( std::exception ex )
 	{
@@ -612,37 +573,37 @@ double StringTodouble( std::string str )
 	return v;
 }
 
-float StringTofloat( std::string str )
+float StringTofloat( std::string sString )
 {
-	return (float)StringTodouble( str );
+	return (float)StringTodouble( sString );
 }
 
-std::string StringTostring( std::string str )
+std::string StringTostring( std::string sString )
 {
-	return str;
+	return sString;
 }
 
-bool StringTobool( std::string str )
+bool StringTobool( std::string sString )
 {
-	if( str == "1" )
+	if( sString == "1" )
 		return true;
-	else if( str == "true" )
+	else if( sString == "true" )
 		return true;
-	else if( str == "True" )
+	else if( sString == "True" )
 		return true;
-	else if( str == "TRUE" )
+	else if( sString == "TRUE" )
 		return true;
 
 	return false;
 }
 
-bool StringToNULL( std::basic_string<TCHAR> str )
+bool StringToNULL( std::basic_string<TCHAR> tString )
 {
-	if( str == _T("null") )
+	if( tString == _T("null") )
 		return true;
-	else if( str == _T("Null") )
+	else if( tString == _T("Null") )
 		return true;
-	else if( str == _T("NULL") )
+	else if( tString == _T("NULL") )
 		return true;
 
 	return false;
@@ -689,25 +650,25 @@ MString GetNonCollidingMeshName( MString mLodName )
 	return mFinalLodName;
 }
 
-MStatus TryReuseDefaultUV( MFnMesh& mesh, MString requestedName )
+MStatus TryReuseDefaultUV( MFnMesh& mMesh, MString mRequestedUVName )
 {
-	MStringArray UVSetNames;
-	mesh.getUVSetNames( UVSetNames );
+	MStringArray mUVSetNames;
+	mMesh.getUVSetNames( mUVSetNames );
 
-	for( uint s = 0; s < UVSetNames.length(); ++s )
+	for( uint i = 0; i < mUVSetNames.length(); ++i )
 	{
-		MString uvSetName = UVSetNames[ s ];
-		if( uvSetName == "reuse" )
+		MString mUVSetName = mUVSetNames[ i ];
+		if( mUVSetName == "reuse" )
 		{
 			// mesh.clearUVs(&uvSetName);
-			return mesh.renameUVSet( uvSetName, requestedName );
+			return mMesh.renameUVSet( mUVSetName, mRequestedUVName );
 		}
 	}
 
 	return MStatus::kFailure;
 }
 
-void GetPluginDir( char* dest )
+void GetPluginDir( char* cDestination )
 {
 	char Path[ MAX_PATH ] = { 0 };
 	char drive[ _MAX_DRIVE ] = { 0 };
@@ -717,14 +678,14 @@ void GetPluginDir( char* dest )
 
 	if( GetModuleFileName( NULL, Path, MAX_PATH ) == NULL )
 	{
-		dest[ 0 ] = '\0';
+		cDestination[ 0 ] = '\0';
 		return;
 	}
 
 	_splitpath_s( Path, drive, _MAX_DRIVE, dir, _MAX_DIR, fname, _MAX_FNAME, ext, _MAX_EXT );
 	_makepath_s( Path, _MAX_PATH, drive, dir, "", "" );
 
-	sprintf( dest, "%splug-ins\\", Path );
+	sprintf( cDestination, "%splug-ins\\", Path );
 }
 
 int TranslateDeviationToPixels( double radius, double deviation )
@@ -759,21 +720,21 @@ double TranslateDeviationToDistance( double radius, double deviation, double fov
 	return distance;
 }
 
-MString CreateQuotedText( MString text )
+MString CreateQuotedText( MString mText )
 {
-	int len;
-	const char* t = text.asChar( len );
+	int len = 0;
+	const char* cText = mText.asChar( len );
 
-	std::string r;
+	std::string sResult;
 
-	r += '"';
+	sResult += '"';
 	for( int i = 0; i < len; ++i )
 	{
-		if( t[ i ] == '\\' )
-			r += '\\';
-		r += t[ i ];
+		if( cText[ i ] == '\\' )
+			sResult += '\\';
+		sResult += cText[ i ];
 	}
-	r += '"';
+	sResult += '"';
 
-	return MString( r.c_str() );
+	return MString( sResult.c_str() );
 }

@@ -86,12 +86,12 @@ namespace SimplygonUI.MayaUI
 
         public void OnProcess(List<SimplygonSettingsProperty> integrationSettings)
         {
-            string tempDir = Environment.GetEnvironmentVariable("SIMPLYGON_9_TEMP");
+            string tempDir = Environment.GetEnvironmentVariable("SIMPLYGON_10_TEMP");
             try
             {
                 if (string.IsNullOrEmpty(tempDir))
                 {
-                    Log(Category.Error, "SIMPLYGON_9_TEMP environment variable is not set.");
+                    Log(Category.Error, "SIMPLYGON_10_TEMP environment variable is not set.");
                     return;
                 }
                 tempDir = Environment.ExpandEnvironmentVariables(tempDir);
@@ -100,6 +100,8 @@ namespace SimplygonUI.MayaUI
 
                 string tempPipeline = Path.Combine(tempDir, "pipeline.json").Replace("\\", "/");
                 MainUI.SavePipeline(tempPipeline);
+
+                bool hasQuadPipeline = MainUI.HasQuadPipeline();
 
                 string processCommand = $@"Simplygon -sf ""{tempPipeline}""";
 
@@ -146,6 +148,11 @@ namespace SimplygonUI.MayaUI
                     processCommand += $@" -TextureOutputDirectory ""{targetTextureDirectory}""";
                 }
 
+                if (hasQuadPipeline)
+                {
+                    processCommand += $@" -QuadMode";
+                }
+
                 MGlobal.executeCommand(processCommand);
 
                 if (selectProcessedMeshesSetting != null && selectProcessedMeshesSetting.Value)
@@ -183,7 +190,7 @@ namespace SimplygonUI.MayaUI
             if (pipeline.PipelineSettings != null)
             {
                 pipeline.PipelineSettings.SimplygonBatchPath = null;
-                pipeline.PipelineSettings.EmbedReferences = false;
+                pipeline.PipelineSettings.ReferenceExportMode = Simplygon.EReferenceExportMode.Copy;
             }
 
             foreach (var cascadedPipeline in pipeline.CascadedPipelines)

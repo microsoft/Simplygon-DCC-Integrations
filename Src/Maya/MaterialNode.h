@@ -262,6 +262,7 @@ class MaterialNode
 	MaterialTextures TranslucenceFocusTextures;
 	MaterialTextures IncandescenceTextures;
 	MaterialTextures NormalCameraTextures;
+	MaterialTextures ReflectedColorTextures;
 
 	MaterialColor AmbientValue;
 	MaterialColor ColorValue;
@@ -271,6 +272,7 @@ class MaterialNode
 	MaterialColor TranslucenceDepthValue;
 	MaterialColor TranslucenceFocusValue;
 	MaterialColor IncandescenceValue;
+	MaterialColor ReflectedColorValue;
 
 	MaterialHandler* materialHandler;
 	SimplygonCmd* cmd;

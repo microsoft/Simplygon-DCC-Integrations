@@ -51,7 +51,7 @@
     <ClCompile>
       <AdditionalOptions>/I "." /D "WIN32" /D "_DEBUG" /c %(AdditionalOptions) /ZH:SHA_256</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SIMPLYGON_9_PATH);$(ProjectDir)..\Simplygon;$(ProjectDir)..\Maya;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Common;C:\Program Files\Autodesk\Maya2020\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SIMPLYGON_10_PATH);$(ProjectDir)..\Simplygon;$(ProjectDir)..\Maya;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Common;C:\Program Files\Autodesk\Maya2020\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>MAYA_INTEGRATION;WIN32;_DEBUG;_WINDOWS;_AFXDLL;_MBCS;NT_PLUGIN;REQUIRE_IOSTREAM;_CRT_SECURE_NO_DEPRECATE;SGCP;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -91,7 +91,7 @@
     <ClCompile>
       <AdditionalOptions>/I "." /c %(AdditionalOptions) /ZH:SHA_256</AdditionalOptions>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>$(SIMPLYGON_9_PATH);$(ProjectDir)..\Simplygon;$(ProjectDir)..\Maya;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Common;C:\Program Files\Autodesk\Maya2020\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SIMPLYGON_10_PATH);$(ProjectDir)..\Simplygon;$(ProjectDir)..\Maya;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Common;C:\Program Files\Autodesk\Maya2020\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>MAYA_INTEGRATION;WIN32;NDEBUG;_WINDOWS;_AFXDLL;_MBCS;NT_PLUGIN;REQUIRE_IOSTREAM;_CRT_SECURE_NO_DEPRECATE;SGCP;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -128,12 +128,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SIMPLYGON_9_PATH)\SimplygonLoader.cpp" />
+    <ClCompile Include="$(SIMPLYGON_10_PATH)\SimplygonLoader.cpp" />
     <ClCompile Include="..\Common\Common.cpp" />
     <ClCompile Include="..\Common\HelperFunctions.cpp" />
     <ClCompile Include="..\Common\PipelineHelper.cpp" />
     <ClCompile Include="..\Common\Shared.cpp" />
     <ClCompile Include="..\Common\SimplygonInit.cpp" />
+    <ClCompile Include="..\Common\Triangulator.cpp" />
     <ClCompile Include="..\Common\WorkDirectoryHandler.cpp" />
     <ClCompile Include="..\Maya\BakedMaterial.cpp" />
     <ClCompile Include="..\Maya\BlindData.cpp" />
@@ -151,13 +152,15 @@
     <ClCompile Include="..\Simplygon\SimplygonProcessingModule.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(SIMPLYGON_9_PATH)\SimplygonLoader.h" />
+    <ClInclude Include="$(SIMPLYGON_10_PATH)\SimplygonLoader.h" />
     <ClInclude Include="..\Common\Common.h" />
     <ClInclude Include="..\Common\CriticalSection.h" />
     <ClInclude Include="..\Common\HelperFunctions.h" />
     <ClInclude Include="..\Common\PipelineHelper.h" />
     <ClInclude Include="..\Common\Shared.h" />
+    <ClInclude Include="..\Common\SimplygonConvenienceTemplates.h" />
     <ClInclude Include="..\Common\SimplygonInit.h" />
+    <ClInclude Include="..\Common\Triangulator.h" />
     <ClInclude Include="..\Common\WorkDirectoryHandler.h" />
     <ClInclude Include="..\Maya\BakedMaterial.h" />
     <ClInclude Include="..\Maya\BlindData.h" />

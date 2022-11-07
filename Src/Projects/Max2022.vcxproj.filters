@@ -75,8 +75,11 @@
       <Filter>Materials</Filter>
     </ClCompile>
     <ClCompile Include="..\Common\SimplygonInit.cpp" />
-    <ClCompile Include="$(SIMPLYGON_9_PATH)\SimplygonLoader.cpp">
+    <ClCompile Include="$(SIMPLYGON_10_PATH)\SimplygonLoader.cpp">
       <Filter>SimplygonLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\Triangulator.cpp">
+      <Filter>Helpers\Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -145,11 +148,14 @@
     <ClInclude Include="..\Max\resource_.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(SIMPLYGON_9_PATH)\SimplygonLoader.h">
+    <ClInclude Include="$(SIMPLYGON_10_PATH)\SimplygonLoader.h">
       <Filter>SimplygonLoader</Filter>
     </ClInclude>
-    <ClInclude Include="..\Max\MaxMaterialNode.h">
-      <Filter>Scene</Filter>
+    <ClInclude Include="..\Common\Triangulator.h">
+      <Filter>Helpers\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\SimplygonConvenienceTemplates.h">
+      <Filter>Helpers\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

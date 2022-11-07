@@ -222,7 +222,7 @@ class BlindDataAttributeSetFloat : public BlindDataAttributeSetImp<MFloatArray>
 	public:
 	bool GetBlindDataFromMesh( MFnMesh& mMesh ) override
 	{
-		return mMesh.getFloatBlindData( this->componentType, this->blindDataId, this->shortName, this->componentIds, this->data );
+		return ( mMesh.getFloatBlindData( this->componentType, this->blindDataId, this->shortName, this->componentIds, this->data ) == MStatus::kSuccess );
 	}
 
 	bool ApplyBlindDataToMesh( MFnMesh& mMesh, std::map<rid, rid>& componentMap ) override
@@ -238,7 +238,7 @@ class BlindDataAttributeSetDouble : public BlindDataAttributeSetImp<MDoubleArray
 	public:
 	bool GetBlindDataFromMesh( MFnMesh& mMesh ) override
 	{
-		return mMesh.getDoubleBlindData( this->componentType, this->blindDataId, this->shortName, this->componentIds, this->data );
+		return ( mMesh.getDoubleBlindData( this->componentType, this->blindDataId, this->shortName, this->componentIds, this->data ) == MStatus::kSuccess);
 	}
 
 	bool ApplyBlindDataToMesh( MFnMesh& mMesh, std::map<rid, rid>& componentMap ) override

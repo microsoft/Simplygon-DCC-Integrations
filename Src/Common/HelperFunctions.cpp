@@ -12,21 +12,34 @@
 
 using std::auto_ptr;
 
+std::basic_string<TCHAR> ToLower( std::basic_string<TCHAR> tString )
+{
+	std::basic_string<TCHAR> tStringLower = tString;
+	
+#if _UNICODE
+	std::transform( tStringLower.begin(), tStringLower.end(), tStringLower.begin(), ( WCHAR( * )( WCHAR ) )::towlower );
+
+#else
+	std::transform( tStringLower.begin(), tStringLower.end(), tStringLower.begin(), ( char ( * )( char ) )::tolower );
+
+#endif
+
+	return tStringLower;
+}
+
+std::string ToUpper( std::string string )
+{
+	std::string stringUpper = string;
+
+	std::transform( stringUpper.begin(), stringUpper.end(), stringUpper.begin(), ( char ( * )( char ) )::toupper );
+
+	return stringUpper;
+}
+
 bool CompareStrings( std::basic_string<TCHAR> tString1, std::basic_string<TCHAR> tString2 )
 {
-	
-	std::basic_string<TCHAR> tString1Lower = tString1;
-	
-	// NOTE: We are taking TCHAR which can be char or wchar_t however the transform is always assuming char
-	// for wchart_t we need to use ::towlower / ::towupper
-	SG_DISABLE_SPECIFIC_BEGIN( 4244 )
-	std::transform( tString1Lower.begin(), tString1Lower.end(), tString1Lower.begin(), ::tolower );
-	SG_DISABLE_SPECIFIC_END
-
-	std::basic_string<TCHAR> tString2Lower = tString2;
-	SG_DISABLE_SPECIFIC_BEGIN( 4244 )
-	std::transform( tString2Lower.begin(), tString2Lower.end(), tString2Lower.begin(), ::tolower );
-	SG_DISABLE_SPECIFIC_END
+	std::basic_string<TCHAR> tString1Lower = ToLower( tString1 );
+	std::basic_string<TCHAR> tString2Lower = ToLower( tString2 );
 
 	if( tString1Lower == tString2Lower )
 	{
@@ -37,21 +50,8 @@ bool CompareStrings( std::basic_string<TCHAR> tString1, std::basic_string<TCHAR>
 
 bool IsSubstringPartOfString( std::basic_string<TCHAR> tSourceString, std::basic_string<TCHAR> tPartString )
 {
-	std::basic_string<TCHAR> tSourceStringLower = tSourceString;
-
-	// NOTE: We are taking TCHAR which can be char or wchar_t however the transform is always assuming char
-	// for wchart_t we need to use ::towlower / ::towupper
-	SG_DISABLE_SPECIFIC_BEGIN( 4244 )
-	std::transform( tSourceStringLower.begin(), tSourceStringLower.end(), tSourceStringLower.begin(), ::tolower );
-	SG_DISABLE_SPECIFIC_END
-
-	std::basic_string<TCHAR> tPartStringLower = tPartString;
-
-	// NOTE: We are taking TCHAR which can be char or wchar_t however the transform is always assuming char
-	// for wchart_t we need to use ::towlower / ::towupper
-	SG_DISABLE_SPECIFIC_BEGIN( 4244 )
-	std::transform( tPartStringLower.begin(), tPartStringLower.end(), tPartStringLower.begin(), ::tolower );
-	SG_DISABLE_SPECIFIC_END
+	std::basic_string<TCHAR> tSourceStringLower = ToLower( tSourceString );
+	std::basic_string<TCHAR> tPartStringLower = ToLower( tPartString );
 
 	if( (int)tSourceStringLower.find( tPartStringLower ) >= 0 )
 	{
@@ -143,12 +143,8 @@ bool GuidCompare( std::string sString1, std::string sString2 )
 	if( sString1.length() != sString2.length() )
 		return false;
 
-	// NOTE: We are taking TCHAR which can be char or wchar_t however the transform is always assuming char
-	// for wchart_t we need to use ::towlower / ::towupper
-	SG_DISABLE_SPECIFIC_BEGIN( 4244 )
-	std::transform( sString1.begin(), sString1.end(), sString1.begin(), ::toupper );
-	std::transform( sString2.begin(), sString2.end(), sString2.begin(), ::toupper );
-	SG_DISABLE_SPECIFIC_END
+	sString1 = ToUpper( sString1 );
+	sString2 = ToUpper( sString2 );
 
 	return sString1 == sString2;
 }

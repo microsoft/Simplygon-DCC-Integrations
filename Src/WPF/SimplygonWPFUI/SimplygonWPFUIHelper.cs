@@ -309,7 +309,7 @@ namespace SimplygonUI
     {
         static public string GetSimplygonPipelineDirectory()
         {
-            string simplygon9SharedDirectory = Environment.GetEnvironmentVariable("SIMPLYGON_9_SHARED");
+            string simplygon9SharedDirectory = Environment.GetEnvironmentVariable("SIMPLYGON_10_SHARED");
             if (string.IsNullOrWhiteSpace(simplygon9SharedDirectory))
             {
                 simplygon9SharedDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Simplygon", "9");

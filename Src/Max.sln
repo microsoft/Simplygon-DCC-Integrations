@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28803.202
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2019", "Projects\Max2019.vcxproj", "{35F75A41-9655-4EC0-82B5-3F5D7CF9D372}"
 EndProject
@@ -8,13 +8,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2020", "Project
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2018", "Projects\Max2018.vcxproj", "{35F75A41-9655-4EC0-82B5-3F5D7CF9D375}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2017", "Projects\Max2017.vcxproj", "{35F75A41-9655-4EC0-82B5-3F5D7CF9D376}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2021", "Projects\Max2021.vcxproj", "{CAA21B12-4384-4C0B-BBAA-440DCBE7C41E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2022", "Projects\Max2022.vcxproj", "{CAA21B12-4384-4C0B-BBAA-440DCBE7C41F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMax2017UI", "Max\UI\MaxUI\SimplygonMax2017UI.csproj", "{38B715B4-81AB-4E55-B4CB-0E084CC90812}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2023", "Projects\Max2023.vcxproj", "{C8F4F513-A8AE-4398-B942-D0592A4CE4CC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMax2018UI", "Max\UI\MaxUI\SimplygonMax2018UI.csproj", "{BACA1F3D-63ED-4CA3-90F7-F272C92FCC83}"
 EndProject
@@ -26,7 +24,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMax2021UI", "Max\U
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMax2022UI", "Max\UI\MaxUI\SimplygonMax2022UI.csproj", "{F4A03E27-3EC5-4C93-9EAA-2467EF8804E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMax2017UIBootstrap", "Max\UI\MaxUIBootstrap\SimplygonMax2017UIBootstrap.csproj", "{63F4DFDA-8E9B-44D0-9FB1-F8FF022EA9DC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMax2023UI", "Max\UI\MaxUI\SimplygonMax2023UI.csproj", "{E9776283-8EF6-4E83-9F53-7D8F547D3C1A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMax2018UIBootstrap", "Max\UI\MaxUIBootstrap\SimplygonMax2018UIBootstrap.csproj", "{85C96F70-7A86-4DA2-B538-AB01EE54E32F}"
 EndProject
@@ -37,6 +35,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMax2021UIBootstrap", "Max\UI\MaxUIBootstrap\SimplygonMax2021UIBootstrap.csproj", "{FEBAF00A-E0EA-4A4B-BFE4-602F727BF719}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMax2022UIBootstrap", "Max\UI\MaxUIBootstrap\SimplygonMax2022UIBootstrap.csproj", "{F833CA4A-326C-4D20-B6C0-FFE953B61808}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMax2023UIBootstrap", "Max\UI\MaxUIBootstrap\SimplygonMax2023UIBootstrap.csproj", "{559B59FA-5C8B-4078-BFAA-BD45576F702D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonWPFUI", "WPF\SimplygonWPFUI\SimplygonWPFUI.csproj", "{CB949457-2014-4B66-A503-C481D3F0F317}"
 EndProject
@@ -58,10 +58,6 @@ Global
 		{35F75A41-9655-4EC0-82B5-3F5D7CF9D375}.Debug|x64.Build.0 = Debug|x64
 		{35F75A41-9655-4EC0-82B5-3F5D7CF9D375}.Release|x64.ActiveCfg = Release|x64
 		{35F75A41-9655-4EC0-82B5-3F5D7CF9D375}.Release|x64.Build.0 = Release|x64
-		{35F75A41-9655-4EC0-82B5-3F5D7CF9D376}.Debug|x64.ActiveCfg = Debug|x64
-		{35F75A41-9655-4EC0-82B5-3F5D7CF9D376}.Debug|x64.Build.0 = Debug|x64
-		{35F75A41-9655-4EC0-82B5-3F5D7CF9D376}.Release|x64.ActiveCfg = Release|x64
-		{35F75A41-9655-4EC0-82B5-3F5D7CF9D376}.Release|x64.Build.0 = Release|x64
 		{CAA21B12-4384-4C0B-BBAA-440DCBE7C41E}.Debug|x64.ActiveCfg = Debug|x64
 		{CAA21B12-4384-4C0B-BBAA-440DCBE7C41E}.Debug|x64.Build.0 = Debug|x64
 		{CAA21B12-4384-4C0B-BBAA-440DCBE7C41E}.Release|x64.ActiveCfg = Release|x64
@@ -70,10 +66,6 @@ Global
 		{CAA21B12-4384-4C0B-BBAA-440DCBE7C41F}.Debug|x64.Build.0 = Debug|x64
 		{CAA21B12-4384-4C0B-BBAA-440DCBE7C41F}.Release|x64.ActiveCfg = Release|x64
 		{CAA21B12-4384-4C0B-BBAA-440DCBE7C41F}.Release|x64.Build.0 = Release|x64
-		{38B715B4-81AB-4E55-B4CB-0E084CC90812}.Debug|x64.ActiveCfg = Debug|x64
-		{38B715B4-81AB-4E55-B4CB-0E084CC90812}.Debug|x64.Build.0 = Debug|x64
-		{38B715B4-81AB-4E55-B4CB-0E084CC90812}.Release|x64.ActiveCfg = Release|x64
-		{38B715B4-81AB-4E55-B4CB-0E084CC90812}.Release|x64.Build.0 = Release|x64
 		{BACA1F3D-63ED-4CA3-90F7-F272C92FCC83}.Debug|x64.ActiveCfg = Debug|x64
 		{BACA1F3D-63ED-4CA3-90F7-F272C92FCC83}.Debug|x64.Build.0 = Debug|x64
 		{BACA1F3D-63ED-4CA3-90F7-F272C92FCC83}.Release|x64.ActiveCfg = Release|x64
@@ -94,10 +86,6 @@ Global
 		{F4A03E27-3EC5-4C93-9EAA-2467EF8804E9}.Debug|x64.Build.0 = Debug|x64
 		{F4A03E27-3EC5-4C93-9EAA-2467EF8804E9}.Release|x64.ActiveCfg = Release|x64
 		{F4A03E27-3EC5-4C93-9EAA-2467EF8804E9}.Release|x64.Build.0 = Release|x64
-		{63F4DFDA-8E9B-44D0-9FB1-F8FF022EA9DC}.Debug|x64.ActiveCfg = Debug|x64
-		{63F4DFDA-8E9B-44D0-9FB1-F8FF022EA9DC}.Debug|x64.Build.0 = Debug|x64
-		{63F4DFDA-8E9B-44D0-9FB1-F8FF022EA9DC}.Release|x64.ActiveCfg = Release|x64
-		{63F4DFDA-8E9B-44D0-9FB1-F8FF022EA9DC}.Release|x64.Build.0 = Release|x64
 		{85C96F70-7A86-4DA2-B538-AB01EE54E32F}.Debug|x64.ActiveCfg = Debug|x64
 		{85C96F70-7A86-4DA2-B538-AB01EE54E32F}.Debug|x64.Build.0 = Debug|x64
 		{85C96F70-7A86-4DA2-B538-AB01EE54E32F}.Release|x64.ActiveCfg = Release|x64
@@ -122,6 +110,18 @@ Global
 		{CB949457-2014-4B66-A503-C481D3F0F317}.Debug|x64.Build.0 = Debug|x64
 		{CB949457-2014-4B66-A503-C481D3F0F317}.Release|x64.ActiveCfg = Release|x64
 		{CB949457-2014-4B66-A503-C481D3F0F317}.Release|x64.Build.0 = Release|x64
+		{C8F4F513-A8AE-4398-B942-D0592A4CE4CC}.Debug|x64.ActiveCfg = Debug|x64
+		{C8F4F513-A8AE-4398-B942-D0592A4CE4CC}.Debug|x64.Build.0 = Debug|x64
+		{C8F4F513-A8AE-4398-B942-D0592A4CE4CC}.Release|x64.ActiveCfg = Release|x64
+		{C8F4F513-A8AE-4398-B942-D0592A4CE4CC}.Release|x64.Build.0 = Release|x64
+		{559B59FA-5C8B-4078-BFAA-BD45576F702D}.Debug|x64.ActiveCfg = Debug|x64
+		{559B59FA-5C8B-4078-BFAA-BD45576F702D}.Debug|x64.Build.0 = Debug|x64
+		{559B59FA-5C8B-4078-BFAA-BD45576F702D}.Release|x64.ActiveCfg = Release|x64
+		{559B59FA-5C8B-4078-BFAA-BD45576F702D}.Release|x64.Build.0 = Release|x64
+		{E9776283-8EF6-4E83-9F53-7D8F547D3C1A}.Debug|x64.ActiveCfg = Debug|x64
+		{E9776283-8EF6-4E83-9F53-7D8F547D3C1A}.Debug|x64.Build.0 = Debug|x64
+		{E9776283-8EF6-4E83-9F53-7D8F547D3C1A}.Release|x64.ActiveCfg = Release|x64
+		{E9776283-8EF6-4E83-9F53-7D8F547D3C1A}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

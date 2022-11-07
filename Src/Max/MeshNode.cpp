@@ -13,6 +13,7 @@ MeshNode::MeshNode()
 	this->MorphTargetModifier = nullptr;
 	this->MorphTargetData = nullptr;
 	this->MeshMaterials = nullptr;
+	this->TurboSmoothModifier = nullptr;
 	this->sgMesh = Simplygon::NullPtr;
 }
 

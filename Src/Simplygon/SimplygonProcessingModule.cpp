@@ -9,8 +9,6 @@
 #include <cctype>
 #include "HelperFunctions.h"
 #include "SimplygonLoader.h"
-#include "SgCodeAnalysisSetup.h"
-
 
 using namespace Simplygon;
 extern ISimplygon* sg;
@@ -348,20 +346,24 @@ bool OverridePipelineParameters( spPipeline sgPipeline, const char* cTextureOutp
 				return sgPipeline->SetStringParameter( "ReductionProcessor/MappingImageSettings/TexCoordName", "MaterialLOD" );
 			}
 		}
+		else if( std::string( "IQuadReductionPipeline" ) == sPipelineType )
+		{
+			const bool bQuadReductionPipelineHasMappingImageSettings = false;
+			if( bQuadReductionPipelineHasMappingImageSettings )
+			{
+				spString rTexCoordName = sgPipeline->GetStringParameter( "QuadReductionProcessor/MappingImageSettings/TexCoordName" );
+				if( rTexCoordName.IsNullOrEmpty() )
+				{
+					return sgPipeline->SetStringParameter( "QuadReductionProcessor/MappingImageSettings/TexCoordName", "MaterialLOD" );
+				}
+			}
+		}
 		else if( std::string( "IAggregationPipeline" ) == sPipelineType )
 		{
 			spString rTexCoordName = sgPipeline->GetStringParameter( "AggregationProcessor/MappingImageSettings/TexCoordName" );
 			if( rTexCoordName.IsNullOrEmpty() )
 			{
 				return sgPipeline->SetStringParameter( "AggregationProcessor/MappingImageSettings/TexCoordName", "MaterialLOD" );
-			}
-		}
-		else if( std::string( "IRemeshingLegacyPipeline" ) == sPipelineType )
-		{
-			spString rTexCoordName = sgPipeline->GetStringParameter( "RemeshingLegacyProcessor/MappingImageSettings/TexCoordName" );
-			if( rTexCoordName.IsNullOrEmpty() )
-			{
-				return sgPipeline->SetStringParameter( "RemeshingLegacyProcessor/MappingImageSettings/TexCoordName", "MaterialLOD" );
 			}
 		}
 		else if( std::string( "IRemeshingPipeline" ) == sPipelineType )
@@ -1178,7 +1180,7 @@ spScene SimplygonProcessingModule::RunReduction( const spScene sgInputScene, boo
 		spWavefrontExporter objExporter = sg->CreateWavefrontExporter();
 		objExporter->SetExportFilePath( "d:/_max_test.obj" );
 		objExporter->SetScene( sgInputScene ); // scene now contains the remeshed geometry and the material table we modified above
-		objExporter->RunExport();
+		objExporter->Run();
 	}
 
 	// Create the reduction-processor, and set which scene to reduce
@@ -1368,191 +1370,9 @@ spScene SimplygonProcessingModule::RunReduction( const spScene sgInputScene, boo
 		spWavefrontExporter objExporter = sg->CreateWavefrontExporter();
 		objExporter->SetExportFilePath( "d:/_max_test_processed.obj" );
 		objExporter->SetScene( sgLodScene ); // scene now contains the remeshed geometry and the material table we modified above
-		objExporter->RunExport();
+		objExporter->Run();
 	}
 
-	return sgLodScene;
-}
-
-spScene SimplygonProcessingModule::RunRemeshing( const spScene sgInputScene, bool bBakeMaterials /*= false*/ )
-{
-	//NOTE: Since spRemeshingLegacyProcessor has been marked for deprecation. 
-	SG_WARNING_LEVEL_SET(4996,4)
-	const uint onScreenSize = 300;
-	const uint mergeDistance = 0;
-	const uint textureSize = 1024;
-
-	spScene sgLodScene = sgInputScene->NewCopy();
-
-	spMaterialTable sgMaterialTable = sgLodScene->GetMaterialTable();
-	spTextureTable sgTextureTable = sgLodScene->GetTextureTable();
-
-	// Create a remeshing processor
-	spRemeshingLegacyProcessor sgRemeshingLegacyProcessor = sg->CreateRemeshingLegacyProcessor();
-
-	///////////////////////////////////////////////////////////////////////////////////////////////
-	// SETTINGS
-	sgRemeshingLegacyProcessor->SetScene( sgLodScene ); // Defines the scene on which to run the remesher
-
-	// Geometry related settings:
-	spRemeshingLegacySettings sgRemeshingLegacySettings = sgRemeshingLegacyProcessor->GetRemeshingLegacySettings();
-	// remeshingSettings->SetProcessSelectionSetID(-1); //Can be used to remesh only a specific selection set defined in the scene
-	sgRemeshingLegacySettings->SetOnScreenSize( onScreenSize );   // The most important setting, defines the "resolution" of the remeshing, i.e. tri-count
-	sgRemeshingLegacySettings->SetMergeDistance( mergeDistance ); // Defines how large gaps to fill in, in pixels. Relative to the setting above.
-
-	sgRemeshingLegacySettings->SetSurfaceTransferMode( ESurfaceTransferMode::Accurate ); // This toggles between the two available surface mapping modes
-	// remeshingSettings->SetTransferColors(false); //Sets if the remesher should transfer the old vertex colors to the new geometry, if availible
-	// remeshingSettings->SetTransferNormals(false) //Sets if the remesher should transfer the old normals to the new geometry (generally a bad idea since the
-	// geometries don't match exactly)
-	sgRemeshingLegacySettings->SetHardEdgeAngle(
-	    80.f ); // Sets the normal hard edge angle, used for normal recalc if TransferNormals is off. Here, slightly lower than 90 degrees.
-	// remeshingSettings->SetUseCuttingPlanes( false ); //Defines whether to use cutting planes or not. Planes are defined in the scene object.
-	// remeshingSettings->SetCuttingPlaneSelectionSetID( -1 ); //Sets a selection set for cutting planes, if you don't want to use all of the planes in the
-	// scene.
-	sgRemeshingLegacySettings->SetUseEmptySpaceOverride(
-	    false ); // Overrides what the remesher considers to be "outside", so you can do interiors. Set coord with SetEmptySpaceOverride.
-	// remeshingSettings->SetMaxTriangleSize( 10 ); //Can be used to limit the triangle size of the output mesh, producing more triangles. Can be useful for
-	// exotic use cases. remeshingSettings->SetMaxTriangleSize(10); Parameterization and material casting related settings
-
-	spMappingImageSettings sgMappingImageSettings = sgRemeshingLegacyProcessor->GetMappingImageSettings();
-	// mappingSettings->SetUseFullRetexturing( true ); //Kind of irrelevant for the remesher, since it always is a "full retexturing"
-	sgMappingImageSettings->SetGenerateMappingImage(
-	    true ); // Without this we cannot fetch data from the original geometry, and thus not generate diffuse and normal-maps later on.
-	sgMappingImageSettings->SetGenerateTexCoords( true ); // Set to generate new texture coordinates.
-	sgMappingImageSettings->SetGenerateTangents( true );  // Set to generate new tangents and bitangents.
-	sgMappingImageSettings->GetParameterizerSettings()->SetMaxStretch(
-	    0.5f ); // The higher the number, the fewer texture-borders. Also introduces more stretch, obviously.
-	sgMappingImageSettings->GetOutputMaterialSettings( 0 )->SetGutterSpace(
-	    1 ); // Buffer space for when texture is mip-mapped, so color values don't blend over. Greatly influences packing efficiency
-	sgMappingImageSettings->SetTexCoordLevel( 0 ); // Sets the output texcoord level.
-	sgMappingImageSettings->GetOutputMaterialSettings( 0 )->SetTextureWidth( textureSize );
-	sgMappingImageSettings->GetOutputMaterialSettings( 0 )->SetTextureHeight( textureSize );
-	sgMappingImageSettings->GetOutputMaterialSettings( 0 )->SetMultisamplingLevel( 2 );
-	sgMappingImageSettings->SetMaximumLayers(
-	    3 ); // IMPORTANT! This setting defines how many transparent layers the remesher will project onto the outermost surface of the remeshed geom,
-	// and hence, how many layers will be in the generated mapping image
-	sgMappingImageSettings->SetTexCoordLevel( 255 );
-	// END SETTINGS
-	///////////////////////////////////////////////////////////////////////////////////////////////
-
-	if( this->progressObserver != nullptr )
-	{
-		sgRemeshingLegacyProcessor->AddObserver( progressObserver );
-	}
-
-	// Run the remeshing
-	sgRemeshingLegacyProcessor->RunProcessing();
-
-	///////////////////////////////////////////////////////////////////////////////////////////////
-	// CASTING
-	// Now, we need to retrieve the generated mapping image and use it to cast the old materials into a new one, for each channel.
-	spMappingImage sgMappingImage = sgRemeshingLegacyProcessor->GetMappingImage();
-
-	// Now, for each channel, we want to cast the input materials into a single output material, with one texture per channel.
-	// Create new material for the table.
-	spMaterial sgLodMaterial = sg->CreateMaterial();
-	sgLodMaterial->SetName( "SimplygonMaterial" );
-
-	// Make a new tex table
-	spTextureTable sgLodTextureTable = sg->CreateTextureTable();
-
-	if( bBakeMaterials )
-	{
-		// Create new material table.
-		spMaterialTable sgOutputMaterialTable = sg->CreateMaterialTable();
-		spTextureTable sgOutputTextureTable = sg->CreateTextureTable();
-
-		//	Create new material for the table.
-		spMaterial sgOutputMaterial = sg->CreateMaterial();
-		sgOutputMaterial->SetName( "SimplygonMaterial" );
-		sgOutputMaterial->AddMaterialChannel( SG_MATERIAL_CHANNEL_DIFFUSE );
-		sgOutputMaterial->AddMaterialChannel( SG_MATERIAL_CHANNEL_SPECULAR );
-		sgOutputMaterial->AddMaterialChannel( SG_MATERIAL_CHANNEL_NORMALS );
-
-		// Add the new material to the table
-		sgOutputMaterialTable->AddMaterial( sgOutputMaterial );
-
-		std::basic_string<TCHAR> tDiffuseTextureOutputName = Combine( tTextureOutputPath, _T("Diffuse.png") );
-		std::basic_string<TCHAR> tSpecularTextureOutputName = Combine( tTextureOutputPath, _T("Specular.png") );
-		std::basic_string<TCHAR> tNormalTextureOutputName = Combine( tTextureOutputPath, _T("Normals.png") );
-
-		const char* cDiffuseTextureOutputName = LPCTSTRToConstCharPtr( tDiffuseTextureOutputName.c_str() );
-		const char* cSpecularTextureOutputName = LPCTSTRToConstCharPtr( tSpecularTextureOutputName.c_str() );
-		const char* cNormalTextureOutputName = LPCTSTRToConstCharPtr( tNormalTextureOutputName.c_str() );
-
-		// DIFFUSE
-		// Create a color caster to cast the diffuse texture data
-		spColorCaster sgColorCaster = sg->CreateColorCaster();
-		if( this->progressObserver != nullptr )
-		{
-			sgColorCaster->AddObserver( progressObserver );
-		}
-
-		sgColorCaster->GetColorCasterSettings()->SetMaterialChannel( SG_MATERIAL_CHANNEL_DIFFUSE ); // Select the diffuse channel from the original material
-		sgColorCaster->SetSourceMaterials( sgLodScene->GetMaterialTable() );
-		sgColorCaster->SetSourceTextures(
-		    sgLodScene->GetTextureTable() ); // If we are casting materials defined by shading networks, a source texture table also needs to be set
-		sgColorCaster->SetMappingImage(
-		    sgMappingImage ); // The mapping image we got from the reduction process, reduced to half-width/height, just for testing purposes
-		sgColorCaster->GetColorCasterSettings()->SetOutputPixelFormat( EPixelFormat::R8G8B8 ); // RGB
-		sgColorCaster->GetColorCasterSettings()->SetDilation(
-		    10 ); // To avoid mip-map artifacts, the empty pixels on the map needs to be filled to a degree as well.
-		sgColorCaster->SetOutputFilePath( cDiffuseTextureOutputName ); // Where the texture map will be saved to file.
-		sgColorCaster->RunProcessing();
-
-		// set the material properties
-		// Set material to point to created texture filename.
-		AddSimplygonTexture( sgOutputMaterial, sgOutputTextureTable, ConstCharPtrToLPCTSTR( SG_MATERIAL_CHANNEL_DIFFUSE ), tDiffuseTextureOutputName );
-
-		// SPECULAR
-		// Modify the color caster to cast specular texture data
-		sgColorCaster->GetColorCasterSettings()->SetMaterialChannel( SG_MATERIAL_CHANNEL_SPECULAR ); // Select the specular channel from the original material
-		sgColorCaster->SetOutputFilePath( cSpecularTextureOutputName );                              // Where the texture map will be saved to file.
-		sgColorCaster->RunProcessing();
-
-		// set the material properties
-		// Set material to point to created texture filename.
-		AddSimplygonTexture( sgOutputMaterial, sgOutputTextureTable, ConstCharPtrToLPCTSTR( SG_MATERIAL_CHANNEL_SPECULAR ), tSpecularTextureOutputName );
-
-		// NORMAL MAP
-		// cast the normal map texture data
-		spNormalCaster sgNormalCaster = sg->CreateNormalCaster();
-		if( this->progressObserver != nullptr )
-		{
-			sgNormalCaster->AddObserver( progressObserver );
-		}
-
-		sgNormalCaster->SetSourceMaterials( sgLodScene->GetMaterialTable() );
-		sgNormalCaster->SetSourceTextures(
-		    sgLodScene->GetTextureTable() ); // If we are casting materials defined by shading networks, a source texture table also needs to be set
-		sgNormalCaster->SetMappingImage( sgMappingImage );
-		sgNormalCaster->GetNormalCasterSettings()->SetOutputPixelFormat(
-		    EPixelFormat::R8G8B8 ); // RGB, 3 channels! (But really the x, y and z values for the normal)
-		sgNormalCaster->GetNormalCasterSettings()->SetDilation( 10 );
-		sgNormalCaster->SetOutputFilePath( cNormalTextureOutputName );
-		sgNormalCaster->GetNormalCasterSettings()->SetFlipBackfacingNormals( true );
-		sgNormalCaster->GetNormalCasterSettings()->SetGenerateTangentSpaceNormals( true );
-		sgNormalCaster->RunProcessing();
-
-		// Set material to point to created texture filename.
-		AddSimplygonTexture( sgOutputMaterial, sgOutputTextureTable, ConstCharPtrToLPCTSTR( SG_MATERIAL_CHANNEL_NORMALS ), tNormalTextureOutputName );
-
-		// Overwrite the scene's material table with the casted materials
-		sgLodScene->GetMaterialTable()->Clear();
-		sgLodScene->GetMaterialTable()->Copy( sgOutputMaterialTable );
-		sgLodScene->GetTextureTable()->Clear();
-		sgLodScene->GetTextureTable()->Copy( sgOutputTextureTable );
-	}
-
-	// Now, we can clear the original material table in the scene, and replace its contents with our new lodMaterial
-	sgMaterialTable->Clear();
-	sgMaterialTable->AddMaterial( sgLodMaterial ); // This will be added at matId 0, which will match the remeshed geometry
-
-	// Also, replace the texture list from the original with the new one
-	sgTextureTable->Copy( sgLodTextureTable );
-	// END CASTING
-	///////////////////////////////////////////////////////////////////////////////////////////////
-	SG_WARNING_LEVEL_RESET(4996)
 	return sgLodScene;
 }
 

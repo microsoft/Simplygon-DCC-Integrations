@@ -104,12 +104,59 @@ namespace SimplygonUI.MaxUI
 "	selectedShaderChannels                                                                                                                              \n" +
 ")                                                                                                                                                      \n";
 
+        const string MaxScript_GetPhysicalMaterialNamesFromSelection_2023 =
+"fn GetAllPhysicalMaterialChannelNames_2023 selectedShaderChannels mat =																														\n" +
+"(																																																\n" +
+"	local supportedMaterialChannels = #(\"base_weight\", \"base_color\", \"reflectivity\", \"refl_color\", \"roughness\", \"diff_rough\", \"metalness\", \"transparency\", 						\n" +
+"		\"trans_color\", \"trans_depth\", \"trans_rough\", \"sss_scatter\", \"sss_color\", \"sss_scatter_color\", \"sss_scale\", \"emission\", \"emit_color\", \"emit_luminance\",				\n" +
+"		\"emit_kelvin\", \"bump\", \"coat_bump\", \"displacement\", \"cutout\", \"coating\", \"coat_color\", \"coat_roughness\", \"coat_ior\", \"coat_affect_color\",                           \n" +
+"       \"coat_affect_roughness\", \"sheen\", \"sheen_color\", \"sheen_roughness\", \"thin_film\" )                                                                                             \n" +
+"																																																\n" +
+"	for channelName in supportedMaterialChannels do																																				\n" +
+"	(																																															\n" +
+"		appendIfUnique selectedShaderChannels channelName																																		\n" +
+"	)																																															\n" +
+")																																																\n" +
+"																																																\n" +
+"fn GetPhysicalMaterialChannelNames_2023 =																																						\n" +
+"(																																																\n" +
+"	local supportedShaderTypes = #(\"PhysicalMaterial\")																																		\n" +
+"	selectedShaderChannels = #()																																								\n" +
+"																																																\n" +
+"	for obj in selection do																																										\n" +
+"	(                                                                                                                                                 											\n" +
+"		mat = obj.mat                                                                                                                                 											\n" +
+"		if mat == undefined do                                                                                                                        											\n" +
+"			continue                                                                                                                                  											\n" +
+"																																																\n" +
+"		if classof mat == Physical_Material then																																				\n" +
+"		(																																														\n" +
+"			GetAllPhysicalMaterialChannelNames_2023 selectedShaderChannels mat                                                                                 									\n" +
+"		)																																														\n" +
+"																																																\n" +
+"		subMatCount = getNumSubMtls mat																																							\n" +
+"		for i = 1  to subMatCount do																																							\n" +
+"		(																																														\n" +
+"			subMat = getSubMtl mat i                                                                                                                  											\n" +
+"			if subMat == undefined do                                                                                                                 											\n" +
+"				continue   																																										\n" +
+"																																																\n" +
+"			if classof subMat == Physical_Material then																																			\n" +
+"			(																																													\n" +
+"				GetAllPhysicalMaterialChannelNames_2023 selectedShaderChannels subMat                                                                           								\n" +
+"			)																																													\n" +
+"		)                                                                                                                                             											\n" +
+"	)                                                                                                                                                 											\n" +
+"																																																\n" +
+"	selectedShaderChannels                                                                                                                            											\n" +
+")																																																\n";
+
         const string MaxScript_GetPhysicalMaterialNamesFromSelection =
 "fn GetAllPhysicalMaterialChannelNames selectedShaderChannels mat =																																\n" +
 "(																																																\n" +
 "	local supportedMaterialChannels = #(\"base_weight\", \"base_color\", \"reflectivity\", \"refl_color\", \"roughness\", \"diff_rough\", \"metalness\", \"transparency\", 						\n" +
 "		\"trans_color\", \"trans_depth\", \"trans_rough\", \"sss_scatter\", \"sss_color\", \"sss_scatter_color\", \"sss_scale\", \"emission\", \"emit_color\", \"emit_luminance\",				\n" +
-"		\"emit_kelvin\", \"bump\", \"coat_bump\", \"displacement\", \"cutout\", \"coating\", \"coat_color\", \"coat_roughness\", \"coat_ior\", \"coat_affect_color\", \"coat_affect_roughness\")\n" +
+"		\"emit_kelvin\", \"bump\", \"coat_bump\", \"displacement\", \"cutout\", \"coating\", \"coat_color\", \"coat_roughness\", \"coat_ior\" )                                                 \n" + 
 "																																																\n" +
 "	for channelName in supportedMaterialChannels do																																				\n" +
 "	(																																															\n" +
@@ -174,7 +221,7 @@ namespace SimplygonUI.MaxUI
             {
                 IFPValue mMaxLocalReturnValue = mGlobal.FPValue.Create();
 
-#if SIMPLYGONMAX2017UI || SIMPLYGONMAX2018UI
+#if SIMPLYGONMAX2018UI
                 mGlobal.ExecuteMAXScriptScript(script, false, mMaxLocalReturnValue);
 #elif SIMPLYGONMAX2019UI || SIMPLYGONMAX2020UI || SIMPLYGONMAX2021UI
                 mGlobal.ExecuteMAXScriptScript(script, false, mMaxLocalReturnValue, true);
@@ -194,7 +241,7 @@ namespace SimplygonUI.MaxUI
             {
                 IFPValue maxRetVal = mGlobal.FPValue.Create();
 
-#if SIMPLYGONMAX2017UI || SIMPLYGONMAX2018UI
+#if SIMPLYGONMAX2018UI
                 mGlobal.ExecuteMAXScriptScript(MaxScript_GetMaterialNamesFromSelection, false, maxRetVal);
                 mGlobal.ExecuteMAXScriptScript(MaxScript_GetSelectionSets, false, maxRetVal);
 
@@ -204,8 +251,11 @@ namespace SimplygonUI.MaxUI
 #elif SIMPLYGONMAX2021UI
                 mGlobal.ExecuteMAXScriptScript(MaxScript_GetPhysicalMaterialNamesFromSelection, false, maxRetVal, true);
                 mGlobal.ExecuteMAXScriptScript(MaxScript_GetSelectionSets, false, maxRetVal, true);
-#else
+#elif SIMPLYGONMAX2022UI
                 mGlobal.ExecuteMAXScriptScript(MaxScript_GetPhysicalMaterialNamesFromSelection, Autodesk.Max.MAXScript.ScriptSource.NotSpecified, false, maxRetVal, true);
+                mGlobal.ExecuteMAXScriptScript(MaxScript_GetSelectionSets, Autodesk.Max.MAXScript.ScriptSource.NotSpecified, false, maxRetVal, true);
+#else
+                mGlobal.ExecuteMAXScriptScript(MaxScript_GetPhysicalMaterialNamesFromSelection_2023, Autodesk.Max.MAXScript.ScriptSource.NotSpecified, false, maxRetVal, true);
                 mGlobal.ExecuteMAXScriptScript(MaxScript_GetSelectionSets, Autodesk.Max.MAXScript.ScriptSource.NotSpecified, false, maxRetVal, true);
 #endif
 
@@ -231,6 +281,8 @@ namespace SimplygonUI.MaxUI
             MainUI.Resources.MergedDictionaries.Add(this.Resources);
 #if SIMPLYGONMAX2021UI || SIMPLYGONMAX2022UI
             MainUI.SetIntegrationType(SimplygonIntegrationType.Max2021);
+#elif SIMPLYGONMAX2023UI
+            MainUI.SetIntegrationType(SimplygonIntegrationType.Max2023);
 #else
             MainUI.SetIntegrationType(SimplygonIntegrationType.Max);
 #endif
@@ -316,9 +368,7 @@ namespace SimplygonUI.MaxUI
 
                 if (processedMeshNameTab != null && processedMeshNameTab.Count > 0)
                 {
-#if SIMPLYGONMAX2017UI
-                    var mNodeTab = mGlobal.NodeTab.Create();
-#elif SIMPLYGONMAX2018UI
+#if SIMPLYGONMAX2018UI
                     var mNodeTab = mGlobal.NodeTab.Create();
 #elif SIMPLYGONMAX2019UI
                     var mNodeTab = mGlobal.NodeTab.Create();
@@ -360,12 +410,12 @@ namespace SimplygonUI.MaxUI
 
         public void OnProcess(List<SimplygonSettingsProperty> integrationSettings)
         {
-            string tempDir = Environment.GetEnvironmentVariable("SIMPLYGON_9_TEMP");
+            string tempDir = Environment.GetEnvironmentVariable("SIMPLYGON_10_TEMP");
             try
             {
                 if (string.IsNullOrEmpty(tempDir))
                 {
-                    Log(Category.Error, "Could not read SIMPLYGON_9_TEMP environment variable, aborting!");
+                    Log(Category.Error, "Could not read SIMPLYGON_10_TEMP environment variable, aborting!");
                 }
 
                 tempDir = Environment.ExpandEnvironmentVariables(tempDir);
@@ -375,6 +425,8 @@ namespace SimplygonUI.MaxUI
                 string tempPipeline = Path.Combine(tempDir, "pipeline.json");
 
                 MainUI.SavePipeline(tempPipeline);
+
+                bool hasQuadPipeline = MainUI.HasQuadPipeline();
 
                 SimplygonUI.MaxUI.Settings.SelectProcessedMeshes selectProcessedMeshesSetting = integrationSettings.Where(i => i.GetType() == typeof(SimplygonUI.MaxUI.Settings.SelectProcessedMeshes)).Select(i => i as SimplygonUI.MaxUI.Settings.SelectProcessedMeshes).FirstOrDefault();
                 SimplygonUI.MaxUI.Settings.ResetStates resetStatesSetting = integrationSettings.Where(i => i.GetType() == typeof(SimplygonUI.MaxUI.Settings.ResetStates)).Select(i => i as SimplygonUI.MaxUI.Settings.ResetStates).FirstOrDefault();
@@ -408,6 +460,11 @@ namespace SimplygonUI.MaxUI
                 if (meshNameFormatSetting != null && !string.IsNullOrEmpty(meshNameFormatSetting.Value))
                 {
                     maxRetVal = ExecuteMaxScript($@"sgsdk_SetMeshNameFormat ""{meshNameFormatSetting.Value}"" ");
+                }
+
+                if (hasQuadPipeline)
+                {
+                    maxRetVal = ExecuteMaxScript($@"sgsdk_SetQuadMode true");
                 }
 
                 if (textureOutputDirectorySetting != null && !string.IsNullOrEmpty(textureOutputDirectorySetting.Value))
@@ -454,7 +511,7 @@ namespace SimplygonUI.MaxUI
         {
             if (pipeline.PipelineSettings != null)
             {
-                pipeline.PipelineSettings.EmbedReferences = false;
+                pipeline.PipelineSettings.ReferenceExportMode = Simplygon.EReferenceExportMode.Copy;
             }
 
             foreach (var cascadedPipeline in pipeline.CascadedPipelines)
@@ -524,8 +581,9 @@ namespace SimplygonUI.MaxUI
 
 #if SIMPLYGONMAX2021UI || SIMPLYGONMAX2022UI
             maxRetVal = ExecuteMaxScript($@"GetPhysicalMaterialChannelNames()");
+#elif SIMPLYGONMAX2023UI
+            maxRetVal = ExecuteMaxScript($@"GetPhysicalMaterialChannelNames_2023()");
 #else
-
             maxRetVal = ExecuteMaxScript($@"GetMaterialChannelNames()");
 #endif
 

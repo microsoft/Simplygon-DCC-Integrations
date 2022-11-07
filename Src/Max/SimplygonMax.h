@@ -10,6 +10,8 @@
 #include "CriticalSection.h"
 #include "SimplygonInit.h"
 
+#include "Triangulator.h"
+
 class SimplygonMax;
 class SimplygonMaxPerVertexData;
 class SimplygonMaxMapData;
@@ -721,6 +723,9 @@ class MaterialChannelData
 	std::vector<MaterialTextureOverride>* mMaterialTextureOverrides;
 	TimeValue mTime;
 
+	// fills in when node fails
+	std::basic_string<TCHAR> mWarningMessage;
+
 	private:
 	const bool mIsMatPBR;
 };
@@ -1091,6 +1096,9 @@ class SimplygonMax : public SimplygonEventRelay
 	// that does not include in-memory mapping.
 	SgValueMacro( bool, AllowUnsafeImport );
 
+	// Enables Quad export/import if true
+	SgValueMacro( bool, QuadMode );
+
 	// Sets the LOD prefix
 	SgValueMacro( std::basic_string<TCHAR>, DefaultPrefix );
 
@@ -1404,6 +1412,9 @@ class SimplygonMax : public SimplygonEventRelay
 	int logProgress;
 	CriticalSection threadLock;
 
+	// Suboptimal triangulations counter
+	uint32_t numBadTriangulations;
+
 	bool ProcessLODMeshes();
 	bool ExtractScene();
 
@@ -1414,12 +1425,19 @@ class SimplygonMax : public SimplygonEventRelay
 	CreateSceneGraph( INode* mMaxNode, Simplygon::spSceneNode sgNode, std::vector<std::pair<INode*, spSceneMesh>>& mMaxSgMeshList, Simplygon::spScene sgScene );
 	bool HasSelectedChildren( INode* mMaxNode );
 	bool IsMesh( INode* mMaxNode );
+	bool IsMesh_Quad( INode* mMaxNode );
 	bool IsCamera( INode* mMaxNode );
 	Simplygon::spSceneNode AddCamera( INode* mMaxNode );
 	void MakeCameraTargetRelative( INode* mMaxNode, Simplygon::spSceneNode sgNode );
 
 	bool ExtractMapping( size_t meshIndex, Mesh& mMaxMesh );
 	bool ExtractGeometry( size_t meshIndex );
+	bool ExtractMapping_Quad( size_t meshIndex,
+	                          MNMesh& mMaxMesh,
+	                          std::vector<Triangulator::Triangle>& polygonTriangles,
+	                          std::vector<uint32_t> mPolygonIndexToTriangleIndex,
+	                          std::vector<uint32_t> mNumPolygonTriangles );
+	bool ExtractGeometry_Quad( size_t meshIndex );
 	bool ExtractAllGeometries();
 
 	void FindSelectedEdges();
@@ -1433,6 +1451,13 @@ class SimplygonMax : public SimplygonEventRelay
 	Simplygon::spSceneBone ReplaceNodeWithBone( Simplygon::spSceneNode sgNode );
 	INode* GetMaxBoneById( std::string sBoneId );
 
+	void ConvertToQuad( int* triangleVertexIndices, int* quadVertexIndices );
+	void ConvertToQuad( int* triangleVertexIndices, int* quadVertexIndices, int originalQuadIndexStart, int* originalQuadIndices );
+
+	bool WritebackMapping_Quad( size_t lodIndex, uint faceCount, const uint cornerCount, MNMesh& newMaxMesh, spSceneMesh sgMesh );
+	void WriteSGTexCoordsToMaxChannel_Quad( Simplygon::spRealArray sgTexCoords, MNMesh& mMaxMesh, int maxChannel, uint cornerCount, uint faceCount );
+	void WriteSGVertexColorsToMaxChannel_Quad( Simplygon::spRealArray sgVertexColors, MNMesh& mMaxMesh, int maxChannel, uint cornerCount, uint faceCount );
+
 	bool WritebackMapping( size_t lodIndex, Mesh& mMaxMesh, Simplygon::spSceneMesh sgMesh );
 	void WriteSGTexCoordsToMaxChannel( Simplygon::spRealArray sgTexCoords, Mesh& mMaxMesh, int maxChannel, uint cornerCount, uint triangleCount );
 	void WriteSGVertexColorsToMaxChannel( Simplygon::spRealArray sgVertexColors, Mesh& mMaxMesh, int maxChannel, uint cornerCount, uint triangleCount );
@@ -1440,6 +1465,10 @@ class SimplygonMax : public SimplygonEventRelay
 	    Mesh& mMaxMesh, int mappingChannel, UVWMapper& mUVWMapper, uint TriangleCount, uint VertexCount, Simplygon::spRealArray sgVertexColors );
 	bool
 	WritebackGeometry( Simplygon::spScene sgProcessedScene, size_t lodIndex, spSceneMesh sgMesh, std::map<std::string, INode*>& meshNodesThatNeedsParents );
+	bool WritebackGeometry_Quad( Simplygon::spScene sgProcessedScene,
+	                             size_t lodIndex,
+	                             spSceneMesh sgMesh,
+	                             std::map<std::string, INode*>& meshNodesThatNeedsParents );
 
 	bool ImportProcessedScenes();
 
@@ -1448,7 +1477,11 @@ class SimplygonMax : public SimplygonEventRelay
 	bool MaterialChannelHasShadingNetwork( Simplygon::spMaterial sgMaterial, const char* cChannelName );
 
 	public:
-	spShadingNode CreateSgMaterialPBRChannel( Texmap* mTexMap, long maxChannelId, const char* cMaterialName, const char* cChannelName );
+	spShadingNode CreateSgMaterialPBRChannel( Texmap* mTexMap,
+	                                          long maxChannelId,
+	                                          const char* cMaterialName,
+	                                          const char* cChannelName,
+	                                          MaterialNodes::TextureSettingsOverride* textureSettingsOverride = nullptr );
 
 	void CreateAndLinkTexture( MaterialNodes::TextureData& rTextureData );
 
@@ -1505,6 +1538,8 @@ class SimplygonMax : public SimplygonEventRelay
 	void CleanUpGlobalMaterialMappingData();
 
 	Matrix3 GetRelativeTransformation( INode* mMaxNode );
+
+	void AddEdgeCollapse_Quad( INode* mMaxNode, spGeometryData sgMeshData );
 
 	void AddEdgeCollapse( INode* mMaxNode, spGeometryData sgMeshData );
 	void AddToObjectSelectionSet( INode* mMaxNode );
