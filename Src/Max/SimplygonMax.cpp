@@ -1567,10 +1567,14 @@ spShadingNode MaterialNodes::RunTintNode( Texmap* mTexMap, MaterialNodes::Materi
 
 	int isEnabled = 0;
 	const bool bEnableMapsFound = GetTexMapProperty<int>( mTexMap, _T("map1Enabled"), mMaterialChannel.mTime, &isEnabled );
-	const bool mIsEnabled = isEnabled == 1;
+	const bool bIsEnabled = isEnabled == 1;
 
 	Texmap* mSubTexMap = mTexMap->GetSubTexmap( 0 );
 	ShadingNode = SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel );
+	if( ShadingNode == NullPtr )
+	{
+		return NullPtr;
+	}
 
 	return MaterialNodes::SetUpTintShadingNode( ShadingNode, mMaterialChannel.mMaterialName, mRedChannel, mGreenChannel, mBlueChannel, mMaterialChannel.mTime );
 }
@@ -1586,7 +1590,6 @@ MaterialNodes::RunBitmapNode( Texmap* mTexMap, MaterialNodes::MaterialChannelDat
 	// allocate and writedata to TextureData
 	MaterialNodes::TextureData mTextureData( mTexMap );
 
-	TCHAR tTexturePath[ MAX_PATH ] = { 0 };
 	bool bIsSRGB = false;
 
 	// change sRGB based on gamma
@@ -1595,9 +1598,12 @@ MaterialNodes::RunBitmapNode( Texmap* mTexMap, MaterialNodes::MaterialChannelDat
 	{
 		bIsSRGB = true;
 	}
-	GetImageFullFilePath( mTextureData.mBitmap->GetMapName(), tTexturePath );
+	// GetImageFullFilePath( mTextureData.mBitmap->GetMapName(), tTexturePath );
+	std::basic_string<TCHAR> tTexturePath = mTextureData.mBitmap->GetMapName();
 
-	if( _tcslen( tTexturePath ) > 0 )
+	// if the path length is > 0, try to import texture to temporary directory, if the full path can not be resolved in ImportTexture a stand-in texture will be
+	// written and warning message outputted.
+	if( tTexturePath.length() > 0 )
 	{
 		// if normal map, disable sRGB
 		if( mMaterialChannel.mMaxChannelId == ID_BU )
@@ -1623,7 +1629,8 @@ MaterialNodes::RunBitmapNode( Texmap* mTexMap, MaterialNodes::MaterialChannelDat
 
 			if( tTexturePathOverride.length() > 0 )
 			{
-				_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
+				tTexturePath = tTexturePathOverride;
+				//_stprintf_s( tTexturePath, _T("%s"), tTexturePathOverride.c_str() );
 			}
 		}
 
@@ -1649,7 +1656,7 @@ MaterialNodes::RunBitmapNode( Texmap* mTexMap, MaterialNodes::MaterialChannelDat
 			}
 		}
 
-		mTextureData.mTexturePathWithName = tTexturePath;
+		mTextureData.mTexturePathWithName = SimplygonMaxInstance->ImportTexture( tTexturePath );
 		mTextureData.mTextureName = GetTitleOfFile( mTextureData.mTexturePathWithName );
 		mTextureData.mTextureExtension = GetExtensionOfFile( mTextureData.mTexturePathWithName );
 		mTextureData.mTextureNameWithExtension = mTextureData.mTextureName + mTextureData.mTextureExtension;
@@ -1668,14 +1675,28 @@ MaterialNodes::RunBitmapNode( Texmap* mTexMap, MaterialNodes::MaterialChannelDat
 			mTextureData.mPremultipliedAlpha =
 			    textureSettingsOverride->mEnabledPremultOverride ? textureSettingsOverride->mPremultipliedAlpha : mTextureData.mPremultipliedAlpha;
 		}
+
+		// map TextureData
+		SimplygonMaxInstance->CreateAndLinkTexture( mTextureData );
+
+		// setup the bitmapNode
+		return MaterialNodes::SetUpBitmapShadingNode(
+		    mMaterialChannel.mMaterialName, tMaxMappingChannel, mTextureData, mMaterialChannel.mMaxChannelId, mMaterialChannel.mTime );
 	}
+	// nodes with null/empty paths
+	else
+	{
+		MSTR nodeInfo = mTexMap->GetFullName();
 
-	// map TextureData
-	SimplygonMaxInstance->CreateAndLinkTexture( mTextureData );
+		mMaterialChannel.mWarningMessage += _T("An empty (or unknown) material node with id: ");
+		mMaterialChannel.mWarningMessage += nodeInfo;
+		mMaterialChannel.mWarningMessage += _T(" was detected in material ");
+		mMaterialChannel.mWarningMessage += mMaterialChannel.mMaterialName;
+		mMaterialChannel.mWarningMessage += _T(" on channel ");
+		mMaterialChannel.mWarningMessage += mMaterialChannel.mChannelName;
 
-	// setup the bitmapNode
-	return MaterialNodes::SetUpBitmapShadingNode(
-	    mMaterialChannel.mMaterialName, tMaxMappingChannel, mTextureData, mMaterialChannel.mMaxChannelId, mMaterialChannel.mTime );
+		return NullPtr;
+	}
 }
 
 spShadingNode MaterialNodes::RunMultiplyNode( Texmap* mTexMap, MaterialNodes::MaterialChannelData& mMaterialChannel )
@@ -1689,24 +1710,32 @@ spShadingNode MaterialNodes::RunMultiplyNode( Texmap* mTexMap, MaterialNodes::Ma
 	                              GetTexMapProperty<Color>( mTexMap, _T("color2"), mMaterialChannel.mTime, &mColors[ 1 ] ) };
 
 	//
-	int isEnabled[ 2 ] = { 0, 0 };
-	const bool bEnableMapsFound[ 2 ] = { GetTexMapProperty<int>( mTexMap, _T("map1Enabled"), mMaterialChannel.mTime, &isEnabled[ 0 ] ),
-	                                     GetTexMapProperty<int>( mTexMap, _T("map2Enabled"), mMaterialChannel.mTime, &isEnabled[ 1 ] ) };
+	int bIsEnabled[ 2 ] = { 0, 0 };
+	const bool bEnableMapsFound[ 2 ] = { GetTexMapProperty<int>( mTexMap, _T("map1Enabled"), mMaterialChannel.mTime, &bIsEnabled[ 0 ] ),
+	                                     GetTexMapProperty<int>( mTexMap, _T("map2Enabled"), mMaterialChannel.mTime, &bIsEnabled[ 1 ] ) };
 
 	//
 	int alphaFrom = 0;
-	const bool alphaFromFound = GetTexMapProperty<int>( mTexMap, _T("alphaFrom"), mMaterialChannel.mTime, &alphaFrom );
+	const bool bAlphaFromFound = GetTexMapProperty<int>( mTexMap, _T("alphaFrom"), mMaterialChannel.mTime, &alphaFrom );
 	MaterialNodes::MultiplyNodeAlphaFrom mAlphaFrom = (MaterialNodes::MultiplyNodeAlphaFrom)alphaFrom;
 
 	// Map TextureData
 	for( int i = 0; i < 2; ++i )
 	{
 		Texmap* mSubTexMap = mTexMap->GetSubTexmap( i );
-		if( isEnabled[ i ] )
+		bool bWriteColor = !bIsEnabled[ i ];
+
+		if( bIsEnabled[ i ] )
 		{
 			mShadingNodes[ i ] = SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel );
+			if( mShadingNodes[ i ] == NullPtr )
+			{
+				return NullPtr;
+			}
 		}
-		else
+
+		// if the slot is disabled, write the colors for the corresponding slots
+		if( bWriteColor )
 		{
 			spShadingColorNode sgColorNode = sg->CreateShadingColorNode();
 			sgColorNode->SetColor( mColors[ i ].r, mColors[ i ].g, mColors[ i ].b, 1.0f );
@@ -1750,7 +1779,12 @@ spShadingNode MaterialNodes::RunCompositeNode( Texmap* mTexMap, MaterialNodes::M
 		{
 			Texmap* mSubTexMap = mTexMap->GetSubTexmap( i );
 
-			mTextureNodes.emplace_back( SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel ) );
+			spShadingNode shadingNode = SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel );
+			if( shadingNode == NullPtr )
+			{
+				return NullPtr;
+			}
+			mTextureNodes.emplace_back( shadingNode );
 		}
 		else
 		{
@@ -1770,7 +1804,13 @@ spShadingNode MaterialNodes::RunCompositeNode( Texmap* mTexMap, MaterialNodes::M
 			textureOverride.mEnabledSRGBOverride = true;
 			textureOverride.mSRGB = false;
 
-			mMaskNodes.emplace_back( SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel, &textureOverride ) );
+			spShadingNode shadingNode = SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel, &textureOverride );
+			if( shadingNode == NullPtr )
+			{
+				return NullPtr;
+			}
+
+			mMaskNodes.emplace_back( shadingNode );
 		}
 		else
 		{
@@ -1878,11 +1918,17 @@ spShadingNode MaterialNodes::RunColorCorrectionNode( Texmap* mTexMap, MaterialNo
 	colorCorrectionData.mEnableB = enableBlue == 1;
 
 	Texmap* mSubTexMap = mTexMap->GetSubTexmap( 0 );
+	bool bWriteColor = mSubTexMap == nullptr;
 	if( mSubTexMap )
 	{
 		node = SimplygonMaxInstance->CreateSgMaterial( mSubTexMap, mMaterialChannel );
+		if( node == NullPtr )
+		{
+			return NullPtr;
+		}
 	}
-	else
+
+	if( bWriteColor )
 	{
 		spShadingColorNode sgColorNode = sg->CreateShadingColorNode();
 		sgColorNode->SetColor( mColor.r, mColor.g, mColor.b, mColor.a );
@@ -10094,6 +10140,17 @@ spShadingNode SimplygonMax::CreateSgMaterialPBRChannel( Texmap* mTexMap, long ma
 
 	spShadingNode sgShadingNode = CreateSgMaterial( mTexMap, mChannelData );
 
+	if( sgShadingNode == NullPtr )
+	{
+		mChannelData.mWarningMessage += _T(", replacing with black color node.");
+		SimplygonMaxInstance->LogToWindow( mChannelData.mWarningMessage, Warning );
+
+		spShadingColorNode sgBlackNode = sg->CreateShadingColorNode();
+		sgBlackNode->SetColor( 0.0f, 0.0f, 0.0f, 1.0f );
+
+		sgShadingNode = sgBlackNode;
+	}
+
 	return sgShadingNode;
 }
 
@@ -10244,7 +10301,7 @@ spShadingNode SimplygonMax::CreateSgMaterial( Texmap* mTexMap,
                                               MaterialNodes::MaterialChannelData& mMaterialChannel,
                                               MaterialNodes::TextureSettingsOverride* textureSettingsOverride )
 {
-	spShadingNode sgNode;
+	spShadingNode sgNode = NullPtr;
 
 	if( mTexMap && ( mTexMap->ClassID() == Class_ID( BMTEX_CLASS_ID, 0 ) || ( mTexMap->ClassID() == GNORMAL_CLASS_ID ) ||
 	                 ( mTexMap->ClassID() == Class_ID( RGBMULT_CLASS_ID, 0 ) ) || ( mTexMap->ClassID() == Class_ID( TINT_CLASS_ID, 0 ) ) ||
@@ -10302,7 +10359,12 @@ spShadingNode SimplygonMax::CreateSgMaterial( Texmap* mTexMap,
 		// if there is a texmap of unsupported type, output warning
 		if( mTexMap )
 		{
-			LogMaterialNodeMessage( mTexMap, mMaterialChannel.mMaterialName, mMaterialChannel.mChannelName );
+			Class_ID nodeClassId = mTexMap->ClassID();
+			TSTR nodeClassName = _T("Unknown");
+			mTexMap->GetClassName( nodeClassName );
+
+			mMaterialChannel.mWarningMessage = mMaterialChannel.mMaterialName + _T(" (") + mMaterialChannel.mChannelName + _T(") - ") +
+			                                   std::basic_string<TCHAR>( nodeClassName ) + _T(" texture node is not supported");
 		}
 
 		if( mMaterialChannel.IsSTD() )
@@ -10373,14 +10435,6 @@ spShadingNode SimplygonMax::CreateSgMaterial( Texmap* mTexMap,
 				sgNode = MaterialNodes::RunBitmapNode( mTexMap, mMaterialChannel );
 			}
 		}
-
-		if( sgNode.IsNull() )
-		{
-			spShadingColorNode sgWhiteReplacementNode = sg->CreateShadingColorNode();
-			sgWhiteReplacementNode->SetColor( 1.0f, 1.0f, 1.0f, 1.0f );
-
-			sgNode = sgWhiteReplacementNode;
-		}
 	}
 
 	return sgNode;
@@ -10427,6 +10481,17 @@ void SimplygonMax::CreateSgMaterialSTDChannel( long maxChannelId, StdMat2* mMaxS
 		    tMaterialName, tChannelName, maxChannelId, mMaxStdMaterial, sgMaterial, &this->MaterialTextureOverrides, this->CurrentTime, false );
 
 		spShadingNode sgShadingNode = CreateSgMaterial( mTexMap, mChannelData );
+
+		if( sgShadingNode == NullPtr )
+		{
+			mChannelData.mWarningMessage += _T(", replacing with basecolor node.");
+			SimplygonMaxInstance->LogToWindow( mChannelData.mWarningMessage, Warning );
+
+			spShadingColorNode sgBaseColorNode = sg->CreateShadingColorNode();
+			sgBaseColorNode->SetColor( mColor.r, mColor.g, mColor.b, 1.0f );
+
+			sgShadingNode = sgBaseColorNode;
+		}
 
 		const char* cChannelName = LPCTSTRToConstCharPtr( tChannelName.c_str() );
 
@@ -11245,11 +11310,11 @@ std::basic_string<TCHAR> SimplygonMax::ImportTexture( std::basic_string<TCHAR> t
 		{
 			std::basic_string<TCHAR> tWarningMessage;
 
-			tWarningMessage += _T("Warning: Failed to import texture: ");
+			tWarningMessage += _T("Failed to import texture: ");
 			tWarningMessage += tSourcePath.c_str();
 			tWarningMessage += _T(", using a stand-in texture");
 
-			this->LogMessageToScriptEditor( tWarningMessage );
+			this->LogToWindow( tWarningMessage, Warning );
 
 			WriteStandinTexture( tImportPath.c_str() );
 		}
@@ -12587,6 +12652,12 @@ Mtl* SimplygonMax::SetupPhysicalMaterial( spScene sgProcessedScene, std::basic_s
 	mMaxPhysicalMaterial->SetName( tPhysicalMaterialName.c_str() );
 	mMaxPhysicalMaterial->SetMtlFlag( MTL_TEX_DISPLAY_ENABLED | MTL_HW_TEX_ENABLED | MTL_HW_MAT_ENABLED );
 
+	SetShaderParameter( mMaxPhysicalMaterial, _T("emission"), 0.f );
+	SetShaderParameter( mMaxPhysicalMaterial, _T("emission_map_on"), false );
+
+	SetShaderParameter( mMaxPhysicalMaterial, _T("emit_color"), Point4( 0.f, 0.f, 0.f, 1.f ) );
+	SetShaderParameter( mMaxPhysicalMaterial, _T("emit_color_map_on"), false );
+
 	for( uint channelIndex = 0; channelIndex < numMaterialChannels; ++channelIndex )
 	{
 		spString rChannelName = sgMaterial->GetMaterialChannelFromIndex( channelIndex );
@@ -12725,23 +12796,17 @@ Mtl* SimplygonMax::SetupPhysicalMaterial( spScene sgProcessedScene, std::basic_s
 		}
 		else if( tChannelName == _T("emission") )
 		{
-			// disable emission rendering for now due to weird behavior
-			SetShaderParameter( mMaxPhysicalMaterial, _T("emission"), 0.f );
-			SetShaderParameter( mMaxPhysicalMaterial, _T("emission_map_on"), false );
-
-			SetShaderParameter( mMaxPhysicalMaterial, _T("emit_color"), Point4( 0.f, 0.f, 0.f, 1.f ) );
-			SetShaderParameter( mMaxPhysicalMaterial, _T("emit_color_map_on"), false );
+			// disable emission rendering for now due to weird behavior in viewport ( works in offline renderer )
+			SetShaderParameter( mMaxPhysicalMaterial, _T("emission"), 1.0f );
 
 			mMaxPhysicalMaterial->SetSubTexmap( 16, mBitmapTex );
 		}
 		else if( tChannelName == _T("emit_color") )
 		{
-			// disable emission rendering for now due to weird behavior
-			SetShaderParameter( mMaxPhysicalMaterial, _T("emission"), 0.f );
-			SetShaderParameter( mMaxPhysicalMaterial, _T("emission_map_on"), false );
+			// disable emission rendering for now due to weird behavior in viewport ( works in offline renderer )
+			SetShaderParameter( mMaxPhysicalMaterial, _T("emission"), 1.f );
 
 			SetShaderParameter( mMaxPhysicalMaterial, _T("emit_color"), Point4( 0.f, 0.f, 0.f, 1.f ) );
-			SetShaderParameter( mMaxPhysicalMaterial, _T("emit_color_map_on"), false );
 
 			mMaxPhysicalMaterial->SetSubTexmap( 17, mBitmapTex );
 		}

@@ -721,6 +721,9 @@ class MaterialChannelData
 	std::vector<MaterialTextureOverride>* mMaterialTextureOverrides;
 	TimeValue mTime;
 
+	// fills in when node fails
+	std::basic_string<TCHAR> mWarningMessage;
+
 	private:
 	const bool mIsMatPBR;
 };
