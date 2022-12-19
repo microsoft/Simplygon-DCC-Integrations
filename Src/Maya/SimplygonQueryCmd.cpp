@@ -75,8 +75,8 @@ double SimplygonQueryCmd::GetLodSwitchDistanceAtFOV( double fov )
 			MObject mAttrObj = MObject::kNullObj;
 
 			bool hasMaxDeviation = mDepNode.hasAttribute( "MaxDeviation" );
-			bool hasSceneRadius = mDepNode.hasAttribute( "SceneRadius" );
-			if( hasMaxDeviation && hasSceneRadius )
+			bool hasSceneMeshesRadius = mDepNode.hasAttribute( "SceneMeshesRadius" );
+			if( hasMaxDeviation && hasSceneMeshesRadius )
 			{
 				// get MaxDeviation
 				double maxDeviation = 0.0;
@@ -92,19 +92,19 @@ double SimplygonQueryCmd::GetLodSwitchDistanceAtFOV( double fov )
 				}
 
 				// get SceneRadius
-				double sceneRadius = 0.0;
+				double sceneMeshesRadius = 0.0;
 				{
 					MStatus mStatus;
-					MPlug mPlug = mDepNode.findPlug( "SceneRadius", mStatus );
+					MPlug mPlug = mDepNode.findPlug( "SceneMeshesRadius", mStatus );
 					if( mStatus != MStatus::kSuccess )
 						continue;
 
-					mStatus = mPlug.getValue( sceneRadius );
+					mStatus = mPlug.getValue( sceneMeshesRadius );
 					if( mStatus != MStatus::kSuccess )
 						continue;
 				}
 
-				distance = TranslateDeviationToDistance( sceneRadius, maxDeviation, ( fov * ( PI / 180.0f ) ), this->ScreenSize );
+				distance = TranslateDeviationToDistance( sceneMeshesRadius, maxDeviation, ( fov * ( PI / 180.0f ) ), this->ScreenSize );
 				continue;
 			}
 

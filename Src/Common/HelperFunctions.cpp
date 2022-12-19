@@ -201,3 +201,31 @@ std::basic_string<char> AppendInt( const std::basic_string<char>& str, int value
 {
 	return str + std::to_string( value );
 }
+
+bool ExportTextureToFile( Simplygon::ISimplygon* sg, Simplygon::spTexture sgTexture, const char* exportFilePath )
+{
+	auto exporter = sg->CreateImageDataExporter();
+
+	Simplygon::EImageOutputFormat exportFormat = Simplygon::EImageOutputFormat::PNG;
+	switch( sgTexture->GetImageData()->GetInputFormat() )
+	{
+		case Simplygon::EImageInputFormat::BMP: exportFormat = Simplygon::EImageOutputFormat::BMP;
+		case Simplygon::EImageInputFormat::DDS: exportFormat = Simplygon::EImageOutputFormat::DDS;
+		case Simplygon::EImageInputFormat::JPEG: exportFormat = Simplygon::EImageOutputFormat::JPEG;
+		case Simplygon::EImageInputFormat::TGA: exportFormat = Simplygon::EImageOutputFormat::TGA;
+		case Simplygon::EImageInputFormat::TIFF: exportFormat = Simplygon::EImageOutputFormat::TIFF;
+		case Simplygon::EImageInputFormat::EXR: exportFormat = Simplygon::EImageOutputFormat::EXR;
+	}
+
+	exporter->SetImage( sgTexture->GetImageData() );
+	exporter->SetExportFilePath( exportFilePath );
+	exporter->SetImageFileFormat( exportFormat );
+	exporter->SetDDSCompressionType( sgTexture->GetImageData()->GetDDSCompressionType() );
+
+	if( exporter->RunExport() )
+	{
+		sgTexture->SetFilePath( exporter->GetExportFilePath() );
+		return true;
+	}
+	return false;
+}

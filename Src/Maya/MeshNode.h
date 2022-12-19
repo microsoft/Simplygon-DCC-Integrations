@@ -272,6 +272,9 @@ class MeshNode
 	MStatus AddSkinning( spScene sgProcessedScene );
 
 	void CopyColorFieldToWeightsField( spRealArray field, bool RemoveOriginalField );
+
+	// creates a temporary selectionset of all scenemeshes and calculates their combined radius
+	float GetSceneMeshesRadius( spScene sgScene );
 };
 
 void DisableBlendShapes();

@@ -4083,6 +4083,28 @@ MStatus MeshNode::WritebackGeometryData(
 		AddAttribute<MFnNumericAttribute, MFnNumericData::Type, float>( mModifiedDependencyNode, cAttributeName, MFnNumericData::Type::kFloat, sceneRadius );
 	}
 
+	// scene meshes radius
+	if( true )
+	{
+		const char* cAttributeName = "SceneMeshesRadius";
+		const real sceneMeshesRadius = GetSceneMeshesRadius( sgProcessedScene );
+		AddAttribute<MFnNumericAttribute, MFnNumericData::Type, float>(
+		    mModifiedDependencyNode, cAttributeName, MFnNumericData::Type::kFloat, sceneMeshesRadius );
+	}
+
+	// processed meshes radius
+	if( true )
+	{
+		const char* cAttributeName = "ProcessedMeshesRadius";
+		auto sgProcessedMeshesExtents = sgProcessedScene->GetCustomFieldProcessedMeshesExtents();
+		if( !sgProcessedMeshesExtents.IsNull() )
+		{
+			const real processedMeshesRadius = sgProcessedMeshesExtents->GetBoundingSphereRadius();
+			AddAttribute<MFnNumericAttribute, MFnNumericData::Type, float>(
+			    mModifiedDependencyNode, cAttributeName, MFnNumericData::Type::kFloat, processedMeshesRadius );
+		}
+	}
+
 	// lod index
 	if( true )
 	{
@@ -5263,6 +5285,28 @@ MStatus MeshNode::WritebackGeometryData_Quad(
 		AddAttribute<MFnNumericAttribute, MFnNumericData::Type, float>( mModifiedDependencyNode, cAttributeName, MFnNumericData::Type::kFloat, sceneRadius );
 	}
 
+	// scene meshes radius
+	if( true )
+	{
+		const char* cAttributeName = "SceneMeshesRadius";
+		const real sceneMeshesRadius = GetSceneMeshesRadius( sgProcessedScene );
+		AddAttribute<MFnNumericAttribute, MFnNumericData::Type, float>(
+		    mModifiedDependencyNode, cAttributeName, MFnNumericData::Type::kFloat, sceneMeshesRadius );
+	}
+
+	// processed meshes radius
+	if( true )
+	{
+		const char* cAttributeName = "ProcessedMeshesRadius";
+		auto sgProcessedMeshesExtents = sgProcessedScene->GetCustomFieldProcessedMeshesExtents();
+		if( !sgProcessedMeshesExtents.IsNull() )
+		{
+			const real processedMeshesRadius = sgProcessedMeshesExtents->GetBoundingSphereRadius();
+			AddAttribute<MFnNumericAttribute, MFnNumericData::Type, float>(
+			    mModifiedDependencyNode, cAttributeName, MFnNumericData::Type::kFloat, processedMeshesRadius );
+		}
+	}
+
 	// lod index
 	if( true )
 	{
@@ -6173,6 +6217,20 @@ void MeshNode::CopyColorFieldToWeightsField( spRealArray sgColors, bool RemoveOr
 			}
 		}
 	}
+}
+
+float MeshNode::GetSceneMeshesRadius( spScene sgScene )
+{
+	float result = 0.f;
+	const rid ssId = sgScene->SelectNodes( "SceneMesh" );
+	spExtents extents = sg->CreateExtents();
+
+	if( sgScene->CalculateExtentsOfSelectionSetId( extents, ssId ) )
+		result = extents->GetBoundingSphereRadius();
+
+	sgScene->GetSelectionSetTable()->RemoveSelectionSet( ssId );
+
+	return result;
 }
 
 MString MeshNode::GetOriginalNodeName()

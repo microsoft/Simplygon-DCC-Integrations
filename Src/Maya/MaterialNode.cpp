@@ -1418,7 +1418,7 @@ std::string MaterialNode::GetSimplygonMaterialWithShadingNetwork( MString mMater
 				std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
 
 				spString sgsdkTexCoordName = sgsdkTextureNode->GetTexCoordName();
-				const bool sgsdkUseSRGB = sgsdkTextureNode->GetUseSRGB();
+				const bool sgsdkUseSRGB = sgsdkTextureNode->GetColorSpaceOverride() == Simplygon::EImageColorSpace::sRGB;
 				const uint sgsdkParamCount = sgsdkTextureNode->GetParameterCount();
 
 				// create texture and add it to scene
@@ -1852,7 +1852,7 @@ spShadingNode GenerateSgTextureNodeFromLayer( const TextureProperties* textureLa
 	c->SetTileV( repeatV );
 	c->SetOffsetU( offsetU );
 	c->SetOffsetV( offsetV );
-	c->SetUseSRGB( bIsSRGB );
+	c->SetColorSpaceOverride( bIsSRGB ? Simplygon::EImageColorSpace::sRGB : Simplygon::EImageColorSpace::Linear );
 
 	return c;
 }

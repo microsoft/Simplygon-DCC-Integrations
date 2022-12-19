@@ -705,12 +705,32 @@ SimplygonProcessingModule::RunPipeline( const spScene sgInputScene, const Simply
 	// run the pipeline internally, or in new process
 	try
 	{
-		sgPipeline->RunScene( sgInputScene, runMode );
+		Simplygon::EErrorCodes errors = sgPipeline->RunScene( sgInputScene, runMode );
+		if( errors != Simplygon::EErrorCodes::NoError )
+		{
+			spStringArray errorArray = sg->CreateStringArray();
+			if( sg->ErrorOccurred() )
+			{
+				sg->GetErrorMessages( errorArray );
+			}
+
+			std::string sErrorMessage;
+			for( uint32_t id = 0; id < errorArray.GetTupleCount(); ++id )
+			{
+				sErrorMessage.append( errorArray.GetItem( id ).c_str() + '\n' );
+			}
+
+			// and report error
+			throw std::exception( sErrorMessage.c_str() );
+		}
 	}
 	catch( std::exception ex )
 	{
 		// if error, remove progress observer
 		sgPipeline->RemoveObserver( observerId );
+
+		sg->ClearErrorMessages();
+		sg->ClearWarningMessages();
 
 		// and report error
 		std::string sErrorMessage = "Could not process the given scene - ";

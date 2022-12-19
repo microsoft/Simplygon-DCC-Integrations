@@ -1287,7 +1287,7 @@ void SimplygonShadingNetworkHelperCmd::SetSRGBAll( MString mTextureNodeName, boo
 			spShadingTextureNode sgTextureNode = spShadingTextureNode::SafeCast( nodeProxy->sgShadingNode );
 			if( sgTextureNode.NonNull() )
 			{
-				sgTextureNode->SetUseSRGB( sRGB );
+				sgTextureNode->SetColorSpaceOverride( sRGB ? Simplygon::EImageColorSpace::sRGB : Simplygon::EImageColorSpace::Linear );
 			}
 		}
 	}
@@ -1310,7 +1310,7 @@ void SimplygonShadingNetworkHelperCmd::SetSRGBMaterial( MString mMaterialName, M
 				spShadingTextureNode sgTextureNode = spShadingTextureNode::SafeCast( nodeProxy->sgShadingNode );
 				if( sgTextureNode.NonNull() )
 				{
-					sgTextureNode->SetUseSRGB( sRGB );
+					sgTextureNode->SetColorSpaceOverride( sRGB ? Simplygon::EImageColorSpace::sRGB : Simplygon::EImageColorSpace::Linear );
 				}
 			}
 		}
@@ -1337,7 +1337,7 @@ void SimplygonShadingNetworkHelperCmd::SetSRGBMaterialChannel( MString mMaterial
 				spShadingTextureNode sgTextureNode = spShadingTextureNode::SafeCast( nodeProxy->sgShadingNode );
 				if( sgTextureNode.NonNull() )
 				{
-					sgTextureNode->SetUseSRGB( sRGB );
+					sgTextureNode->SetColorSpaceOverride( sRGB ? Simplygon::EImageColorSpace::sRGB : Simplygon::EImageColorSpace::Linear );
 				}
 			}
 		}
