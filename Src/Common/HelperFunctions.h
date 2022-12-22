@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include "SimplygonLoader.h"
+
 typedef unsigned int uint;
 
 enum ColorSpaceType
@@ -95,5 +97,8 @@ template <typename T> void ClearArray( T* targetArray, T value, uint length )
 
 std::basic_string<wchar_t> AppendInt( const std::basic_string<wchar_t>& str, int value );
 std::basic_string<char> AppendInt( const std::basic_string<char>& str, int value );
+
+
+bool ExportTextureToFile( Simplygon::ISimplygon* sg, Simplygon::spTexture sgTexture, const char* exportFilePath );
 
 #endif

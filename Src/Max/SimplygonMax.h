@@ -1576,4 +1576,7 @@ void GlobalLogMaterialNodeMessage( Texmap* mTexMap,
                                    const bool partialFail = false,
                                    std::basic_string<TCHAR> tExtendedInformation = L"" );
 
+
+float GetSceneMeshesRadius( Simplygon::spScene sgScene );
+
 #endif //__SIMPLYGONMAXPLUGIN_H__

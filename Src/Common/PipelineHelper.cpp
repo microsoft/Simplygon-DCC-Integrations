@@ -85,6 +85,10 @@ INT64 PipelineHelper::CreateSettingsPipeline( std::basic_string<TCHAR> tPipeline
 	{
 		sgPipeline = spPipeline::SafeCast( sg->CreatePassthroughPipeline() );
 	}
+	else if( tPipelineType == _T("HighDensityMeshReduction") )
+	{
+		sgPipeline = spPipeline::SafeCast( sg->CreateHighDensityMeshReductionPipeline() );
+	}
 	else
 	{
 		// not supported

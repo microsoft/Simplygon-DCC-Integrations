@@ -61,16 +61,7 @@ MStatus StandardMaterial::ImportMaterialTextureFile( const char* cChannelName,
 	if( !sgExitNode.IsNull() )
 	{
 		// get texture directory
-		std::basic_string<TCHAR> tTextureDirectory;
-
-		if( cmd->extractionType == BATCH_PROCESSOR )
-		{
-			tTextureDirectory = this->cmd->GetWorkDirectoryHandler()->GetBakedTexturesPath();
-		}
-		else
-		{
-			tTextureDirectory = this->cmd->GetWorkDirectoryHandler()->GetImportWorkDirectory();
-		}
+		std::basic_string<TCHAR> tBakedTextureDirectory = this->cmd->GetWorkDirectoryHandler()->GetBakedTexturesPath();
 
 		// fetch channel parameters
 		std::basic_string<TCHAR> tChannelName = ConstCharPtrToLPCTSTR( cChannelName );
@@ -126,13 +117,13 @@ MStatus StandardMaterial::ImportMaterialTextureFile( const char* cChannelName,
 			}
 
 			std::basic_string<TCHAR> tTextureName = ConstCharPtrToLPCTSTR( sgTexture->GetName() );
-			std::basic_string<TCHAR> tTexturePath = sgTexture->GetFilePath() ? ConstCharPtrToLPCTSTR( sgTexture->GetFilePath() ) : tTextureName;
-			std::basic_string<TCHAR> tSourceFilePath = Combine( tTextureDirectory, tTexturePath );
+			std::basic_string<TCHAR> tTexturePath = sgTexture->GetImageData().IsNull() ? ConstCharPtrToLPCTSTR( sgTexture->GetFilePath() ) : "";
+			std::basic_string<TCHAR> tSourceFilePath = Combine( tBakedTextureDirectory, tTexturePath );
 			if( !sgTexture->GetImageData().IsNull() )
 			{
 				// Embedded data, should be written to file
-				sgTexture->SetFilePath( tSourceFilePath.c_str() );
-				if( sgTexture->ExportImageData() )
+				tSourceFilePath = Combine( tSourceFilePath, tTextureName );
+				if( ExportTextureToFile( sg, sgTexture, LPCTSTRToConstCharPtr( tSourceFilePath.c_str() ) ) )
 				{
 					tSourceFilePath = sgTexture->GetFilePath().c_str();
 					sgTexture->SetImageData( Simplygon::NullPtr );
@@ -186,7 +177,7 @@ MStatus StandardMaterial::ImportMaterialTextureFile( const char* cChannelName,
 				materialChannel->TexturePath = tSourceFilePath.c_str();
 			}
 
-			materialChannel->IsSRGB = sgTextureNode->GetUseSRGB();
+			materialChannel->IsSRGB = sgTextureNode->GetColorSpaceOverride() == Simplygon::EImageColorSpace::sRGB;
 
 			if( tTextureUvSet.length() > 0 )
 			{

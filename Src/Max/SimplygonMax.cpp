@@ -590,7 +590,7 @@ void MaterialNodes::PopulateTextureNode( spShadingTextureNode sgTextureNode,
 {
 	sgTextureNode->SetTextureName( LPCTSTRToConstCharPtr( tTextureName.c_str() ) );
 	sgTextureNode->SetTexCoordName( LPCTSTRToConstCharPtr( tMaxMappingChannel.c_str() ) );
-	sgTextureNode->SetUseSRGB( isSRGB );
+	sgTextureNode->SetColorSpaceOverride( isSRGB ? Simplygon::EImageColorSpace::sRGB : Simplygon::EImageColorSpace::Linear );
 
 	if( mBitmapTex != nullptr )
 	{
@@ -2411,7 +2411,8 @@ class PhysicalMaterial
 
 									if( nodeProxy->isSRGBOverride )
 									{
-										sgTextureNode->SetUseSRGB( nodeProxy->isSRGB );
+										sgTextureNode->SetColorSpaceOverride( nodeProxy->isSRGB ? Simplygon::EImageColorSpace::sRGB
+										                                                        : Simplygon::EImageColorSpace::Linear );
 									}
 
 									// create texture and add it to scene
@@ -3589,8 +3590,7 @@ class PhysicalMaterial
 
 			if( HasValidTexMap( mSheenColorMap, mSheenColorMapOn ) )
 			{
-				spShadingNode sgShadingNode =
-				    MaxReference->CreateSgMaterialPBRChannel( mSheenColorMap, maxChannelID, cMaterialName, cChannelName );
+				spShadingNode sgShadingNode = MaxReference->CreateSgMaterialPBRChannel( mSheenColorMap, maxChannelID, cMaterialName, cChannelName );
 				sgMaterial->SetShadingNetwork( cChannelName, sgShadingNode );
 			}
 			else
@@ -9316,7 +9316,7 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 	// add custom attributes
 
 	// max deviation
-	spRealArray sgMaxDeviation = spRealArray::SafeCast( sgProcessedScene->GetCustomField( "MaxDeviation" ) );
+	spRealArray sgMaxDeviation = sgProcessedScene->GetCustomFieldMaxDeviation();
 	if( !sgMaxDeviation.IsNull() )
 	{
 		const real maxDev = sgMaxDeviation->GetItem( 0 );
@@ -9326,6 +9326,18 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 	// scene radius
 	const real sceneRadius = sgProcessedScene->GetRadius();
 	mNewMaxNode->SetUserPropFloat( _T("SceneRadius"), sceneRadius );
+
+	// scene meshes radius
+	const real sceneMeshesRadius = GetSceneMeshesRadius( sgProcessedScene );
+	mNewMaxNode->SetUserPropFloat( _T("SceneMeshesRadius"), sceneMeshesRadius );
+
+	// processed meshes radius
+	auto sgProcessedMeshesExtents = sgProcessedScene->GetCustomFieldProcessedMeshesExtents();
+	if( !sgProcessedMeshesExtents.IsNull() )
+	{
+		const real processedMeshesRadius = sgProcessedMeshesExtents->GetBoundingSphereRadius();
+		mNewMaxNode->SetUserPropFloat( _T("ProcessedMeshesRadius"), processedMeshesRadius );
+	}
 
 	// original node name
 	mNewMaxNode->SetUserPropString( _T("OriginalNodeName"), tMaxOriginalNodeName.c_str() );
@@ -10351,7 +10363,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 	// add custom attributes
 
 	// max deviation
-	spRealArray sgMaxDeviation = spRealArray::SafeCast( sgProcessedScene->GetCustomField( "MaxDeviation" ) );
+	spRealArray sgMaxDeviation = sgProcessedScene->GetCustomFieldMaxDeviation();
 	if( !sgMaxDeviation.IsNull() )
 	{
 		const real maxDev = sgMaxDeviation->GetItem( 0 );
@@ -10361,6 +10373,18 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 	// scene radius
 	const real sceneRadius = sgProcessedScene->GetRadius();
 	mNewMaxNode->SetUserPropFloat( _T("SceneRadius"), sceneRadius );
+
+	// scene meshes radius
+	const real sceneMeshesRadius = GetSceneMeshesRadius( sgProcessedScene );
+	mNewMaxNode->SetUserPropFloat( _T("SceneMeshesRadius"), sceneMeshesRadius );
+
+	// processed meshes radius
+	auto sgProcessedMeshesExtents = sgProcessedScene->GetCustomFieldProcessedMeshesExtents();
+	if( !sgProcessedMeshesExtents.IsNull() )
+	{
+		const real processedMeshesRadius = sgProcessedMeshesExtents->GetBoundingSphereRadius();
+		mNewMaxNode->SetUserPropFloat( _T("ProcessedMeshesRadius"), processedMeshesRadius );
+	}
 
 	// original node name
 	mNewMaxNode->SetUserPropString( _T("OriginalNodeName"), tMaxOriginalNodeName.c_str() );
@@ -11365,6 +11389,24 @@ bool SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 	// if channel exists
 	if( sgMaterial->HasMaterialChannel( cChannelName ) )
 	{
+		// override
+		std::basic_string<TCHAR> tTextureTargetDirectory = tMaxBitmapDirectory;
+		if( this->TextureOutputDirectory.length() > 0 )
+		{
+			const bool bFolderCreated = CreateFolder( this->TextureOutputDirectory.c_str() );
+			if( !bFolderCreated )
+			{
+				std::basic_string<TCHAR> tWarningMessage =
+				    _T( "Warning! - Failed to set up the texture path override, please verify the input string and that Max has the required admin rights "
+				        "for accessing the specified location. Textures will be copied to the default path." );
+				this->LogMessageToScriptEditor( tWarningMessage );
+			}
+			else
+			{
+				tTextureTargetDirectory = this->TextureOutputDirectory;
+			}
+		}
+
 		// get texture directory
 		std::basic_string<TCHAR> tBakedTextureDirectory = this->workDirectoryHandler->GetBakedTexturesPath();
 
@@ -11387,6 +11429,14 @@ bool SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 				spString rTextureNameToFind = sgTextureNode->GetTextureName();
 				if( rTextureNameToFind.IsNullOrEmpty() )
 				{
+					std::basic_string<TCHAR> tErrorMessage =
+					    _T("Error (Simplygon): Found a ShadingTextureNode with invalid (NULL or empty) TextureName, unable to map texture on ");
+					tErrorMessage += ConstCharPtrToLPCTSTR( rTextureNameToFind.c_str() );
+					tErrorMessage += _T(") with invalid (NULL or empty) UV-set, unable to map texture on ");
+					tErrorMessage += tChannelName;
+					tErrorMessage += _T(" channel.\n");
+
+					this->LogMessageToScriptEditor( tErrorMessage );
 					return false;
 				}
 
@@ -11394,6 +11444,13 @@ bool SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 				spString rTextureUvSet = sgTextureNode->GetTexCoordName();
 				if( rTextureUvSet.IsNullOrEmpty() )
 				{
+					std::basic_string<TCHAR> tErrorMessage = _T("Error (Simplygon): Found a ShadingTextureNode (");
+					tErrorMessage += ConstCharPtrToLPCTSTR( rTextureNameToFind.c_str() );
+					tErrorMessage += _T(") with invalid (NULL or empty) UV-set, unable to map texture on ");
+					tErrorMessage += tChannelName;
+					tErrorMessage += _T(" channel.\n");
+
+					this->LogMessageToScriptEditor( tErrorMessage );
 					return false;
 				}
 
@@ -11403,69 +11460,67 @@ bool SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 
 				spTexture sgTexture = sgTextureTable->FindTexture( LPCTSTRToConstCharPtr( tTextureNameToFind.c_str() ) );
 
+				// check for empty texture
 				if( sgTexture.IsNull() )
 				{
+					std::basic_string<TCHAR> tErrorMessage = _T("Error (Simplygon): Could not resolve texture ");
+					tErrorMessage += tTextureNameToFind;
+					tErrorMessage += _T(" on ");
+					tErrorMessage += tChannelName;
+					tErrorMessage += _T( " channel.\n" );
+
+					this->LogMessageToScriptEditor( tErrorMessage );
 					return false;
 				}
 
-				spString rFilePath = sgTexture->GetFilePath();
-
-				if( rFilePath.c_str() == nullptr )
+				if( sgTexture->GetFilePath().IsNullOrEmpty() && sgTexture->GetImageData().IsNull() )
 				{
+					std::basic_string<TCHAR> tErrorMessage = _T("Error (Simplygon): Invalid path / data (NULL or empty) for texture: ");
+					tErrorMessage += tTextureNameToFind;
+					tErrorMessage += _T(" on ");
+					tErrorMessage += tChannelName;
+					tErrorMessage += _T( ".\n" );
+
+					this->LogMessageToScriptEditor( tErrorMessage );
 					return false;
 				}
 
 				std::basic_string<TCHAR> tTextureName = ConstCharPtrToLPCTSTR( sgTexture->GetName() );
-				std::basic_string<TCHAR> tTexturePath = ConstCharPtrToLPCTSTR( sgTexture->GetFilePath() );
-				std::basic_string<TCHAR> tTargetFilePath = Combine( tMaxBitmapDirectory, tTexturePath );
+				std::basic_string<TCHAR> tTexturePath = sgTexture->GetImageData().IsNull() ? ConstCharPtrToLPCTSTR( sgTexture->GetFilePath() ) : _T("");
+				std::basic_string<TCHAR> tSourceFilePath = Combine( tBakedTextureDirectory, tTexturePath );
 
 				if( !sgTexture->GetImageData().IsNull() )
 				{
-					std::basic_string<TCHAR> tNewTexturePath = Combine( tBakedTextureDirectory, tTextureName );
-
 					// Embedded data, should be written to file
-					sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tNewTexturePath.c_str() ) );
-					if( sgTexture->ExportImageData() )
+					tSourceFilePath = Combine( tSourceFilePath, tTextureName );
+					if( ExportTextureToFile( sg, sgTexture, LPCTSTRToConstCharPtr( tSourceFilePath.c_str() ) ) )
 					{
-						tTargetFilePath = ConstCharPtrToLPCTSTR( sgTexture->GetFilePath().c_str() );
 						sgTexture->SetImageData( Simplygon::NullPtr );
+						tSourceFilePath = ConstCharPtrToLPCWSTRr( sgTexture.GetFilePath().c_str() );
 					}
 				}
 
+				std::basic_string<TCHAR> sFinalImportTexturePath = tSourceFilePath;
 				if( this->copyTextures )
 				{
 					// the name of the imported texture is based on the name of the node
-					std::basic_string<TCHAR> tImportTextureName = tTextureName + GetExtensionOfFile( tTexturePath );
+					std::basic_string<TCHAR> tImportTextureName = tTextureName + GetExtensionOfFile( tSourceFilePath );
 					ReplaceInvalidCharacters( tImportTextureName, '_' );
-					std::basic_string<TCHAR> tImportTexturePath = Combine( tMaxBitmapDirectory, tImportTextureName );
 
-					if( this->TextureOutputDirectory.length() > 0 )
-					{
-						const bool bFolderCreated = CreateFolder( this->TextureOutputDirectory.c_str() );
-						if( !bFolderCreated )
-						{
-							tTargetFilePath = Combine( tMaxBitmapDirectory, tImportTextureName );
-						}
-						else
-						{
-							tTargetFilePath = Combine( this->TextureOutputDirectory, tImportTextureName );
-						}
-					}
-					else
-					{
-						tTargetFilePath = Combine( std::basic_string<TCHAR>( tMaxBitmapDirectory ), tImportTextureName );
-					}
+					std::basic_string<TCHAR> tImportTexturePath = std::basic_string<TCHAR>( tTextureTargetDirectory.c_str() );
+					tImportTexturePath = Combine( tImportTexturePath, tImportTextureName );
 
+					sFinalImportTexturePath = tImportTexturePath;
 					// make sure to get a unique name
 					if( this->UseNonConflictingTextureNames )
 					{
-						tTargetFilePath = GetNonConflictingNameInPath( tTargetFilePath.c_str() );
+						sFinalImportTexturePath = GetNonConflictingNameInPath( sFinalImportTexturePath.c_str() );
 					}
 
 					uint numCopyRetries = 0;
 
 					// copy the file
-					while( CopyFile( tTexturePath.c_str(), tTargetFilePath.c_str(), FALSE ) == FALSE )
+					while( CopyFile( tSourceFilePath.c_str(), sFinalImportTexturePath.c_str(), FALSE ) == FALSE )
 					{
 						const DWORD dwErrorCode = GetLastError();
 
@@ -11481,10 +11536,10 @@ bool SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 						TCHAR tErrorCode[ 64 ] = { 0 };
 						_stprintf_s( tErrorCode, 64, _T("%u"), dwErrorCode );
 
-						std::basic_string<TCHAR> tErrorMessage = _T("Error - could not copy texture:\n ");
+						std::basic_string<TCHAR> tErrorMessage = _T("Error (Simplygon): - could not copy texture:\n ");
 						tErrorMessage += tTexturePath;
 						tErrorMessage += _T("\n ");
-						tErrorMessage += tTargetFilePath;
+						tErrorMessage += sFinalImportTexturePath;
 						tErrorMessage += _T("\n Code: ");
 						tErrorMessage += tErrorCode;
 						tErrorMessage += _T("\n");
@@ -11512,9 +11567,9 @@ bool SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 					mNewBitmapTex->SetAlphaSource( ALPHA_NONE );
 				}
 
-				mNewBitmapTex->SetMapName( tTargetFilePath.c_str() );
+				mNewBitmapTex->SetMapName( sFinalImportTexturePath.c_str() );
 
-				if( sgTextureNode->GetUseSRGB() )
+				if( sgTextureNode->GetColorSpaceOverride() == Simplygon::EImageColorSpace::sRGB )
 				{
 					SetBitmapTextureGamma( mNewBitmapTex, 2.2f );
 				}
@@ -11546,7 +11601,7 @@ bool SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 
 				*mBitmapTex = mNewBitmapTex;
 
-				this->materialInfoHandler->Add( tMeshNameOverride, tMaterialNameOverride, tChannelName, tTargetFilePath, maxMappingChannel );
+				this->materialInfoHandler->Add( tMeshNameOverride, tMaterialNameOverride, tChannelName, sFinalImportTexturePath, maxMappingChannel );
 			}
 		}
 	}
@@ -11569,6 +11624,24 @@ PBBitmap* SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 	// if channel exists
 	if( sgMaterial->HasMaterialChannel( cChannelName ) )
 	{
+		// override
+		std::basic_string<TCHAR> tTextureTargetDirectory = tMaxBitmapDirectory;
+		if( this->TextureOutputDirectory.length() > 0 )
+		{
+			const bool bFolderCreated = CreateFolder( this->TextureOutputDirectory.c_str() );
+			if( !bFolderCreated )
+			{
+				std::basic_string<TCHAR> tWarningMessage =
+				    _T( "Warning! - Failed to set up the texture path override, please verify the input string and that Max has the required admin rights "
+				        "for accessing the specified location. Textures will be copied to the default path." );
+				this->LogMessageToScriptEditor( tWarningMessage );
+			}
+			else
+			{
+				tTextureTargetDirectory = this->TextureOutputDirectory;
+			}
+		}
+
 		// get texture directory
 		std::basic_string<TCHAR> tBakedTextureDirectory = this->workDirectoryHandler->GetBakedTexturesPath();
 
@@ -11591,6 +11664,14 @@ PBBitmap* SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 				spString rTextureNameToFind = sgTextureNode->GetTextureName();
 				if( rTextureNameToFind.IsNullOrEmpty() )
 				{
+					std::basic_string<TCHAR> tErrorMessage =
+					    _T("Error (Simplygon): Found a ShadingTextureNode with invalid (NULL or empty) TextureName, unable to map texture on ");
+					tErrorMessage += ConstCharPtrToLPCTSTR( rTextureNameToFind.c_str() );
+					tErrorMessage += _T(") with invalid (NULL or empty) UV-set, unable to map texture on ");
+					tErrorMessage += tChannelName;
+					tErrorMessage += _T(" channel.\n");
+
+					this->LogMessageToScriptEditor( tErrorMessage );
 					return false;
 				}
 
@@ -11598,6 +11679,13 @@ PBBitmap* SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 				spString rTextureUvSet = sgTextureNode->GetTexCoordName();
 				if( rTextureUvSet.IsNullOrEmpty() )
 				{
+					std::basic_string<TCHAR> tErrorMessage = _T("Error (Simplygon): Found a ShadingTextureNode (");
+					tErrorMessage += ConstCharPtrToLPCTSTR( rTextureNameToFind.c_str() );
+					tErrorMessage += _T(") with invalid (NULL or empty) UV-set, unable to map texture on ");
+					tErrorMessage += tChannelName;
+					tErrorMessage += _T(" channel.\n");
+
+					this->LogMessageToScriptEditor( tErrorMessage );
 					return false;
 				}
 
@@ -11609,65 +11697,54 @@ PBBitmap* SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 
 				if( sgTexture.IsNull() )
 				{
-					return false;
-				}
+					std::basic_string<TCHAR> tErrorMessage = _T("Error (Simplygon): Could not resolve texture ");
+					tErrorMessage += tTextureNameToFind;
+					tErrorMessage += _T(" on ");
+					tErrorMessage += tChannelName;
+					tErrorMessage += _T( " channel.\n" );
 
-				spString rFilePath = sgTexture->GetFilePath();
-
-				if( rFilePath.c_str() == nullptr )
-				{
+					this->LogMessageToScriptEditor( tErrorMessage );
 					return false;
 				}
 
 				std::basic_string<TCHAR> tTextureName = ConstCharPtrToLPCTSTR( sgTexture->GetName() );
-				std::basic_string<TCHAR> tTexturePath = ConstCharPtrToLPCTSTR( sgTexture->GetFilePath() );
-				std::basic_string<TCHAR> tTargetFilePath = Combine( tMaxBitmapDirectory, tTexturePath );
+				std::basic_string<TCHAR> tTexturePath = sgTexture->GetImageData().IsNull() ? ConstCharPtrToLPCTSTR( sgTexture->GetFilePath() ) : _T("");
+				std::basic_string<TCHAR> tSourceFilePath = Combine( tBakedTextureDirectory, tTexturePath );
 
 				if( !sgTexture->GetImageData().IsNull() )
 				{
 					// Embedded data, should be written to file
-					sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePath.c_str() ) );
-					if( sgTexture->ExportImageData() )
+					tSourceFilePath = Combine( tSourceFilePath, tTextureName );
+					if( ExportTextureToFile( sg, sgTexture, LPCTSTRToConstCharPtr( tSourceFilePath.c_str() ) ) )
 					{
-						tTexturePath = ConstCharPtrToLPCTSTR( sgTexture->GetFilePath().c_str() );
 						sgTexture->SetImageData( Simplygon::NullPtr );
+						tSourceFilePath = ConstCharPtrToLPCWSTRr( sgTexture.GetFilePath().c_str() );
 					}
 				}
+
+				std::basic_string<TCHAR> sFinalImportTexturePath = tSourceFilePath;
 
 				if( this->copyTextures )
 				{
 					// the name of the imported texture is based on the name of the node
 					std::basic_string<TCHAR> tImportTextureName = tTextureName + GetExtensionOfFile( tTexturePath );
 					ReplaceInvalidCharacters( tImportTextureName, '_' );
-					std::basic_string<TCHAR> tImportTexturePath = Combine( tMaxBitmapDirectory, tImportTextureName );
 
-					if( this->TextureOutputDirectory.length() > 0 )
-					{
-						const bool bFolderCreated = CreateFolder( LPCTSTRToConstCharPtr( this->TextureOutputDirectory.c_str() ) );
-						if( !bFolderCreated )
-						{
-							tTargetFilePath = Combine( tMaxBitmapDirectory, tImportTextureName );
-						}
-						else
-						{
-							tTargetFilePath = Combine( this->TextureOutputDirectory, tImportTextureName );
-						}
-					}
-					else
-					{
-						tTargetFilePath = Combine( std::basic_string<TCHAR>( tMaxBitmapDirectory ), tImportTextureName );
-					}
+					std::basic_string<TCHAR> tImportTexturePath = std::basic_string<TCHAR>( tTextureTargetDirectory.c_str() );
+					tImportTexturePath = Combine( tImportTexturePath, tImportTextureName );
+
+					sFinalImportTexturePath = tImportTexturePath;
 
 					// make sure to get a unique name
 					if( this->UseNonConflictingTextureNames )
 					{
-						tTargetFilePath = GetNonConflictingNameInPath( tTargetFilePath.c_str() );
+						sFinalImportTexturePath = GetNonConflictingNameInPath( sFinalImportTexturePath.c_str() );
 					}
 
 					uint numCopyRetries = 0;
 
 					// copy the file
-					while( CopyFile( tTexturePath.c_str(), tTargetFilePath.c_str(), FALSE ) == FALSE )
+					while( CopyFile( tSourceFilePath.c_str(), sFinalImportTexturePath.c_str(), FALSE ) == FALSE )
 					{
 						const DWORD dwErrorCode = GetLastError();
 
@@ -11686,7 +11763,7 @@ PBBitmap* SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 						std::basic_string<TCHAR> tErrorMessage = _T("Error - could not copy texture:\n ");
 						tErrorMessage += tTexturePath;
 						tErrorMessage += _T("\n ");
-						tErrorMessage += tTargetFilePath;
+						tErrorMessage += sFinalImportTexturePath;
 						tErrorMessage += _T("\n Code: ");
 						tErrorMessage += tErrorCode;
 						tErrorMessage += _T("\n");
@@ -11697,9 +11774,9 @@ PBBitmap* SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 					}
 				}
 
-				PBBitmap* newPBBitmap = SetupMaxTexture( tTargetFilePath.c_str() );
+				PBBitmap* newPBBitmap = SetupMaxTexture( sFinalImportTexturePath.c_str() );
 
-				if( sgTextureNode->GetUseSRGB() )
+				if( sgTextureNode->GetColorSpaceOverride() == Simplygon::EImageColorSpace::sRGB )
 				{
 					SetBitmapGamma( newPBBitmap, 2.2f );
 				}
@@ -11721,7 +11798,7 @@ PBBitmap* SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 					}
 				}
 
-				this->materialInfoHandler->Add( tMeshNameOverride, tMaterialNameOverride, tChannelName, tTargetFilePath, maxChannel );
+				this->materialInfoHandler->Add( tMeshNameOverride, tMaterialNameOverride, tChannelName, sFinalImportTexturePath, maxChannel );
 
 				return newPBBitmap;
 			}
@@ -13576,9 +13653,9 @@ std::pair<std::string, int> SimplygonMax::AddMaxMaterialToSgScene( Mtl* mMaxMate
 						}
 
 						if( nodeProxy->isSRGBOverride )
-							sgTextureNode->SetUseSRGB( nodeProxy->isSRGB );
+							sgTextureNode->SetColorSpaceOverride( nodeProxy->isSRGB ? Simplygon::EImageColorSpace::sRGB : Simplygon::EImageColorSpace::Linear );
 						else
-							sgTextureNode->SetUseSRGB( bIsSRGB );
+							sgTextureNode->SetColorSpaceOverride( bIsSRGB ? Simplygon::EImageColorSpace::sRGB : Simplygon::EImageColorSpace::Linear );
 
 						// add extra mapping for post processing of data
 						std::map<spShadingTextureNode, std::basic_string<TCHAR>>::const_iterator& shadingNodeIterator =
@@ -13653,7 +13730,7 @@ std::pair<std::string, int> SimplygonMax::AddMaxMaterialToSgScene( Mtl* mMaxMate
 					std::basic_string<TCHAR> tTextureNameWithExtension = tTextureName + tTextureExtension;
 
 					const spString sgsdkTexCoordName = sgTextureNode->GetTexCoordName();
-					const bool sgsdkUseSRGB = sgTextureNode->GetUseSRGB();
+					const bool sgsdkUseSRGB = sgTextureNode->GetColorSpaceOverride() == Simplygon::EImageColorSpace::sRGB;
 					const uint sgsdkParamCount = sgTextureNode->GetParameterCount();
 
 					// create texture and add it to scene
@@ -14828,8 +14905,7 @@ void SimplygonMax::SetupMaxDXTexture( spScene sgProcessedScene,
 		if( !sgTexture->GetImageData().IsNull() )
 		{
 			// Embedded data, should be written to file
-			sgTexture->SetFilePath( LPCTSTRToConstCharPtr( tTexturePath.c_str() ) );
-			if( sgTexture->ExportImageData() )
+			if( ExportTextureToFile( sg, sgTexture, LPCTSTRToConstCharPtr( tTexturePath.c_str() ) ) )
 			{
 				tTexturePath = ConstCharPtrToLPCTSTR( sgTexture->GetFilePath().c_str() );
 				sgTexture->SetImageData( Simplygon::NullPtr );
@@ -15067,6 +15143,20 @@ void GlobalLogMaterialNodeMessage( Texmap* mTexMap,
 	{
 		SimplygonMaxInstance->LogMaterialNodeMessage( mTexMap, tMaterialName, tChannelName, partialFail, tExtendedInformation );
 	}
+}
+
+float GetSceneMeshesRadius( Simplygon::spScene sgScene )
+{
+	float result = 0.f;
+	const rid ssId = sgScene->SelectNodes( "SceneMesh" );
+	spExtents extents = sg->CreateExtents();
+
+	if( sgScene->CalculateExtentsOfSelectionSetId( extents, ssId ) )
+		result = extents->GetBoundingSphereRadius();
+
+	sgScene->GetSelectionSetTable()->RemoveSelectionSet( ssId );
+
+	return result;
 }
 
 // gets upstream shading texture node in the specified shading-network
@@ -15468,12 +15558,12 @@ Mtl* SimplygonMax::SetupPhysicalMaterial( spScene sgProcessedScene, std::basic_s
 #if MAX_VERSION_MAJOR >= 25
 		else if( tChannelName == _T("coat_anistropy") )
 		{
-			//SetShaderParameter( mMaxPhysicalMaterial, _T("coat_anistropy"), 1.0f );
+			// SetShaderParameter( mMaxPhysicalMaterial, _T("coat_anistropy"), 1.0f );
 			mMaxPhysicalMaterial->SetSubTexmap( 21, mBitmapTex );
 		}
 		else if( tChannelName == _T("coat_anisoangle") )
 		{
-			//SetShaderParameter( mMaxPhysicalMaterial, _T("coat_anisoangle"), 0.f );
+			// SetShaderParameter( mMaxPhysicalMaterial, _T("coat_anisoangle"), 0.f );
 			mMaxPhysicalMaterial->SetSubTexmap( 22, mBitmapTex );
 		}
 		else if( tChannelName == _T("sheen") )
