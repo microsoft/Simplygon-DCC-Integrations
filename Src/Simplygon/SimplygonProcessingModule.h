@@ -61,13 +61,18 @@ class SimplygonProcessingModule
 	SimplygonProcessingModule();
 	~SimplygonProcessingModule();
 
-	std::vector<Simplygon::spScene>
-	RunPipeline( const Simplygon::spScene sgInputScene, const Simplygon::spPipeline sgPipeline, Simplygon::EPipelineRunMode runMode );
+	std::vector<Simplygon::spScene> RunPipeline( const Simplygon::spScene sgInputScene,
+	                                             const Simplygon::spPipeline sgPipeline,
+	                                             Simplygon::EPipelineRunMode runMode,
+	                                             std::vector<std::string>& errorMessages,
+	                                             std::vector<std::string>& warningMessages );
 
 	std::vector<std::basic_string<TCHAR>> RunPipelineOnFile( std::basic_string<TCHAR> tInputSceneFile,
 	                                                         std::basic_string<TCHAR> tOutputSceneFile,
 	                                                         Simplygon::spPipeline sgPipeline,
-	                                                         Simplygon::EPipelineRunMode runMode );
+	                                                         Simplygon::EPipelineRunMode runMode,
+	                                                         std::vector<std::string>& errorMessages,
+	                                                         std::vector<std::string>& warningMessages );
 
 	void SetProgressObserver( Simplygon::Observer* progressObserver );
 	void SetErrorHandler( Simplygon::ErrorHandler* errorHandler );

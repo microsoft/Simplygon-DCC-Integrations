@@ -654,5 +654,14 @@ namespace SimplygonUI.MaxUI
         {
             MainUI.Log(category, message);
         }
+
+        public void SendErrorToLog(string errorMessage)
+        {
+            MainUI.SendErrorToLog(errorMessage);
+        }
+        public void SendWarningToLog(string warningMessage)
+        {
+            MainUI.SendWarningToLog(warningMessage);
+        }
     }
 }

@@ -738,3 +738,21 @@ MString CreateQuotedText( MString mText )
 
 	return MString( sResult.c_str() );
 }
+
+MString CreateQuotedTextAndRemoveLineBreaks( MString mText )
+{
+	int len = 0;
+	const char* cText = mText.asChar( len );
+
+	std::string sResult;
+
+	sResult += '"';
+	for( int i = 0; i < len; ++i )
+	{
+		if( cText[ i ] != '\n' && cText[ i ] != '\r' )
+			sResult += cText[ i ];
+	}
+	sResult += '"';
+
+	return MString( sResult.c_str() );
+}

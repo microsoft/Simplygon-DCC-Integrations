@@ -18,8 +18,8 @@ namespace SimplygonUI
     public class SimplygonVersion
     {
         public static readonly string Version = "10.1";
-        public static readonly string Build = "10.1.400.0";
-        public static readonly string Commit = "c5d2ebda6d2591f9b06c2708e7e3a5837e776f2d";
+        public static readonly string Build = "10.1.3300.0";
+        public static readonly string Commit = "62b4d343242ec8d2d43dba2a2073709daaa50b81";
     }
 
     public enum SimplygonIntegrationType
@@ -13859,9 +13859,9 @@ namespace SimplygonUI
                 TypeOverride = "";
                 DefaultValue = 0;
                 MinValue = -1;
-                MaxValue = 10;
+                MaxValue = 255;
                 DefaultMinValue = -1;
-                DefaultMaxValue = 10;
+                DefaultMaxValue = 255;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -13889,8 +13889,8 @@ namespace SimplygonUI
 
                 }
 
-                MaxValue = 10;
-                DefaultMaxValue = 10;
+                MaxValue = 255;
+                DefaultMaxValue = 255;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
                     var newMaxValue = (int)jsonData.MaxValue;
@@ -15475,9 +15475,9 @@ namespace SimplygonUI
                 TypeOverride = "";
                 DefaultValue = 0;
                 MinValue = -1;
-                MaxValue = 10;
+                MaxValue = 255;
                 DefaultMinValue = -1;
-                DefaultMaxValue = 10;
+                DefaultMaxValue = 255;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -15505,8 +15505,8 @@ namespace SimplygonUI
 
                 }
 
-                MaxValue = 10;
-                DefaultMaxValue = 10;
+                MaxValue = 255;
+                DefaultMaxValue = 255;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
                     var newMaxValue = (int)jsonData.MaxValue;
@@ -21264,9 +21264,9 @@ namespace SimplygonUI
                 TypeOverride = "";
                 DefaultValue = -1;
                 MinValue = -1;
-                MaxValue = 10;
+                MaxValue = 255;
                 DefaultMinValue = -1;
-                DefaultMaxValue = 10;
+                DefaultMaxValue = 255;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -21294,8 +21294,8 @@ namespace SimplygonUI
 
                 }
 
-                MaxValue = 10;
-                DefaultMaxValue = 10;
+                MaxValue = 255;
+                DefaultMaxValue = 255;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
                     var newMaxValue = (int)jsonData.MaxValue;
@@ -33882,9 +33882,9 @@ namespace SimplygonUI
                 TypeOverride = "";
                 DefaultValue = -1;
                 MinValue = -1;
-                MaxValue = 10;
+                MaxValue = 255;
                 DefaultMinValue = -1;
-                DefaultMaxValue = 10;
+                DefaultMaxValue = 255;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
@@ -33912,8 +33912,8 @@ namespace SimplygonUI
 
                 }
 
-                MaxValue = 10;
-                DefaultMaxValue = 10;
+                MaxValue = 255;
+                DefaultMaxValue = 255;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
                     var newMaxValue = (int)jsonData.MaxValue;
@@ -43087,8 +43087,8 @@ namespace SimplygonUI
             }
 
             jsonData.Version = "10.1";
-            jsonData.Build = "10.1.400.0";
-            jsonData.Commit = "c5d2ebda6d2591f9b06c2708e7e3a5837e776f2d";
+            jsonData.Build = "10.1.3300.0";
+            jsonData.Commit = "62b4d343242ec8d2d43dba2a2073709daaa50b81";
             jsonData.Settings.GlobalSettings = GlobalSettings.SaveJson(serializeUIComponents);
             jsonData.Settings.PipelineSettings = PipelineSettings.SaveJson(serializeUIComponents);
 

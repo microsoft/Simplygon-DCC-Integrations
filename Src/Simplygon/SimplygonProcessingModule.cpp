@@ -678,7 +678,7 @@ void ExportScenesToFile( spPipeline sgPipeline,
 }
 
 std::vector<Simplygon::spScene>
-SimplygonProcessingModule::RunPipeline( const spScene sgInputScene, const Simplygon::spPipeline sgPipeline, Simplygon::EPipelineRunMode runMode )
+SimplygonProcessingModule::RunPipeline( const spScene sgInputScene, const Simplygon::spPipeline sgPipeline, Simplygon::EPipelineRunMode runMode, std::vector<std::string>& errorMessages, std::vector<std::string>& warningMessages )
 {
 	// early out if pipeline is null
 	if( sgPipeline.IsNull() )
@@ -702,44 +702,51 @@ SimplygonProcessingModule::RunPipeline( const spScene sgInputScene, const Simply
 	// add progress observer for the pipeline
 	const int observerId = sgPipeline->AddObserver( this->progressObserver );
 
+	bool processingSucceeded = false;
 	// run the pipeline internally, or in new process
 	try
 	{
-		Simplygon::EErrorCodes errors = sgPipeline->RunScene( sgInputScene, runMode );
-		if( errors != Simplygon::EErrorCodes::NoError )
-		{
-			spStringArray errorArray = sg->CreateStringArray();
-			if( sg->ErrorOccurred() )
-			{
-				sg->GetErrorMessages( errorArray );
-			}
-
-			std::string sErrorMessage;
-			for( uint32_t id = 0; id < errorArray.GetTupleCount(); ++id )
-			{
-				sErrorMessage.append( errorArray.GetItem( id ).c_str() + '\n' );
-			}
-
-			// and report error
-			throw std::exception( sErrorMessage.c_str() );
-		}
+		Simplygon::EErrorCodes errorCode = sgPipeline->RunScene( sgInputScene, runMode );
+		processingSucceeded = errorCode == Simplygon::EErrorCodes::NoError;
 	}
 	catch( std::exception ex )
 	{
-		// if error, remove progress observer
-		sgPipeline->RemoveObserver( observerId );
-
-		sg->ClearErrorMessages();
-		sg->ClearWarningMessages();
-
-		// and report error
-		std::string sErrorMessage = "Could not process the given scene - ";
-		sErrorMessage += ex.what();
-		throw std::exception( sErrorMessage.c_str() );
+		// Got an unexpected exception so add it to the error messages.
+		errorMessages.push_back( ex.what() );
 	}
 
-	// if process was successful, remove progress observer
+	// Remove progress observer
 	sgPipeline->RemoveObserver( observerId );
+
+	// Get errors and warnings from processing.
+	if( sg->ErrorOccurred() )
+	{
+		spStringArray errorArray = sg->CreateStringArray();
+		sg->GetErrorMessages( errorArray );
+		for( uint32_t i = 0; i < errorArray.GetItemCount(); ++i )
+		{
+			errorMessages.push_back( errorArray.GetItem( i ).c_str() );
+		}
+	}
+	if( sg->WarningOccurred() )
+	{
+		spStringArray warningArray = sg->CreateStringArray();
+		sg->GetWarningMessages( warningArray );
+		for( uint32_t i = 0; i < warningArray.GetItemCount(); ++i )
+		{
+			warningMessages.push_back( warningArray.GetItem( i ).c_str() );
+		}
+	}
+
+	// Clear errors and warnings
+	sg->ClearErrorMessages();
+	sg->ClearWarningMessages();
+
+	// Processing failed so notify caller via exception.
+	if( !processingSucceeded )
+	{
+		throw std::exception();
+	}
 
 	// fetch the topmost  processed scene
 	spScene sgProcessedScene = sgPipeline->GetProcessedScene();
@@ -789,7 +796,9 @@ uint GetNumberOfPipelines( spPipeline sgPipeline )
 std::vector<std::basic_string<TCHAR>> SimplygonProcessingModule::RunPipelineOnFile( std::basic_string<TCHAR> tInputSceneFile,
                                                                                     std::basic_string<TCHAR> tOutputSceneFile,
                                                                                     spPipeline sgPipeline,
-                                                                                    Simplygon::EPipelineRunMode runMode )
+                                                                                    Simplygon::EPipelineRunMode runMode,
+                                                                                    std::vector<std::string>& errorMessages,
+                                                                                    std::vector<std::string>& warningMessages )
 {
 	// early out if pipeline is null
 	if( sgPipeline.IsNull() )
@@ -817,23 +826,50 @@ std::vector<std::basic_string<TCHAR>> SimplygonProcessingModule::RunPipelineOnFi
 	const int observerId = sgPipeline->AddObserver( this->progressObserver );
 
 	// run the pipeline internally, or in new process
+	bool processingSucceeded = false;
 	try
 	{
-		sgPipeline->RunSceneFromFile( cSceneInputFile, nullptr, runMode );
+		Simplygon::EErrorCodes errorCode = sgPipeline->RunSceneFromFile( cSceneInputFile, nullptr, runMode );
+		processingSucceeded = errorCode == Simplygon::EErrorCodes::NoError;
 	}
 	catch( std::exception ex )
 	{
-		// if error, remove progress observer
-		sgPipeline->RemoveObserver( observerId );
-
-		// and report error
-		std::string sErrorMessage = "Could not process the given scene - ";
-		sErrorMessage += ex.what();
-		throw std::exception( sErrorMessage.c_str() );
+		// Got an unexpected exception so add it to the error messages.
+		errorMessages.push_back( ex.what() );
 	}
 
-	// if process was successful, remove progress observer
+	// Remove progress observer
 	sgPipeline->RemoveObserver( observerId );
+
+	// Get errors and warnings from processing.
+	if( sg->ErrorOccurred() )
+	{
+		spStringArray errorArray = sg->CreateStringArray();
+		sg->GetErrorMessages( errorArray );
+		for( uint32_t i = 0; i < errorArray.GetTupleCount(); ++i )
+		{
+			errorMessages.push_back( errorArray.GetItem( i ).c_str() );
+		}
+	}
+	if( sg->WarningOccurred() )
+	{
+		spStringArray warningArray = sg->CreateStringArray();
+		sg->GetWarningMessages( warningArray );
+		for( uint32_t i = 0; i < warningArray.GetTupleCount(); ++i )
+		{
+			warningMessages.push_back( warningArray.GetItem( i ).c_str() );
+		}
+	}
+
+	// Clear errors and warnings
+	sg->ClearErrorMessages();
+	sg->ClearWarningMessages();
+
+	// Processing failed so notify caller via exception.
+	if( !processingSucceeded )
+	{
+		throw std::exception();
+	}
 
 	// fetch the topmost  processed scene
 	spScene sgProcessedScene = sgPipeline->GetProcessedScene();

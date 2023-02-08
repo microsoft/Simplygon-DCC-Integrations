@@ -117,6 +117,30 @@ namespace SimplygonUI
             return bPipelineSaved;
         }
 
+        public static void SendErrorToLog(string errorMessage)
+        {
+            try
+            {
+                UI?.SendErrorToLog(errorMessage);
+            }
+            catch (Exception ex)
+            {
+                GlobalInterface.Instance.TheListener.EditStream.Puts("[Error] UIAccessor.SendErrorToLog: " + ex.Message + "\n");
+            }
+        }
+
+        public static void SendWarningToLog(string warningMessage)
+        {
+            try
+            {
+                UI?.SendWarningToLog(warningMessage);
+            }
+            catch (Exception ex)
+            {
+                GlobalInterface.Instance.TheListener.EditStream.Puts("[Error] UIAccessor.SendWarningToLog: " + ex.Message + "\n");
+            }
+        }
+
         public static void AssemblyLoad() { }
         public static void AssemblyMain() { }
     }

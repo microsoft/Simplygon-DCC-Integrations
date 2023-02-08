@@ -255,7 +255,7 @@ namespace SimplygonUI
             var editPipelineCM = new MenuItem() { Header = "Edit pipeline", ToolTip = "Customize the pipeline by hiding UI elements and changing default values." };
             var savePipelineCM = new MenuItem() { Header = "Save pipeline", ToolTip = @"If you save the pipeline to the default location (%USERPROFILE%\Documents\Simplygon\10\Pipelines) it will be available as a LOD component automatically." };
             var importSPLCM = new MenuItem() { Header = "Import legacy settings", ToolTip = "Import legacy .SPL and .ini settings." };
-            var batchImportLegacyCM = new MenuItem() { Header = "Batch import legacy settings", ToolTip = @"Batch import legacy .SPL and .ini settings to the default location (%USERPROFILE%\Documents\Simplygon\10\Pipelines)." };
+            var batchImportLegacyCM = new MenuItem() { Header = "Batch import settings", ToolTip = @"Batch import and update .JSON, .SPL and .ini settings to the default location (%USERPROFILE%\Documents\Simplygon\10\Pipelines)." };
             var loadPipelineCM = new MenuItem() { Header = "Load pipeline", ToolTip = @"Load pipeline not in the default location (%USERPROFILE%\Documents\Simplygon\10\Pipelines)." };
             var exportPipelineCM = new MenuItem() { Header = "Export pipeline", ToolTip = "Export pipeline and remove all UI metadata from the JSON file. Recommended if you plan to use the pipeline without using the Simplygon UI." };
             editPipelineCM.IsCheckable = true;
@@ -265,7 +265,7 @@ namespace SimplygonUI
             savePipelineCM.IsEnabled = Pipelines.Count > 0;
             savePipelineCM.Click += SavePipelineContextMenuItem_Click;
             importSPLCM.Click += ImportSPLContextMenuItem_Click;
-            batchImportLegacyCM.Click += BatchImportLegacyContextMenuItem_Click;
+            batchImportLegacyCM.Click += BatchImportContextMenuItem_Click;
             loadPipelineCM.Click += LoadPipelineContextMenuItem_Click;
             exportPipelineCM.IsEnabled = Pipelines.Count > 0;
             exportPipelineCM.Click += ExportPipelineContextMenuItem_Click;
@@ -389,9 +389,9 @@ namespace SimplygonUI
             }
         }
 
-        private void BatchImportLegacyContextMenuItem_Click(object sender, RoutedEventArgs e)
+        private void BatchImportContextMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            SimplygonImportLegacySettingsDialog importDialog = new SimplygonImportLegacySettingsDialog();
+            SimplygonImportSettingsDialog importDialog = new SimplygonImportSettingsDialog();
             importDialog.MainUI = this;
             importDialog.Owner = Window.GetWindow(this);
             if (this.Resources != null)
@@ -620,6 +620,7 @@ namespace SimplygonUI
 
                     var folderPicker = new System.Windows.Forms.FolderBrowserDialog
                     {
+                        RootFolder = Environment.SpecialFolder.MyComputer, //Without RootFolder the dialog is broken in Win11
                         Description = "Select directory",
                         ShowNewFolderButton = true,
                         SelectedPath = existinFolderPath.Length > 0 ? existinFolderPath : null
@@ -673,6 +674,21 @@ namespace SimplygonUI
         private void StatusBar_ClearLogEntries_Click(object sender, RoutedEventArgs e)
         {
             UILogger.Instance.Clear();
+        }
+
+        public void SendErrorToLog(string errorMessage)
+        {
+            this.Dispatcher.Invoke(new Action(() =>
+            {
+                Log(Category.Error, errorMessage);
+            }));
+        }
+        public void SendWarningToLog(string warningMessage)
+        {
+            this.Dispatcher.Invoke(new Action(() =>
+            {
+                Log(Category.Warning, warningMessage);
+            }));
         }
     }
 }
