@@ -18,8 +18,8 @@ namespace SimplygonUI
     public class SimplygonVersion
     {
         public static readonly string Version = "10.1";
-        public static readonly string Build = "10.1.3300.0";
-        public static readonly string Commit = "62b4d343242ec8d2d43dba2a2073709daaa50b81";
+        public static readonly string Build = "10.1.8000.0";
+        public static readonly string Commit = "6ecf92decd72493263a79f663ef1df0c7db2d807";
     }
 
     public enum SimplygonIntegrationType
@@ -22139,6 +22139,8 @@ namespace SimplygonUI
                 if (!VisibleOverride) return false;
                 if (Name == "InputMaterialSettings") return false;
                 if(SeparateTrunkAndFoliageUI.Visible) return true;
+                if(MaintainLeafConnectionsUI.Visible) return true;
+                if(SeparateFoliageMaterialsUI.Visible) return true;
                 if(SeparateFoliageTriangleRatioUI.Visible) return true;
                 if(SeparateFoliageTriangleThresholdUI.Visible) return true;
                 if(SeparateFoliageAreaThresholdUI.Visible) return true;
@@ -22215,6 +22217,146 @@ namespace SimplygonUI
             public SimplygonSeparateTrunkAndFoliageEx DeepCopy()
             {
                 return (SimplygonSeparateTrunkAndFoliageEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool MaintainLeafConnections { get { return _MaintainLeafConnections; } set { _MaintainLeafConnections = value; OnPropertyChanged(); } }
+        private bool _MaintainLeafConnections;
+        public SimplygonMaintainLeafConnectionsEx MaintainLeafConnectionsUI { get; set; }
+        public class SimplygonMaintainLeafConnectionsEx : SimplygonSettingsProperty
+        {
+            public SimplygonFoliageSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.MaintainLeafConnections;
+                }
+
+                set
+                {
+                    bool needReload = Parent.MaintainLeafConnections != value;
+                    Parent.MaintainLeafConnections = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonMaintainLeafConnectionsEx() : base("MaintainLeafConnections")
+            {
+                Type = "bool";
+                HelpText = "If enabled, connected parts will not be projected onto separate billboards. For example if the input asset has large leaf geometries that consist of many connected triangles, then MaintainLeafConnections will ensure that all the connected triangles are projected to the same billboard.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonMaintainLeafConnectionsEx(dynamic jsonData) : base("MaintainLeafConnections")
+            {
+                Type = "bool";
+                HelpText = "If enabled, connected parts will not be projected onto separate billboards. For example if the input asset has large leaf geometries that consist of many connected triangles, then MaintainLeafConnections will ensure that all the connected triangles are projected to the same billboard.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonMaintainLeafConnectionsEx DeepCopy()
+            {
+                return (SimplygonMaintainLeafConnectionsEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public string SeparateFoliageMaterials { get { return _SeparateFoliageMaterials; } set { _SeparateFoliageMaterials = value; OnPropertyChanged(); } }
+        private string _SeparateFoliageMaterials;
+        public SimplygonSeparateFoliageMaterialsEx SeparateFoliageMaterialsUI { get; set; }
+        public class SimplygonSeparateFoliageMaterialsEx : SimplygonSettingsProperty
+        {
+            public SimplygonFoliageSettings Parent { get; set; }
+            public string Value
+            {
+                get
+                {
+                    return Parent.SeparateFoliageMaterials;
+                }
+
+                set
+                {
+                    bool needReload = Parent.SeparateFoliageMaterials != value;
+                    Parent.SeparateFoliageMaterials = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public string DefaultValue { get; set; }
+
+            public SimplygonSeparateFoliageMaterialsEx() : base("SeparateFoliageMaterials")
+            {
+                Type = "string";
+                HelpText = "Is used to separate the trunk from the foliage in a vegetation scene by explicitly specifying the foliage material names as a JSON array of strings. Example: ['fMat0', 'fMat1']. If the value is not a JSON array, the value is parsed as the name of a single foliage material.";
+                TypeOverride = "";
+                DefaultValue = "";
+                Visible = true;
+            }
+
+            public SimplygonSeparateFoliageMaterialsEx(dynamic jsonData) : base("SeparateFoliageMaterials")
+            {
+                Type = "string";
+                HelpText = "Is used to separate the trunk from the foliage in a vegetation scene by explicitly specifying the foliage material names as a JSON array of strings. Example: ['fMat0', 'fMat1']. If the value is not a JSON array, the value is parsed as the name of a single foliage material.";
+                TypeOverride = "";
+                DefaultValue = "";
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonSeparateFoliageMaterialsEx DeepCopy()
+            {
+                return (SimplygonSeparateFoliageMaterialsEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -22870,6 +23012,14 @@ namespace SimplygonUI
             SeparateTrunkAndFoliageUI.Parent = this;
             SeparateTrunkAndFoliage = SeparateTrunkAndFoliageUI.DefaultValue;
             Items.Add(SeparateTrunkAndFoliageUI);
+            MaintainLeafConnectionsUI = new SimplygonMaintainLeafConnectionsEx();
+            MaintainLeafConnectionsUI.Parent = this;
+            MaintainLeafConnections = MaintainLeafConnectionsUI.DefaultValue;
+            Items.Add(MaintainLeafConnectionsUI);
+            SeparateFoliageMaterialsUI = new SimplygonSeparateFoliageMaterialsEx();
+            SeparateFoliageMaterialsUI.Parent = this;
+            SeparateFoliageMaterials = SeparateFoliageMaterialsUI.DefaultValue;
+            Items.Add(SeparateFoliageMaterialsUI);
             SeparateFoliageTriangleRatioUI = new SimplygonSeparateFoliageTriangleRatioEx();
             SeparateFoliageTriangleRatioUI.Parent = this;
             SeparateFoliageTriangleRatio = SeparateFoliageTriangleRatioUI.DefaultValue;
@@ -22900,6 +23050,14 @@ namespace SimplygonUI
             SeparateTrunkAndFoliageUI.Parent = this;
             SeparateTrunkAndFoliage = SeparateTrunkAndFoliageUI.DefaultValue;
             Items.Add(SeparateTrunkAndFoliageUI);
+            MaintainLeafConnectionsUI = new SimplygonMaintainLeafConnectionsEx(jsonData != null && ((JObject)jsonData).GetValue("MaintainLeafConnectionsUI") != null ? jsonData.MaintainLeafConnectionsUI : null);
+            MaintainLeafConnectionsUI.Parent = this;
+            MaintainLeafConnections = MaintainLeafConnectionsUI.DefaultValue;
+            Items.Add(MaintainLeafConnectionsUI);
+            SeparateFoliageMaterialsUI = new SimplygonSeparateFoliageMaterialsEx(jsonData != null && ((JObject)jsonData).GetValue("SeparateFoliageMaterialsUI") != null ? jsonData.SeparateFoliageMaterialsUI : null);
+            SeparateFoliageMaterialsUI.Parent = this;
+            SeparateFoliageMaterials = SeparateFoliageMaterialsUI.DefaultValue;
+            Items.Add(SeparateFoliageMaterialsUI);
             SeparateFoliageTriangleRatioUI = new SimplygonSeparateFoliageTriangleRatioEx(jsonData != null && ((JObject)jsonData).GetValue("SeparateFoliageTriangleRatioUI") != null ? jsonData.SeparateFoliageTriangleRatioUI : null);
             SeparateFoliageTriangleRatioUI.Parent = this;
             SeparateFoliageTriangleRatio = SeparateFoliageTriangleRatioUI.DefaultValue;
@@ -22930,6 +23088,12 @@ namespace SimplygonUI
             copy.SeparateTrunkAndFoliageUI = this.SeparateTrunkAndFoliageUI.DeepCopy();
             copy.SeparateTrunkAndFoliageUI.Parent = copy;
             copy.Items.Add(copy.SeparateTrunkAndFoliageUI);
+            copy.MaintainLeafConnectionsUI = this.MaintainLeafConnectionsUI.DeepCopy();
+            copy.MaintainLeafConnectionsUI.Parent = copy;
+            copy.Items.Add(copy.MaintainLeafConnectionsUI);
+            copy.SeparateFoliageMaterialsUI = this.SeparateFoliageMaterialsUI.DeepCopy();
+            copy.SeparateFoliageMaterialsUI.Parent = copy;
+            copy.Items.Add(copy.SeparateFoliageMaterialsUI);
             copy.SeparateFoliageTriangleRatioUI = this.SeparateFoliageTriangleRatioUI.DeepCopy();
             copy.SeparateFoliageTriangleRatioUI.Parent = copy;
             copy.Items.Add(copy.SeparateFoliageTriangleRatioUI);
@@ -22955,6 +23119,18 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.SeparateTrunkAndFoliageUI = SeparateTrunkAndFoliageUI.SaveJson();
+            }
+
+            jsonData.MaintainLeafConnections = MaintainLeafConnections;
+            if(serializeUIComponents)
+            {
+                jsonData.MaintainLeafConnectionsUI = MaintainLeafConnectionsUI.SaveJson();
+            }
+
+            jsonData.SeparateFoliageMaterials = SeparateFoliageMaterials;
+            if(serializeUIComponents)
+            {
+                jsonData.SeparateFoliageMaterialsUI = SeparateFoliageMaterialsUI.SaveJson();
             }
 
             jsonData.SeparateFoliageTriangleRatio = SeparateFoliageTriangleRatio;
@@ -23000,6 +23176,16 @@ namespace SimplygonUI
             if(jsonData.GetValue("SeparateTrunkAndFoliage") != null)
             {
                 SeparateTrunkAndFoliage = (bool)jsonData.SeparateTrunkAndFoliage;
+            }
+
+            if(jsonData.GetValue("MaintainLeafConnections") != null)
+            {
+                MaintainLeafConnections = (bool)jsonData.MaintainLeafConnections;
+            }
+
+            if(jsonData.GetValue("SeparateFoliageMaterials") != null)
+            {
+                SeparateFoliageMaterials = (string)jsonData.SeparateFoliageMaterials;
             }
 
             if(jsonData.GetValue("SeparateFoliageTriangleRatio") != null)
@@ -23082,6 +23268,8 @@ namespace SimplygonUI
         public override void Reset()
         {
             SeparateTrunkAndFoliageUI.Reset();
+            MaintainLeafConnectionsUI.Reset();
+            SeparateFoliageMaterialsUI.Reset();
             SeparateFoliageTriangleRatioUI.Reset();
             SeparateFoliageTriangleThresholdUI.Reset();
             SeparateFoliageAreaThresholdUI.Reset();
@@ -23093,6 +23281,8 @@ namespace SimplygonUI
         {
             IsEditEnabled = isEditEnabled;
             SeparateTrunkAndFoliageUI.IsEditEnabled = isEditEnabled;
+            MaintainLeafConnectionsUI.IsEditEnabled = isEditEnabled;
+            SeparateFoliageMaterialsUI.IsEditEnabled = isEditEnabled;
             SeparateFoliageTriangleRatioUI.IsEditEnabled = isEditEnabled;
             SeparateFoliageTriangleThresholdUI.IsEditEnabled = isEditEnabled;
             SeparateFoliageAreaThresholdUI.IsEditEnabled = isEditEnabled;
@@ -24566,6 +24756,11 @@ namespace SimplygonUI
                 if(UpVectorXUI.Visible) return true;
                 if(UpVectorYUI.Visible) return true;
                 if(UpVectorZUI.Visible) return true;
+                if(NumberOfColumnsUI.Visible) return true;
+                if(NumberOfRowsUI.Visible) return true;
+                if(FlipRowColumnOrderUI.Visible) return true;
+                if(OutputEachViewSeparatelyUI.Visible) return true;
+                if(OverrideFlipbookTextureWidthUI.Visible) return true;
 
                 return false;
             }
@@ -24610,12 +24805,12 @@ namespace SimplygonUI
             public SimplygonNumberOfViewsEx() : base("NumberOfViews")
             {
                 Type = "uint";
-                HelpText = "Determines the number of views generated for the flip book impostor.";
+                HelpText = "Deprecated: Use NumberOfColumns and NumberOfRows instead. If NumberOfColumns or NumberOfRows are nonzero, they will be used instead. Determines the number of views generated for the flip book impostor. Value has to be a squared number.";
                 TypeOverride = "";
                 DefaultValue = 9;
-                MinValue = 1;
+                MinValue = 0;
                 MaxValue = 64;
-                DefaultMinValue = 1;
+                DefaultMinValue = 0;
                 DefaultMaxValue = 64;
                 TicksFrequencyValue = 1;
                 Visible = true;
@@ -24624,11 +24819,11 @@ namespace SimplygonUI
             public SimplygonNumberOfViewsEx(dynamic jsonData) : base("NumberOfViews")
             {
                 Type = "uint";
-                HelpText = "Determines the number of views generated for the flip book impostor.";
+                HelpText = "Deprecated: Use NumberOfColumns and NumberOfRows instead. If NumberOfColumns or NumberOfRows are nonzero, they will be used instead. Determines the number of views generated for the flip book impostor. Value has to be a squared number.";
                 TypeOverride = "";
                 DefaultValue = 9;
-                MinValue = 1;
-                DefaultMinValue = 1;
+                MinValue = 0;
+                DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
                     var newMinValue = (int)jsonData.MinValue;
@@ -25467,6 +25662,527 @@ namespace SimplygonUI
 
         }
 
+        public int NumberOfColumns { get { return _NumberOfColumns; } set { _NumberOfColumns = value; OnPropertyChanged(); } }
+        private int _NumberOfColumns;
+        public SimplygonNumberOfColumnsEx NumberOfColumnsUI { get; set; }
+        public class SimplygonNumberOfColumnsEx : SimplygonSettingsProperty
+        {
+            public SimplygonFlipbookSettings Parent { get; set; }
+            public int Value
+            {
+                get
+                {
+                    return Parent.NumberOfColumns;
+                }
+
+                set
+                {
+                    bool needReload = Parent.NumberOfColumns != value;
+                    Parent.NumberOfColumns = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
+
+            public SimplygonNumberOfColumnsEx() : base("NumberOfColumns")
+            {
+                Type = "uint";
+                HelpText = "Determines the number of columns in the output atlas. If both NumberOfColumns and NumberOfRows are left at zero, the deprecated NumberOfViews will be used instead.";
+                TypeOverride = "";
+                DefaultValue = 0;
+                MinValue = 0;
+                MaxValue = 64;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 64;
+                TicksFrequencyValue = 1;
+                Visible = true;
+            }
+
+            public SimplygonNumberOfColumnsEx(dynamic jsonData) : base("NumberOfColumns")
+            {
+                Type = "uint";
+                HelpText = "Determines the number of columns in the output atlas. If both NumberOfColumns and NumberOfRows are left at zero, the deprecated NumberOfViews will be used instead.";
+                TypeOverride = "";
+                DefaultValue = 0;
+                MinValue = 0;
+                DefaultMinValue = 0;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"NumberOfColumns: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 64;
+                DefaultMaxValue = 64;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"NumberOfColumns: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonNumberOfColumnsEx DeepCopy()
+            {
+                return (SimplygonNumberOfColumnsEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public int NumberOfRows { get { return _NumberOfRows; } set { _NumberOfRows = value; OnPropertyChanged(); } }
+        private int _NumberOfRows;
+        public SimplygonNumberOfRowsEx NumberOfRowsUI { get; set; }
+        public class SimplygonNumberOfRowsEx : SimplygonSettingsProperty
+        {
+            public SimplygonFlipbookSettings Parent { get; set; }
+            public int Value
+            {
+                get
+                {
+                    return Parent.NumberOfRows;
+                }
+
+                set
+                {
+                    bool needReload = Parent.NumberOfRows != value;
+                    Parent.NumberOfRows = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
+
+            public SimplygonNumberOfRowsEx() : base("NumberOfRows")
+            {
+                Type = "uint";
+                HelpText = "Determines the number of columns in the output atlas. If both NumberOfColumns and NumberOfRows are left at zero, the deprecated NumberOfViews will be used instead.";
+                TypeOverride = "";
+                DefaultValue = 0;
+                MinValue = 0;
+                MaxValue = 64;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 64;
+                TicksFrequencyValue = 1;
+                Visible = true;
+            }
+
+            public SimplygonNumberOfRowsEx(dynamic jsonData) : base("NumberOfRows")
+            {
+                Type = "uint";
+                HelpText = "Determines the number of columns in the output atlas. If both NumberOfColumns and NumberOfRows are left at zero, the deprecated NumberOfViews will be used instead.";
+                TypeOverride = "";
+                DefaultValue = 0;
+                MinValue = 0;
+                DefaultMinValue = 0;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"NumberOfRows: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 64;
+                DefaultMaxValue = 64;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"NumberOfRows: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonNumberOfRowsEx DeepCopy()
+            {
+                return (SimplygonNumberOfRowsEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public bool FlipRowColumnOrder { get { return _FlipRowColumnOrder; } set { _FlipRowColumnOrder = value; OnPropertyChanged(); } }
+        private bool _FlipRowColumnOrder;
+        public SimplygonFlipRowColumnOrderEx FlipRowColumnOrderUI { get; set; }
+        public class SimplygonFlipRowColumnOrderEx : SimplygonSettingsProperty
+        {
+            public SimplygonFlipbookSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.FlipRowColumnOrder;
+                }
+
+                set
+                {
+                    bool needReload = Parent.FlipRowColumnOrder != value;
+                    Parent.FlipRowColumnOrder = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonFlipRowColumnOrderEx() : base("FlipRowColumnOrder")
+            {
+                Type = "bool";
+                HelpText = "By default the views are outputted in order of columns then rows.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonFlipRowColumnOrderEx(dynamic jsonData) : base("FlipRowColumnOrder")
+            {
+                Type = "bool";
+                HelpText = "By default the views are outputted in order of columns then rows.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonFlipRowColumnOrderEx DeepCopy()
+            {
+                return (SimplygonFlipRowColumnOrderEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool OutputEachViewSeparately { get { return _OutputEachViewSeparately; } set { _OutputEachViewSeparately = value; OnPropertyChanged(); } }
+        private bool _OutputEachViewSeparately;
+        public SimplygonOutputEachViewSeparatelyEx OutputEachViewSeparatelyUI { get; set; }
+        public class SimplygonOutputEachViewSeparatelyEx : SimplygonSettingsProperty
+        {
+            public SimplygonFlipbookSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.OutputEachViewSeparately;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OutputEachViewSeparately != value;
+                    Parent.OutputEachViewSeparately = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonOutputEachViewSeparatelyEx() : base("OutputEachViewSeparately")
+            {
+                Type = "bool";
+                HelpText = "If enabled will create a MappingImage per view, instead of concatenating them all into the same atlas. Fetch the indexed MappingImages using GetMappingImageForImageIndex() on the ImpostorProcessor.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonOutputEachViewSeparatelyEx(dynamic jsonData) : base("OutputEachViewSeparately")
+            {
+                Type = "bool";
+                HelpText = "If enabled will create a MappingImage per view, instead of concatenating them all into the same atlas. Fetch the indexed MappingImages using GetMappingImageForImageIndex() on the ImpostorProcessor.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOutputEachViewSeparatelyEx DeepCopy()
+            {
+                return (SimplygonOutputEachViewSeparatelyEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public int OverrideFlipbookTextureWidth { get { return _OverrideFlipbookTextureWidth; } set { _OverrideFlipbookTextureWidth = value; OnPropertyChanged(); } }
+        private int _OverrideFlipbookTextureWidth;
+        public SimplygonOverrideFlipbookTextureWidthEx OverrideFlipbookTextureWidthUI { get; set; }
+        public class SimplygonOverrideFlipbookTextureWidthEx : SimplygonSettingsProperty
+        {
+            public SimplygonFlipbookSettings Parent { get; set; }
+            public int Value
+            {
+                get
+                {
+                    return Parent.OverrideFlipbookTextureWidth;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OverrideFlipbookTextureWidth != value;
+                    Parent.OverrideFlipbookTextureWidth = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
+
+            public SimplygonOverrideFlipbookTextureWidthEx() : base("OverrideFlipbookTextureWidth")
+            {
+                Type = "uint";
+                HelpText = "If OverrideFlipbookTextureWidth is set to a nonzero value it will determine the total width of the texture atlas. The height will be determined by the ratio of NumberOfRows to the NumberOfColumns. If OverrideFlipbookTextureWidth is not set the width and height will be set per flipbook view using SetTextureWidth() in the MappingImageSettings.";
+                TypeOverride = "";
+                DefaultValue = 0;
+                MinValue = 0;
+                MaxValue = 65536;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 65536;
+                TicksFrequencyValue = 1;
+                Visible = true;
+            }
+
+            public SimplygonOverrideFlipbookTextureWidthEx(dynamic jsonData) : base("OverrideFlipbookTextureWidth")
+            {
+                Type = "uint";
+                HelpText = "If OverrideFlipbookTextureWidth is set to a nonzero value it will determine the total width of the texture atlas. The height will be determined by the ratio of NumberOfRows to the NumberOfColumns. If OverrideFlipbookTextureWidth is not set the width and height will be set per flipbook view using SetTextureWidth() in the MappingImageSettings.";
+                TypeOverride = "";
+                DefaultValue = 0;
+                MinValue = 0;
+                DefaultMinValue = 0;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OverrideFlipbookTextureWidth: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 65536;
+                DefaultMaxValue = 65536;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OverrideFlipbookTextureWidth: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOverrideFlipbookTextureWidthEx DeepCopy()
+            {
+                return (SimplygonOverrideFlipbookTextureWidthEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
 
         public SimplygonFlipbookSettings() : base("FlipbookSettings")
         {
@@ -25499,6 +26215,26 @@ namespace SimplygonUI
             UpVectorZUI.Parent = this;
             UpVectorZ = UpVectorZUI.DefaultValue;
             Items.Add(UpVectorZUI);
+            NumberOfColumnsUI = new SimplygonNumberOfColumnsEx();
+            NumberOfColumnsUI.Parent = this;
+            NumberOfColumns = NumberOfColumnsUI.DefaultValue;
+            Items.Add(NumberOfColumnsUI);
+            NumberOfRowsUI = new SimplygonNumberOfRowsEx();
+            NumberOfRowsUI.Parent = this;
+            NumberOfRows = NumberOfRowsUI.DefaultValue;
+            Items.Add(NumberOfRowsUI);
+            FlipRowColumnOrderUI = new SimplygonFlipRowColumnOrderEx();
+            FlipRowColumnOrderUI.Parent = this;
+            FlipRowColumnOrder = FlipRowColumnOrderUI.DefaultValue;
+            Items.Add(FlipRowColumnOrderUI);
+            OutputEachViewSeparatelyUI = new SimplygonOutputEachViewSeparatelyEx();
+            OutputEachViewSeparatelyUI.Parent = this;
+            OutputEachViewSeparately = OutputEachViewSeparatelyUI.DefaultValue;
+            Items.Add(OutputEachViewSeparatelyUI);
+            OverrideFlipbookTextureWidthUI = new SimplygonOverrideFlipbookTextureWidthEx();
+            OverrideFlipbookTextureWidthUI.Parent = this;
+            OverrideFlipbookTextureWidth = OverrideFlipbookTextureWidthUI.DefaultValue;
+            Items.Add(OverrideFlipbookTextureWidthUI);
         }
 
         public SimplygonFlipbookSettings(dynamic jsonData) : base("FlipbookSettings")
@@ -25532,6 +26268,26 @@ namespace SimplygonUI
             UpVectorZUI.Parent = this;
             UpVectorZ = UpVectorZUI.DefaultValue;
             Items.Add(UpVectorZUI);
+            NumberOfColumnsUI = new SimplygonNumberOfColumnsEx(jsonData != null && ((JObject)jsonData).GetValue("NumberOfColumnsUI") != null ? jsonData.NumberOfColumnsUI : null);
+            NumberOfColumnsUI.Parent = this;
+            NumberOfColumns = NumberOfColumnsUI.DefaultValue;
+            Items.Add(NumberOfColumnsUI);
+            NumberOfRowsUI = new SimplygonNumberOfRowsEx(jsonData != null && ((JObject)jsonData).GetValue("NumberOfRowsUI") != null ? jsonData.NumberOfRowsUI : null);
+            NumberOfRowsUI.Parent = this;
+            NumberOfRows = NumberOfRowsUI.DefaultValue;
+            Items.Add(NumberOfRowsUI);
+            FlipRowColumnOrderUI = new SimplygonFlipRowColumnOrderEx(jsonData != null && ((JObject)jsonData).GetValue("FlipRowColumnOrderUI") != null ? jsonData.FlipRowColumnOrderUI : null);
+            FlipRowColumnOrderUI.Parent = this;
+            FlipRowColumnOrder = FlipRowColumnOrderUI.DefaultValue;
+            Items.Add(FlipRowColumnOrderUI);
+            OutputEachViewSeparatelyUI = new SimplygonOutputEachViewSeparatelyEx(jsonData != null && ((JObject)jsonData).GetValue("OutputEachViewSeparatelyUI") != null ? jsonData.OutputEachViewSeparatelyUI : null);
+            OutputEachViewSeparatelyUI.Parent = this;
+            OutputEachViewSeparately = OutputEachViewSeparatelyUI.DefaultValue;
+            Items.Add(OutputEachViewSeparatelyUI);
+            OverrideFlipbookTextureWidthUI = new SimplygonOverrideFlipbookTextureWidthEx(jsonData != null && ((JObject)jsonData).GetValue("OverrideFlipbookTextureWidthUI") != null ? jsonData.OverrideFlipbookTextureWidthUI : null);
+            OverrideFlipbookTextureWidthUI.Parent = this;
+            OverrideFlipbookTextureWidth = OverrideFlipbookTextureWidthUI.DefaultValue;
+            Items.Add(OverrideFlipbookTextureWidthUI);
             LoadJson(jsonData);
         }
 
@@ -25560,6 +26316,21 @@ namespace SimplygonUI
             copy.UpVectorZUI = this.UpVectorZUI.DeepCopy();
             copy.UpVectorZUI.Parent = copy;
             copy.Items.Add(copy.UpVectorZUI);
+            copy.NumberOfColumnsUI = this.NumberOfColumnsUI.DeepCopy();
+            copy.NumberOfColumnsUI.Parent = copy;
+            copy.Items.Add(copy.NumberOfColumnsUI);
+            copy.NumberOfRowsUI = this.NumberOfRowsUI.DeepCopy();
+            copy.NumberOfRowsUI.Parent = copy;
+            copy.Items.Add(copy.NumberOfRowsUI);
+            copy.FlipRowColumnOrderUI = this.FlipRowColumnOrderUI.DeepCopy();
+            copy.FlipRowColumnOrderUI.Parent = copy;
+            copy.Items.Add(copy.FlipRowColumnOrderUI);
+            copy.OutputEachViewSeparatelyUI = this.OutputEachViewSeparatelyUI.DeepCopy();
+            copy.OutputEachViewSeparatelyUI.Parent = copy;
+            copy.Items.Add(copy.OutputEachViewSeparatelyUI);
+            copy.OverrideFlipbookTextureWidthUI = this.OverrideFlipbookTextureWidthUI.DeepCopy();
+            copy.OverrideFlipbookTextureWidthUI.Parent = copy;
+            copy.Items.Add(copy.OverrideFlipbookTextureWidthUI);
             return copy;
         }
 
@@ -25606,6 +26377,36 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.UpVectorZUI = UpVectorZUI.SaveJson();
+            }
+
+            jsonData.NumberOfColumns = NumberOfColumns;
+            if(serializeUIComponents)
+            {
+                jsonData.NumberOfColumnsUI = NumberOfColumnsUI.SaveJson();
+            }
+
+            jsonData.NumberOfRows = NumberOfRows;
+            if(serializeUIComponents)
+            {
+                jsonData.NumberOfRowsUI = NumberOfRowsUI.SaveJson();
+            }
+
+            jsonData.FlipRowColumnOrder = FlipRowColumnOrder;
+            if(serializeUIComponents)
+            {
+                jsonData.FlipRowColumnOrderUI = FlipRowColumnOrderUI.SaveJson();
+            }
+
+            jsonData.OutputEachViewSeparately = OutputEachViewSeparately;
+            if(serializeUIComponents)
+            {
+                jsonData.OutputEachViewSeparatelyUI = OutputEachViewSeparatelyUI.SaveJson();
+            }
+
+            jsonData.OverrideFlipbookTextureWidth = OverrideFlipbookTextureWidth;
+            if(serializeUIComponents)
+            {
+                jsonData.OverrideFlipbookTextureWidthUI = OverrideFlipbookTextureWidthUI.SaveJson();
             }
 
             return jsonData;
@@ -25723,6 +26524,61 @@ namespace SimplygonUI
 
             }
 
+            if(jsonData.GetValue("NumberOfColumns") != null)
+            {
+                var newNumberOfColumns = (int)jsonData.NumberOfColumns;
+                if (newNumberOfColumns >= NumberOfColumnsUI.DefaultMinValue && newNumberOfColumns <= NumberOfColumnsUI.DefaultMaxValue)
+                {
+                    NumberOfColumns = newNumberOfColumns;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"NumberOfColumns: Invalid value {newNumberOfColumns}, using default value {NumberOfColumns.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("NumberOfRows") != null)
+            {
+                var newNumberOfRows = (int)jsonData.NumberOfRows;
+                if (newNumberOfRows >= NumberOfRowsUI.DefaultMinValue && newNumberOfRows <= NumberOfRowsUI.DefaultMaxValue)
+                {
+                    NumberOfRows = newNumberOfRows;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"NumberOfRows: Invalid value {newNumberOfRows}, using default value {NumberOfRows.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("FlipRowColumnOrder") != null)
+            {
+                FlipRowColumnOrder = (bool)jsonData.FlipRowColumnOrder;
+            }
+
+            if(jsonData.GetValue("OutputEachViewSeparately") != null)
+            {
+                OutputEachViewSeparately = (bool)jsonData.OutputEachViewSeparately;
+            }
+
+            if(jsonData.GetValue("OverrideFlipbookTextureWidth") != null)
+            {
+                var newOverrideFlipbookTextureWidth = (int)jsonData.OverrideFlipbookTextureWidth;
+                if (newOverrideFlipbookTextureWidth >= OverrideFlipbookTextureWidthUI.DefaultMinValue && newOverrideFlipbookTextureWidth <= OverrideFlipbookTextureWidthUI.DefaultMaxValue)
+                {
+                    OverrideFlipbookTextureWidth = newOverrideFlipbookTextureWidth;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"OverrideFlipbookTextureWidth: Invalid value {newOverrideFlipbookTextureWidth}, using default value {OverrideFlipbookTextureWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
         }
 
         public override void Reset()
@@ -25734,6 +26590,11 @@ namespace SimplygonUI
             UpVectorXUI.Reset();
             UpVectorYUI.Reset();
             UpVectorZUI.Reset();
+            NumberOfColumnsUI.Reset();
+            NumberOfRowsUI.Reset();
+            FlipRowColumnOrderUI.Reset();
+            OutputEachViewSeparatelyUI.Reset();
+            OverrideFlipbookTextureWidthUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
@@ -25746,6 +26607,11 @@ namespace SimplygonUI
             UpVectorXUI.IsEditEnabled = isEditEnabled;
             UpVectorYUI.IsEditEnabled = isEditEnabled;
             UpVectorZUI.IsEditEnabled = isEditEnabled;
+            NumberOfColumnsUI.IsEditEnabled = isEditEnabled;
+            NumberOfRowsUI.IsEditEnabled = isEditEnabled;
+            FlipRowColumnOrderUI.IsEditEnabled = isEditEnabled;
+            OutputEachViewSeparatelyUI.IsEditEnabled = isEditEnabled;
+            OverrideFlipbookTextureWidthUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -43087,8 +43953,8 @@ namespace SimplygonUI
             }
 
             jsonData.Version = "10.1";
-            jsonData.Build = "10.1.3300.0";
-            jsonData.Commit = "62b4d343242ec8d2d43dba2a2073709daaa50b81";
+            jsonData.Build = "10.1.8000.0";
+            jsonData.Commit = "6ecf92decd72493263a79f663ef1df0c7db2d807";
             jsonData.Settings.GlobalSettings = GlobalSettings.SaveJson(serializeUIComponents);
             jsonData.Settings.PipelineSettings = PipelineSettings.SaveJson(serializeUIComponents);
 
@@ -43931,6 +44797,7 @@ namespace SimplygonUI
                 FlipbookSettings.UpVectorX = 0;
                 FlipbookSettings.UpVectorY = 0;
                 FlipbookSettings.UpVectorZ = 1;
+                FlipbookSettings.OutputEachViewSeparatelyUI.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -43979,6 +44846,7 @@ namespace SimplygonUI
                 ReductionSettings.MergeGeometriesUI.VisibleOverride = false;
                 ReductionSettings.AllowDegenerateTexCoordsUI.VisibleOverride = false;
                 ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                ReductionSettings.ReductionPerformanceModeUI.VisibleOverride = false;
                 RepairSettings.VisibleOverride = false;
                 NormalCalculationSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
@@ -44018,6 +44886,7 @@ namespace SimplygonUI
                 ReductionSettings.MergeGeometriesUI.VisibleOverride = false;
                 ReductionSettings.AllowDegenerateTexCoordsUI.VisibleOverride = false;
                 ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                ReductionSettings.ReductionPerformanceModeUI.VisibleOverride = false;
                 RepairSettings.VisibleOverride = false;
                 NormalCalculationSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
@@ -44157,6 +45026,10 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardDensityUI.VisibleOverride = true;
                 BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = true;
                 BillboardCloudSettings.GeometricComplexityUI.VisibleOverride = false;
+                BillboardCloudSettings.UseVisibilityWeightsUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
@@ -44192,6 +45065,17 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardDensityUI.VisibleOverride = true;
                 BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = true;
                 BillboardCloudSettings.GeometricComplexityUI.VisibleOverride = false;
+                BillboardCloudSettings.UseVisibilityWeightsUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.MaintainLeafConnectionsUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageMaterialsUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleRatioUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageAreaThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageSizeThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.TrunkReductionRatioUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
@@ -44222,6 +45106,17 @@ namespace SimplygonUI
             {
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "Diffuse_Color";
+                FlipbookSettings.ViewDirectionXUI.VisibleOverride = false;
+                FlipbookSettings.ViewDirectionYUI.VisibleOverride = false;
+                FlipbookSettings.ViewDirectionZUI.VisibleOverride = false;
+                FlipbookSettings.UpVectorXUI.VisibleOverride = false;
+                FlipbookSettings.UpVectorYUI.VisibleOverride = false;
+                FlipbookSettings.UpVectorZUI.VisibleOverride = false;
+                FlipbookSettings.NumberOfColumnsUI.VisibleOverride = false;
+                FlipbookSettings.NumberOfRowsUI.VisibleOverride = false;
+                FlipbookSettings.FlipRowColumnOrderUI.VisibleOverride = false;
+                FlipbookSettings.OutputEachViewSeparatelyUI.VisibleOverride = false;
+                FlipbookSettings.OverrideFlipbookTextureWidthUI.VisibleOverride = false;
                 FlipbookSettings.ViewDirectionX = 0;
                 FlipbookSettings.ViewDirectionY = 1;
                 FlipbookSettings.ViewDirectionZ = 0;
@@ -44254,6 +45149,8 @@ namespace SimplygonUI
             {
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "Diffuse_Color";
+                ImpostorFromSingleViewSettings.TightFittingDepthOffsetUI.VisibleOverride = false;
+                ImpostorFromSingleViewSettings.TexCoordPaddingUI.VisibleOverride = false;
                 ImpostorFromSingleViewSettings.ViewDirectionX = 0;
                 ImpostorFromSingleViewSettings.ViewDirectionY = 1;
                 ImpostorFromSingleViewSettings.ViewDirectionZ = 0;
@@ -44355,6 +45252,7 @@ namespace SimplygonUI
                 FlipbookSettings.UpVectorX = 0;
                 FlipbookSettings.UpVectorY = 0;
                 FlipbookSettings.UpVectorZ = 1;
+                FlipbookSettings.OutputEachViewSeparatelyUI.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -44403,6 +45301,7 @@ namespace SimplygonUI
                 ReductionSettings.MergeGeometriesUI.VisibleOverride = false;
                 ReductionSettings.AllowDegenerateTexCoordsUI.VisibleOverride = false;
                 ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                ReductionSettings.ReductionPerformanceModeUI.VisibleOverride = false;
                 RepairSettings.VisibleOverride = false;
                 NormalCalculationSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
@@ -44442,6 +45341,7 @@ namespace SimplygonUI
                 ReductionSettings.MergeGeometriesUI.VisibleOverride = false;
                 ReductionSettings.AllowDegenerateTexCoordsUI.VisibleOverride = false;
                 ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                ReductionSettings.ReductionPerformanceModeUI.VisibleOverride = false;
                 RepairSettings.VisibleOverride = false;
                 NormalCalculationSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
@@ -44581,6 +45481,10 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardDensityUI.VisibleOverride = true;
                 BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = true;
                 BillboardCloudSettings.GeometricComplexityUI.VisibleOverride = false;
+                BillboardCloudSettings.UseVisibilityWeightsUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
@@ -44616,6 +45520,17 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardDensityUI.VisibleOverride = true;
                 BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = true;
                 BillboardCloudSettings.GeometricComplexityUI.VisibleOverride = false;
+                BillboardCloudSettings.UseVisibilityWeightsUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.MaintainLeafConnectionsUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageMaterialsUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleRatioUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageAreaThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageSizeThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.TrunkReductionRatioUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
@@ -44646,6 +45561,17 @@ namespace SimplygonUI
             {
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                FlipbookSettings.ViewDirectionXUI.VisibleOverride = false;
+                FlipbookSettings.ViewDirectionYUI.VisibleOverride = false;
+                FlipbookSettings.ViewDirectionZUI.VisibleOverride = false;
+                FlipbookSettings.UpVectorXUI.VisibleOverride = false;
+                FlipbookSettings.UpVectorYUI.VisibleOverride = false;
+                FlipbookSettings.UpVectorZUI.VisibleOverride = false;
+                FlipbookSettings.NumberOfColumnsUI.VisibleOverride = false;
+                FlipbookSettings.NumberOfRowsUI.VisibleOverride = false;
+                FlipbookSettings.FlipRowColumnOrderUI.VisibleOverride = false;
+                FlipbookSettings.OutputEachViewSeparatelyUI.VisibleOverride = false;
+                FlipbookSettings.OverrideFlipbookTextureWidthUI.VisibleOverride = false;
                 FlipbookSettings.ViewDirectionX = 0;
                 FlipbookSettings.ViewDirectionY = 1;
                 FlipbookSettings.ViewDirectionZ = 0;
@@ -44678,6 +45604,8 @@ namespace SimplygonUI
             {
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                ImpostorFromSingleViewSettings.TightFittingDepthOffsetUI.VisibleOverride = false;
+                ImpostorFromSingleViewSettings.TexCoordPaddingUI.VisibleOverride = false;
                 ImpostorFromSingleViewSettings.ViewDirectionX = 0;
                 ImpostorFromSingleViewSettings.ViewDirectionY = 1;
                 ImpostorFromSingleViewSettings.ViewDirectionZ = 0;
@@ -44779,6 +45707,7 @@ namespace SimplygonUI
                 FlipbookSettings.UpVectorX = 0;
                 FlipbookSettings.UpVectorY = 0;
                 FlipbookSettings.UpVectorZ = 1;
+                FlipbookSettings.OutputEachViewSeparatelyUI.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -44827,6 +45756,7 @@ namespace SimplygonUI
                 ReductionSettings.MergeGeometriesUI.VisibleOverride = false;
                 ReductionSettings.AllowDegenerateTexCoordsUI.VisibleOverride = false;
                 ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                ReductionSettings.ReductionPerformanceModeUI.VisibleOverride = false;
                 RepairSettings.VisibleOverride = false;
                 NormalCalculationSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
@@ -44866,6 +45796,7 @@ namespace SimplygonUI
                 ReductionSettings.MergeGeometriesUI.VisibleOverride = false;
                 ReductionSettings.AllowDegenerateTexCoordsUI.VisibleOverride = false;
                 ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                ReductionSettings.ReductionPerformanceModeUI.VisibleOverride = false;
                 RepairSettings.VisibleOverride = false;
                 NormalCalculationSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
@@ -45005,6 +45936,10 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardDensityUI.VisibleOverride = true;
                 BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = true;
                 BillboardCloudSettings.GeometricComplexityUI.VisibleOverride = false;
+                BillboardCloudSettings.UseVisibilityWeightsUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
@@ -45040,6 +45975,17 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardDensityUI.VisibleOverride = true;
                 BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = true;
                 BillboardCloudSettings.GeometricComplexityUI.VisibleOverride = false;
+                BillboardCloudSettings.UseVisibilityWeightsUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.MaintainLeafConnectionsUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageMaterialsUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleRatioUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageAreaThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageSizeThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.TrunkReductionRatioUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
@@ -45070,6 +46016,17 @@ namespace SimplygonUI
             {
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                FlipbookSettings.ViewDirectionXUI.VisibleOverride = false;
+                FlipbookSettings.ViewDirectionYUI.VisibleOverride = false;
+                FlipbookSettings.ViewDirectionZUI.VisibleOverride = false;
+                FlipbookSettings.UpVectorXUI.VisibleOverride = false;
+                FlipbookSettings.UpVectorYUI.VisibleOverride = false;
+                FlipbookSettings.UpVectorZUI.VisibleOverride = false;
+                FlipbookSettings.NumberOfColumnsUI.VisibleOverride = false;
+                FlipbookSettings.NumberOfRowsUI.VisibleOverride = false;
+                FlipbookSettings.FlipRowColumnOrderUI.VisibleOverride = false;
+                FlipbookSettings.OutputEachViewSeparatelyUI.VisibleOverride = false;
+                FlipbookSettings.OverrideFlipbookTextureWidthUI.VisibleOverride = false;
                 FlipbookSettings.ViewDirectionX = 0;
                 FlipbookSettings.ViewDirectionY = 1;
                 FlipbookSettings.ViewDirectionZ = 0;
@@ -45102,6 +46059,8 @@ namespace SimplygonUI
             {
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "base_color";
+                ImpostorFromSingleViewSettings.TightFittingDepthOffsetUI.VisibleOverride = false;
+                ImpostorFromSingleViewSettings.TexCoordPaddingUI.VisibleOverride = false;
                 ImpostorFromSingleViewSettings.ViewDirectionX = 0;
                 ImpostorFromSingleViewSettings.ViewDirectionY = 1;
                 ImpostorFromSingleViewSettings.ViewDirectionZ = 0;
@@ -45197,6 +46156,7 @@ namespace SimplygonUI
                 FlipbookSettings.UpVectorX = 0;
                 FlipbookSettings.UpVectorY = 1;
                 FlipbookSettings.UpVectorZ = 0;
+                FlipbookSettings.OutputEachViewSeparatelyUI.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -45245,6 +46205,7 @@ namespace SimplygonUI
                 ReductionSettings.MergeGeometriesUI.VisibleOverride = false;
                 ReductionSettings.AllowDegenerateTexCoordsUI.VisibleOverride = false;
                 ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                ReductionSettings.ReductionPerformanceModeUI.VisibleOverride = false;
                 RepairSettings.VisibleOverride = false;
                 NormalCalculationSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
@@ -45284,6 +46245,7 @@ namespace SimplygonUI
                 ReductionSettings.MergeGeometriesUI.VisibleOverride = false;
                 ReductionSettings.AllowDegenerateTexCoordsUI.VisibleOverride = false;
                 ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                ReductionSettings.ReductionPerformanceModeUI.VisibleOverride = false;
                 RepairSettings.VisibleOverride = false;
                 NormalCalculationSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
@@ -45423,6 +46385,10 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardDensityUI.VisibleOverride = true;
                 BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = true;
                 BillboardCloudSettings.GeometricComplexityUI.VisibleOverride = false;
+                BillboardCloudSettings.UseVisibilityWeightsUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
@@ -45455,6 +46421,17 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardDensityUI.VisibleOverride = true;
                 BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = true;
                 BillboardCloudSettings.GeometricComplexityUI.VisibleOverride = false;
+                BillboardCloudSettings.UseVisibilityWeightsUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.MaintainLeafConnectionsUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageMaterialsUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleRatioUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageAreaThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageSizeThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.TrunkReductionRatioUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
@@ -45482,6 +46459,17 @@ namespace SimplygonUI
             {
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "color";
+                FlipbookSettings.ViewDirectionXUI.VisibleOverride = false;
+                FlipbookSettings.ViewDirectionYUI.VisibleOverride = false;
+                FlipbookSettings.ViewDirectionZUI.VisibleOverride = false;
+                FlipbookSettings.UpVectorXUI.VisibleOverride = false;
+                FlipbookSettings.UpVectorYUI.VisibleOverride = false;
+                FlipbookSettings.UpVectorZUI.VisibleOverride = false;
+                FlipbookSettings.NumberOfColumnsUI.VisibleOverride = false;
+                FlipbookSettings.NumberOfRowsUI.VisibleOverride = false;
+                FlipbookSettings.FlipRowColumnOrderUI.VisibleOverride = false;
+                FlipbookSettings.OutputEachViewSeparatelyUI.VisibleOverride = false;
+                FlipbookSettings.OverrideFlipbookTextureWidthUI.VisibleOverride = false;
                 FlipbookSettings.ViewDirectionX = 0;
                 FlipbookSettings.ViewDirectionY = 0;
                 FlipbookSettings.ViewDirectionZ = -1;
@@ -45514,6 +46502,8 @@ namespace SimplygonUI
             {
                 MappingImageSettings.TexCoordName = "MaterialLOD";
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "color";
+                ImpostorFromSingleViewSettings.TightFittingDepthOffsetUI.VisibleOverride = false;
+                ImpostorFromSingleViewSettings.TexCoordPaddingUI.VisibleOverride = false;
                 ImpostorFromSingleViewSettings.ViewDirectionX = 0;
                 ImpostorFromSingleViewSettings.ViewDirectionY = 0;
                 ImpostorFromSingleViewSettings.ViewDirectionZ = -1;
@@ -45654,6 +46644,7 @@ namespace SimplygonUI
                 ReductionSettings.MergeGeometriesUI.VisibleOverride = false;
                 ReductionSettings.AllowDegenerateTexCoordsUI.VisibleOverride = false;
                 ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                ReductionSettings.ReductionPerformanceModeUI.VisibleOverride = false;
                 RepairSettings.VisibleOverride = false;
                 NormalCalculationSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
@@ -45697,6 +46688,7 @@ namespace SimplygonUI
                 ReductionSettings.MergeGeometriesUI.VisibleOverride = false;
                 ReductionSettings.AllowDegenerateTexCoordsUI.VisibleOverride = false;
                 ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                ReductionSettings.ReductionPerformanceModeUI.VisibleOverride = false;
                 RepairSettings.VisibleOverride = false;
                 NormalCalculationSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
@@ -45834,6 +46826,10 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardDensityUI.VisibleOverride = true;
                 BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = true;
                 BillboardCloudSettings.GeometricComplexityUI.VisibleOverride = false;
+                BillboardCloudSettings.UseVisibilityWeightsUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
@@ -45868,6 +46864,17 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardDensityUI.VisibleOverride = true;
                 BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = true;
                 BillboardCloudSettings.GeometricComplexityUI.VisibleOverride = false;
+                BillboardCloudSettings.UseVisibilityWeightsUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.MaintainLeafConnectionsUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageMaterialsUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleRatioUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageAreaThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageSizeThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.TrunkReductionRatioUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
@@ -45897,6 +46904,8 @@ namespace SimplygonUI
             if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Blender && MenuPath == "Template/Basic/Impostor from single view")
             {
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "Basecolor";
+                ImpostorFromSingleViewSettings.TightFittingDepthOffsetUI.VisibleOverride = false;
+                ImpostorFromSingleViewSettings.TexCoordPaddingUI.VisibleOverride = false;
                 ImpostorFromSingleViewSettings.ViewDirectionX = -1;
                 ImpostorFromSingleViewSettings.ViewDirectionY = 0;
                 ImpostorFromSingleViewSettings.ViewDirectionZ = 0;
@@ -45969,6 +46978,7 @@ namespace SimplygonUI
             if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && MenuPath == "Template/Advanced/Billboard cloud for vegetation")
             {
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageMaterialsUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
@@ -46017,6 +47027,7 @@ namespace SimplygonUI
                 ReductionSettings.MergeGeometriesUI.VisibleOverride = false;
                 ReductionSettings.AllowDegenerateTexCoordsUI.VisibleOverride = false;
                 ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                ReductionSettings.ReductionPerformanceModeUI.VisibleOverride = false;
                 RepairSettings.VisibleOverride = false;
                 NormalCalculationSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
@@ -46055,6 +47066,7 @@ namespace SimplygonUI
                 ReductionSettings.MergeGeometriesUI.VisibleOverride = false;
                 ReductionSettings.AllowDegenerateTexCoordsUI.VisibleOverride = false;
                 ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
+                ReductionSettings.ReductionPerformanceModeUI.VisibleOverride = false;
                 RepairSettings.VisibleOverride = false;
                 NormalCalculationSettings.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
@@ -46175,6 +47187,10 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardDensityUI.VisibleOverride = true;
                 BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = true;
                 BillboardCloudSettings.GeometricComplexityUI.VisibleOverride = false;
+                BillboardCloudSettings.UseVisibilityWeightsUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
@@ -46206,6 +47222,17 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardDensityUI.VisibleOverride = true;
                 BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = true;
                 BillboardCloudSettings.GeometricComplexityUI.VisibleOverride = false;
+                BillboardCloudSettings.UseVisibilityWeightsUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
+                BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.MaintainLeafConnectionsUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageMaterialsUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleRatioUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageAreaThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.SeparateFoliageSizeThresholdUI.VisibleOverride = false;
+                BillboardCloudSettings.FoliageSettings.TrunkReductionRatioUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
                 MappingImageSettings.GenerateTexCoordsUI.VisibleOverride = false;
@@ -46232,6 +47259,8 @@ namespace SimplygonUI
             if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && MenuPath == "Template/Basic/Impostor from single view")
             {
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                ImpostorFromSingleViewSettings.TightFittingDepthOffsetUI.VisibleOverride = false;
+                ImpostorFromSingleViewSettings.TexCoordPaddingUI.VisibleOverride = false;
                 ImpostorFromSingleViewSettings.ViewDirectionX = 0;
                 ImpostorFromSingleViewSettings.ViewDirectionY = 0;
                 ImpostorFromSingleViewSettings.ViewDirectionZ = 1;
