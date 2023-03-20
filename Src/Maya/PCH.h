@@ -385,3 +385,4 @@ class UIHookHelper
 #endif // !UIHookHelper_
 
 MString CreateQuotedText( MString text );
+MString CreateQuotedTextAndRemoveLineBreaks( MString text );

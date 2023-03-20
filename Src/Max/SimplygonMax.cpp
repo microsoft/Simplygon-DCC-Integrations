@@ -6886,24 +6886,7 @@ bool SimplygonMax::ExtractGeometry_Quad( size_t meshIndex )
 	{
 		const int deg = mMaxMesh.F( polygonIndex )->deg;
 		const bool bIsQuad = deg == 4;
-
 		sgLocalPolygonTriangles.resize( deg - 2 );
-		if( bIsQuad )
-		{
-			{
-				const char cQuadFlagToken = SG_QUADFLAG_FIRST;
-				sgQuadFlags->SetItem( currentQuadFlagTriangleIndex++, cQuadFlagToken );
-			}
-			{
-				const char cQuadFlagToken = SG_QUADFLAG_SECOND;
-				sgQuadFlags->SetItem( currentQuadFlagTriangleIndex++, cQuadFlagToken );
-			}
-		}
-		else
-		{
-			const char cQuadFlagToken = SG_QUADFLAG_TRIANGLE;
-			sgQuadFlags->SetItem( currentQuadFlagTriangleIndex++, cQuadFlagToken );
-		}
 
 		const uint* indexArray = reinterpret_cast<const uint*>( mMaxMesh.F( polygonIndex )->vtx );
 		const bool triangulationFailed = !sgTriangulator.TriangulatePolygon( sgLocalPolygonTriangles.data(), indexArray, deg );
@@ -6916,6 +6899,8 @@ bool SimplygonMax::ExtractGeometry_Quad( size_t meshIndex )
 		for( int i = 0; i < sgLocalPolygonTriangles.size(); ++i, ++sgPolygonIndex )
 		{
 			auto localTriangle = sgLocalPolygonTriangles[ i ];
+			const char cQuadFlagToken = bIsQuad ? ( i == 0 ? SG_QUADFLAG_FIRST : SG_QUADFLAG_SECOND ) : SG_QUADFLAG_TRIANGLE;
+			sgQuadFlags->SetItem( sgPolygonIndex, cQuadFlagToken );
 
 			for( uint c = 0; c < 3; ++c )
 			{
@@ -11935,6 +11920,20 @@ void SimplygonMax::LogToWindow( std::basic_string<TCHAR> tMessage, ErrorType err
 		{
 			this->MaxInterface->Log()->LogEntry( errorType == Error ? SYSLOG_ERROR : SYSLOG_WARN, NO_DIALOG, _M( "Simplygon Max Plugin" ), tMessage.c_str() );
 		}
+
+//		Send log message to Simplygon UI.
+//		Disabled due to Safe Scene Script Execution in 3ds Max
+// 		Todo: Detect Script execution mode and enable when allowed.
+//		std::wstring logMethod = errorType == ErrorType::Error ? L"SendErrorToLog" : L"SendWarningToLog";
+//		TCHAR tExecuteSendLogToUIScript[ MAX_PATH ] = { 0 };
+//		_stprintf_s( tExecuteSendLogToUIScript, MAX_PATH, _T("ui = dotNetObject \"SimplygonUI.UIAccessor\"\nui.%s \"%s\""), logMethod.c_str(), tMessage.c_str() );
+//		const TSTR wExecuteSendLogToUIScript( tExecuteSendLogToUIScript );
+//
+//#if MAX_VERSION_MAJOR < 24
+//		ExecuteMAXScriptScript( wExecuteSendLogToUIScript.data(), TRUE );
+//#else
+//		ExecuteMAXScriptScript( wExecuteSendLogToUIScript.data(), MAXScript::ScriptSource::NotSpecified, TRUE );
+//#endif
 	}
 
 	// if info, only output to log
@@ -12016,6 +12015,8 @@ void SimplygonMax::Callback( std::basic_string<TCHAR> tId, bool bIsError, std::b
 bool SimplygonMax::ProcessScene()
 {
 	bool bProcessingSucceeded = true;
+	std::vector<std::string> errorMessages;
+	std::vector<std::string> warningMessages;
 	try
 	{
 		// fetch output texture path
@@ -12062,8 +12063,8 @@ bool SimplygonMax::ProcessScene()
 			std::basic_string<TCHAR> tOutputSceneFile = CorrectPath( this->outputSceneFile );
 
 			// start process with the given pipeline settings file
-			std::vector<std::basic_string<TCHAR>> tOutputFileList =
-			    processingModule->RunPipelineOnFile( tInputSceneFile, tOutputSceneFile, this->sgPipeline, EPipelineRunMode( this->PipelineRunMode ) );
+			std::vector<std::basic_string<TCHAR>> tOutputFileList = processingModule->RunPipelineOnFile(
+			    tInputSceneFile, tOutputSceneFile, this->sgPipeline, EPipelineRunMode( this->PipelineRunMode ), errorMessages, warningMessages );
 
 			this->GetMaterialInfoHandler()->AddProcessedSceneFiles( tOutputFileList );
 		}
@@ -12074,7 +12075,7 @@ bool SimplygonMax::ProcessScene()
 
 			// start process with the given pipeline settings file
 			std::vector<spScene> sgProcessedScenes =
-			    processingModule->RunPipeline( sgOriginalScene, this->sgPipeline, EPipelineRunMode( this->PipelineRunMode ) );
+			    processingModule->RunPipeline( sgOriginalScene, this->sgPipeline, EPipelineRunMode( this->PipelineRunMode ), errorMessages, warningMessages );
 
 			// fetch processed Simplygon scene
 			this->SceneHandler->sgProcessedScenes = sgProcessedScenes;
@@ -12082,8 +12083,23 @@ bool SimplygonMax::ProcessScene()
 	}
 	catch( std::exception ex )
 	{
-		this->LogToWindow( ConstCharPtrToLPCTSTR( ex.what() ), Error, true );
 		bProcessingSucceeded = false;
+	}
+
+	//Write errors and warnings to log.
+	if( errorMessages.size() > 0 )
+	{
+		for( const auto& error : errorMessages )
+		{
+			this->LogToWindow( ConstCharPtrToLPCTSTR( error.c_str() ), Error, true );
+		}
+	}
+	if( warningMessages.size() > 0 )
+	{
+		for( const auto& warning : warningMessages )
+		{
+			this->LogToWindow( ConstCharPtrToLPCTSTR( warning.c_str() ), Warning, false );
+		}
 	}
 
 	// if processing failed, cleanup and notify user.

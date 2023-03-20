@@ -2177,7 +2177,15 @@ void SimplygonCmd::LogErrorToWindow( std::basic_string<TCHAR> tMessage, int prog
 	this->LogToWindow( tMessage, progress );
 	EnterCriticalSection( &this->cs );
 	{
-		MGlobal::displayError( LPCTSTRToConstCharPtr( tMessage.c_str() ) );
+		MString mMessage = LPCTSTRToConstCharPtr(tMessage.c_str());
+
+		MGlobal::displayError( MString( "(Simplygon): ") + mMessage );
+
+		// Send log message to Simplygon UI.
+		MString sendLogToUICommand = "SimplygonUI -SendErrorToLog ";
+		sendLogToUICommand += CreateQuotedTextAndRemoveLineBreaks( mMessage );
+		sendLogToUICommand += ";";
+		MGlobal::executeCommand( sendLogToUICommand );
 	}
 	LeaveCriticalSection( &this->cs );
 }
@@ -2187,7 +2195,15 @@ void SimplygonCmd::LogWarningToWindow( std::basic_string<TCHAR> tMessage, int pr
 	this->LogToWindow( tMessage, progress );
 	EnterCriticalSection( &this->cs );
 	{
-		MGlobal::displayWarning( LPCTSTRToConstCharPtr( tMessage.c_str() ) );
+		MString mMessage = LPCTSTRToConstCharPtr( tMessage.c_str() );
+
+		MGlobal::displayWarning( MString( "(Simplygon): " ) + mMessage );
+
+		// Send log message to Simplygon UI.
+		MString sendLogToUICommand = "SimplygonUI -SendWarningToLog ";
+		sendLogToUICommand += CreateQuotedTextAndRemoveLineBreaks( mMessage );
+		sendLogToUICommand += ";";
+		MGlobal::executeCommand( sendLogToUICommand );
 	}
 	LeaveCriticalSection( &this->cs );
 }
@@ -2226,6 +2242,8 @@ void SimplygonCmd::LogToWindow( std::basic_string<TCHAR> tMessage, int progress 
 MStatus SimplygonCmd::ProcessScene()
 {
 	bool bProcessingSucceeded = true;
+	std::vector<std::string> errorMessages;
+	std::vector<std::string> warningMessages;
 	try
 	{
 		// fetch output texture path
@@ -2282,7 +2300,7 @@ MStatus SimplygonCmd::ProcessScene()
 
 			// start process with the given pipeline settings file
 			std::vector<std::basic_string<TCHAR>> tOutputFileList =
-			    processingModule->RunPipelineOnFile( sInputSceneFile, sOutputSceneFile, this->sgPipeline, runMode );
+			    processingModule->RunPipelineOnFile( sInputSceneFile, sOutputSceneFile, this->sgPipeline, runMode, errorMessages, warningMessages );
 
 			this->GetMaterialInfoHandler()->AddProcessedSceneFiles( tOutputFileList );
 		}
@@ -2292,14 +2310,28 @@ MStatus SimplygonCmd::ProcessScene()
 			const spScene sgOriginalScene = this->GetSceneHandler()->sgScene;
 
 			// start process with the given pipeline settings file
-			this->sceneHandler->sgProcessedScenes = processingModule->RunPipeline( sgOriginalScene, this->sgPipeline, runMode );
+			this->sceneHandler->sgProcessedScenes = processingModule->RunPipeline( sgOriginalScene, this->sgPipeline, runMode, errorMessages, warningMessages );
 		}
 	}
 	catch( std::exception ex )
 	{
-		const std::basic_string<TCHAR> tErrorMessage = ConstCharPtrToLPCTSTR( ex.what() );
-		this->LogErrorToWindow( tErrorMessage );
 		bProcessingSucceeded = false;
+	}
+
+	// Write errors and warnings to log.
+	if( errorMessages.size() > 0 )
+	{
+		for( const auto& error : errorMessages )
+		{
+			this->LogErrorToWindow( error );
+		}
+	}
+	if( warningMessages.size() > 0 )
+	{
+		for( const auto& warning : warningMessages )
+		{
+			this->LogWarningToWindow( warning );
+		}
 	}
 
 	// if processing failed, cleanup and notify user.

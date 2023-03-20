@@ -165,6 +165,22 @@ SimplygonUI -SavePipelineToFile ""<file path>""
 """);
                     }
                 }
+                else if (scriptCommand == "-senderrortolog")
+                {
+                    if (argl.length > 1)
+                    {
+                        string errorMessage = argl.asString(1);
+                        ui.MainUI.SendErrorToLog(errorMessage);
+                    }
+                }
+                else if (scriptCommand == "-sendwarningtolog")
+                {
+                    if (argl.length > 1)
+                    {
+                        string warningMessage = argl.asString(1);
+                        ui.MainUI.SendWarningToLog(warningMessage);
+                    }
+                }
                 else
                 {
                     MGlobal.displayInfo(@"
