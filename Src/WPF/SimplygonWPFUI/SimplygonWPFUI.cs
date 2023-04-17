@@ -18,8 +18,8 @@ namespace SimplygonUI
     public class SimplygonVersion
     {
         public static readonly string Version = "10.1";
-        public static readonly string Build = "10.1.8000.0";
-        public static readonly string Commit = "6ecf92decd72493263a79f663ef1df0c7db2d807";
+        public static readonly string Build = "10.1.11000.0";
+        public static readonly string Commit = "00bb463ecde667acc6b8c8b433b131c55a99d406";
     }
 
     public enum SimplygonIntegrationType
@@ -24761,6 +24761,7 @@ namespace SimplygonUI
                 if(FlipRowColumnOrderUI.Visible) return true;
                 if(OutputEachViewSeparatelyUI.Visible) return true;
                 if(OverrideFlipbookTextureWidthUI.Visible) return true;
+                if(PivotAroundOriginUI.Visible) return true;
 
                 return false;
             }
@@ -26183,6 +26184,76 @@ namespace SimplygonUI
 
         }
 
+        public bool PivotAroundOrigin { get { return _PivotAroundOrigin; } set { _PivotAroundOrigin = value; OnPropertyChanged(); } }
+        private bool _PivotAroundOrigin;
+        public SimplygonPivotAroundOriginEx PivotAroundOriginUI { get; set; }
+        public class SimplygonPivotAroundOriginEx : SimplygonSettingsProperty
+        {
+            public SimplygonFlipbookSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.PivotAroundOrigin;
+                }
+
+                set
+                {
+                    bool needReload = Parent.PivotAroundOrigin != value;
+                    Parent.PivotAroundOrigin = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonPivotAroundOriginEx() : base("PivotAroundOrigin")
+            {
+                Type = "bool";
+                HelpText = "If PivotAroundOrigin is enabled, the Flipbook quad geometry will be centered around the origin instead of the object center to match the pivoted rotation of the original geometry. This creates less optimal texture usage however, and the further the object center is from the origin the larger the texture waste becomes (in the direction away from the object center). Usage example: if the subject is a tree with an off-center trunk base, then flipping between the views will have the base of the trunk moving around. But if the trunk is centered on the origin and PivotAroundOrigin is enabled, the base of the trunk will remain stationary.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonPivotAroundOriginEx(dynamic jsonData) : base("PivotAroundOrigin")
+            {
+                Type = "bool";
+                HelpText = "If PivotAroundOrigin is enabled, the Flipbook quad geometry will be centered around the origin instead of the object center to match the pivoted rotation of the original geometry. This creates less optimal texture usage however, and the further the object center is from the origin the larger the texture waste becomes (in the direction away from the object center). Usage example: if the subject is a tree with an off-center trunk base, then flipping between the views will have the base of the trunk moving around. But if the trunk is centered on the origin and PivotAroundOrigin is enabled, the base of the trunk will remain stationary.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonPivotAroundOriginEx DeepCopy()
+            {
+                return (SimplygonPivotAroundOriginEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
 
         public SimplygonFlipbookSettings() : base("FlipbookSettings")
         {
@@ -26235,6 +26306,10 @@ namespace SimplygonUI
             OverrideFlipbookTextureWidthUI.Parent = this;
             OverrideFlipbookTextureWidth = OverrideFlipbookTextureWidthUI.DefaultValue;
             Items.Add(OverrideFlipbookTextureWidthUI);
+            PivotAroundOriginUI = new SimplygonPivotAroundOriginEx();
+            PivotAroundOriginUI.Parent = this;
+            PivotAroundOrigin = PivotAroundOriginUI.DefaultValue;
+            Items.Add(PivotAroundOriginUI);
         }
 
         public SimplygonFlipbookSettings(dynamic jsonData) : base("FlipbookSettings")
@@ -26288,6 +26363,10 @@ namespace SimplygonUI
             OverrideFlipbookTextureWidthUI.Parent = this;
             OverrideFlipbookTextureWidth = OverrideFlipbookTextureWidthUI.DefaultValue;
             Items.Add(OverrideFlipbookTextureWidthUI);
+            PivotAroundOriginUI = new SimplygonPivotAroundOriginEx(jsonData != null && ((JObject)jsonData).GetValue("PivotAroundOriginUI") != null ? jsonData.PivotAroundOriginUI : null);
+            PivotAroundOriginUI.Parent = this;
+            PivotAroundOrigin = PivotAroundOriginUI.DefaultValue;
+            Items.Add(PivotAroundOriginUI);
             LoadJson(jsonData);
         }
 
@@ -26331,6 +26410,9 @@ namespace SimplygonUI
             copy.OverrideFlipbookTextureWidthUI = this.OverrideFlipbookTextureWidthUI.DeepCopy();
             copy.OverrideFlipbookTextureWidthUI.Parent = copy;
             copy.Items.Add(copy.OverrideFlipbookTextureWidthUI);
+            copy.PivotAroundOriginUI = this.PivotAroundOriginUI.DeepCopy();
+            copy.PivotAroundOriginUI.Parent = copy;
+            copy.Items.Add(copy.PivotAroundOriginUI);
             return copy;
         }
 
@@ -26407,6 +26489,12 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.OverrideFlipbookTextureWidthUI = OverrideFlipbookTextureWidthUI.SaveJson();
+            }
+
+            jsonData.PivotAroundOrigin = PivotAroundOrigin;
+            if(serializeUIComponents)
+            {
+                jsonData.PivotAroundOriginUI = PivotAroundOriginUI.SaveJson();
             }
 
             return jsonData;
@@ -26579,6 +26667,11 @@ namespace SimplygonUI
 
             }
 
+            if(jsonData.GetValue("PivotAroundOrigin") != null)
+            {
+                PivotAroundOrigin = (bool)jsonData.PivotAroundOrigin;
+            }
+
         }
 
         public override void Reset()
@@ -26595,6 +26688,7 @@ namespace SimplygonUI
             FlipRowColumnOrderUI.Reset();
             OutputEachViewSeparatelyUI.Reset();
             OverrideFlipbookTextureWidthUI.Reset();
+            PivotAroundOriginUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
@@ -26612,6 +26706,7 @@ namespace SimplygonUI
             FlipRowColumnOrderUI.IsEditEnabled = isEditEnabled;
             OutputEachViewSeparatelyUI.IsEditEnabled = isEditEnabled;
             OverrideFlipbookTextureWidthUI.IsEditEnabled = isEditEnabled;
+            PivotAroundOriginUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -43953,8 +44048,8 @@ namespace SimplygonUI
             }
 
             jsonData.Version = "10.1";
-            jsonData.Build = "10.1.8000.0";
-            jsonData.Commit = "6ecf92decd72493263a79f663ef1df0c7db2d807";
+            jsonData.Build = "10.1.11000.0";
+            jsonData.Commit = "00bb463ecde667acc6b8c8b433b131c55a99d406";
             jsonData.Settings.GlobalSettings = GlobalSettings.SaveJson(serializeUIComponents);
             jsonData.Settings.PipelineSettings = PipelineSettings.SaveJson(serializeUIComponents);
 
@@ -45117,6 +45212,7 @@ namespace SimplygonUI
                 FlipbookSettings.FlipRowColumnOrderUI.VisibleOverride = false;
                 FlipbookSettings.OutputEachViewSeparatelyUI.VisibleOverride = false;
                 FlipbookSettings.OverrideFlipbookTextureWidthUI.VisibleOverride = false;
+                FlipbookSettings.PivotAroundOriginUI.VisibleOverride = false;
                 FlipbookSettings.ViewDirectionX = 0;
                 FlipbookSettings.ViewDirectionY = 1;
                 FlipbookSettings.ViewDirectionZ = 0;
@@ -45572,6 +45668,7 @@ namespace SimplygonUI
                 FlipbookSettings.FlipRowColumnOrderUI.VisibleOverride = false;
                 FlipbookSettings.OutputEachViewSeparatelyUI.VisibleOverride = false;
                 FlipbookSettings.OverrideFlipbookTextureWidthUI.VisibleOverride = false;
+                FlipbookSettings.PivotAroundOriginUI.VisibleOverride = false;
                 FlipbookSettings.ViewDirectionX = 0;
                 FlipbookSettings.ViewDirectionY = 1;
                 FlipbookSettings.ViewDirectionZ = 0;
@@ -46027,6 +46124,7 @@ namespace SimplygonUI
                 FlipbookSettings.FlipRowColumnOrderUI.VisibleOverride = false;
                 FlipbookSettings.OutputEachViewSeparatelyUI.VisibleOverride = false;
                 FlipbookSettings.OverrideFlipbookTextureWidthUI.VisibleOverride = false;
+                FlipbookSettings.PivotAroundOriginUI.VisibleOverride = false;
                 FlipbookSettings.ViewDirectionX = 0;
                 FlipbookSettings.ViewDirectionY = 1;
                 FlipbookSettings.ViewDirectionZ = 0;
@@ -46470,6 +46568,7 @@ namespace SimplygonUI
                 FlipbookSettings.FlipRowColumnOrderUI.VisibleOverride = false;
                 FlipbookSettings.OutputEachViewSeparatelyUI.VisibleOverride = false;
                 FlipbookSettings.OverrideFlipbookTextureWidthUI.VisibleOverride = false;
+                FlipbookSettings.PivotAroundOriginUI.VisibleOverride = false;
                 FlipbookSettings.ViewDirectionX = 0;
                 FlipbookSettings.ViewDirectionY = 0;
                 FlipbookSettings.ViewDirectionZ = -1;
