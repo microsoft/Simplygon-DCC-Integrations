@@ -104,10 +104,11 @@ class MaterialTextureLayer : public TextureProperties
 	}
 
 	MaterialTextureLayer( const MaterialTextureLayer& other )
+	    : TextureProperties( other )
 	{
 		this->BlendType = other.BlendType;
 		this->LayerAlpha = other.LayerAlpha;
-		*this->AlphaTexture = *other.AlphaTexture;
+		this->AlphaTexture = other.AlphaTexture;
 	}
 	~MaterialTextureLayer()
 	{

@@ -301,7 +301,11 @@ Licensed under the MIT License.
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="21" />
                                     </Grid.RowDefinitions>
-                                    <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" />
+                                    <TextBlock Margin="5,0" Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center">
+                                        <TextBlock.ToolTip>
+                                            <TextBlock Text="{Binding HelpText}" TextWrapping="Wrap" MaxWidth="200"/>
+                                        </TextBlock.ToolTip>
+                                    </TextBlock>
                                     <TextBox Grid.Column="1" Text="{Binding Path=Value, Mode=TwoWay}" VerticalAlignment="Center" MouseEnter="TextBox_GotFocus" GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus" KeyUp="TextBox_KeyEnterUpdate"></TextBox>
                                     <CheckBox Margin="5,0" Grid.Column="2" IsChecked="{Binding Path=Visible, Mode=TwoWay}" Style="{StaticResource VisibleCheckBoxStyle}" VerticalAlignment="Center"></CheckBox>
                                 </Grid>
