@@ -17,9 +17,9 @@ namespace SimplygonUI
 {
     public class SimplygonVersion
     {
-        public static readonly string Version = "10.1";
-        public static readonly string Build = "10.1.11000.0";
-        public static readonly string Commit = "00bb463ecde667acc6b8c8b433b131c55a99d406";
+        public static readonly string Version = "10.2";
+        public static readonly string Build = "10.2.400.0";
+        public static readonly string Commit = "1a691ff83783d6ed500092943d1df7dc2bb4053b";
     }
 
     public enum SimplygonIntegrationType
@@ -1183,6 +1183,11 @@ namespace SimplygonUI
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Unity)
             {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ComputeCaster, "Compute", "Template/Advanced/ComputeCaster"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Unity)
+            {
                 MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Advanced/ColorCaster"));
             }
 
@@ -1348,9 +1353,9 @@ namespace SimplygonUI
                 if(ReductionTargetMaxDeviationUI.Visible) return true;
                 if(ReductionTargetOnScreenSizeEnabledUI.Visible) return true;
                 if(ReductionTargetOnScreenSizeUI.Visible) return true;
+                if(ReductionPerformanceModeUI.Visible) return true;
                 if(ReductionTargetStopConditionUI.Visible) return true;
                 if(ReductionHeuristicsUI.Visible) return true;
-                if(ReductionPerformanceModeUI.Visible) return true;
                 if(GeometryImportanceUI.Visible) return true;
                 if(MaterialImportanceUI.Visible) return true;
                 if(TextureImportanceUI.Visible) return true;
@@ -1359,21 +1364,21 @@ namespace SimplygonUI
                 if(VertexColorImportanceUI.Visible) return true;
                 if(EdgeSetImportanceUI.Visible) return true;
                 if(SkinningImportanceUI.Visible) return true;
-                if(CreateGeomorphGeometryUI.Visible) return true;
-                if(AllowDegenerateTexCoordsUI.Visible) return true;
-                if(KeepSymmetryUI.Visible) return true;
-                if(UseAutomaticSymmetryDetectionUI.Visible) return true;
-                if(UseSymmetryQuadRetriangulatorUI.Visible) return true;
-                if(SymmetryAxisUI.Visible) return true;
-                if(SymmetryOffsetUI.Visible) return true;
-                if(SymmetryDetectionToleranceUI.Visible) return true;
-                if(DataCreationPreferencesUI.Visible) return true;
                 if(OutwardMoveMultiplierUI.Visible) return true;
                 if(InwardMoveMultiplierUI.Visible) return true;
+                if(KeepSymmetryUI.Visible) return true;
+                if(UseSymmetryQuadRetriangulatorUI.Visible) return true;
+                if(UseAutomaticSymmetryDetectionUI.Visible) return true;
+                if(SymmetryDetectionToleranceUI.Visible) return true;
+                if(SymmetryAxisUI.Visible) return true;
+                if(SymmetryOffsetUI.Visible) return true;
+                if(CreateGeomorphGeometryUI.Visible) return true;
+                if(DataCreationPreferencesUI.Visible) return true;
                 if(UseHighQualityNormalCalculationUI.Visible) return true;
-                if(MergeGeometriesUI.Visible) return true;
-                if(KeepUnprocessedSceneMeshesUI.Visible) return true;
                 if(LockGeometricBorderUI.Visible) return true;
+                if(MergeGeometriesUI.Visible) return true;
+                if(AllowDegenerateTexCoordsUI.Visible) return true;
+                if(KeepUnprocessedSceneMeshesUI.Visible) return true;
                 if(PreserveQuadFlagsUI.Visible) return true;
 
                 return false;
@@ -2199,6 +2204,77 @@ namespace SimplygonUI
 
         }
 
+        public EReductionPerformanceMode ReductionPerformanceMode { get { return _ReductionPerformanceMode; } set { _ReductionPerformanceMode = value; OnPropertyChanged(); } }
+        private EReductionPerformanceMode _ReductionPerformanceMode;
+        public SimplygonReductionPerformanceModeEx ReductionPerformanceModeUI { get; set; }
+        public class SimplygonReductionPerformanceModeEx : SimplygonSettingsProperty
+        {
+            public SimplygonReductionSettings Parent { get; set; }
+            public EReductionPerformanceMode Value
+            {
+                get
+                {
+                    return Parent.ReductionPerformanceMode;
+                }
+
+                set
+                {
+                    bool needReload = Parent.ReductionPerformanceMode != value;
+                    Parent.ReductionPerformanceMode = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EReductionPerformanceMode DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EReductionPerformanceMode)); } }
+
+            public SimplygonReductionPerformanceModeEx() : base("ReductionPerformanceMode")
+            {
+                Type = "enum";
+                HelpText = "Set the reduction performance mode. Different performance modes dictates which features are available, and if a feature is enabled which is not compatible with the specified mode, the reducer will emit a warning, and run at a reduced performance. Please see the Concepts subsection of the documentation for which features are available in each mode.";
+                TypeOverride = "";
+                DefaultValue = EReductionPerformanceMode.AllFeatures;
+                Visible = true;
+            }
+
+            public SimplygonReductionPerformanceModeEx(dynamic jsonData) : base("ReductionPerformanceMode")
+            {
+                Type = "enum";
+                HelpText = "Set the reduction performance mode. Different performance modes dictates which features are available, and if a feature is enabled which is not compatible with the specified mode, the reducer will emit a warning, and run at a reduced performance. Please see the Concepts subsection of the documentation for which features are available in each mode.";
+                TypeOverride = "";
+                DefaultValue = EReductionPerformanceMode.AllFeatures;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonReductionPerformanceModeEx DeepCopy()
+            {
+                return (SimplygonReductionPerformanceModeEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
         public EStopCondition ReductionTargetStopCondition { get { return _ReductionTargetStopCondition; } set { _ReductionTargetStopCondition = value; OnPropertyChanged(); } }
         private EStopCondition _ReductionTargetStopCondition;
         public SimplygonReductionTargetStopConditionEx ReductionTargetStopConditionUI { get; set; }
@@ -2330,77 +2406,6 @@ namespace SimplygonUI
             public SimplygonReductionHeuristicsEx DeepCopy()
             {
                 return (SimplygonReductionHeuristicsEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public EReductionPerformanceMode ReductionPerformanceMode { get { return _ReductionPerformanceMode; } set { _ReductionPerformanceMode = value; OnPropertyChanged(); } }
-        private EReductionPerformanceMode _ReductionPerformanceMode;
-        public SimplygonReductionPerformanceModeEx ReductionPerformanceModeUI { get; set; }
-        public class SimplygonReductionPerformanceModeEx : SimplygonSettingsProperty
-        {
-            public SimplygonReductionSettings Parent { get; set; }
-            public EReductionPerformanceMode Value
-            {
-                get
-                {
-                    return Parent.ReductionPerformanceMode;
-                }
-
-                set
-                {
-                    bool needReload = Parent.ReductionPerformanceMode != value;
-                    Parent.ReductionPerformanceMode = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public EReductionPerformanceMode DefaultValue { get; set; }
-            public Array EnumValues { get { return Enum.GetValues(typeof(EReductionPerformanceMode)); } }
-
-            public SimplygonReductionPerformanceModeEx() : base("ReductionPerformanceMode")
-            {
-                Type = "enum";
-                HelpText = "Set the reduction performance mode. Different performance modes dictates which features are available, and if a feature is enabled which is not compatible with the specified mode, the reducer will emit a warning, and run at a reduced performance. Please see the Concepts subsection of the documentation for which features are available in each mode.";
-                TypeOverride = "";
-                DefaultValue = EReductionPerformanceMode.AllFeatures;
-                Visible = true;
-            }
-
-            public SimplygonReductionPerformanceModeEx(dynamic jsonData) : base("ReductionPerformanceMode")
-            {
-                Type = "enum";
-                HelpText = "Set the reduction performance mode. Different performance modes dictates which features are available, and if a feature is enabled which is not compatible with the specified mode, the reducer will emit a warning, and run at a reduced performance. Please see the Concepts subsection of the documentation for which features are available in each mode.";
-                TypeOverride = "";
-                DefaultValue = EReductionPerformanceMode.AllFeatures;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonReductionPerformanceModeEx DeepCopy()
-            {
-                return (SimplygonReductionPerformanceModeEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -3428,762 +3433,6 @@ namespace SimplygonUI
 
         }
 
-        public bool CreateGeomorphGeometry { get { return _CreateGeomorphGeometry; } set { _CreateGeomorphGeometry = value; OnPropertyChanged(); } }
-        private bool _CreateGeomorphGeometry;
-        public SimplygonCreateGeomorphGeometryEx CreateGeomorphGeometryUI { get; set; }
-        public class SimplygonCreateGeomorphGeometryEx : SimplygonSettingsProperty
-        {
-            public SimplygonReductionSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.CreateGeomorphGeometry;
-                }
-
-                set
-                {
-                    bool needReload = Parent.CreateGeomorphGeometry != value;
-                    Parent.CreateGeomorphGeometry = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-
-            public SimplygonCreateGeomorphGeometryEx() : base("CreateGeomorphGeometry")
-            {
-                Type = "bool";
-                HelpText = "The CreateGeomorphGeometry value. If set, the reducer will create a GeometryData object that is a morphed version of the original GeometryData, that can be used to morph between the original geometry and the reduced geometry. Should not be used together with TJunctionRemover, NormalRecalculation or Material LOD.";
-                TypeOverride = "";
-                DefaultValue = false;
-                Visible = true;
-            }
-
-            public SimplygonCreateGeomorphGeometryEx(dynamic jsonData) : base("CreateGeomorphGeometry")
-            {
-                Type = "bool";
-                HelpText = "The CreateGeomorphGeometry value. If set, the reducer will create a GeometryData object that is a morphed version of the original GeometryData, that can be used to morph between the original geometry and the reduced geometry. Should not be used together with TJunctionRemover, NormalRecalculation or Material LOD.";
-                TypeOverride = "";
-                DefaultValue = false;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonCreateGeomorphGeometryEx DeepCopy()
-            {
-                return (SimplygonCreateGeomorphGeometryEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public bool AllowDegenerateTexCoords { get { return _AllowDegenerateTexCoords; } set { _AllowDegenerateTexCoords = value; OnPropertyChanged(); } }
-        private bool _AllowDegenerateTexCoords;
-        public SimplygonAllowDegenerateTexCoordsEx AllowDegenerateTexCoordsUI { get; set; }
-        public class SimplygonAllowDegenerateTexCoordsEx : SimplygonSettingsProperty
-        {
-            public SimplygonReductionSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.AllowDegenerateTexCoords;
-                }
-
-                set
-                {
-                    bool needReload = Parent.AllowDegenerateTexCoords != value;
-                    Parent.AllowDegenerateTexCoords = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-
-            public SimplygonAllowDegenerateTexCoordsEx() : base("AllowDegenerateTexCoords")
-            {
-                Type = "bool";
-                HelpText = "The AllowDegenerateTexCoords flag. If true, texture coordinates are allowed to become degenerate (triangles can have 0 area in texture space). This may sometimes look better, but if tangent space normals are used, tangent spaces may become degenerate.";
-                TypeOverride = "";
-                DefaultValue = true;
-                Visible = true;
-            }
-
-            public SimplygonAllowDegenerateTexCoordsEx(dynamic jsonData) : base("AllowDegenerateTexCoords")
-            {
-                Type = "bool";
-                HelpText = "The AllowDegenerateTexCoords flag. If true, texture coordinates are allowed to become degenerate (triangles can have 0 area in texture space). This may sometimes look better, but if tangent space normals are used, tangent spaces may become degenerate.";
-                TypeOverride = "";
-                DefaultValue = true;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonAllowDegenerateTexCoordsEx DeepCopy()
-            {
-                return (SimplygonAllowDegenerateTexCoordsEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public bool KeepSymmetry { get { return _KeepSymmetry; } set { _KeepSymmetry = value; OnPropertyChanged(); } }
-        private bool _KeepSymmetry;
-        public SimplygonKeepSymmetryEx KeepSymmetryUI { get; set; }
-        public class SimplygonKeepSymmetryEx : SimplygonSettingsProperty
-        {
-            public SimplygonReductionSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.KeepSymmetry;
-                }
-
-                set
-                {
-                    bool needReload = Parent.KeepSymmetry != value;
-                    Parent.KeepSymmetry = value;
-                    Parent.UseAutomaticSymmetryDetectionUI.Visible = Visible;
-                    Parent.UseSymmetryQuadRetriangulatorUI.Visible = Visible;
-                    Parent.SymmetryAxisUI.Visible = Visible;
-                    Parent.SymmetryOffsetUI.Visible = Visible;
-                    Parent.SymmetryDetectionToleranceUI.Visible = Visible;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-
-            public SimplygonKeepSymmetryEx() : base("KeepSymmetry")
-            {
-                Type = "bool";
-                HelpText = "The KeepSymmetry flag. If set, the reducer will detect symmetric features, and retain symmetry during processing. Please note that for a geometry to be considered symmetrical, also the texture coordinates must be mirrored.";
-                TypeOverride = "";
-                DefaultValue = false;
-                Visible = true;
-            }
-
-            public SimplygonKeepSymmetryEx(dynamic jsonData) : base("KeepSymmetry")
-            {
-                Type = "bool";
-                HelpText = "The KeepSymmetry flag. If set, the reducer will detect symmetric features, and retain symmetry during processing. Please note that for a geometry to be considered symmetrical, also the texture coordinates must be mirrored.";
-                TypeOverride = "";
-                DefaultValue = false;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonKeepSymmetryEx DeepCopy()
-            {
-                return (SimplygonKeepSymmetryEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public bool UseAutomaticSymmetryDetection { get { return _UseAutomaticSymmetryDetection; } set { _UseAutomaticSymmetryDetection = value; OnPropertyChanged(); } }
-        private bool _UseAutomaticSymmetryDetection;
-        public SimplygonUseAutomaticSymmetryDetectionEx UseAutomaticSymmetryDetectionUI { get; set; }
-        public class SimplygonUseAutomaticSymmetryDetectionEx : SimplygonSettingsProperty
-        {
-            public SimplygonReductionSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.UseAutomaticSymmetryDetection;
-                }
-
-                set
-                {
-                    bool needReload = Parent.UseAutomaticSymmetryDetection != value;
-                    Parent.UseAutomaticSymmetryDetection = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-            public override bool Visible { get { if( Parent.KeepSymmetryUI != null ) { return Parent.KeepSymmetry && Parent.KeepSymmetryUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
-
-            public SimplygonUseAutomaticSymmetryDetectionEx() : base("UseAutomaticSymmetryDetection")
-            {
-                Type = "bool";
-                HelpText = "The AutomaticSymmetryDetection flag. If set, and KeepSymmetry is on, the reducer will detect any X,Y,Z symmetry plane and will override any user set symmetry plane with the detected one. If no symmetry is found, KeepSymmetry will be turned off before reduction.";
-                TypeOverride = "";
-                DefaultValue = false;
-                Visible = true;
-            }
-
-            public SimplygonUseAutomaticSymmetryDetectionEx(dynamic jsonData) : base("UseAutomaticSymmetryDetection")
-            {
-                Type = "bool";
-                HelpText = "The AutomaticSymmetryDetection flag. If set, and KeepSymmetry is on, the reducer will detect any X,Y,Z symmetry plane and will override any user set symmetry plane with the detected one. If no symmetry is found, KeepSymmetry will be turned off before reduction.";
-                TypeOverride = "";
-                DefaultValue = false;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonUseAutomaticSymmetryDetectionEx DeepCopy()
-            {
-                return (SimplygonUseAutomaticSymmetryDetectionEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public bool UseSymmetryQuadRetriangulator { get { return _UseSymmetryQuadRetriangulator; } set { _UseSymmetryQuadRetriangulator = value; OnPropertyChanged(); } }
-        private bool _UseSymmetryQuadRetriangulator;
-        public SimplygonUseSymmetryQuadRetriangulatorEx UseSymmetryQuadRetriangulatorUI { get; set; }
-        public class SimplygonUseSymmetryQuadRetriangulatorEx : SimplygonSettingsProperty
-        {
-            public SimplygonReductionSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.UseSymmetryQuadRetriangulator;
-                }
-
-                set
-                {
-                    bool needReload = Parent.UseSymmetryQuadRetriangulator != value;
-                    Parent.UseSymmetryQuadRetriangulator = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-            public override bool Visible { get { if( Parent.KeepSymmetryUI != null ) { return Parent.KeepSymmetry && Parent.KeepSymmetryUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
-
-            public SimplygonUseSymmetryQuadRetriangulatorEx() : base("UseSymmetryQuadRetriangulator")
-            {
-                Type = "bool";
-                HelpText = "The UseSymmetryQuadRetriangulator flag. If true, and KeepSymmetry is on, any triangles that have been triangulated from symmetrical quads into unsymmetrical triangles are detected and fixed. The edges of said triangles are flipped across the old quad so that the mesh becomes symmetrical again.";
-                TypeOverride = "";
-                DefaultValue = true;
-                Visible = true;
-            }
-
-            public SimplygonUseSymmetryQuadRetriangulatorEx(dynamic jsonData) : base("UseSymmetryQuadRetriangulator")
-            {
-                Type = "bool";
-                HelpText = "The UseSymmetryQuadRetriangulator flag. If true, and KeepSymmetry is on, any triangles that have been triangulated from symmetrical quads into unsymmetrical triangles are detected and fixed. The edges of said triangles are flipped across the old quad so that the mesh becomes symmetrical again.";
-                TypeOverride = "";
-                DefaultValue = true;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonUseSymmetryQuadRetriangulatorEx DeepCopy()
-            {
-                return (SimplygonUseSymmetryQuadRetriangulatorEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public ESymmetryAxis SymmetryAxis { get { return _SymmetryAxis; } set { _SymmetryAxis = value; OnPropertyChanged(); } }
-        private ESymmetryAxis _SymmetryAxis;
-        public SimplygonSymmetryAxisEx SymmetryAxisUI { get; set; }
-        public class SimplygonSymmetryAxisEx : SimplygonSettingsProperty
-        {
-            public SimplygonReductionSettings Parent { get; set; }
-            public ESymmetryAxis Value
-            {
-                get
-                {
-                    return Parent.SymmetryAxis;
-                }
-
-                set
-                {
-                    bool needReload = Parent.SymmetryAxis != value;
-                    Parent.SymmetryAxis = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public ESymmetryAxis DefaultValue { get; set; }
-            public override bool Visible { get { if( Parent.KeepSymmetryUI != null ) { return Parent.KeepSymmetry && Parent.KeepSymmetryUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
-            public Array EnumValues { get { return Enum.GetValues(typeof(ESymmetryAxis)); } }
-
-            public SimplygonSymmetryAxisEx() : base("SymmetryAxis")
-            {
-                Type = "enum";
-                HelpText = "Set what axis to be used for symmetry calculations.";
-                TypeOverride = "";
-                DefaultValue = ESymmetryAxis.X;
-                Visible = true;
-            }
-
-            public SimplygonSymmetryAxisEx(dynamic jsonData) : base("SymmetryAxis")
-            {
-                Type = "enum";
-                HelpText = "Set what axis to be used for symmetry calculations.";
-                TypeOverride = "";
-                DefaultValue = ESymmetryAxis.X;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonSymmetryAxisEx DeepCopy()
-            {
-                return (SimplygonSymmetryAxisEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public float SymmetryOffset { get { return _SymmetryOffset; } set { _SymmetryOffset = value; OnPropertyChanged(); } }
-        private float _SymmetryOffset;
-        public SimplygonSymmetryOffsetEx SymmetryOffsetUI { get; set; }
-        public class SimplygonSymmetryOffsetEx : SimplygonSettingsProperty
-        {
-            public SimplygonReductionSettings Parent { get; set; }
-            public float Value
-            {
-                get
-                {
-                    return Parent.SymmetryOffset;
-                }
-
-                set
-                {
-                    bool needReload = Parent.SymmetryOffset != value;
-                    Parent.SymmetryOffset = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public float DefaultValue { get; set; }
-            public float MinValue { get; set; }
-            public float MaxValue { get; set; }
-            public float DefaultMinValue { get; set; }
-            public float DefaultMaxValue { get; set; }
-            public float TicksFrequencyValue { get; set; }
-            public override bool Visible { get { if( Parent.KeepSymmetryUI != null ) { return Parent.KeepSymmetry && Parent.KeepSymmetryUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
-
-            public SimplygonSymmetryOffsetEx() : base("SymmetryOffset")
-            {
-                Type = "real";
-                HelpText = "Set SymmetryOffset, the position on the symmetry axis where the symmetry plane is placed.";
-                TypeOverride = "";
-                DefaultValue = 0f;
-                MinValue = 0f;
-                MaxValue = 10f;
-                DefaultMinValue = 0f;
-                DefaultMaxValue = 10f;
-                TicksFrequencyValue = 0.1f;
-                Visible = true;
-            }
-
-            public SimplygonSymmetryOffsetEx(dynamic jsonData) : base("SymmetryOffset")
-            {
-                Type = "real";
-                HelpText = "Set SymmetryOffset, the position on the symmetry axis where the symmetry plane is placed.";
-                TypeOverride = "";
-                DefaultValue = 0f;
-                MinValue = 0f;
-                DefaultMinValue = 0f;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (float)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"SymmetryOffset: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 10f;
-                DefaultMaxValue = 10f;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (float)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"SymmetryOffset: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 0.1f;
-                }
-
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonSymmetryOffsetEx DeepCopy()
-            {
-                return (SimplygonSymmetryOffsetEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
-                return jsonData;
-            }
-
-        }
-
-        public float SymmetryDetectionTolerance { get { return _SymmetryDetectionTolerance; } set { _SymmetryDetectionTolerance = value; OnPropertyChanged(); } }
-        private float _SymmetryDetectionTolerance;
-        public SimplygonSymmetryDetectionToleranceEx SymmetryDetectionToleranceUI { get; set; }
-        public class SimplygonSymmetryDetectionToleranceEx : SimplygonSettingsProperty
-        {
-            public SimplygonReductionSettings Parent { get; set; }
-            public float Value
-            {
-                get
-                {
-                    return Parent.SymmetryDetectionTolerance;
-                }
-
-                set
-                {
-                    bool needReload = Parent.SymmetryDetectionTolerance != value;
-                    Parent.SymmetryDetectionTolerance = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public float DefaultValue { get; set; }
-            public float MinValue { get; set; }
-            public float MaxValue { get; set; }
-            public float DefaultMinValue { get; set; }
-            public float DefaultMaxValue { get; set; }
-            public float TicksFrequencyValue { get; set; }
-            public override bool Visible { get { if( Parent.KeepSymmetryUI != null ) { return Parent.KeepSymmetry && Parent.KeepSymmetryUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
-
-            public SimplygonSymmetryDetectionToleranceEx() : base("SymmetryDetectionTolerance")
-            {
-                Type = "real";
-                HelpText = "The tolerance used when detecting symmetry. Values in the ranges 1e-5 to 1e-3 will usually produce good results. This specific tolerance corresponds to the off-plane tolerance, ie. the tolerance of the coordinate components that are not the symmetry axis. The in-plane tolerance is always 10 times the off-plane tolerance. This value is relative to the size of the Geometry, so 0.01 would mean 1% of the bounding box size of the Geometry.";
-                TypeOverride = "";
-                DefaultValue = 0.0001f;
-                MinValue = 0f;
-                MaxValue = 1f;
-                DefaultMinValue = 0f;
-                DefaultMaxValue = 1f;
-                TicksFrequencyValue = 0.0001f;
-                Visible = true;
-            }
-
-            public SimplygonSymmetryDetectionToleranceEx(dynamic jsonData) : base("SymmetryDetectionTolerance")
-            {
-                Type = "real";
-                HelpText = "The tolerance used when detecting symmetry. Values in the ranges 1e-5 to 1e-3 will usually produce good results. This specific tolerance corresponds to the off-plane tolerance, ie. the tolerance of the coordinate components that are not the symmetry axis. The in-plane tolerance is always 10 times the off-plane tolerance. This value is relative to the size of the Geometry, so 0.01 would mean 1% of the bounding box size of the Geometry.";
-                TypeOverride = "";
-                DefaultValue = 0.0001f;
-                MinValue = 0f;
-                DefaultMinValue = 0f;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (float)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"SymmetryDetectionTolerance: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 1f;
-                DefaultMaxValue = 1f;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (float)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"SymmetryDetectionTolerance: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 0.0001f;
-                }
-
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonSymmetryDetectionToleranceEx DeepCopy()
-            {
-                return (SimplygonSymmetryDetectionToleranceEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
-                return jsonData;
-            }
-
-        }
-
-        public EDataCreationPreferences DataCreationPreferences { get { return _DataCreationPreferences; } set { _DataCreationPreferences = value; OnPropertyChanged(); } }
-        private EDataCreationPreferences _DataCreationPreferences;
-        public SimplygonDataCreationPreferencesEx DataCreationPreferencesUI { get; set; }
-        public class SimplygonDataCreationPreferencesEx : SimplygonSettingsProperty
-        {
-            public SimplygonReductionSettings Parent { get; set; }
-            public EDataCreationPreferences Value
-            {
-                get
-                {
-                    return Parent.DataCreationPreferences;
-                }
-
-                set
-                {
-                    bool needReload = Parent.DataCreationPreferences != value;
-                    Parent.DataCreationPreferences = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public EDataCreationPreferences DefaultValue { get; set; }
-            public Array EnumValues { get { return Enum.GetValues(typeof(EDataCreationPreferences)); } }
-
-            public SimplygonDataCreationPreferencesEx() : base("DataCreationPreferences")
-            {
-                Type = "enum";
-                HelpText = "The flag that specifies how big 'freedom' Simplygon has when it comes to altering vertex/triangle data. Allowing more altered data means it will be easier to create good looking LODs, but without altered data it will be easier to keep the memory-usage in the LOD-chain more optimized. Note: When using OnlyUseOriginalData, the geometry being reduced can not have a node transformation matrix other than the identity matrix.";
-                TypeOverride = "";
-                DefaultValue = EDataCreationPreferences.PreferOptimizedResult;
-                Visible = true;
-            }
-
-            public SimplygonDataCreationPreferencesEx(dynamic jsonData) : base("DataCreationPreferences")
-            {
-                Type = "enum";
-                HelpText = "The flag that specifies how big 'freedom' Simplygon has when it comes to altering vertex/triangle data. Allowing more altered data means it will be easier to create good looking LODs, but without altered data it will be easier to keep the memory-usage in the LOD-chain more optimized. Note: When using OnlyUseOriginalData, the geometry being reduced can not have a node transformation matrix other than the identity matrix.";
-                TypeOverride = "";
-                DefaultValue = EDataCreationPreferences.PreferOptimizedResult;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonDataCreationPreferencesEx DeepCopy()
-            {
-                return (SimplygonDataCreationPreferencesEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
         public float OutwardMoveMultiplier { get { return _OutwardMoveMultiplier; } set { _OutwardMoveMultiplier = value; OnPropertyChanged(); } }
         private float _OutwardMoveMultiplier;
         public SimplygonOutwardMoveMultiplierEx OutwardMoveMultiplierUI { get; set; }
@@ -4438,6 +3687,692 @@ namespace SimplygonUI
 
         }
 
+        public bool KeepSymmetry { get { return _KeepSymmetry; } set { _KeepSymmetry = value; OnPropertyChanged(); } }
+        private bool _KeepSymmetry;
+        public SimplygonKeepSymmetryEx KeepSymmetryUI { get; set; }
+        public class SimplygonKeepSymmetryEx : SimplygonSettingsProperty
+        {
+            public SimplygonReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.KeepSymmetry;
+                }
+
+                set
+                {
+                    bool needReload = Parent.KeepSymmetry != value;
+                    Parent.KeepSymmetry = value;
+                    Parent.UseSymmetryQuadRetriangulatorUI.Visible = Visible;
+                    Parent.UseAutomaticSymmetryDetectionUI.Visible = Visible;
+                    Parent.SymmetryDetectionToleranceUI.Visible = Visible;
+                    Parent.SymmetryAxisUI.Visible = Visible;
+                    Parent.SymmetryOffsetUI.Visible = Visible;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonKeepSymmetryEx() : base("KeepSymmetry")
+            {
+                Type = "bool";
+                HelpText = "The KeepSymmetry flag. If set, the reducer will detect symmetric features, and retain symmetry during processing. Please note that for a geometry to be considered symmetrical, also the texture coordinates must be mirrored.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonKeepSymmetryEx(dynamic jsonData) : base("KeepSymmetry")
+            {
+                Type = "bool";
+                HelpText = "The KeepSymmetry flag. If set, the reducer will detect symmetric features, and retain symmetry during processing. Please note that for a geometry to be considered symmetrical, also the texture coordinates must be mirrored.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonKeepSymmetryEx DeepCopy()
+            {
+                return (SimplygonKeepSymmetryEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool UseSymmetryQuadRetriangulator { get { return _UseSymmetryQuadRetriangulator; } set { _UseSymmetryQuadRetriangulator = value; OnPropertyChanged(); } }
+        private bool _UseSymmetryQuadRetriangulator;
+        public SimplygonUseSymmetryQuadRetriangulatorEx UseSymmetryQuadRetriangulatorUI { get; set; }
+        public class SimplygonUseSymmetryQuadRetriangulatorEx : SimplygonSettingsProperty
+        {
+            public SimplygonReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.UseSymmetryQuadRetriangulator;
+                }
+
+                set
+                {
+                    bool needReload = Parent.UseSymmetryQuadRetriangulator != value;
+                    Parent.UseSymmetryQuadRetriangulator = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+            public override bool Visible { get { if( Parent.KeepSymmetryUI != null ) { return Parent.KeepSymmetry && Parent.KeepSymmetryUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
+
+            public SimplygonUseSymmetryQuadRetriangulatorEx() : base("UseSymmetryQuadRetriangulator")
+            {
+                Type = "bool";
+                HelpText = "The UseSymmetryQuadRetriangulator flag. If true, and KeepSymmetry is on, any triangles that have been triangulated from symmetrical quads into unsymmetrical triangles are detected and fixed. The edges of said triangles are flipped across the old quad so that the mesh becomes symmetrical again.";
+                TypeOverride = "";
+                DefaultValue = true;
+                Visible = true;
+            }
+
+            public SimplygonUseSymmetryQuadRetriangulatorEx(dynamic jsonData) : base("UseSymmetryQuadRetriangulator")
+            {
+                Type = "bool";
+                HelpText = "The UseSymmetryQuadRetriangulator flag. If true, and KeepSymmetry is on, any triangles that have been triangulated from symmetrical quads into unsymmetrical triangles are detected and fixed. The edges of said triangles are flipped across the old quad so that the mesh becomes symmetrical again.";
+                TypeOverride = "";
+                DefaultValue = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonUseSymmetryQuadRetriangulatorEx DeepCopy()
+            {
+                return (SimplygonUseSymmetryQuadRetriangulatorEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool UseAutomaticSymmetryDetection { get { return _UseAutomaticSymmetryDetection; } set { _UseAutomaticSymmetryDetection = value; OnPropertyChanged(); } }
+        private bool _UseAutomaticSymmetryDetection;
+        public SimplygonUseAutomaticSymmetryDetectionEx UseAutomaticSymmetryDetectionUI { get; set; }
+        public class SimplygonUseAutomaticSymmetryDetectionEx : SimplygonSettingsProperty
+        {
+            public SimplygonReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.UseAutomaticSymmetryDetection;
+                }
+
+                set
+                {
+                    bool needReload = Parent.UseAutomaticSymmetryDetection != value;
+                    Parent.UseAutomaticSymmetryDetection = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+            public override bool Visible { get { if( Parent.KeepSymmetryUI != null ) { return Parent.KeepSymmetry && Parent.KeepSymmetryUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
+
+            public SimplygonUseAutomaticSymmetryDetectionEx() : base("UseAutomaticSymmetryDetection")
+            {
+                Type = "bool";
+                HelpText = "The AutomaticSymmetryDetection flag. If set, and KeepSymmetry is on, the reducer will detect any X,Y,Z symmetry plane and will override any user set symmetry plane with the detected one. If no symmetry is found, KeepSymmetry will be turned off before reduction.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonUseAutomaticSymmetryDetectionEx(dynamic jsonData) : base("UseAutomaticSymmetryDetection")
+            {
+                Type = "bool";
+                HelpText = "The AutomaticSymmetryDetection flag. If set, and KeepSymmetry is on, the reducer will detect any X,Y,Z symmetry plane and will override any user set symmetry plane with the detected one. If no symmetry is found, KeepSymmetry will be turned off before reduction.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonUseAutomaticSymmetryDetectionEx DeepCopy()
+            {
+                return (SimplygonUseAutomaticSymmetryDetectionEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public float SymmetryDetectionTolerance { get { return _SymmetryDetectionTolerance; } set { _SymmetryDetectionTolerance = value; OnPropertyChanged(); } }
+        private float _SymmetryDetectionTolerance;
+        public SimplygonSymmetryDetectionToleranceEx SymmetryDetectionToleranceUI { get; set; }
+        public class SimplygonSymmetryDetectionToleranceEx : SimplygonSettingsProperty
+        {
+            public SimplygonReductionSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.SymmetryDetectionTolerance;
+                }
+
+                set
+                {
+                    bool needReload = Parent.SymmetryDetectionTolerance != value;
+                    Parent.SymmetryDetectionTolerance = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+            public override bool Visible { get { if( Parent.KeepSymmetryUI != null ) { return Parent.KeepSymmetry && Parent.KeepSymmetryUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
+
+            public SimplygonSymmetryDetectionToleranceEx() : base("SymmetryDetectionTolerance")
+            {
+                Type = "real";
+                HelpText = "The tolerance used when detecting symmetry. Values in the ranges 1e-5 to 1e-3 will usually produce good results. This specific tolerance corresponds to the off-plane tolerance, ie. the tolerance of the coordinate components that are not the symmetry axis. The in-plane tolerance is always 10 times the off-plane tolerance. This value is relative to the size of the Geometry, so 0.01 would mean 1% of the bounding box size of the Geometry.";
+                TypeOverride = "";
+                DefaultValue = 0.0001f;
+                MinValue = 0f;
+                MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
+                TicksFrequencyValue = 0.0001f;
+                Visible = true;
+            }
+
+            public SimplygonSymmetryDetectionToleranceEx(dynamic jsonData) : base("SymmetryDetectionTolerance")
+            {
+                Type = "real";
+                HelpText = "The tolerance used when detecting symmetry. Values in the ranges 1e-5 to 1e-3 will usually produce good results. This specific tolerance corresponds to the off-plane tolerance, ie. the tolerance of the coordinate components that are not the symmetry axis. The in-plane tolerance is always 10 times the off-plane tolerance. This value is relative to the size of the Geometry, so 0.01 would mean 1% of the bounding box size of the Geometry.";
+                TypeOverride = "";
+                DefaultValue = 0.0001f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SymmetryDetectionTolerance: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SymmetryDetectionTolerance: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 0.0001f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonSymmetryDetectionToleranceEx DeepCopy()
+            {
+                return (SimplygonSymmetryDetectionToleranceEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public ESymmetryAxis SymmetryAxis { get { return _SymmetryAxis; } set { _SymmetryAxis = value; OnPropertyChanged(); } }
+        private ESymmetryAxis _SymmetryAxis;
+        public SimplygonSymmetryAxisEx SymmetryAxisUI { get; set; }
+        public class SimplygonSymmetryAxisEx : SimplygonSettingsProperty
+        {
+            public SimplygonReductionSettings Parent { get; set; }
+            public ESymmetryAxis Value
+            {
+                get
+                {
+                    return Parent.SymmetryAxis;
+                }
+
+                set
+                {
+                    bool needReload = Parent.SymmetryAxis != value;
+                    Parent.SymmetryAxis = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public ESymmetryAxis DefaultValue { get; set; }
+            public override bool Visible { get { if( Parent.KeepSymmetryUI != null ) { return Parent.KeepSymmetry && Parent.KeepSymmetryUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
+            public Array EnumValues { get { return Enum.GetValues(typeof(ESymmetryAxis)); } }
+
+            public SimplygonSymmetryAxisEx() : base("SymmetryAxis")
+            {
+                Type = "enum";
+                HelpText = "Set what axis to be used for symmetry calculations.";
+                TypeOverride = "";
+                DefaultValue = ESymmetryAxis.X;
+                Visible = true;
+            }
+
+            public SimplygonSymmetryAxisEx(dynamic jsonData) : base("SymmetryAxis")
+            {
+                Type = "enum";
+                HelpText = "Set what axis to be used for symmetry calculations.";
+                TypeOverride = "";
+                DefaultValue = ESymmetryAxis.X;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonSymmetryAxisEx DeepCopy()
+            {
+                return (SimplygonSymmetryAxisEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public float SymmetryOffset { get { return _SymmetryOffset; } set { _SymmetryOffset = value; OnPropertyChanged(); } }
+        private float _SymmetryOffset;
+        public SimplygonSymmetryOffsetEx SymmetryOffsetUI { get; set; }
+        public class SimplygonSymmetryOffsetEx : SimplygonSettingsProperty
+        {
+            public SimplygonReductionSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.SymmetryOffset;
+                }
+
+                set
+                {
+                    bool needReload = Parent.SymmetryOffset != value;
+                    Parent.SymmetryOffset = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+            public override bool Visible { get { if( Parent.KeepSymmetryUI != null ) { return Parent.KeepSymmetry && Parent.KeepSymmetryUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
+
+            public SimplygonSymmetryOffsetEx() : base("SymmetryOffset")
+            {
+                Type = "real";
+                HelpText = "Set SymmetryOffset, the position on the symmetry axis where the symmetry plane is placed.";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = 0f;
+                MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
+                TicksFrequencyValue = 0.1f;
+                Visible = true;
+            }
+
+            public SimplygonSymmetryOffsetEx(dynamic jsonData) : base("SymmetryOffset")
+            {
+                Type = "real";
+                HelpText = "Set SymmetryOffset, the position on the symmetry axis where the symmetry plane is placed.";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SymmetryOffset: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SymmetryOffset: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 0.1f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonSymmetryOffsetEx DeepCopy()
+            {
+                return (SimplygonSymmetryOffsetEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public bool CreateGeomorphGeometry { get { return _CreateGeomorphGeometry; } set { _CreateGeomorphGeometry = value; OnPropertyChanged(); } }
+        private bool _CreateGeomorphGeometry;
+        public SimplygonCreateGeomorphGeometryEx CreateGeomorphGeometryUI { get; set; }
+        public class SimplygonCreateGeomorphGeometryEx : SimplygonSettingsProperty
+        {
+            public SimplygonReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.CreateGeomorphGeometry;
+                }
+
+                set
+                {
+                    bool needReload = Parent.CreateGeomorphGeometry != value;
+                    Parent.CreateGeomorphGeometry = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonCreateGeomorphGeometryEx() : base("CreateGeomorphGeometry")
+            {
+                Type = "bool";
+                HelpText = "The CreateGeomorphGeometry value. If set, the reducer will create a GeometryData object that is a morphed version of the original GeometryData, that can be used to morph between the original geometry and the reduced geometry. Should not be used together with TJunctionRemover, NormalRecalculation or Material LOD.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonCreateGeomorphGeometryEx(dynamic jsonData) : base("CreateGeomorphGeometry")
+            {
+                Type = "bool";
+                HelpText = "The CreateGeomorphGeometry value. If set, the reducer will create a GeometryData object that is a morphed version of the original GeometryData, that can be used to morph between the original geometry and the reduced geometry. Should not be used together with TJunctionRemover, NormalRecalculation or Material LOD.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonCreateGeomorphGeometryEx DeepCopy()
+            {
+                return (SimplygonCreateGeomorphGeometryEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public EDataCreationPreferences DataCreationPreferences { get { return _DataCreationPreferences; } set { _DataCreationPreferences = value; OnPropertyChanged(); } }
+        private EDataCreationPreferences _DataCreationPreferences;
+        public SimplygonDataCreationPreferencesEx DataCreationPreferencesUI { get; set; }
+        public class SimplygonDataCreationPreferencesEx : SimplygonSettingsProperty
+        {
+            public SimplygonReductionSettings Parent { get; set; }
+            public EDataCreationPreferences Value
+            {
+                get
+                {
+                    return Parent.DataCreationPreferences;
+                }
+
+                set
+                {
+                    bool needReload = Parent.DataCreationPreferences != value;
+                    Parent.DataCreationPreferences = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EDataCreationPreferences DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EDataCreationPreferences)); } }
+
+            public SimplygonDataCreationPreferencesEx() : base("DataCreationPreferences")
+            {
+                Type = "enum";
+                HelpText = "The flag that specifies how big 'freedom' Simplygon has when it comes to altering vertex/triangle data. Allowing more altered data means it will be easier to create good looking LODs, but without altered data it will be easier to keep the memory-usage in the LOD-chain more optimized. Note: When using OnlyUseOriginalData, the geometry being reduced can not have a node transformation matrix other than the identity matrix.";
+                TypeOverride = "";
+                DefaultValue = EDataCreationPreferences.PreferOptimizedResult;
+                Visible = true;
+            }
+
+            public SimplygonDataCreationPreferencesEx(dynamic jsonData) : base("DataCreationPreferences")
+            {
+                Type = "enum";
+                HelpText = "The flag that specifies how big 'freedom' Simplygon has when it comes to altering vertex/triangle data. Allowing more altered data means it will be easier to create good looking LODs, but without altered data it will be easier to keep the memory-usage in the LOD-chain more optimized. Note: When using OnlyUseOriginalData, the geometry being reduced can not have a node transformation matrix other than the identity matrix.";
+                TypeOverride = "";
+                DefaultValue = EDataCreationPreferences.PreferOptimizedResult;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonDataCreationPreferencesEx DeepCopy()
+            {
+                return (SimplygonDataCreationPreferencesEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
         public bool UseHighQualityNormalCalculation { get { return _UseHighQualityNormalCalculation; } set { _UseHighQualityNormalCalculation = value; OnPropertyChanged(); } }
         private bool _UseHighQualityNormalCalculation;
         public SimplygonUseHighQualityNormalCalculationEx UseHighQualityNormalCalculationUI { get; set; }
@@ -4497,6 +4432,76 @@ namespace SimplygonUI
             public SimplygonUseHighQualityNormalCalculationEx DeepCopy()
             {
                 return (SimplygonUseHighQualityNormalCalculationEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool LockGeometricBorder { get { return _LockGeometricBorder; } set { _LockGeometricBorder = value; OnPropertyChanged(); } }
+        private bool _LockGeometricBorder;
+        public SimplygonLockGeometricBorderEx LockGeometricBorderUI { get; set; }
+        public class SimplygonLockGeometricBorderEx : SimplygonSettingsProperty
+        {
+            public SimplygonReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.LockGeometricBorder;
+                }
+
+                set
+                {
+                    bool needReload = Parent.LockGeometricBorder != value;
+                    Parent.LockGeometricBorder = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonLockGeometricBorderEx() : base("LockGeometricBorder")
+            {
+                Type = "bool";
+                HelpText = "If set, will lock the geometric border of the geometry, and not reduce at all. This setting might be useful if the geometry needs to fit a neighbor geometry, but will reduce overall reduction quality (geometric quality over reduction ratio)";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonLockGeometricBorderEx(dynamic jsonData) : base("LockGeometricBorder")
+            {
+                Type = "bool";
+                HelpText = "If set, will lock the geometric border of the geometry, and not reduce at all. This setting might be useful if the geometry needs to fit a neighbor geometry, but will reduce overall reduction quality (geometric quality over reduction ratio)";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonLockGeometricBorderEx DeepCopy()
+            {
+                return (SimplygonLockGeometricBorderEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -4578,6 +4583,76 @@ namespace SimplygonUI
 
         }
 
+        public bool AllowDegenerateTexCoords { get { return _AllowDegenerateTexCoords; } set { _AllowDegenerateTexCoords = value; OnPropertyChanged(); } }
+        private bool _AllowDegenerateTexCoords;
+        public SimplygonAllowDegenerateTexCoordsEx AllowDegenerateTexCoordsUI { get; set; }
+        public class SimplygonAllowDegenerateTexCoordsEx : SimplygonSettingsProperty
+        {
+            public SimplygonReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.AllowDegenerateTexCoords;
+                }
+
+                set
+                {
+                    bool needReload = Parent.AllowDegenerateTexCoords != value;
+                    Parent.AllowDegenerateTexCoords = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonAllowDegenerateTexCoordsEx() : base("AllowDegenerateTexCoords")
+            {
+                Type = "bool";
+                HelpText = "The AllowDegenerateTexCoords flag. If true, texture coordinates are allowed to become degenerate (triangles can have 0 area in texture space). This may sometimes look better, but if tangent space normals are used, tangent spaces may become degenerate.";
+                TypeOverride = "";
+                DefaultValue = true;
+                Visible = true;
+            }
+
+            public SimplygonAllowDegenerateTexCoordsEx(dynamic jsonData) : base("AllowDegenerateTexCoords")
+            {
+                Type = "bool";
+                HelpText = "The AllowDegenerateTexCoords flag. If true, texture coordinates are allowed to become degenerate (triangles can have 0 area in texture space). This may sometimes look better, but if tangent space normals are used, tangent spaces may become degenerate.";
+                TypeOverride = "";
+                DefaultValue = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonAllowDegenerateTexCoordsEx DeepCopy()
+            {
+                return (SimplygonAllowDegenerateTexCoordsEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
         public bool KeepUnprocessedSceneMeshes { get { return _KeepUnprocessedSceneMeshes; } set { _KeepUnprocessedSceneMeshes = value; OnPropertyChanged(); } }
         private bool _KeepUnprocessedSceneMeshes;
         public SimplygonKeepUnprocessedSceneMeshesEx KeepUnprocessedSceneMeshesUI { get; set; }
@@ -4637,76 +4712,6 @@ namespace SimplygonUI
             public SimplygonKeepUnprocessedSceneMeshesEx DeepCopy()
             {
                 return (SimplygonKeepUnprocessedSceneMeshesEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public bool LockGeometricBorder { get { return _LockGeometricBorder; } set { _LockGeometricBorder = value; OnPropertyChanged(); } }
-        private bool _LockGeometricBorder;
-        public SimplygonLockGeometricBorderEx LockGeometricBorderUI { get; set; }
-        public class SimplygonLockGeometricBorderEx : SimplygonSettingsProperty
-        {
-            public SimplygonReductionSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.LockGeometricBorder;
-                }
-
-                set
-                {
-                    bool needReload = Parent.LockGeometricBorder != value;
-                    Parent.LockGeometricBorder = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-
-            public SimplygonLockGeometricBorderEx() : base("LockGeometricBorder")
-            {
-                Type = "bool";
-                HelpText = "If set, will lock the geometric border of the geometry, and not reduce at all. This setting might be useful if the geometry needs to fit a neighbor geometry, but will reduce overall reduction quality (geometric quality over reduction ratio)";
-                TypeOverride = "";
-                DefaultValue = false;
-                Visible = true;
-            }
-
-            public SimplygonLockGeometricBorderEx(dynamic jsonData) : base("LockGeometricBorder")
-            {
-                Type = "bool";
-                HelpText = "If set, will lock the geometric border of the geometry, and not reduce at all. This setting might be useful if the geometry needs to fit a neighbor geometry, but will reduce overall reduction quality (geometric quality over reduction ratio)";
-                TypeOverride = "";
-                DefaultValue = false;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonLockGeometricBorderEx DeepCopy()
-            {
-                return (SimplygonLockGeometricBorderEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -4824,14 +4829,14 @@ namespace SimplygonUI
             ReductionTargetOnScreenSizeUI.Parent = this;
             ReductionTargetOnScreenSize = ReductionTargetOnScreenSizeUI.DefaultValue;
             Items.Add(ReductionTargetOnScreenSizeUI);
-            ReductionTargetStopConditionUI = new SimplygonReductionTargetStopConditionEx();
-            ReductionTargetStopConditionUI.Parent = this;
-            ReductionTargetStopCondition = ReductionTargetStopConditionUI.DefaultValue;
-            Items.Add(ReductionTargetStopConditionUI);
             ReductionPerformanceModeUI = new SimplygonReductionPerformanceModeEx();
             ReductionPerformanceModeUI.Parent = this;
             ReductionPerformanceMode = ReductionPerformanceModeUI.DefaultValue;
             Items.Add(ReductionPerformanceModeUI);
+            ReductionTargetStopConditionUI = new SimplygonReductionTargetStopConditionEx();
+            ReductionTargetStopConditionUI.Parent = this;
+            ReductionTargetStopCondition = ReductionTargetStopConditionUI.DefaultValue;
+            Items.Add(ReductionTargetStopConditionUI);
             ReductionHeuristicsUI = new SimplygonReductionHeuristicsEx();
             ReductionHeuristicsUI.Parent = this;
             ReductionHeuristics = ReductionHeuristicsUI.DefaultValue;
@@ -4969,14 +4974,14 @@ namespace SimplygonUI
             ReductionTargetOnScreenSizeUI.Parent = this;
             ReductionTargetOnScreenSize = ReductionTargetOnScreenSizeUI.DefaultValue;
             Items.Add(ReductionTargetOnScreenSizeUI);
-            ReductionTargetStopConditionUI = new SimplygonReductionTargetStopConditionEx(jsonData != null && ((JObject)jsonData).GetValue("ReductionTargetStopConditionUI") != null ? jsonData.ReductionTargetStopConditionUI : null);
-            ReductionTargetStopConditionUI.Parent = this;
-            ReductionTargetStopCondition = ReductionTargetStopConditionUI.DefaultValue;
-            Items.Add(ReductionTargetStopConditionUI);
             ReductionPerformanceModeUI = new SimplygonReductionPerformanceModeEx(jsonData != null && ((JObject)jsonData).GetValue("ReductionPerformanceModeUI") != null ? jsonData.ReductionPerformanceModeUI : null);
             ReductionPerformanceModeUI.Parent = this;
             ReductionPerformanceMode = ReductionPerformanceModeUI.DefaultValue;
             Items.Add(ReductionPerformanceModeUI);
+            ReductionTargetStopConditionUI = new SimplygonReductionTargetStopConditionEx(jsonData != null && ((JObject)jsonData).GetValue("ReductionTargetStopConditionUI") != null ? jsonData.ReductionTargetStopConditionUI : null);
+            ReductionTargetStopConditionUI.Parent = this;
+            ReductionTargetStopCondition = ReductionTargetStopConditionUI.DefaultValue;
+            Items.Add(ReductionTargetStopConditionUI);
             ReductionHeuristicsUI = new SimplygonReductionHeuristicsEx(jsonData != null && ((JObject)jsonData).GetValue("ReductionHeuristicsUI") != null ? jsonData.ReductionHeuristicsUI : null);
             ReductionHeuristicsUI.Parent = this;
             ReductionHeuristics = ReductionHeuristicsUI.DefaultValue;
@@ -5108,12 +5113,12 @@ namespace SimplygonUI
             copy.ReductionTargetOnScreenSizeUI = this.ReductionTargetOnScreenSizeUI.DeepCopy();
             copy.ReductionTargetOnScreenSizeUI.Parent = copy;
             copy.Items.Add(copy.ReductionTargetOnScreenSizeUI);
-            copy.ReductionTargetStopConditionUI = this.ReductionTargetStopConditionUI.DeepCopy();
-            copy.ReductionTargetStopConditionUI.Parent = copy;
-            copy.Items.Add(copy.ReductionTargetStopConditionUI);
             copy.ReductionPerformanceModeUI = this.ReductionPerformanceModeUI.DeepCopy();
             copy.ReductionPerformanceModeUI.Parent = copy;
             copy.Items.Add(copy.ReductionPerformanceModeUI);
+            copy.ReductionTargetStopConditionUI = this.ReductionTargetStopConditionUI.DeepCopy();
+            copy.ReductionTargetStopConditionUI.Parent = copy;
+            copy.Items.Add(copy.ReductionTargetStopConditionUI);
             copy.ReductionHeuristicsUI = this.ReductionHeuristicsUI.DeepCopy();
             copy.ReductionHeuristicsUI.Parent = copy;
             copy.Items.Add(copy.ReductionHeuristicsUI);
@@ -5243,6 +5248,12 @@ namespace SimplygonUI
                 jsonData.ReductionTargetOnScreenSizeUI = ReductionTargetOnScreenSizeUI.SaveJson();
             }
 
+            jsonData.ReductionPerformanceMode = (int)ReductionPerformanceMode;
+            if(serializeUIComponents)
+            {
+                jsonData.ReductionPerformanceModeUI = ReductionPerformanceModeUI.SaveJson();
+            }
+
             jsonData.ReductionTargetStopCondition = (int)ReductionTargetStopCondition;
             if(serializeUIComponents)
             {
@@ -5253,12 +5264,6 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.ReductionHeuristicsUI = ReductionHeuristicsUI.SaveJson();
-            }
-
-            jsonData.ReductionPerformanceMode = (int)ReductionPerformanceMode;
-            if(serializeUIComponents)
-            {
-                jsonData.ReductionPerformanceModeUI = ReductionPerformanceModeUI.SaveJson();
             }
 
             jsonData.GeometryImportance = GeometryImportance;
@@ -5309,16 +5314,16 @@ namespace SimplygonUI
                 jsonData.SkinningImportanceUI = SkinningImportanceUI.SaveJson();
             }
 
-            jsonData.CreateGeomorphGeometry = CreateGeomorphGeometry;
+            jsonData.OutwardMoveMultiplier = OutwardMoveMultiplier;
             if(serializeUIComponents)
             {
-                jsonData.CreateGeomorphGeometryUI = CreateGeomorphGeometryUI.SaveJson();
+                jsonData.OutwardMoveMultiplierUI = OutwardMoveMultiplierUI.SaveJson();
             }
 
-            jsonData.AllowDegenerateTexCoords = AllowDegenerateTexCoords;
+            jsonData.InwardMoveMultiplier = InwardMoveMultiplier;
             if(serializeUIComponents)
             {
-                jsonData.AllowDegenerateTexCoordsUI = AllowDegenerateTexCoordsUI.SaveJson();
+                jsonData.InwardMoveMultiplierUI = InwardMoveMultiplierUI.SaveJson();
             }
 
             jsonData.KeepSymmetry = KeepSymmetry;
@@ -5327,16 +5332,22 @@ namespace SimplygonUI
                 jsonData.KeepSymmetryUI = KeepSymmetryUI.SaveJson();
             }
 
+            jsonData.UseSymmetryQuadRetriangulator = UseSymmetryQuadRetriangulator;
+            if(serializeUIComponents)
+            {
+                jsonData.UseSymmetryQuadRetriangulatorUI = UseSymmetryQuadRetriangulatorUI.SaveJson();
+            }
+
             jsonData.UseAutomaticSymmetryDetection = UseAutomaticSymmetryDetection;
             if(serializeUIComponents)
             {
                 jsonData.UseAutomaticSymmetryDetectionUI = UseAutomaticSymmetryDetectionUI.SaveJson();
             }
 
-            jsonData.UseSymmetryQuadRetriangulator = UseSymmetryQuadRetriangulator;
+            jsonData.SymmetryDetectionTolerance = SymmetryDetectionTolerance;
             if(serializeUIComponents)
             {
-                jsonData.UseSymmetryQuadRetriangulatorUI = UseSymmetryQuadRetriangulatorUI.SaveJson();
+                jsonData.SymmetryDetectionToleranceUI = SymmetryDetectionToleranceUI.SaveJson();
             }
 
             jsonData.SymmetryAxis = (int)SymmetryAxis;
@@ -5351,10 +5362,10 @@ namespace SimplygonUI
                 jsonData.SymmetryOffsetUI = SymmetryOffsetUI.SaveJson();
             }
 
-            jsonData.SymmetryDetectionTolerance = SymmetryDetectionTolerance;
+            jsonData.CreateGeomorphGeometry = CreateGeomorphGeometry;
             if(serializeUIComponents)
             {
-                jsonData.SymmetryDetectionToleranceUI = SymmetryDetectionToleranceUI.SaveJson();
+                jsonData.CreateGeomorphGeometryUI = CreateGeomorphGeometryUI.SaveJson();
             }
 
             jsonData.DataCreationPreferences = (int)DataCreationPreferences;
@@ -5363,22 +5374,16 @@ namespace SimplygonUI
                 jsonData.DataCreationPreferencesUI = DataCreationPreferencesUI.SaveJson();
             }
 
-            jsonData.OutwardMoveMultiplier = OutwardMoveMultiplier;
-            if(serializeUIComponents)
-            {
-                jsonData.OutwardMoveMultiplierUI = OutwardMoveMultiplierUI.SaveJson();
-            }
-
-            jsonData.InwardMoveMultiplier = InwardMoveMultiplier;
-            if(serializeUIComponents)
-            {
-                jsonData.InwardMoveMultiplierUI = InwardMoveMultiplierUI.SaveJson();
-            }
-
             jsonData.UseHighQualityNormalCalculation = UseHighQualityNormalCalculation;
             if(serializeUIComponents)
             {
                 jsonData.UseHighQualityNormalCalculationUI = UseHighQualityNormalCalculationUI.SaveJson();
+            }
+
+            jsonData.LockGeometricBorder = LockGeometricBorder;
+            if(serializeUIComponents)
+            {
+                jsonData.LockGeometricBorderUI = LockGeometricBorderUI.SaveJson();
             }
 
             jsonData.MergeGeometries = MergeGeometries;
@@ -5387,16 +5392,16 @@ namespace SimplygonUI
                 jsonData.MergeGeometriesUI = MergeGeometriesUI.SaveJson();
             }
 
+            jsonData.AllowDegenerateTexCoords = AllowDegenerateTexCoords;
+            if(serializeUIComponents)
+            {
+                jsonData.AllowDegenerateTexCoordsUI = AllowDegenerateTexCoordsUI.SaveJson();
+            }
+
             jsonData.KeepUnprocessedSceneMeshes = KeepUnprocessedSceneMeshes;
             if(serializeUIComponents)
             {
                 jsonData.KeepUnprocessedSceneMeshesUI = KeepUnprocessedSceneMeshesUI.SaveJson();
-            }
-
-            jsonData.LockGeometricBorder = LockGeometricBorder;
-            if(serializeUIComponents)
-            {
-                jsonData.LockGeometricBorderUI = LockGeometricBorderUI.SaveJson();
             }
 
             jsonData.PreserveQuadFlags = PreserveQuadFlags;
@@ -5495,6 +5500,11 @@ namespace SimplygonUI
 
             }
 
+            if(jsonData.GetValue("ReductionPerformanceMode") != null)
+            {
+                ReductionPerformanceMode = (EReductionPerformanceMode)jsonData.ReductionPerformanceMode;
+            }
+
             if(jsonData.GetValue("ReductionTargetStopCondition") != null)
             {
                 ReductionTargetStopCondition = (EStopCondition)jsonData.ReductionTargetStopCondition;
@@ -5503,11 +5513,6 @@ namespace SimplygonUI
             if(jsonData.GetValue("ReductionHeuristics") != null)
             {
                 ReductionHeuristics = (EReductionHeuristics)jsonData.ReductionHeuristics;
-            }
-
-            if(jsonData.GetValue("ReductionPerformanceMode") != null)
-            {
-                ReductionPerformanceMode = (EReductionPerformanceMode)jsonData.ReductionPerformanceMode;
             }
 
             if(jsonData.GetValue("GeometryImportance") != null)
@@ -5630,71 +5635,6 @@ namespace SimplygonUI
 
             }
 
-            if(jsonData.GetValue("CreateGeomorphGeometry") != null)
-            {
-                CreateGeomorphGeometry = (bool)jsonData.CreateGeomorphGeometry;
-            }
-
-            if(jsonData.GetValue("AllowDegenerateTexCoords") != null)
-            {
-                AllowDegenerateTexCoords = (bool)jsonData.AllowDegenerateTexCoords;
-            }
-
-            if(jsonData.GetValue("KeepSymmetry") != null)
-            {
-                KeepSymmetry = (bool)jsonData.KeepSymmetry;
-            }
-
-            if(jsonData.GetValue("UseAutomaticSymmetryDetection") != null)
-            {
-                UseAutomaticSymmetryDetection = (bool)jsonData.UseAutomaticSymmetryDetection;
-            }
-
-            if(jsonData.GetValue("UseSymmetryQuadRetriangulator") != null)
-            {
-                UseSymmetryQuadRetriangulator = (bool)jsonData.UseSymmetryQuadRetriangulator;
-            }
-
-            if(jsonData.GetValue("SymmetryAxis") != null)
-            {
-                SymmetryAxis = (ESymmetryAxis)jsonData.SymmetryAxis;
-            }
-
-            if(jsonData.GetValue("SymmetryOffset") != null)
-            {
-                float newSymmetryOffset = (float)jsonData.SymmetryOffset;
-                if (newSymmetryOffset >= SymmetryOffsetUI.DefaultMinValue && newSymmetryOffset <= SymmetryOffsetUI.DefaultMaxValue)
-                {
-                    SymmetryOffset = newSymmetryOffset;
-                }
-
-                else
-                {
-                    UILogger.Instance.Log(Category.Warning, $"SymmetryOffset: Invalid value {newSymmetryOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {SymmetryOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                }
-
-            }
-
-            if(jsonData.GetValue("SymmetryDetectionTolerance") != null)
-            {
-                float newSymmetryDetectionTolerance = (float)jsonData.SymmetryDetectionTolerance;
-                if (newSymmetryDetectionTolerance >= SymmetryDetectionToleranceUI.DefaultMinValue && newSymmetryDetectionTolerance <= SymmetryDetectionToleranceUI.DefaultMaxValue)
-                {
-                    SymmetryDetectionTolerance = newSymmetryDetectionTolerance;
-                }
-
-                else
-                {
-                    UILogger.Instance.Log(Category.Warning, $"SymmetryDetectionTolerance: Invalid value {newSymmetryDetectionTolerance.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {SymmetryDetectionTolerance.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                }
-
-            }
-
-            if(jsonData.GetValue("DataCreationPreferences") != null)
-            {
-                DataCreationPreferences = (EDataCreationPreferences)jsonData.DataCreationPreferences;
-            }
-
             if(jsonData.GetValue("OutwardMoveMultiplier") != null)
             {
                 float newOutwardMoveMultiplier = (float)jsonData.OutwardMoveMultiplier;
@@ -5725,9 +5665,74 @@ namespace SimplygonUI
 
             }
 
+            if(jsonData.GetValue("KeepSymmetry") != null)
+            {
+                KeepSymmetry = (bool)jsonData.KeepSymmetry;
+            }
+
+            if(jsonData.GetValue("UseSymmetryQuadRetriangulator") != null)
+            {
+                UseSymmetryQuadRetriangulator = (bool)jsonData.UseSymmetryQuadRetriangulator;
+            }
+
+            if(jsonData.GetValue("UseAutomaticSymmetryDetection") != null)
+            {
+                UseAutomaticSymmetryDetection = (bool)jsonData.UseAutomaticSymmetryDetection;
+            }
+
+            if(jsonData.GetValue("SymmetryDetectionTolerance") != null)
+            {
+                float newSymmetryDetectionTolerance = (float)jsonData.SymmetryDetectionTolerance;
+                if (newSymmetryDetectionTolerance >= SymmetryDetectionToleranceUI.DefaultMinValue && newSymmetryDetectionTolerance <= SymmetryDetectionToleranceUI.DefaultMaxValue)
+                {
+                    SymmetryDetectionTolerance = newSymmetryDetectionTolerance;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"SymmetryDetectionTolerance: Invalid value {newSymmetryDetectionTolerance.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {SymmetryDetectionTolerance.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("SymmetryAxis") != null)
+            {
+                SymmetryAxis = (ESymmetryAxis)jsonData.SymmetryAxis;
+            }
+
+            if(jsonData.GetValue("SymmetryOffset") != null)
+            {
+                float newSymmetryOffset = (float)jsonData.SymmetryOffset;
+                if (newSymmetryOffset >= SymmetryOffsetUI.DefaultMinValue && newSymmetryOffset <= SymmetryOffsetUI.DefaultMaxValue)
+                {
+                    SymmetryOffset = newSymmetryOffset;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"SymmetryOffset: Invalid value {newSymmetryOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {SymmetryOffset.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("CreateGeomorphGeometry") != null)
+            {
+                CreateGeomorphGeometry = (bool)jsonData.CreateGeomorphGeometry;
+            }
+
+            if(jsonData.GetValue("DataCreationPreferences") != null)
+            {
+                DataCreationPreferences = (EDataCreationPreferences)jsonData.DataCreationPreferences;
+            }
+
             if(jsonData.GetValue("UseHighQualityNormalCalculation") != null)
             {
                 UseHighQualityNormalCalculation = (bool)jsonData.UseHighQualityNormalCalculation;
+            }
+
+            if(jsonData.GetValue("LockGeometricBorder") != null)
+            {
+                LockGeometricBorder = (bool)jsonData.LockGeometricBorder;
             }
 
             if(jsonData.GetValue("MergeGeometries") != null)
@@ -5735,14 +5740,14 @@ namespace SimplygonUI
                 MergeGeometries = (bool)jsonData.MergeGeometries;
             }
 
+            if(jsonData.GetValue("AllowDegenerateTexCoords") != null)
+            {
+                AllowDegenerateTexCoords = (bool)jsonData.AllowDegenerateTexCoords;
+            }
+
             if(jsonData.GetValue("KeepUnprocessedSceneMeshes") != null)
             {
                 KeepUnprocessedSceneMeshes = (bool)jsonData.KeepUnprocessedSceneMeshes;
-            }
-
-            if(jsonData.GetValue("LockGeometricBorder") != null)
-            {
-                LockGeometricBorder = (bool)jsonData.LockGeometricBorder;
             }
 
             if(jsonData.GetValue("PreserveQuadFlags") != null)
@@ -5762,9 +5767,9 @@ namespace SimplygonUI
             ReductionTargetMaxDeviationUI.Reset();
             ReductionTargetOnScreenSizeEnabledUI.Reset();
             ReductionTargetOnScreenSizeUI.Reset();
+            ReductionPerformanceModeUI.Reset();
             ReductionTargetStopConditionUI.Reset();
             ReductionHeuristicsUI.Reset();
-            ReductionPerformanceModeUI.Reset();
             GeometryImportanceUI.Reset();
             MaterialImportanceUI.Reset();
             TextureImportanceUI.Reset();
@@ -5773,21 +5778,21 @@ namespace SimplygonUI
             VertexColorImportanceUI.Reset();
             EdgeSetImportanceUI.Reset();
             SkinningImportanceUI.Reset();
-            CreateGeomorphGeometryUI.Reset();
-            AllowDegenerateTexCoordsUI.Reset();
-            KeepSymmetryUI.Reset();
-            UseAutomaticSymmetryDetectionUI.Reset();
-            UseSymmetryQuadRetriangulatorUI.Reset();
-            SymmetryAxisUI.Reset();
-            SymmetryOffsetUI.Reset();
-            SymmetryDetectionToleranceUI.Reset();
-            DataCreationPreferencesUI.Reset();
             OutwardMoveMultiplierUI.Reset();
             InwardMoveMultiplierUI.Reset();
+            KeepSymmetryUI.Reset();
+            UseSymmetryQuadRetriangulatorUI.Reset();
+            UseAutomaticSymmetryDetectionUI.Reset();
+            SymmetryDetectionToleranceUI.Reset();
+            SymmetryAxisUI.Reset();
+            SymmetryOffsetUI.Reset();
+            CreateGeomorphGeometryUI.Reset();
+            DataCreationPreferencesUI.Reset();
             UseHighQualityNormalCalculationUI.Reset();
-            MergeGeometriesUI.Reset();
-            KeepUnprocessedSceneMeshesUI.Reset();
             LockGeometricBorderUI.Reset();
+            MergeGeometriesUI.Reset();
+            AllowDegenerateTexCoordsUI.Reset();
+            KeepUnprocessedSceneMeshesUI.Reset();
             PreserveQuadFlagsUI.Reset();
         }
 
@@ -5802,9 +5807,9 @@ namespace SimplygonUI
             ReductionTargetMaxDeviationUI.IsEditEnabled = isEditEnabled;
             ReductionTargetOnScreenSizeEnabledUI.IsEditEnabled = isEditEnabled;
             ReductionTargetOnScreenSizeUI.IsEditEnabled = isEditEnabled;
+            ReductionPerformanceModeUI.IsEditEnabled = isEditEnabled;
             ReductionTargetStopConditionUI.IsEditEnabled = isEditEnabled;
             ReductionHeuristicsUI.IsEditEnabled = isEditEnabled;
-            ReductionPerformanceModeUI.IsEditEnabled = isEditEnabled;
             GeometryImportanceUI.IsEditEnabled = isEditEnabled;
             MaterialImportanceUI.IsEditEnabled = isEditEnabled;
             TextureImportanceUI.IsEditEnabled = isEditEnabled;
@@ -5813,21 +5818,21 @@ namespace SimplygonUI
             VertexColorImportanceUI.IsEditEnabled = isEditEnabled;
             EdgeSetImportanceUI.IsEditEnabled = isEditEnabled;
             SkinningImportanceUI.IsEditEnabled = isEditEnabled;
-            CreateGeomorphGeometryUI.IsEditEnabled = isEditEnabled;
-            AllowDegenerateTexCoordsUI.IsEditEnabled = isEditEnabled;
-            KeepSymmetryUI.IsEditEnabled = isEditEnabled;
-            UseAutomaticSymmetryDetectionUI.IsEditEnabled = isEditEnabled;
-            UseSymmetryQuadRetriangulatorUI.IsEditEnabled = isEditEnabled;
-            SymmetryAxisUI.IsEditEnabled = isEditEnabled;
-            SymmetryOffsetUI.IsEditEnabled = isEditEnabled;
-            SymmetryDetectionToleranceUI.IsEditEnabled = isEditEnabled;
-            DataCreationPreferencesUI.IsEditEnabled = isEditEnabled;
             OutwardMoveMultiplierUI.IsEditEnabled = isEditEnabled;
             InwardMoveMultiplierUI.IsEditEnabled = isEditEnabled;
+            KeepSymmetryUI.IsEditEnabled = isEditEnabled;
+            UseSymmetryQuadRetriangulatorUI.IsEditEnabled = isEditEnabled;
+            UseAutomaticSymmetryDetectionUI.IsEditEnabled = isEditEnabled;
+            SymmetryDetectionToleranceUI.IsEditEnabled = isEditEnabled;
+            SymmetryAxisUI.IsEditEnabled = isEditEnabled;
+            SymmetryOffsetUI.IsEditEnabled = isEditEnabled;
+            CreateGeomorphGeometryUI.IsEditEnabled = isEditEnabled;
+            DataCreationPreferencesUI.IsEditEnabled = isEditEnabled;
             UseHighQualityNormalCalculationUI.IsEditEnabled = isEditEnabled;
-            MergeGeometriesUI.IsEditEnabled = isEditEnabled;
-            KeepUnprocessedSceneMeshesUI.IsEditEnabled = isEditEnabled;
             LockGeometricBorderUI.IsEditEnabled = isEditEnabled;
+            MergeGeometriesUI.IsEditEnabled = isEditEnabled;
+            AllowDegenerateTexCoordsUI.IsEditEnabled = isEditEnabled;
+            KeepUnprocessedSceneMeshesUI.IsEditEnabled = isEditEnabled;
             PreserveQuadFlagsUI.IsEditEnabled = isEditEnabled;
         }
 
@@ -5843,12 +5848,12 @@ namespace SimplygonUI
                 if (Name == "InputMaterialSettings") return false;
                 if(UseTJunctionRemoverUI.Visible) return true;
                 if(TJuncDistUI.Visible) return true;
-                if(WeldDistUI.Visible) return true;
+                if(UseWeldingUI.Visible) return true;
                 if(WeldOnlyBorderVerticesUI.Visible) return true;
                 if(WeldOnlyWithinMaterialUI.Visible) return true;
                 if(WeldOnlyWithinSceneNodeUI.Visible) return true;
                 if(WeldOnlyBetweenSceneNodesUI.Visible) return true;
-                if(UseWeldingUI.Visible) return true;
+                if(WeldDistUI.Visible) return true;
                 if(ProgressivePassesUI.Visible) return true;
 
                 return false;
@@ -6061,100 +6066,50 @@ namespace SimplygonUI
 
         }
 
-        public float WeldDist { get { return _WeldDist; } set { _WeldDist = value; OnPropertyChanged(); } }
-        private float _WeldDist;
-        public SimplygonWeldDistEx WeldDistUI { get; set; }
-        public class SimplygonWeldDistEx : SimplygonSettingsProperty
+        public bool UseWelding { get { return _UseWelding; } set { _UseWelding = value; OnPropertyChanged(); } }
+        private bool _UseWelding;
+        public SimplygonUseWeldingEx UseWeldingUI { get; set; }
+        public class SimplygonUseWeldingEx : SimplygonSettingsProperty
         {
             public SimplygonRepairSettings Parent { get; set; }
-            public float Value
+            public bool Value
             {
                 get
                 {
-                    return Parent.WeldDist;
+                    return Parent.UseWelding;
                 }
 
                 set
                 {
-                    bool needReload = Parent.WeldDist != value;
-                    Parent.WeldDist = value;
+                    bool needReload = Parent.UseWelding != value;
+                    Parent.UseWelding = value;
+                    Parent.WeldOnlyBorderVerticesUI.Visible = Visible;
+                    Parent.WeldOnlyWithinMaterialUI.Visible = Visible;
+                    Parent.WeldOnlyWithinSceneNodeUI.Visible = Visible;
+                    Parent.WeldOnlyBetweenSceneNodesUI.Visible = Visible;
+                    Parent.WeldDistUI.Visible = Visible;
                     OnPropertyChanged();
                 }
 
             }
 
-            public float DefaultValue { get; set; }
-            public float MinValue { get; set; }
-            public float MaxValue { get; set; }
-            public float DefaultMinValue { get; set; }
-            public float DefaultMaxValue { get; set; }
-            public float TicksFrequencyValue { get; set; }
-            public override bool Visible { get { if( Parent.UseWeldingUI != null ) { return Parent.UseWelding && Parent.UseWeldingUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
+            public bool DefaultValue { get; set; }
 
-            public SimplygonWeldDistEx() : base("WeldDist")
+            public SimplygonUseWeldingEx() : base("UseWelding")
             {
-                Type = "real";
-                HelpText = "The welding distance below which the vertices will be welded.";
+                Type = "bool";
+                HelpText = "If set, vertices within each others welding distance will be welded together.";
                 TypeOverride = "";
-                DefaultValue = 0f;
-                MinValue = 0f;
-                MaxValue = 10f;
-                DefaultMinValue = 0f;
-                DefaultMaxValue = 10f;
-                TicksFrequencyValue = 0.1f;
+                DefaultValue = true;
                 Visible = true;
             }
 
-            public SimplygonWeldDistEx(dynamic jsonData) : base("WeldDist")
+            public SimplygonUseWeldingEx(dynamic jsonData) : base("UseWelding")
             {
-                Type = "real";
-                HelpText = "The welding distance below which the vertices will be welded.";
+                Type = "bool";
+                HelpText = "If set, vertices within each others welding distance will be welded together.";
                 TypeOverride = "";
-                DefaultValue = 0f;
-                MinValue = 0f;
-                DefaultMinValue = 0f;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (float)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"WeldDist: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 10f;
-                DefaultMaxValue = 10f;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (float)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"WeldDist: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 0.1f;
-                }
-
+                DefaultValue = true;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -6172,18 +6127,15 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonWeldDistEx DeepCopy()
+            public SimplygonUseWeldingEx DeepCopy()
             {
-                return (SimplygonWeldDistEx)this.MemberwiseClone();
+                return (SimplygonUseWeldingEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
                 return jsonData;
             }
 
@@ -6473,50 +6425,100 @@ namespace SimplygonUI
 
         }
 
-        public bool UseWelding { get { return _UseWelding; } set { _UseWelding = value; OnPropertyChanged(); } }
-        private bool _UseWelding;
-        public SimplygonUseWeldingEx UseWeldingUI { get; set; }
-        public class SimplygonUseWeldingEx : SimplygonSettingsProperty
+        public float WeldDist { get { return _WeldDist; } set { _WeldDist = value; OnPropertyChanged(); } }
+        private float _WeldDist;
+        public SimplygonWeldDistEx WeldDistUI { get; set; }
+        public class SimplygonWeldDistEx : SimplygonSettingsProperty
         {
             public SimplygonRepairSettings Parent { get; set; }
-            public bool Value
+            public float Value
             {
                 get
                 {
-                    return Parent.UseWelding;
+                    return Parent.WeldDist;
                 }
 
                 set
                 {
-                    bool needReload = Parent.UseWelding != value;
-                    Parent.UseWelding = value;
-                    Parent.WeldDistUI.Visible = Visible;
-                    Parent.WeldOnlyBorderVerticesUI.Visible = Visible;
-                    Parent.WeldOnlyWithinMaterialUI.Visible = Visible;
-                    Parent.WeldOnlyWithinSceneNodeUI.Visible = Visible;
-                    Parent.WeldOnlyBetweenSceneNodesUI.Visible = Visible;
+                    bool needReload = Parent.WeldDist != value;
+                    Parent.WeldDist = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public bool DefaultValue { get; set; }
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+            public override bool Visible { get { if( Parent.UseWeldingUI != null ) { return Parent.UseWelding && Parent.UseWeldingUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
 
-            public SimplygonUseWeldingEx() : base("UseWelding")
+            public SimplygonWeldDistEx() : base("WeldDist")
             {
-                Type = "bool";
-                HelpText = "If set, vertices within each others welding distance will be welded together.";
+                Type = "real";
+                HelpText = "The welding distance below which the vertices will be welded.";
                 TypeOverride = "";
-                DefaultValue = true;
+                DefaultValue = 0f;
+                MinValue = 0f;
+                MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
+                TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
 
-            public SimplygonUseWeldingEx(dynamic jsonData) : base("UseWelding")
+            public SimplygonWeldDistEx(dynamic jsonData) : base("WeldDist")
             {
-                Type = "bool";
-                HelpText = "If set, vertices within each others welding distance will be welded together.";
+                Type = "real";
+                HelpText = "The welding distance below which the vertices will be welded.";
                 TypeOverride = "";
-                DefaultValue = true;
+                DefaultValue = 0f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"WeldDist: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"WeldDist: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 0.1f;
+                }
+
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -6534,15 +6536,18 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonUseWeldingEx DeepCopy()
+            public SimplygonWeldDistEx DeepCopy()
             {
-                return (SimplygonUseWeldingEx)this.MemberwiseClone();
+                return (SimplygonWeldDistEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
                 return jsonData;
             }
 
@@ -6808,10 +6813,10 @@ namespace SimplygonUI
                 jsonData.TJuncDistUI = TJuncDistUI.SaveJson();
             }
 
-            jsonData.WeldDist = WeldDist;
+            jsonData.UseWelding = UseWelding;
             if(serializeUIComponents)
             {
-                jsonData.WeldDistUI = WeldDistUI.SaveJson();
+                jsonData.UseWeldingUI = UseWeldingUI.SaveJson();
             }
 
             jsonData.WeldOnlyBorderVertices = WeldOnlyBorderVertices;
@@ -6838,10 +6843,10 @@ namespace SimplygonUI
                 jsonData.WeldOnlyBetweenSceneNodesUI = WeldOnlyBetweenSceneNodesUI.SaveJson();
             }
 
-            jsonData.UseWelding = UseWelding;
+            jsonData.WeldDist = WeldDist;
             if(serializeUIComponents)
             {
-                jsonData.UseWeldingUI = UseWeldingUI.SaveJson();
+                jsonData.WeldDistUI = WeldDistUI.SaveJson();
             }
 
             jsonData.ProgressivePasses = ProgressivePasses;
@@ -6880,19 +6885,9 @@ namespace SimplygonUI
 
             }
 
-            if(jsonData.GetValue("WeldDist") != null)
+            if(jsonData.GetValue("UseWelding") != null)
             {
-                float newWeldDist = (float)jsonData.WeldDist;
-                if (newWeldDist >= WeldDistUI.DefaultMinValue && newWeldDist <= WeldDistUI.DefaultMaxValue)
-                {
-                    WeldDist = newWeldDist;
-                }
-
-                else
-                {
-                    UILogger.Instance.Log(Category.Warning, $"WeldDist: Invalid value {newWeldDist.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {WeldDist.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                }
-
+                UseWelding = (bool)jsonData.UseWelding;
             }
 
             if(jsonData.GetValue("WeldOnlyBorderVertices") != null)
@@ -6915,9 +6910,19 @@ namespace SimplygonUI
                 WeldOnlyBetweenSceneNodes = (bool)jsonData.WeldOnlyBetweenSceneNodes;
             }
 
-            if(jsonData.GetValue("UseWelding") != null)
+            if(jsonData.GetValue("WeldDist") != null)
             {
-                UseWelding = (bool)jsonData.UseWelding;
+                float newWeldDist = (float)jsonData.WeldDist;
+                if (newWeldDist >= WeldDistUI.DefaultMinValue && newWeldDist <= WeldDistUI.DefaultMaxValue)
+                {
+                    WeldDist = newWeldDist;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"WeldDist: Invalid value {newWeldDist.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {WeldDist.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
             if(jsonData.GetValue("ProgressivePasses") != null)
@@ -6941,12 +6946,12 @@ namespace SimplygonUI
         {
             UseTJunctionRemoverUI.Reset();
             TJuncDistUI.Reset();
-            WeldDistUI.Reset();
+            UseWeldingUI.Reset();
             WeldOnlyBorderVerticesUI.Reset();
             WeldOnlyWithinMaterialUI.Reset();
             WeldOnlyWithinSceneNodeUI.Reset();
             WeldOnlyBetweenSceneNodesUI.Reset();
-            UseWeldingUI.Reset();
+            WeldDistUI.Reset();
             ProgressivePassesUI.Reset();
         }
 
@@ -6955,12 +6960,12 @@ namespace SimplygonUI
             IsEditEnabled = isEditEnabled;
             UseTJunctionRemoverUI.IsEditEnabled = isEditEnabled;
             TJuncDistUI.IsEditEnabled = isEditEnabled;
-            WeldDistUI.IsEditEnabled = isEditEnabled;
+            UseWeldingUI.IsEditEnabled = isEditEnabled;
             WeldOnlyBorderVerticesUI.IsEditEnabled = isEditEnabled;
             WeldOnlyWithinMaterialUI.IsEditEnabled = isEditEnabled;
             WeldOnlyWithinSceneNodeUI.IsEditEnabled = isEditEnabled;
             WeldOnlyBetweenSceneNodesUI.IsEditEnabled = isEditEnabled;
-            UseWeldingUI.IsEditEnabled = isEditEnabled;
+            WeldDistUI.IsEditEnabled = isEditEnabled;
             ProgressivePassesUI.IsEditEnabled = isEditEnabled;
         }
 
@@ -6975,9 +6980,9 @@ namespace SimplygonUI
                 if (!VisibleOverride) return false;
                 if (Name == "InputMaterialSettings") return false;
                 if(ReplaceNormalsUI.Visible) return true;
-                if(ReplaceTangentsUI.Visible) return true;
-                if(HardEdgeAngleUI.Visible) return true;
                 if(RepairInvalidNormalsUI.Visible) return true;
+                if(HardEdgeAngleUI.Visible) return true;
+                if(ReplaceTangentsUI.Visible) return true;
                 if(ReorthogonalizeTangentSpaceUI.Visible) return true;
                 if(ScaleByAreaUI.Visible) return true;
                 if(ScaleByAngleUI.Visible) return true;
@@ -7064,23 +7069,23 @@ namespace SimplygonUI
 
         }
 
-        public bool ReplaceTangents { get { return _ReplaceTangents; } set { _ReplaceTangents = value; OnPropertyChanged(); } }
-        private bool _ReplaceTangents;
-        public SimplygonReplaceTangentsEx ReplaceTangentsUI { get; set; }
-        public class SimplygonReplaceTangentsEx : SimplygonSettingsProperty
+        public bool RepairInvalidNormals { get { return _RepairInvalidNormals; } set { _RepairInvalidNormals = value; OnPropertyChanged(); } }
+        private bool _RepairInvalidNormals;
+        public SimplygonRepairInvalidNormalsEx RepairInvalidNormalsUI { get; set; }
+        public class SimplygonRepairInvalidNormalsEx : SimplygonSettingsProperty
         {
             public SimplygonNormalCalculationSettings Parent { get; set; }
             public bool Value
             {
                 get
                 {
-                    return Parent.ReplaceTangents;
+                    return Parent.RepairInvalidNormals;
                 }
 
                 set
                 {
-                    bool needReload = Parent.ReplaceTangents != value;
-                    Parent.ReplaceTangents = value;
+                    bool needReload = Parent.RepairInvalidNormals != value;
+                    Parent.RepairInvalidNormals = value;
                     OnPropertyChanged();
                 }
 
@@ -7088,19 +7093,19 @@ namespace SimplygonUI
 
             public bool DefaultValue { get; set; }
 
-            public SimplygonReplaceTangentsEx() : base("ReplaceTangents")
+            public SimplygonRepairInvalidNormalsEx() : base("RepairInvalidNormals")
             {
                 Type = "bool";
-                HelpText = "If set, it will generate new tangents and bitangents for the Geometry, and if not set, it will keep the new tangents and bitangents from the original normal set (or not add tangents and bitangents at all if none were present).";
+                HelpText = "If set, normals that are invalid will be replaced. All others are left intact. Bad normals are those that are either zero length, or simply points away from the surface.";
                 TypeOverride = "";
                 DefaultValue = false;
                 Visible = true;
             }
 
-            public SimplygonReplaceTangentsEx(dynamic jsonData) : base("ReplaceTangents")
+            public SimplygonRepairInvalidNormalsEx(dynamic jsonData) : base("RepairInvalidNormals")
             {
                 Type = "bool";
-                HelpText = "If set, it will generate new tangents and bitangents for the Geometry, and if not set, it will keep the new tangents and bitangents from the original normal set (or not add tangents and bitangents at all if none were present).";
+                HelpText = "If set, normals that are invalid will be replaced. All others are left intact. Bad normals are those that are either zero length, or simply points away from the surface.";
                 TypeOverride = "";
                 DefaultValue = false;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -7120,9 +7125,9 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonReplaceTangentsEx DeepCopy()
+            public SimplygonRepairInvalidNormalsEx DeepCopy()
             {
-                return (SimplygonReplaceTangentsEx)this.MemberwiseClone();
+                return (SimplygonRepairInvalidNormalsEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -7261,23 +7266,23 @@ namespace SimplygonUI
 
         }
 
-        public bool RepairInvalidNormals { get { return _RepairInvalidNormals; } set { _RepairInvalidNormals = value; OnPropertyChanged(); } }
-        private bool _RepairInvalidNormals;
-        public SimplygonRepairInvalidNormalsEx RepairInvalidNormalsUI { get; set; }
-        public class SimplygonRepairInvalidNormalsEx : SimplygonSettingsProperty
+        public bool ReplaceTangents { get { return _ReplaceTangents; } set { _ReplaceTangents = value; OnPropertyChanged(); } }
+        private bool _ReplaceTangents;
+        public SimplygonReplaceTangentsEx ReplaceTangentsUI { get; set; }
+        public class SimplygonReplaceTangentsEx : SimplygonSettingsProperty
         {
             public SimplygonNormalCalculationSettings Parent { get; set; }
             public bool Value
             {
                 get
                 {
-                    return Parent.RepairInvalidNormals;
+                    return Parent.ReplaceTangents;
                 }
 
                 set
                 {
-                    bool needReload = Parent.RepairInvalidNormals != value;
-                    Parent.RepairInvalidNormals = value;
+                    bool needReload = Parent.ReplaceTangents != value;
+                    Parent.ReplaceTangents = value;
                     OnPropertyChanged();
                 }
 
@@ -7285,19 +7290,19 @@ namespace SimplygonUI
 
             public bool DefaultValue { get; set; }
 
-            public SimplygonRepairInvalidNormalsEx() : base("RepairInvalidNormals")
+            public SimplygonReplaceTangentsEx() : base("ReplaceTangents")
             {
                 Type = "bool";
-                HelpText = "If set, normals that are invalid will be replaced. All others are left intact. Bad normals are those that are either zero length, or simply points away from the surface.";
+                HelpText = "If set, it will generate new tangents and bitangents for the Geometry, and if not set, it will keep the new tangents and bitangents from the original normal set (or not add tangents and bitangents at all if none were present).";
                 TypeOverride = "";
                 DefaultValue = false;
                 Visible = true;
             }
 
-            public SimplygonRepairInvalidNormalsEx(dynamic jsonData) : base("RepairInvalidNormals")
+            public SimplygonReplaceTangentsEx(dynamic jsonData) : base("ReplaceTangents")
             {
                 Type = "bool";
-                HelpText = "If set, normals that are invalid will be replaced. All others are left intact. Bad normals are those that are either zero length, or simply points away from the surface.";
+                HelpText = "If set, it will generate new tangents and bitangents for the Geometry, and if not set, it will keep the new tangents and bitangents from the original normal set (or not add tangents and bitangents at all if none were present).";
                 TypeOverride = "";
                 DefaultValue = false;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -7317,9 +7322,9 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonRepairInvalidNormalsEx DeepCopy()
+            public SimplygonReplaceTangentsEx DeepCopy()
             {
-                return (SimplygonRepairInvalidNormalsEx)this.MemberwiseClone();
+                return (SimplygonReplaceTangentsEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -7727,10 +7732,10 @@ namespace SimplygonUI
                 jsonData.ReplaceNormalsUI = ReplaceNormalsUI.SaveJson();
             }
 
-            jsonData.ReplaceTangents = ReplaceTangents;
+            jsonData.RepairInvalidNormals = RepairInvalidNormals;
             if(serializeUIComponents)
             {
-                jsonData.ReplaceTangentsUI = ReplaceTangentsUI.SaveJson();
+                jsonData.RepairInvalidNormalsUI = RepairInvalidNormalsUI.SaveJson();
             }
 
             jsonData.HardEdgeAngle = HardEdgeAngle;
@@ -7739,10 +7744,10 @@ namespace SimplygonUI
                 jsonData.HardEdgeAngleUI = HardEdgeAngleUI.SaveJson();
             }
 
-            jsonData.RepairInvalidNormals = RepairInvalidNormals;
+            jsonData.ReplaceTangents = ReplaceTangents;
             if(serializeUIComponents)
             {
-                jsonData.RepairInvalidNormalsUI = RepairInvalidNormalsUI.SaveJson();
+                jsonData.ReplaceTangentsUI = ReplaceTangentsUI.SaveJson();
             }
 
             jsonData.ReorthogonalizeTangentSpace = ReorthogonalizeTangentSpace;
@@ -7784,9 +7789,9 @@ namespace SimplygonUI
                 ReplaceNormals = (bool)jsonData.ReplaceNormals;
             }
 
-            if(jsonData.GetValue("ReplaceTangents") != null)
+            if(jsonData.GetValue("RepairInvalidNormals") != null)
             {
-                ReplaceTangents = (bool)jsonData.ReplaceTangents;
+                RepairInvalidNormals = (bool)jsonData.RepairInvalidNormals;
             }
 
             if(jsonData.GetValue("HardEdgeAngle") != null)
@@ -7804,9 +7809,9 @@ namespace SimplygonUI
 
             }
 
-            if(jsonData.GetValue("RepairInvalidNormals") != null)
+            if(jsonData.GetValue("ReplaceTangents") != null)
             {
-                RepairInvalidNormals = (bool)jsonData.RepairInvalidNormals;
+                ReplaceTangents = (bool)jsonData.ReplaceTangents;
             }
 
             if(jsonData.GetValue("ReorthogonalizeTangentSpace") != null)
@@ -7834,9 +7839,9 @@ namespace SimplygonUI
         public override void Reset()
         {
             ReplaceNormalsUI.Reset();
-            ReplaceTangentsUI.Reset();
-            HardEdgeAngleUI.Reset();
             RepairInvalidNormalsUI.Reset();
+            HardEdgeAngleUI.Reset();
+            ReplaceTangentsUI.Reset();
             ReorthogonalizeTangentSpaceUI.Reset();
             ScaleByAreaUI.Reset();
             ScaleByAngleUI.Reset();
@@ -7847,9 +7852,9 @@ namespace SimplygonUI
         {
             IsEditEnabled = isEditEnabled;
             ReplaceNormalsUI.IsEditEnabled = isEditEnabled;
-            ReplaceTangentsUI.IsEditEnabled = isEditEnabled;
-            HardEdgeAngleUI.IsEditEnabled = isEditEnabled;
             RepairInvalidNormalsUI.IsEditEnabled = isEditEnabled;
+            HardEdgeAngleUI.IsEditEnabled = isEditEnabled;
+            ReplaceTangentsUI.IsEditEnabled = isEditEnabled;
             ReorthogonalizeTangentSpaceUI.IsEditEnabled = isEditEnabled;
             ScaleByAreaUI.IsEditEnabled = isEditEnabled;
             ScaleByAngleUI.IsEditEnabled = isEditEnabled;
@@ -9207,18 +9212,18 @@ namespace SimplygonUI
                 if (!VisibleOverride) return false;
                 if (Name == "InputMaterialSettings") return false;
                 if(UseBoneReducerUI.Visible) return true;
-                if(BoneReductionTargetBoneRatioEnabledUI.Visible) return true;
                 if(RemoveUnusedBonesUI.Visible) return true;
                 if(LimitBonesPerVertexUI.Visible) return true;
-                if(BoneReductionTargetBoneCountEnabledUI.Visible) return true;
-                if(BoneReductionTargetMaxDeviationEnabledUI.Visible) return true;
                 if(MaxBonePerVertexUI.Visible) return true;
-                if(BoneReductionTargetOnScreenSizeEnabledUI.Visible) return true;
-                if(BoneReductionTargetStopConditionUI.Visible) return true;
+                if(BoneReductionTargetBoneRatioEnabledUI.Visible) return true;
                 if(BoneReductionTargetBoneRatioUI.Visible) return true;
+                if(BoneReductionTargetBoneCountEnabledUI.Visible) return true;
                 if(BoneReductionTargetBoneCountUI.Visible) return true;
+                if(BoneReductionTargetMaxDeviationEnabledUI.Visible) return true;
                 if(BoneReductionTargetMaxDeviationUI.Visible) return true;
+                if(BoneReductionTargetOnScreenSizeEnabledUI.Visible) return true;
                 if(BoneReductionTargetOnScreenSizeUI.Visible) return true;
+                if(BoneReductionTargetStopConditionUI.Visible) return true;
                 if(LockBoneSelectionSetNameUI.Visible) return true;
                 if(RemoveBoneSelectionSetNameUI.Visible) return true;
 
@@ -9292,79 +9297,6 @@ namespace SimplygonUI
             public SimplygonUseBoneReducerEx DeepCopy()
             {
                 return (SimplygonUseBoneReducerEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public bool BoneReductionTargetBoneRatioEnabled { get { return _BoneReductionTargetBoneRatioEnabled; } set { _BoneReductionTargetBoneRatioEnabled = value; OnPropertyChanged(); } }
-        private bool _BoneReductionTargetBoneRatioEnabled;
-        public SimplygonBoneReductionTargetBoneRatioEnabledEx BoneReductionTargetBoneRatioEnabledUI { get; set; }
-        public class SimplygonBoneReductionTargetBoneRatioEnabledEx : SimplygonSettingsProperty
-        {
-            public SimplygonBoneSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.BoneReductionTargetBoneRatioEnabled;
-                }
-
-                set
-                {
-                    bool needReload = Parent.BoneReductionTargetBoneRatioEnabled != value;
-                    Parent.BoneReductionTargetBoneRatioEnabled = value;
-                    Parent.BoneReductionTargetBoneRatioUI.Visible = Visible;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-            public override bool Visible { get { return false; } set { OnPropertyChanged(); } }
-            public override bool IsEditEnabled { get { return false; } set { OnPropertyChanged(); } }
-
-            public SimplygonBoneReductionTargetBoneRatioEnabledEx() : base("BoneReductionTargetBoneRatioEnabled")
-            {
-                Type = "bool";
-                HelpText = "Enable bone ratio as a reduction target. The reducer will stop when the set bone-ratio has been reached.";
-                TypeOverride = "";
-                DefaultValue = true;
-                Visible = true;
-            }
-
-            public SimplygonBoneReductionTargetBoneRatioEnabledEx(dynamic jsonData) : base("BoneReductionTargetBoneRatioEnabled")
-            {
-                Type = "bool";
-                HelpText = "Enable bone ratio as a reduction target. The reducer will stop when the set bone-ratio has been reached.";
-                TypeOverride = "";
-                DefaultValue = true;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonBoneReductionTargetBoneRatioEnabledEx DeepCopy()
-            {
-                return (SimplygonBoneReductionTargetBoneRatioEnabledEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -9516,152 +9448,6 @@ namespace SimplygonUI
 
         }
 
-        public bool BoneReductionTargetBoneCountEnabled { get { return _BoneReductionTargetBoneCountEnabled; } set { _BoneReductionTargetBoneCountEnabled = value; OnPropertyChanged(); } }
-        private bool _BoneReductionTargetBoneCountEnabled;
-        public SimplygonBoneReductionTargetBoneCountEnabledEx BoneReductionTargetBoneCountEnabledUI { get; set; }
-        public class SimplygonBoneReductionTargetBoneCountEnabledEx : SimplygonSettingsProperty
-        {
-            public SimplygonBoneSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.BoneReductionTargetBoneCountEnabled;
-                }
-
-                set
-                {
-                    bool needReload = Parent.BoneReductionTargetBoneCountEnabled != value;
-                    Parent.BoneReductionTargetBoneCountEnabled = value;
-                    Parent.BoneReductionTargetBoneCountUI.Visible = Visible;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-            public override bool Visible { get { return false; } set { OnPropertyChanged(); } }
-            public override bool IsEditEnabled { get { return false; } set { OnPropertyChanged(); } }
-
-            public SimplygonBoneReductionTargetBoneCountEnabledEx() : base("BoneReductionTargetBoneCountEnabled")
-            {
-                Type = "bool";
-                HelpText = "Enable bone count as a reduction target. The reducer will stop when the set bone count has been reached.";
-                TypeOverride = "";
-                DefaultValue = false;
-                Visible = true;
-            }
-
-            public SimplygonBoneReductionTargetBoneCountEnabledEx(dynamic jsonData) : base("BoneReductionTargetBoneCountEnabled")
-            {
-                Type = "bool";
-                HelpText = "Enable bone count as a reduction target. The reducer will stop when the set bone count has been reached.";
-                TypeOverride = "";
-                DefaultValue = false;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonBoneReductionTargetBoneCountEnabledEx DeepCopy()
-            {
-                return (SimplygonBoneReductionTargetBoneCountEnabledEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public bool BoneReductionTargetMaxDeviationEnabled { get { return _BoneReductionTargetMaxDeviationEnabled; } set { _BoneReductionTargetMaxDeviationEnabled = value; OnPropertyChanged(); } }
-        private bool _BoneReductionTargetMaxDeviationEnabled;
-        public SimplygonBoneReductionTargetMaxDeviationEnabledEx BoneReductionTargetMaxDeviationEnabledUI { get; set; }
-        public class SimplygonBoneReductionTargetMaxDeviationEnabledEx : SimplygonSettingsProperty
-        {
-            public SimplygonBoneSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.BoneReductionTargetMaxDeviationEnabled;
-                }
-
-                set
-                {
-                    bool needReload = Parent.BoneReductionTargetMaxDeviationEnabled != value;
-                    Parent.BoneReductionTargetMaxDeviationEnabled = value;
-                    Parent.BoneReductionTargetMaxDeviationUI.Visible = Visible;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-            public override bool Visible { get { return false; } set { OnPropertyChanged(); } }
-            public override bool IsEditEnabled { get { return false; } set { OnPropertyChanged(); } }
-
-            public SimplygonBoneReductionTargetMaxDeviationEnabledEx() : base("BoneReductionTargetMaxDeviationEnabled")
-            {
-                Type = "bool";
-                HelpText = "Enable max deviation as a reduction target. The reducer will stop when the set max deviation has been reached.";
-                TypeOverride = "";
-                DefaultValue = false;
-                Visible = true;
-            }
-
-            public SimplygonBoneReductionTargetMaxDeviationEnabledEx(dynamic jsonData) : base("BoneReductionTargetMaxDeviationEnabled")
-            {
-                Type = "bool";
-                HelpText = "Enable max deviation as a reduction target. The reducer will stop when the set max deviation has been reached.";
-                TypeOverride = "";
-                DefaultValue = false;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonBoneReductionTargetMaxDeviationEnabledEx DeepCopy()
-            {
-                return (SimplygonBoneReductionTargetMaxDeviationEnabledEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
         public int MaxBonePerVertex { get { return _MaxBonePerVertex; } set { _MaxBonePerVertex = value; OnPropertyChanged(); } }
         private int _MaxBonePerVertex;
         public SimplygonMaxBonePerVertexEx MaxBonePerVertexUI { get; set; }
@@ -9789,24 +9575,24 @@ namespace SimplygonUI
 
         }
 
-        public bool BoneReductionTargetOnScreenSizeEnabled { get { return _BoneReductionTargetOnScreenSizeEnabled; } set { _BoneReductionTargetOnScreenSizeEnabled = value; OnPropertyChanged(); } }
-        private bool _BoneReductionTargetOnScreenSizeEnabled;
-        public SimplygonBoneReductionTargetOnScreenSizeEnabledEx BoneReductionTargetOnScreenSizeEnabledUI { get; set; }
-        public class SimplygonBoneReductionTargetOnScreenSizeEnabledEx : SimplygonSettingsProperty
+        public bool BoneReductionTargetBoneRatioEnabled { get { return _BoneReductionTargetBoneRatioEnabled; } set { _BoneReductionTargetBoneRatioEnabled = value; OnPropertyChanged(); } }
+        private bool _BoneReductionTargetBoneRatioEnabled;
+        public SimplygonBoneReductionTargetBoneRatioEnabledEx BoneReductionTargetBoneRatioEnabledUI { get; set; }
+        public class SimplygonBoneReductionTargetBoneRatioEnabledEx : SimplygonSettingsProperty
         {
             public SimplygonBoneSettings Parent { get; set; }
             public bool Value
             {
                 get
                 {
-                    return Parent.BoneReductionTargetOnScreenSizeEnabled;
+                    return Parent.BoneReductionTargetBoneRatioEnabled;
                 }
 
                 set
                 {
-                    bool needReload = Parent.BoneReductionTargetOnScreenSizeEnabled != value;
-                    Parent.BoneReductionTargetOnScreenSizeEnabled = value;
-                    Parent.BoneReductionTargetOnScreenSizeUI.Visible = Visible;
+                    bool needReload = Parent.BoneReductionTargetBoneRatioEnabled != value;
+                    Parent.BoneReductionTargetBoneRatioEnabled = value;
+                    Parent.BoneReductionTargetBoneRatioUI.Visible = Visible;
                     OnPropertyChanged();
                 }
 
@@ -9816,21 +9602,21 @@ namespace SimplygonUI
             public override bool Visible { get { return false; } set { OnPropertyChanged(); } }
             public override bool IsEditEnabled { get { return false; } set { OnPropertyChanged(); } }
 
-            public SimplygonBoneReductionTargetOnScreenSizeEnabledEx() : base("BoneReductionTargetOnScreenSizeEnabled")
+            public SimplygonBoneReductionTargetBoneRatioEnabledEx() : base("BoneReductionTargetBoneRatioEnabled")
             {
                 Type = "bool";
-                HelpText = "Enable on screen size as a reduction target. The reducer will stop when the set on screen size has been reached.";
+                HelpText = "Enable bone ratio as a reduction target. The reducer will stop when the set bone-ratio has been reached.";
                 TypeOverride = "";
-                DefaultValue = false;
+                DefaultValue = true;
                 Visible = true;
             }
 
-            public SimplygonBoneReductionTargetOnScreenSizeEnabledEx(dynamic jsonData) : base("BoneReductionTargetOnScreenSizeEnabled")
+            public SimplygonBoneReductionTargetBoneRatioEnabledEx(dynamic jsonData) : base("BoneReductionTargetBoneRatioEnabled")
             {
                 Type = "bool";
-                HelpText = "Enable on screen size as a reduction target. The reducer will stop when the set on screen size has been reached.";
+                HelpText = "Enable bone ratio as a reduction target. The reducer will stop when the set bone-ratio has been reached.";
                 TypeOverride = "";
-                DefaultValue = false;
+                DefaultValue = true;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -9848,80 +9634,9 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonBoneReductionTargetOnScreenSizeEnabledEx DeepCopy()
+            public SimplygonBoneReductionTargetBoneRatioEnabledEx DeepCopy()
             {
-                return (SimplygonBoneReductionTargetOnScreenSizeEnabledEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public EStopCondition BoneReductionTargetStopCondition { get { return _BoneReductionTargetStopCondition; } set { _BoneReductionTargetStopCondition = value; OnPropertyChanged(); } }
-        private EStopCondition _BoneReductionTargetStopCondition;
-        public SimplygonBoneReductionTargetStopConditionEx BoneReductionTargetStopConditionUI { get; set; }
-        public class SimplygonBoneReductionTargetStopConditionEx : SimplygonSettingsProperty
-        {
-            public SimplygonBoneSettings Parent { get; set; }
-            public EStopCondition Value
-            {
-                get
-                {
-                    return Parent.BoneReductionTargetStopCondition;
-                }
-
-                set
-                {
-                    bool needReload = Parent.BoneReductionTargetStopCondition != value;
-                    Parent.BoneReductionTargetStopCondition = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public EStopCondition DefaultValue { get; set; }
-            public Array EnumValues { get { return Enum.GetValues(typeof(EStopCondition)); } }
-
-            public SimplygonBoneReductionTargetStopConditionEx() : base("BoneReductionTargetStopCondition")
-            {
-                Type = "enum";
-                HelpText = "The stop condition for the bone reducer. Any: the reducer will stop when any single one of the set reduction targets have been reached. All: the reducer will stop when all enabled reduction targets have been set.";
-                TypeOverride = "";
-                DefaultValue = EStopCondition.All;
-                Visible = true;
-            }
-
-            public SimplygonBoneReductionTargetStopConditionEx(dynamic jsonData) : base("BoneReductionTargetStopCondition")
-            {
-                Type = "enum";
-                HelpText = "The stop condition for the bone reducer. Any: the reducer will stop when any single one of the set reduction targets have been reached. All: the reducer will stop when all enabled reduction targets have been set.";
-                TypeOverride = "";
-                DefaultValue = EStopCondition.All;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonBoneReductionTargetStopConditionEx DeepCopy()
-            {
-                return (SimplygonBoneReductionTargetStopConditionEx)this.MemberwiseClone();
+                return (SimplygonBoneReductionTargetBoneRatioEnabledEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -10063,6 +9778,79 @@ namespace SimplygonUI
 
         }
 
+        public bool BoneReductionTargetBoneCountEnabled { get { return _BoneReductionTargetBoneCountEnabled; } set { _BoneReductionTargetBoneCountEnabled = value; OnPropertyChanged(); } }
+        private bool _BoneReductionTargetBoneCountEnabled;
+        public SimplygonBoneReductionTargetBoneCountEnabledEx BoneReductionTargetBoneCountEnabledUI { get; set; }
+        public class SimplygonBoneReductionTargetBoneCountEnabledEx : SimplygonSettingsProperty
+        {
+            public SimplygonBoneSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.BoneReductionTargetBoneCountEnabled;
+                }
+
+                set
+                {
+                    bool needReload = Parent.BoneReductionTargetBoneCountEnabled != value;
+                    Parent.BoneReductionTargetBoneCountEnabled = value;
+                    Parent.BoneReductionTargetBoneCountUI.Visible = Visible;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+            public override bool Visible { get { return false; } set { OnPropertyChanged(); } }
+            public override bool IsEditEnabled { get { return false; } set { OnPropertyChanged(); } }
+
+            public SimplygonBoneReductionTargetBoneCountEnabledEx() : base("BoneReductionTargetBoneCountEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable bone count as a reduction target. The reducer will stop when the set bone count has been reached.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonBoneReductionTargetBoneCountEnabledEx(dynamic jsonData) : base("BoneReductionTargetBoneCountEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable bone count as a reduction target. The reducer will stop when the set bone count has been reached.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonBoneReductionTargetBoneCountEnabledEx DeepCopy()
+            {
+                return (SimplygonBoneReductionTargetBoneCountEnabledEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
         public int BoneReductionTargetBoneCount { get { return _BoneReductionTargetBoneCount; } set { _BoneReductionTargetBoneCount = value; OnPropertyChanged(); } }
         private int _BoneReductionTargetBoneCount;
         public SimplygonBoneReductionTargetBoneCountEx BoneReductionTargetBoneCountUI { get; set; }
@@ -10188,6 +9976,79 @@ namespace SimplygonUI
                 jsonData.MinValue = MinValue;
                 jsonData.MaxValue = MaxValue;
                 jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public bool BoneReductionTargetMaxDeviationEnabled { get { return _BoneReductionTargetMaxDeviationEnabled; } set { _BoneReductionTargetMaxDeviationEnabled = value; OnPropertyChanged(); } }
+        private bool _BoneReductionTargetMaxDeviationEnabled;
+        public SimplygonBoneReductionTargetMaxDeviationEnabledEx BoneReductionTargetMaxDeviationEnabledUI { get; set; }
+        public class SimplygonBoneReductionTargetMaxDeviationEnabledEx : SimplygonSettingsProperty
+        {
+            public SimplygonBoneSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.BoneReductionTargetMaxDeviationEnabled;
+                }
+
+                set
+                {
+                    bool needReload = Parent.BoneReductionTargetMaxDeviationEnabled != value;
+                    Parent.BoneReductionTargetMaxDeviationEnabled = value;
+                    Parent.BoneReductionTargetMaxDeviationUI.Visible = Visible;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+            public override bool Visible { get { return false; } set { OnPropertyChanged(); } }
+            public override bool IsEditEnabled { get { return false; } set { OnPropertyChanged(); } }
+
+            public SimplygonBoneReductionTargetMaxDeviationEnabledEx() : base("BoneReductionTargetMaxDeviationEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable max deviation as a reduction target. The reducer will stop when the set max deviation has been reached.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonBoneReductionTargetMaxDeviationEnabledEx(dynamic jsonData) : base("BoneReductionTargetMaxDeviationEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable max deviation as a reduction target. The reducer will stop when the set max deviation has been reached.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonBoneReductionTargetMaxDeviationEnabledEx DeepCopy()
+            {
+                return (SimplygonBoneReductionTargetMaxDeviationEnabledEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
                 return jsonData;
             }
 
@@ -10323,6 +10184,79 @@ namespace SimplygonUI
 
         }
 
+        public bool BoneReductionTargetOnScreenSizeEnabled { get { return _BoneReductionTargetOnScreenSizeEnabled; } set { _BoneReductionTargetOnScreenSizeEnabled = value; OnPropertyChanged(); } }
+        private bool _BoneReductionTargetOnScreenSizeEnabled;
+        public SimplygonBoneReductionTargetOnScreenSizeEnabledEx BoneReductionTargetOnScreenSizeEnabledUI { get; set; }
+        public class SimplygonBoneReductionTargetOnScreenSizeEnabledEx : SimplygonSettingsProperty
+        {
+            public SimplygonBoneSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.BoneReductionTargetOnScreenSizeEnabled;
+                }
+
+                set
+                {
+                    bool needReload = Parent.BoneReductionTargetOnScreenSizeEnabled != value;
+                    Parent.BoneReductionTargetOnScreenSizeEnabled = value;
+                    Parent.BoneReductionTargetOnScreenSizeUI.Visible = Visible;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+            public override bool Visible { get { return false; } set { OnPropertyChanged(); } }
+            public override bool IsEditEnabled { get { return false; } set { OnPropertyChanged(); } }
+
+            public SimplygonBoneReductionTargetOnScreenSizeEnabledEx() : base("BoneReductionTargetOnScreenSizeEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable on screen size as a reduction target. The reducer will stop when the set on screen size has been reached.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonBoneReductionTargetOnScreenSizeEnabledEx(dynamic jsonData) : base("BoneReductionTargetOnScreenSizeEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable on screen size as a reduction target. The reducer will stop when the set on screen size has been reached.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonBoneReductionTargetOnScreenSizeEnabledEx DeepCopy()
+            {
+                return (SimplygonBoneReductionTargetOnScreenSizeEnabledEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
         public int BoneReductionTargetOnScreenSize { get { return _BoneReductionTargetOnScreenSize; } set { _BoneReductionTargetOnScreenSize = value; OnPropertyChanged(); } }
         private int _BoneReductionTargetOnScreenSize;
         public SimplygonBoneReductionTargetOnScreenSizeEx BoneReductionTargetOnScreenSizeUI { get; set; }
@@ -10448,6 +10382,77 @@ namespace SimplygonUI
                 jsonData.MinValue = MinValue;
                 jsonData.MaxValue = MaxValue;
                 jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public EStopCondition BoneReductionTargetStopCondition { get { return _BoneReductionTargetStopCondition; } set { _BoneReductionTargetStopCondition = value; OnPropertyChanged(); } }
+        private EStopCondition _BoneReductionTargetStopCondition;
+        public SimplygonBoneReductionTargetStopConditionEx BoneReductionTargetStopConditionUI { get; set; }
+        public class SimplygonBoneReductionTargetStopConditionEx : SimplygonSettingsProperty
+        {
+            public SimplygonBoneSettings Parent { get; set; }
+            public EStopCondition Value
+            {
+                get
+                {
+                    return Parent.BoneReductionTargetStopCondition;
+                }
+
+                set
+                {
+                    bool needReload = Parent.BoneReductionTargetStopCondition != value;
+                    Parent.BoneReductionTargetStopCondition = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EStopCondition DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EStopCondition)); } }
+
+            public SimplygonBoneReductionTargetStopConditionEx() : base("BoneReductionTargetStopCondition")
+            {
+                Type = "enum";
+                HelpText = "The stop condition for the bone reducer. Any: the reducer will stop when any single one of the set reduction targets have been reached. All: the reducer will stop when all enabled reduction targets have been set.";
+                TypeOverride = "";
+                DefaultValue = EStopCondition.All;
+                Visible = true;
+            }
+
+            public SimplygonBoneReductionTargetStopConditionEx(dynamic jsonData) : base("BoneReductionTargetStopCondition")
+            {
+                Type = "enum";
+                HelpText = "The stop condition for the bone reducer. Any: the reducer will stop when any single one of the set reduction targets have been reached. All: the reducer will stop when all enabled reduction targets have been set.";
+                TypeOverride = "";
+                DefaultValue = EStopCondition.All;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonBoneReductionTargetStopConditionEx DeepCopy()
+            {
+                return (SimplygonBoneReductionTargetStopConditionEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
                 return jsonData;
             }
 
@@ -10786,12 +10791,6 @@ namespace SimplygonUI
                 jsonData.UseBoneReducerUI = UseBoneReducerUI.SaveJson();
             }
 
-            jsonData.BoneReductionTargetBoneRatioEnabled = BoneReductionTargetBoneRatioEnabled;
-            if(serializeUIComponents)
-            {
-                jsonData.BoneReductionTargetBoneRatioEnabledUI = BoneReductionTargetBoneRatioEnabledUI.SaveJson();
-            }
-
             jsonData.RemoveUnusedBones = RemoveUnusedBones;
             if(serializeUIComponents)
             {
@@ -10804,34 +10803,16 @@ namespace SimplygonUI
                 jsonData.LimitBonesPerVertexUI = LimitBonesPerVertexUI.SaveJson();
             }
 
-            jsonData.BoneReductionTargetBoneCountEnabled = BoneReductionTargetBoneCountEnabled;
-            if(serializeUIComponents)
-            {
-                jsonData.BoneReductionTargetBoneCountEnabledUI = BoneReductionTargetBoneCountEnabledUI.SaveJson();
-            }
-
-            jsonData.BoneReductionTargetMaxDeviationEnabled = BoneReductionTargetMaxDeviationEnabled;
-            if(serializeUIComponents)
-            {
-                jsonData.BoneReductionTargetMaxDeviationEnabledUI = BoneReductionTargetMaxDeviationEnabledUI.SaveJson();
-            }
-
             jsonData.MaxBonePerVertex = MaxBonePerVertex;
             if(serializeUIComponents)
             {
                 jsonData.MaxBonePerVertexUI = MaxBonePerVertexUI.SaveJson();
             }
 
-            jsonData.BoneReductionTargetOnScreenSizeEnabled = BoneReductionTargetOnScreenSizeEnabled;
+            jsonData.BoneReductionTargetBoneRatioEnabled = BoneReductionTargetBoneRatioEnabled;
             if(serializeUIComponents)
             {
-                jsonData.BoneReductionTargetOnScreenSizeEnabledUI = BoneReductionTargetOnScreenSizeEnabledUI.SaveJson();
-            }
-
-            jsonData.BoneReductionTargetStopCondition = (int)BoneReductionTargetStopCondition;
-            if(serializeUIComponents)
-            {
-                jsonData.BoneReductionTargetStopConditionUI = BoneReductionTargetStopConditionUI.SaveJson();
+                jsonData.BoneReductionTargetBoneRatioEnabledUI = BoneReductionTargetBoneRatioEnabledUI.SaveJson();
             }
 
             jsonData.BoneReductionTargetBoneRatio = BoneReductionTargetBoneRatio;
@@ -10840,10 +10821,22 @@ namespace SimplygonUI
                 jsonData.BoneReductionTargetBoneRatioUI = BoneReductionTargetBoneRatioUI.SaveJson();
             }
 
+            jsonData.BoneReductionTargetBoneCountEnabled = BoneReductionTargetBoneCountEnabled;
+            if(serializeUIComponents)
+            {
+                jsonData.BoneReductionTargetBoneCountEnabledUI = BoneReductionTargetBoneCountEnabledUI.SaveJson();
+            }
+
             jsonData.BoneReductionTargetBoneCount = BoneReductionTargetBoneCount;
             if(serializeUIComponents)
             {
                 jsonData.BoneReductionTargetBoneCountUI = BoneReductionTargetBoneCountUI.SaveJson();
+            }
+
+            jsonData.BoneReductionTargetMaxDeviationEnabled = BoneReductionTargetMaxDeviationEnabled;
+            if(serializeUIComponents)
+            {
+                jsonData.BoneReductionTargetMaxDeviationEnabledUI = BoneReductionTargetMaxDeviationEnabledUI.SaveJson();
             }
 
             jsonData.BoneReductionTargetMaxDeviation = BoneReductionTargetMaxDeviation;
@@ -10852,10 +10845,22 @@ namespace SimplygonUI
                 jsonData.BoneReductionTargetMaxDeviationUI = BoneReductionTargetMaxDeviationUI.SaveJson();
             }
 
+            jsonData.BoneReductionTargetOnScreenSizeEnabled = BoneReductionTargetOnScreenSizeEnabled;
+            if(serializeUIComponents)
+            {
+                jsonData.BoneReductionTargetOnScreenSizeEnabledUI = BoneReductionTargetOnScreenSizeEnabledUI.SaveJson();
+            }
+
             jsonData.BoneReductionTargetOnScreenSize = BoneReductionTargetOnScreenSize;
             if(serializeUIComponents)
             {
                 jsonData.BoneReductionTargetOnScreenSizeUI = BoneReductionTargetOnScreenSizeUI.SaveJson();
+            }
+
+            jsonData.BoneReductionTargetStopCondition = (int)BoneReductionTargetStopCondition;
+            if(serializeUIComponents)
+            {
+                jsonData.BoneReductionTargetStopConditionUI = BoneReductionTargetStopConditionUI.SaveJson();
             }
 
             jsonData.LockBoneSelectionSetName = LockBoneSelectionSetName;
@@ -10885,11 +10890,6 @@ namespace SimplygonUI
                 UseBoneReducer = (bool)jsonData.UseBoneReducer;
             }
 
-            if(jsonData.GetValue("BoneReductionTargetBoneRatioEnabled") != null)
-            {
-                BoneReductionTargetBoneRatioEnabled = (bool)jsonData.BoneReductionTargetBoneRatioEnabled;
-            }
-
             if(jsonData.GetValue("RemoveUnusedBones") != null)
             {
                 RemoveUnusedBones = (bool)jsonData.RemoveUnusedBones;
@@ -10898,16 +10898,6 @@ namespace SimplygonUI
             if(jsonData.GetValue("LimitBonesPerVertex") != null)
             {
                 LimitBonesPerVertex = (bool)jsonData.LimitBonesPerVertex;
-            }
-
-            if(jsonData.GetValue("BoneReductionTargetBoneCountEnabled") != null)
-            {
-                BoneReductionTargetBoneCountEnabled = (bool)jsonData.BoneReductionTargetBoneCountEnabled;
-            }
-
-            if(jsonData.GetValue("BoneReductionTargetMaxDeviationEnabled") != null)
-            {
-                BoneReductionTargetMaxDeviationEnabled = (bool)jsonData.BoneReductionTargetMaxDeviationEnabled;
             }
 
             if(jsonData.GetValue("MaxBonePerVertex") != null)
@@ -10925,14 +10915,9 @@ namespace SimplygonUI
 
             }
 
-            if(jsonData.GetValue("BoneReductionTargetOnScreenSizeEnabled") != null)
+            if(jsonData.GetValue("BoneReductionTargetBoneRatioEnabled") != null)
             {
-                BoneReductionTargetOnScreenSizeEnabled = (bool)jsonData.BoneReductionTargetOnScreenSizeEnabled;
-            }
-
-            if(jsonData.GetValue("BoneReductionTargetStopCondition") != null)
-            {
-                BoneReductionTargetStopCondition = (EStopCondition)jsonData.BoneReductionTargetStopCondition;
+                BoneReductionTargetBoneRatioEnabled = (bool)jsonData.BoneReductionTargetBoneRatioEnabled;
             }
 
             if(jsonData.GetValue("BoneReductionTargetBoneRatio") != null)
@@ -10950,6 +10935,11 @@ namespace SimplygonUI
 
             }
 
+            if(jsonData.GetValue("BoneReductionTargetBoneCountEnabled") != null)
+            {
+                BoneReductionTargetBoneCountEnabled = (bool)jsonData.BoneReductionTargetBoneCountEnabled;
+            }
+
             if(jsonData.GetValue("BoneReductionTargetBoneCount") != null)
             {
                 var newBoneReductionTargetBoneCount = (int)jsonData.BoneReductionTargetBoneCount;
@@ -10963,6 +10953,11 @@ namespace SimplygonUI
                     UILogger.Instance.Log(Category.Warning, $"BoneReductionTargetBoneCount: Invalid value {newBoneReductionTargetBoneCount}, using default value {BoneReductionTargetBoneCount.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
                 }
 
+            }
+
+            if(jsonData.GetValue("BoneReductionTargetMaxDeviationEnabled") != null)
+            {
+                BoneReductionTargetMaxDeviationEnabled = (bool)jsonData.BoneReductionTargetMaxDeviationEnabled;
             }
 
             if(jsonData.GetValue("BoneReductionTargetMaxDeviation") != null)
@@ -10980,6 +10975,11 @@ namespace SimplygonUI
 
             }
 
+            if(jsonData.GetValue("BoneReductionTargetOnScreenSizeEnabled") != null)
+            {
+                BoneReductionTargetOnScreenSizeEnabled = (bool)jsonData.BoneReductionTargetOnScreenSizeEnabled;
+            }
+
             if(jsonData.GetValue("BoneReductionTargetOnScreenSize") != null)
             {
                 var newBoneReductionTargetOnScreenSize = (int)jsonData.BoneReductionTargetOnScreenSize;
@@ -10993,6 +10993,11 @@ namespace SimplygonUI
                     UILogger.Instance.Log(Category.Warning, $"BoneReductionTargetOnScreenSize: Invalid value {newBoneReductionTargetOnScreenSize}, using default value {BoneReductionTargetOnScreenSize.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
                 }
 
+            }
+
+            if(jsonData.GetValue("BoneReductionTargetStopCondition") != null)
+            {
+                BoneReductionTargetStopCondition = (EStopCondition)jsonData.BoneReductionTargetStopCondition;
             }
 
             if(jsonData.GetValue("LockBoneSelectionSetName") != null)
@@ -11010,18 +11015,18 @@ namespace SimplygonUI
         public override void Reset()
         {
             UseBoneReducerUI.Reset();
-            BoneReductionTargetBoneRatioEnabledUI.Reset();
             RemoveUnusedBonesUI.Reset();
             LimitBonesPerVertexUI.Reset();
-            BoneReductionTargetBoneCountEnabledUI.Reset();
-            BoneReductionTargetMaxDeviationEnabledUI.Reset();
             MaxBonePerVertexUI.Reset();
-            BoneReductionTargetOnScreenSizeEnabledUI.Reset();
-            BoneReductionTargetStopConditionUI.Reset();
+            BoneReductionTargetBoneRatioEnabledUI.Reset();
             BoneReductionTargetBoneRatioUI.Reset();
+            BoneReductionTargetBoneCountEnabledUI.Reset();
             BoneReductionTargetBoneCountUI.Reset();
+            BoneReductionTargetMaxDeviationEnabledUI.Reset();
             BoneReductionTargetMaxDeviationUI.Reset();
+            BoneReductionTargetOnScreenSizeEnabledUI.Reset();
             BoneReductionTargetOnScreenSizeUI.Reset();
+            BoneReductionTargetStopConditionUI.Reset();
             LockBoneSelectionSetNameUI.Reset();
             RemoveBoneSelectionSetNameUI.Reset();
         }
@@ -11030,18 +11035,18 @@ namespace SimplygonUI
         {
             IsEditEnabled = isEditEnabled;
             UseBoneReducerUI.IsEditEnabled = isEditEnabled;
-            BoneReductionTargetBoneRatioEnabledUI.IsEditEnabled = isEditEnabled;
             RemoveUnusedBonesUI.IsEditEnabled = isEditEnabled;
             LimitBonesPerVertexUI.IsEditEnabled = isEditEnabled;
-            BoneReductionTargetBoneCountEnabledUI.IsEditEnabled = isEditEnabled;
-            BoneReductionTargetMaxDeviationEnabledUI.IsEditEnabled = isEditEnabled;
             MaxBonePerVertexUI.IsEditEnabled = isEditEnabled;
-            BoneReductionTargetOnScreenSizeEnabledUI.IsEditEnabled = isEditEnabled;
-            BoneReductionTargetStopConditionUI.IsEditEnabled = isEditEnabled;
+            BoneReductionTargetBoneRatioEnabledUI.IsEditEnabled = isEditEnabled;
             BoneReductionTargetBoneRatioUI.IsEditEnabled = isEditEnabled;
+            BoneReductionTargetBoneCountEnabledUI.IsEditEnabled = isEditEnabled;
             BoneReductionTargetBoneCountUI.IsEditEnabled = isEditEnabled;
+            BoneReductionTargetMaxDeviationEnabledUI.IsEditEnabled = isEditEnabled;
             BoneReductionTargetMaxDeviationUI.IsEditEnabled = isEditEnabled;
+            BoneReductionTargetOnScreenSizeEnabledUI.IsEditEnabled = isEditEnabled;
             BoneReductionTargetOnScreenSizeUI.IsEditEnabled = isEditEnabled;
+            BoneReductionTargetStopConditionUI.IsEditEnabled = isEditEnabled;
             LockBoneSelectionSetNameUI.IsEditEnabled = isEditEnabled;
             RemoveBoneSelectionSetNameUI.IsEditEnabled = isEditEnabled;
         }
@@ -11058,8 +11063,8 @@ namespace SimplygonUI
                 if (Name == "InputMaterialSettings") return false;
                 if(UseVertexWeightsInReducerUI.Visible) return true;
                 if(UseVertexWeightsInTexcoordGeneratorUI.Visible) return true;
-                if(WeightsFromColorNameUI.Visible) return true;
                 if(WeightsFromColorLevelUI.Visible) return true;
+                if(WeightsFromColorNameUI.Visible) return true;
                 if(WeightsFromColorComponentUI.Visible) return true;
                 if(WeightsFromColorMultiplierUI.Visible) return true;
                 if(WeightsFromColorModeUI.Visible) return true;
@@ -11215,76 +11220,6 @@ namespace SimplygonUI
 
         }
 
-        public string WeightsFromColorName { get { return _WeightsFromColorName; } set { _WeightsFromColorName = value; OnPropertyChanged(); } }
-        private string _WeightsFromColorName;
-        public SimplygonWeightsFromColorNameEx WeightsFromColorNameUI { get; set; }
-        public class SimplygonWeightsFromColorNameEx : SimplygonSettingsProperty
-        {
-            public SimplygonVertexWeightSettings Parent { get; set; }
-            public string Value
-            {
-                get
-                {
-                    return Parent.WeightsFromColorName;
-                }
-
-                set
-                {
-                    bool needReload = Parent.WeightsFromColorName != value;
-                    Parent.WeightsFromColorName = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public string DefaultValue { get; set; }
-
-            public SimplygonWeightsFromColorNameEx() : base("WeightsFromColorName")
-            {
-                Type = "string";
-                HelpText = "If the name of an existing vertex color field in the input geometry is set here, the existing VertexWeights field will be overwritten by a set created by converting the selected color field according to the other WeightsFromColor settings in this settings object. If both ColorName and the corresponding ColorLevel is set, the processors will prioritize the name.";
-                TypeOverride = "";
-                DefaultValue = "";
-                Visible = true;
-            }
-
-            public SimplygonWeightsFromColorNameEx(dynamic jsonData) : base("WeightsFromColorName")
-            {
-                Type = "string";
-                HelpText = "If the name of an existing vertex color field in the input geometry is set here, the existing VertexWeights field will be overwritten by a set created by converting the selected color field according to the other WeightsFromColor settings in this settings object. If both ColorName and the corresponding ColorLevel is set, the processors will prioritize the name.";
-                TypeOverride = "";
-                DefaultValue = "";
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonWeightsFromColorNameEx DeepCopy()
-            {
-                return (SimplygonWeightsFromColorNameEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
         public int WeightsFromColorLevel { get { return _WeightsFromColorLevel; } set { _WeightsFromColorLevel = value; OnPropertyChanged(); } }
         private int _WeightsFromColorLevel;
         public SimplygonWeightsFromColorLevelEx WeightsFromColorLevelUI { get; set; }
@@ -11407,6 +11342,76 @@ namespace SimplygonUI
                 jsonData.MinValue = MinValue;
                 jsonData.MaxValue = MaxValue;
                 jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public string WeightsFromColorName { get { return _WeightsFromColorName; } set { _WeightsFromColorName = value; OnPropertyChanged(); } }
+        private string _WeightsFromColorName;
+        public SimplygonWeightsFromColorNameEx WeightsFromColorNameUI { get; set; }
+        public class SimplygonWeightsFromColorNameEx : SimplygonSettingsProperty
+        {
+            public SimplygonVertexWeightSettings Parent { get; set; }
+            public string Value
+            {
+                get
+                {
+                    return Parent.WeightsFromColorName;
+                }
+
+                set
+                {
+                    bool needReload = Parent.WeightsFromColorName != value;
+                    Parent.WeightsFromColorName = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public string DefaultValue { get; set; }
+
+            public SimplygonWeightsFromColorNameEx() : base("WeightsFromColorName")
+            {
+                Type = "string";
+                HelpText = "If the name of an existing vertex color field in the input geometry is set here, the existing VertexWeights field will be overwritten by a set created by converting the selected color field according to the other WeightsFromColor settings in this settings object. If both ColorName and the corresponding ColorLevel is set, the processors will prioritize the name.";
+                TypeOverride = "";
+                DefaultValue = "";
+                Visible = true;
+            }
+
+            public SimplygonWeightsFromColorNameEx(dynamic jsonData) : base("WeightsFromColorName")
+            {
+                Type = "string";
+                HelpText = "If the name of an existing vertex color field in the input geometry is set here, the existing VertexWeights field will be overwritten by a set created by converting the selected color field according to the other WeightsFromColor settings in this settings object. If both ColorName and the corresponding ColorLevel is set, the processors will prioritize the name.";
+                TypeOverride = "";
+                DefaultValue = "";
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonWeightsFromColorNameEx DeepCopy()
+            {
+                return (SimplygonWeightsFromColorNameEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
                 return jsonData;
             }
 
@@ -11792,16 +11797,16 @@ namespace SimplygonUI
                 jsonData.UseVertexWeightsInTexcoordGeneratorUI = UseVertexWeightsInTexcoordGeneratorUI.SaveJson();
             }
 
-            jsonData.WeightsFromColorName = WeightsFromColorName;
-            if(serializeUIComponents)
-            {
-                jsonData.WeightsFromColorNameUI = WeightsFromColorNameUI.SaveJson();
-            }
-
             jsonData.WeightsFromColorLevel = WeightsFromColorLevel;
             if(serializeUIComponents)
             {
                 jsonData.WeightsFromColorLevelUI = WeightsFromColorLevelUI.SaveJson();
+            }
+
+            jsonData.WeightsFromColorName = WeightsFromColorName;
+            if(serializeUIComponents)
+            {
+                jsonData.WeightsFromColorNameUI = WeightsFromColorNameUI.SaveJson();
             }
 
             jsonData.WeightsFromColorComponent = (int)WeightsFromColorComponent;
@@ -11842,11 +11847,6 @@ namespace SimplygonUI
                 UseVertexWeightsInTexcoordGenerator = (bool)jsonData.UseVertexWeightsInTexcoordGenerator;
             }
 
-            if(jsonData.GetValue("WeightsFromColorName") != null)
-            {
-                WeightsFromColorName = (string)jsonData.WeightsFromColorName;
-            }
-
             if(jsonData.GetValue("WeightsFromColorLevel") != null)
             {
                 var newWeightsFromColorLevel = (int)jsonData.WeightsFromColorLevel;
@@ -11860,6 +11860,11 @@ namespace SimplygonUI
                     UILogger.Instance.Log(Category.Warning, $"WeightsFromColorLevel: Invalid value {newWeightsFromColorLevel}, using default value {WeightsFromColorLevel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
                 }
 
+            }
+
+            if(jsonData.GetValue("WeightsFromColorName") != null)
+            {
+                WeightsFromColorName = (string)jsonData.WeightsFromColorName;
             }
 
             if(jsonData.GetValue("WeightsFromColorComponent") != null)
@@ -11893,8 +11898,8 @@ namespace SimplygonUI
         {
             UseVertexWeightsInReducerUI.Reset();
             UseVertexWeightsInTexcoordGeneratorUI.Reset();
-            WeightsFromColorNameUI.Reset();
             WeightsFromColorLevelUI.Reset();
+            WeightsFromColorNameUI.Reset();
             WeightsFromColorComponentUI.Reset();
             WeightsFromColorMultiplierUI.Reset();
             WeightsFromColorModeUI.Reset();
@@ -11905,8 +11910,8 @@ namespace SimplygonUI
             IsEditEnabled = isEditEnabled;
             UseVertexWeightsInReducerUI.IsEditEnabled = isEditEnabled;
             UseVertexWeightsInTexcoordGeneratorUI.IsEditEnabled = isEditEnabled;
-            WeightsFromColorNameUI.IsEditEnabled = isEditEnabled;
             WeightsFromColorLevelUI.IsEditEnabled = isEditEnabled;
+            WeightsFromColorNameUI.IsEditEnabled = isEditEnabled;
             WeightsFromColorComponentUI.IsEditEnabled = isEditEnabled;
             WeightsFromColorMultiplierUI.IsEditEnabled = isEditEnabled;
             WeightsFromColorModeUI.IsEditEnabled = isEditEnabled;
@@ -11994,6 +11999,8 @@ namespace SimplygonUI
                 if(ReferenceExportModeUI.Visible) return true;
                 if(IntermediateStepUI.Visible) return true;
                 if(CascadedRunModeUI.Visible) return true;
+                if(MergeResultWithImportedFileOnExportUI.Visible) return true;
+                if(FlattenCascadedSceneUI.Visible) return true;
 
                 return false;
             }
@@ -12498,6 +12505,146 @@ namespace SimplygonUI
 
         }
 
+        public bool MergeResultWithImportedFileOnExport { get { return _MergeResultWithImportedFileOnExport; } set { _MergeResultWithImportedFileOnExport = value; OnPropertyChanged(); } }
+        private bool _MergeResultWithImportedFileOnExport;
+        public SimplygonMergeResultWithImportedFileOnExportEx MergeResultWithImportedFileOnExportUI { get; set; }
+        public class SimplygonMergeResultWithImportedFileOnExportEx : SimplygonSettingsProperty
+        {
+            public SimplygonPipelineSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.MergeResultWithImportedFileOnExport;
+                }
+
+                set
+                {
+                    bool needReload = Parent.MergeResultWithImportedFileOnExport != value;
+                    Parent.MergeResultWithImportedFileOnExport = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonMergeResultWithImportedFileOnExportEx() : base("MergeResultWithImportedFileOnExport")
+            {
+                Type = "bool";
+                HelpText = "If enabled import file information is passed to the scene exporter for merging the contents of the import file into the resulting exported file.(Only used by FBXExporter).";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonMergeResultWithImportedFileOnExportEx(dynamic jsonData) : base("MergeResultWithImportedFileOnExport")
+            {
+                Type = "bool";
+                HelpText = "If enabled import file information is passed to the scene exporter for merging the contents of the import file into the resulting exported file.(Only used by FBXExporter).";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonMergeResultWithImportedFileOnExportEx DeepCopy()
+            {
+                return (SimplygonMergeResultWithImportedFileOnExportEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool FlattenCascadedScene { get { return _FlattenCascadedScene; } set { _FlattenCascadedScene = value; OnPropertyChanged(); } }
+        private bool _FlattenCascadedScene;
+        public SimplygonFlattenCascadedSceneEx FlattenCascadedSceneUI { get; set; }
+        public class SimplygonFlattenCascadedSceneEx : SimplygonSettingsProperty
+        {
+            public SimplygonPipelineSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.FlattenCascadedScene;
+                }
+
+                set
+                {
+                    bool needReload = Parent.FlattenCascadedScene != value;
+                    Parent.FlattenCascadedScene = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonFlattenCascadedSceneEx() : base("FlattenCascadedScene")
+            {
+                Type = "bool";
+                HelpText = "If enabled the cascaded scenes are flattened in depth first order. Name clashes are removed by prefixing with _LOD[Index]. Where index is index of the scene after flattening. (Only valid for FBX files)";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonFlattenCascadedSceneEx(dynamic jsonData) : base("FlattenCascadedScene")
+            {
+                Type = "bool";
+                HelpText = "If enabled the cascaded scenes are flattened in depth first order. Name clashes are removed by prefixing with _LOD[Index]. Where index is index of the scene after flattening. (Only valid for FBX files)";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonFlattenCascadedSceneEx DeepCopy()
+            {
+                return (SimplygonFlattenCascadedSceneEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
 
         public SimplygonPipelineSettings() : base("PipelineSettings")
         {
@@ -12530,6 +12677,14 @@ namespace SimplygonUI
             CascadedRunModeUI.Parent = this;
             CascadedRunMode = CascadedRunModeUI.DefaultValue;
             Items.Add(CascadedRunModeUI);
+            MergeResultWithImportedFileOnExportUI = new SimplygonMergeResultWithImportedFileOnExportEx();
+            MergeResultWithImportedFileOnExportUI.Parent = this;
+            MergeResultWithImportedFileOnExport = MergeResultWithImportedFileOnExportUI.DefaultValue;
+            Items.Add(MergeResultWithImportedFileOnExportUI);
+            FlattenCascadedSceneUI = new SimplygonFlattenCascadedSceneEx();
+            FlattenCascadedSceneUI.Parent = this;
+            FlattenCascadedScene = FlattenCascadedSceneUI.DefaultValue;
+            Items.Add(FlattenCascadedSceneUI);
         }
 
         public SimplygonPipelineSettings(dynamic jsonData) : base("PipelineSettings")
@@ -12563,6 +12718,14 @@ namespace SimplygonUI
             CascadedRunModeUI.Parent = this;
             CascadedRunMode = CascadedRunModeUI.DefaultValue;
             Items.Add(CascadedRunModeUI);
+            MergeResultWithImportedFileOnExportUI = new SimplygonMergeResultWithImportedFileOnExportEx(jsonData != null && ((JObject)jsonData).GetValue("MergeResultWithImportedFileOnExportUI") != null ? jsonData.MergeResultWithImportedFileOnExportUI : null);
+            MergeResultWithImportedFileOnExportUI.Parent = this;
+            MergeResultWithImportedFileOnExport = MergeResultWithImportedFileOnExportUI.DefaultValue;
+            Items.Add(MergeResultWithImportedFileOnExportUI);
+            FlattenCascadedSceneUI = new SimplygonFlattenCascadedSceneEx(jsonData != null && ((JObject)jsonData).GetValue("FlattenCascadedSceneUI") != null ? jsonData.FlattenCascadedSceneUI : null);
+            FlattenCascadedSceneUI.Parent = this;
+            FlattenCascadedScene = FlattenCascadedSceneUI.DefaultValue;
+            Items.Add(FlattenCascadedSceneUI);
             LoadJson(jsonData);
         }
 
@@ -12591,6 +12754,12 @@ namespace SimplygonUI
             copy.CascadedRunModeUI = this.CascadedRunModeUI.DeepCopy();
             copy.CascadedRunModeUI.Parent = copy;
             copy.Items.Add(copy.CascadedRunModeUI);
+            copy.MergeResultWithImportedFileOnExportUI = this.MergeResultWithImportedFileOnExportUI.DeepCopy();
+            copy.MergeResultWithImportedFileOnExportUI.Parent = copy;
+            copy.Items.Add(copy.MergeResultWithImportedFileOnExportUI);
+            copy.FlattenCascadedSceneUI = this.FlattenCascadedSceneUI.DeepCopy();
+            copy.FlattenCascadedSceneUI.Parent = copy;
+            copy.Items.Add(copy.FlattenCascadedSceneUI);
             return copy;
         }
 
@@ -12639,6 +12808,18 @@ namespace SimplygonUI
                 jsonData.CascadedRunModeUI = CascadedRunModeUI.SaveJson();
             }
 
+            jsonData.MergeResultWithImportedFileOnExport = MergeResultWithImportedFileOnExport;
+            if(serializeUIComponents)
+            {
+                jsonData.MergeResultWithImportedFileOnExportUI = MergeResultWithImportedFileOnExportUI.SaveJson();
+            }
+
+            jsonData.FlattenCascadedScene = FlattenCascadedScene;
+            if(serializeUIComponents)
+            {
+                jsonData.FlattenCascadedSceneUI = FlattenCascadedSceneUI.SaveJson();
+            }
+
             return jsonData;
         }
 
@@ -12684,6 +12865,16 @@ namespace SimplygonUI
                 CascadedRunMode = (EPipelineRunMode)jsonData.CascadedRunMode;
             }
 
+            if(jsonData.GetValue("MergeResultWithImportedFileOnExport") != null)
+            {
+                MergeResultWithImportedFileOnExport = (bool)jsonData.MergeResultWithImportedFileOnExport;
+            }
+
+            if(jsonData.GetValue("FlattenCascadedScene") != null)
+            {
+                FlattenCascadedScene = (bool)jsonData.FlattenCascadedScene;
+            }
+
         }
 
         public override void Reset()
@@ -12695,6 +12886,8 @@ namespace SimplygonUI
             ReferenceExportModeUI.Reset();
             IntermediateStepUI.Reset();
             CascadedRunModeUI.Reset();
+            MergeResultWithImportedFileOnExportUI.Reset();
+            FlattenCascadedSceneUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
@@ -12707,6 +12900,8 @@ namespace SimplygonUI
             ReferenceExportModeUI.IsEditEnabled = isEditEnabled;
             IntermediateStepUI.IsEditEnabled = isEditEnabled;
             CascadedRunModeUI.IsEditEnabled = isEditEnabled;
+            MergeResultWithImportedFileOnExportUI.IsEditEnabled = isEditEnabled;
+            FlattenCascadedSceneUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -14861,22 +15056,22 @@ namespace SimplygonUI
                 if(GenerateMappingImageUI.Visible) return true;
                 if(GenerateTexCoordsUI.Visible) return true;
                 if(GenerateTangentsUI.Visible) return true;
-                if(MaximumLayersUI.Visible) return true;
                 if(UseFullRetexturingUI.Visible) return true;
                 if(ApplyNewMaterialIdsUI.Visible) return true;
-                if(AllowTransparencyMappingUI.Visible) return true;
-                if(TexCoordLevelUI.Visible) return true;
-                if(TexCoordNameUI.Visible) return true;
                 if(UseAutomaticTextureSizeUI.Visible) return true;
                 if(AutomaticTextureSizeMultiplierUI.Visible) return true;
                 if(ForcePower2TextureUI.Visible) return true;
-                if(TexCoordGeneratorTypeUI.Visible) return true;
                 if(OnlyParameterizeInvalidUVsUI.Visible) return true;
+                if(AllowTransparencyMappingUI.Visible) return true;
+                if(MaximumLayersUI.Visible) return true;
+                if(TexCoordLevelUI.Visible) return true;
+                if(TexCoordNameUI.Visible) return true;
+                if(TexCoordGeneratorTypeUI.Visible) return true;
 
-                if(InputMaterialSettings != null && InputMaterialSettings.Visible) return true;
-                if(OutputMaterialSettings != null && OutputMaterialSettings.Visible) return true;
                 if(ChartAggregatorSettings != null && ChartAggregatorSettings.Visible) return true;
                 if(ParameterizerSettings != null && ParameterizerSettings.Visible) return true;
+                if(InputMaterialSettings != null && InputMaterialSettings.Visible) return true;
+                if(OutputMaterialSettings != null && OutputMaterialSettings.Visible) return true;
                 return false;
             }
 
@@ -14888,10 +15083,10 @@ namespace SimplygonUI
         }
 
         public SimplygonTreeViewItem Parent { get; set; }
-        public SimplygonMappingImageInputMaterialSettings InputMaterialSettings { get; set; }
-        public SimplygonMappingImageOutputMaterialSettings OutputMaterialSettings { get; set; }
         public SimplygonChartAggregatorSettings ChartAggregatorSettings { get; set; }
         public SimplygonParameterizerSettings ParameterizerSettings { get; set; }
+        public SimplygonMappingImageInputMaterialSettings InputMaterialSettings { get; set; }
+        public SimplygonMappingImageOutputMaterialSettings OutputMaterialSettings { get; set; }
         public bool GenerateMappingImage { get { return _GenerateMappingImage; } set { _GenerateMappingImage = value; OnPropertyChanged(); } }
         private bool _GenerateMappingImage;
         public SimplygonGenerateMappingImageEx GenerateMappingImageUI { get; set; }
@@ -15102,133 +15297,6 @@ namespace SimplygonUI
 
         }
 
-        public int MaximumLayers { get { return _MaximumLayers; } set { _MaximumLayers = value; OnPropertyChanged(); } }
-        private int _MaximumLayers;
-        public SimplygonMaximumLayersEx MaximumLayersUI { get; set; }
-        public class SimplygonMaximumLayersEx : SimplygonSettingsProperty
-        {
-            public SimplygonMappingImageSettings Parent { get; set; }
-            public int Value
-            {
-                get
-                {
-                    return Parent.MaximumLayers;
-                }
-
-                set
-                {
-                    bool needReload = Parent.MaximumLayers != value;
-                    Parent.MaximumLayers = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public int DefaultValue { get; set; }
-            public int MinValue { get; set; }
-            public int MaxValue { get; set; }
-            public int DefaultMinValue { get; set; }
-            public int DefaultMaxValue { get; set; }
-            public int TicksFrequencyValue { get; set; }
-
-            public SimplygonMaximumLayersEx() : base("MaximumLayers")
-            {
-                Type = "uint";
-                HelpText = "The maximum number of layers in the mapping image. If a remeshed geometry has a lot of transparent triangles, use a higher number to be able to find intersections on the inside of parts of the geometry. This setting only has effect in the remeshing, when running reduction the number of layers is always 1.";
-                TypeOverride = "";
-                DefaultValue = 3;
-                MinValue = 0;
-                MaxValue = 10;
-                DefaultMinValue = 0;
-                DefaultMaxValue = 10;
-                TicksFrequencyValue = 1;
-                Visible = true;
-            }
-
-            public SimplygonMaximumLayersEx(dynamic jsonData) : base("MaximumLayers")
-            {
-                Type = "uint";
-                HelpText = "The maximum number of layers in the mapping image. If a remeshed geometry has a lot of transparent triangles, use a higher number to be able to find intersections on the inside of parts of the geometry. This setting only has effect in the remeshing, when running reduction the number of layers is always 1.";
-                TypeOverride = "";
-                DefaultValue = 3;
-                MinValue = 0;
-                DefaultMinValue = 0;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (int)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"MaximumLayers: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 10;
-                DefaultMaxValue = 10;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (int)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"MaximumLayers: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 1;
-                }
-
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonMaximumLayersEx DeepCopy()
-            {
-                return (SimplygonMaximumLayersEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
-                return jsonData;
-            }
-
-        }
-
         public bool UseFullRetexturing { get { return _UseFullRetexturing; } set { _UseFullRetexturing = value; OnPropertyChanged(); } }
         private bool _UseFullRetexturing;
         public SimplygonUseFullRetexturingEx UseFullRetexturingUI { get; set; }
@@ -15358,273 +15426,6 @@ namespace SimplygonUI
             public SimplygonApplyNewMaterialIdsEx DeepCopy()
             {
                 return (SimplygonApplyNewMaterialIdsEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public bool AllowTransparencyMapping { get { return _AllowTransparencyMapping; } set { _AllowTransparencyMapping = value; OnPropertyChanged(); } }
-        private bool _AllowTransparencyMapping;
-        public SimplygonAllowTransparencyMappingEx AllowTransparencyMappingUI { get; set; }
-        public class SimplygonAllowTransparencyMappingEx : SimplygonSettingsProperty
-        {
-            public SimplygonMappingImageSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.AllowTransparencyMapping;
-                }
-
-                set
-                {
-                    bool needReload = Parent.AllowTransparencyMapping != value;
-                    Parent.AllowTransparencyMapping = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-
-            public SimplygonAllowTransparencyMappingEx() : base("AllowTransparencyMapping")
-            {
-                Type = "bool";
-                HelpText = "If true, the remeshing processor will allow mapped transparency in the generated mapping image. This allows material casting where gaps filled by the remeshing processor will be cast as transparent.";
-                TypeOverride = "";
-                DefaultValue = false;
-                Visible = true;
-            }
-
-            public SimplygonAllowTransparencyMappingEx(dynamic jsonData) : base("AllowTransparencyMapping")
-            {
-                Type = "bool";
-                HelpText = "If true, the remeshing processor will allow mapped transparency in the generated mapping image. This allows material casting where gaps filled by the remeshing processor will be cast as transparent.";
-                TypeOverride = "";
-                DefaultValue = false;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonAllowTransparencyMappingEx DeepCopy()
-            {
-                return (SimplygonAllowTransparencyMappingEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public int TexCoordLevel { get { return _TexCoordLevel; } set { _TexCoordLevel = value; OnPropertyChanged(); } }
-        private int _TexCoordLevel;
-        public SimplygonTexCoordLevelEx TexCoordLevelUI { get; set; }
-        public class SimplygonTexCoordLevelEx : SimplygonSettingsProperty
-        {
-            public SimplygonMappingImageSettings Parent { get; set; }
-            public int Value
-            {
-                get
-                {
-                    return Parent.TexCoordLevel;
-                }
-
-                set
-                {
-                    bool needReload = Parent.TexCoordLevel != value;
-                    Parent.TexCoordLevel = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public int DefaultValue { get; set; }
-            public int MinValue { get; set; }
-            public int MaxValue { get; set; }
-            public int DefaultMinValue { get; set; }
-            public int DefaultMaxValue { get; set; }
-            public int TicksFrequencyValue { get; set; }
-
-            public SimplygonTexCoordLevelEx() : base("TexCoordLevel")
-            {
-                Type = "rid";
-                HelpText = "The texture coordinate level used for mapping image and texture generation. If the TexCoordName has been set, the TexCoordLevel is not used.";
-                TypeOverride = "";
-                DefaultValue = 0;
-                MinValue = -1;
-                MaxValue = 255;
-                DefaultMinValue = -1;
-                DefaultMaxValue = 255;
-                TicksFrequencyValue = 1;
-                Visible = true;
-            }
-
-            public SimplygonTexCoordLevelEx(dynamic jsonData) : base("TexCoordLevel")
-            {
-                Type = "rid";
-                HelpText = "The texture coordinate level used for mapping image and texture generation. If the TexCoordName has been set, the TexCoordLevel is not used.";
-                TypeOverride = "";
-                DefaultValue = 0;
-                MinValue = -1;
-                DefaultMinValue = -1;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (int)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"TexCoordLevel: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 255;
-                DefaultMaxValue = 255;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (int)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"TexCoordLevel: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 1;
-                }
-
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonTexCoordLevelEx DeepCopy()
-            {
-                return (SimplygonTexCoordLevelEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
-                return jsonData;
-            }
-
-        }
-
-        public string TexCoordName { get { return _TexCoordName; } set { _TexCoordName = value; OnPropertyChanged(); } }
-        private string _TexCoordName;
-        public SimplygonTexCoordNameEx TexCoordNameUI { get; set; }
-        public class SimplygonTexCoordNameEx : SimplygonSettingsProperty
-        {
-            public SimplygonMappingImageSettings Parent { get; set; }
-            public string Value
-            {
-                get
-                {
-                    return Parent.TexCoordName;
-                }
-
-                set
-                {
-                    bool needReload = Parent.TexCoordName != value;
-                    Parent.TexCoordName = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public string DefaultValue { get; set; }
-
-            public SimplygonTexCoordNameEx() : base("TexCoordName")
-            {
-                Type = "string";
-                HelpText = "The texture coordinate level name used for mapping image and texture generation. If new UVs are created, they will replace the old coordinates in the texture channel with the TexCoordName. If no texture level with this name exists. It will be created. If the TexCoordName is not set, the TexCoordLevel (index) will be used instead.";
-                TypeOverride = "";
-                DefaultValue = "";
-                Visible = true;
-            }
-
-            public SimplygonTexCoordNameEx(dynamic jsonData) : base("TexCoordName")
-            {
-                Type = "string";
-                HelpText = "The texture coordinate level name used for mapping image and texture generation. If new UVs are created, they will replace the old coordinates in the texture channel with the TexCoordName. If no texture level with this name exists. It will be created. If the TexCoordName is not set, the TexCoordLevel (index) will be used instead.";
-                TypeOverride = "";
-                DefaultValue = "";
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonTexCoordNameEx DeepCopy()
-            {
-                return (SimplygonTexCoordNameEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -15903,6 +15704,470 @@ namespace SimplygonUI
 
         }
 
+        public bool OnlyParameterizeInvalidUVs { get { return _OnlyParameterizeInvalidUVs; } set { _OnlyParameterizeInvalidUVs = value; OnPropertyChanged(); } }
+        private bool _OnlyParameterizeInvalidUVs;
+        public SimplygonOnlyParameterizeInvalidUVsEx OnlyParameterizeInvalidUVsUI { get; set; }
+        public class SimplygonOnlyParameterizeInvalidUVsEx : SimplygonSettingsProperty
+        {
+            public SimplygonMappingImageSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.OnlyParameterizeInvalidUVs;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OnlyParameterizeInvalidUVs != value;
+                    Parent.OnlyParameterizeInvalidUVs = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonOnlyParameterizeInvalidUVsEx() : base("OnlyParameterizeInvalidUVs")
+            {
+                Type = "bool";
+                HelpText = "If enabled, will aggregate all the valid original UVs. If there are invalid original UVs, those parts will receive new parameterized UVs.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonOnlyParameterizeInvalidUVsEx(dynamic jsonData) : base("OnlyParameterizeInvalidUVs")
+            {
+                Type = "bool";
+                HelpText = "If enabled, will aggregate all the valid original UVs. If there are invalid original UVs, those parts will receive new parameterized UVs.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOnlyParameterizeInvalidUVsEx DeepCopy()
+            {
+                return (SimplygonOnlyParameterizeInvalidUVsEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool AllowTransparencyMapping { get { return _AllowTransparencyMapping; } set { _AllowTransparencyMapping = value; OnPropertyChanged(); } }
+        private bool _AllowTransparencyMapping;
+        public SimplygonAllowTransparencyMappingEx AllowTransparencyMappingUI { get; set; }
+        public class SimplygonAllowTransparencyMappingEx : SimplygonSettingsProperty
+        {
+            public SimplygonMappingImageSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.AllowTransparencyMapping;
+                }
+
+                set
+                {
+                    bool needReload = Parent.AllowTransparencyMapping != value;
+                    Parent.AllowTransparencyMapping = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonAllowTransparencyMappingEx() : base("AllowTransparencyMapping")
+            {
+                Type = "bool";
+                HelpText = "If true, the remeshing processor will allow mapped transparency in the generated mapping image. This allows material casting where gaps filled by the remeshing processor will be cast as transparent.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonAllowTransparencyMappingEx(dynamic jsonData) : base("AllowTransparencyMapping")
+            {
+                Type = "bool";
+                HelpText = "If true, the remeshing processor will allow mapped transparency in the generated mapping image. This allows material casting where gaps filled by the remeshing processor will be cast as transparent.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonAllowTransparencyMappingEx DeepCopy()
+            {
+                return (SimplygonAllowTransparencyMappingEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public int MaximumLayers { get { return _MaximumLayers; } set { _MaximumLayers = value; OnPropertyChanged(); } }
+        private int _MaximumLayers;
+        public SimplygonMaximumLayersEx MaximumLayersUI { get; set; }
+        public class SimplygonMaximumLayersEx : SimplygonSettingsProperty
+        {
+            public SimplygonMappingImageSettings Parent { get; set; }
+            public int Value
+            {
+                get
+                {
+                    return Parent.MaximumLayers;
+                }
+
+                set
+                {
+                    bool needReload = Parent.MaximumLayers != value;
+                    Parent.MaximumLayers = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
+
+            public SimplygonMaximumLayersEx() : base("MaximumLayers")
+            {
+                Type = "uint";
+                HelpText = "The maximum number of layers in the mapping image. If a remeshed geometry has a lot of transparent triangles, use a higher number to be able to find intersections on the inside of parts of the geometry. This setting only has effect in the remeshing, when running reduction the number of layers is always 1.";
+                TypeOverride = "";
+                DefaultValue = 3;
+                MinValue = 0;
+                MaxValue = 10;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 10;
+                TicksFrequencyValue = 1;
+                Visible = true;
+            }
+
+            public SimplygonMaximumLayersEx(dynamic jsonData) : base("MaximumLayers")
+            {
+                Type = "uint";
+                HelpText = "The maximum number of layers in the mapping image. If a remeshed geometry has a lot of transparent triangles, use a higher number to be able to find intersections on the inside of parts of the geometry. This setting only has effect in the remeshing, when running reduction the number of layers is always 1.";
+                TypeOverride = "";
+                DefaultValue = 3;
+                MinValue = 0;
+                DefaultMinValue = 0;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaximumLayers: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 10;
+                DefaultMaxValue = 10;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaximumLayers: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonMaximumLayersEx DeepCopy()
+            {
+                return (SimplygonMaximumLayersEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public int TexCoordLevel { get { return _TexCoordLevel; } set { _TexCoordLevel = value; OnPropertyChanged(); } }
+        private int _TexCoordLevel;
+        public SimplygonTexCoordLevelEx TexCoordLevelUI { get; set; }
+        public class SimplygonTexCoordLevelEx : SimplygonSettingsProperty
+        {
+            public SimplygonMappingImageSettings Parent { get; set; }
+            public int Value
+            {
+                get
+                {
+                    return Parent.TexCoordLevel;
+                }
+
+                set
+                {
+                    bool needReload = Parent.TexCoordLevel != value;
+                    Parent.TexCoordLevel = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
+
+            public SimplygonTexCoordLevelEx() : base("TexCoordLevel")
+            {
+                Type = "rid";
+                HelpText = "The texture coordinate level used for mapping image and texture generation. If the TexCoordName has been set, the TexCoordLevel is not used.";
+                TypeOverride = "";
+                DefaultValue = 0;
+                MinValue = -1;
+                MaxValue = 255;
+                DefaultMinValue = -1;
+                DefaultMaxValue = 255;
+                TicksFrequencyValue = 1;
+                Visible = true;
+            }
+
+            public SimplygonTexCoordLevelEx(dynamic jsonData) : base("TexCoordLevel")
+            {
+                Type = "rid";
+                HelpText = "The texture coordinate level used for mapping image and texture generation. If the TexCoordName has been set, the TexCoordLevel is not used.";
+                TypeOverride = "";
+                DefaultValue = 0;
+                MinValue = -1;
+                DefaultMinValue = -1;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TexCoordLevel: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 255;
+                DefaultMaxValue = 255;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TexCoordLevel: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonTexCoordLevelEx DeepCopy()
+            {
+                return (SimplygonTexCoordLevelEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public string TexCoordName { get { return _TexCoordName; } set { _TexCoordName = value; OnPropertyChanged(); } }
+        private string _TexCoordName;
+        public SimplygonTexCoordNameEx TexCoordNameUI { get; set; }
+        public class SimplygonTexCoordNameEx : SimplygonSettingsProperty
+        {
+            public SimplygonMappingImageSettings Parent { get; set; }
+            public string Value
+            {
+                get
+                {
+                    return Parent.TexCoordName;
+                }
+
+                set
+                {
+                    bool needReload = Parent.TexCoordName != value;
+                    Parent.TexCoordName = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public string DefaultValue { get; set; }
+
+            public SimplygonTexCoordNameEx() : base("TexCoordName")
+            {
+                Type = "string";
+                HelpText = "The texture coordinate level name used for mapping image and texture generation. If new UVs are created, they will replace the old coordinates in the texture channel with the TexCoordName. If no texture level with this name exists. It will be created. If the TexCoordName is not set, the TexCoordLevel (index) will be used instead.";
+                TypeOverride = "";
+                DefaultValue = "";
+                Visible = true;
+            }
+
+            public SimplygonTexCoordNameEx(dynamic jsonData) : base("TexCoordName")
+            {
+                Type = "string";
+                HelpText = "The texture coordinate level name used for mapping image and texture generation. If new UVs are created, they will replace the old coordinates in the texture channel with the TexCoordName. If no texture level with this name exists. It will be created. If the TexCoordName is not set, the TexCoordLevel (index) will be used instead.";
+                TypeOverride = "";
+                DefaultValue = "";
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonTexCoordNameEx DeepCopy()
+            {
+                return (SimplygonTexCoordNameEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
         public ETexcoordGeneratorType TexCoordGeneratorType { get { return _TexCoordGeneratorType; } set { _TexCoordGeneratorType = value; OnPropertyChanged(); } }
         private ETexcoordGeneratorType _TexCoordGeneratorType;
         public SimplygonTexCoordGeneratorTypeEx TexCoordGeneratorTypeUI { get; set; }
@@ -15965,76 +16230,6 @@ namespace SimplygonUI
             public SimplygonTexCoordGeneratorTypeEx DeepCopy()
             {
                 return (SimplygonTexCoordGeneratorTypeEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public bool OnlyParameterizeInvalidUVs { get { return _OnlyParameterizeInvalidUVs; } set { _OnlyParameterizeInvalidUVs = value; OnPropertyChanged(); } }
-        private bool _OnlyParameterizeInvalidUVs;
-        public SimplygonOnlyParameterizeInvalidUVsEx OnlyParameterizeInvalidUVsUI { get; set; }
-        public class SimplygonOnlyParameterizeInvalidUVsEx : SimplygonSettingsProperty
-        {
-            public SimplygonMappingImageSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.OnlyParameterizeInvalidUVs;
-                }
-
-                set
-                {
-                    bool needReload = Parent.OnlyParameterizeInvalidUVs != value;
-                    Parent.OnlyParameterizeInvalidUVs = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-
-            public SimplygonOnlyParameterizeInvalidUVsEx() : base("OnlyParameterizeInvalidUVs")
-            {
-                Type = "bool";
-                HelpText = "If enabled, will aggregate all the valid original UVs. If there are invalid original UVs, those parts will receive new parameterized UVs.";
-                TypeOverride = "";
-                DefaultValue = false;
-                Visible = true;
-            }
-
-            public SimplygonOnlyParameterizeInvalidUVsEx(dynamic jsonData) : base("OnlyParameterizeInvalidUVs")
-            {
-                Type = "bool";
-                HelpText = "If enabled, will aggregate all the valid original UVs. If there are invalid original UVs, those parts will receive new parameterized UVs.";
-                TypeOverride = "";
-                DefaultValue = false;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonOnlyParameterizeInvalidUVsEx DeepCopy()
-            {
-                return (SimplygonOnlyParameterizeInvalidUVsEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -16296,12 +16491,6 @@ namespace SimplygonUI
                 jsonData.GenerateTangentsUI = GenerateTangentsUI.SaveJson();
             }
 
-            jsonData.MaximumLayers = MaximumLayers;
-            if(serializeUIComponents)
-            {
-                jsonData.MaximumLayersUI = MaximumLayersUI.SaveJson();
-            }
-
             jsonData.UseFullRetexturing = UseFullRetexturing;
             if(serializeUIComponents)
             {
@@ -16312,24 +16501,6 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.ApplyNewMaterialIdsUI = ApplyNewMaterialIdsUI.SaveJson();
-            }
-
-            jsonData.AllowTransparencyMapping = AllowTransparencyMapping;
-            if(serializeUIComponents)
-            {
-                jsonData.AllowTransparencyMappingUI = AllowTransparencyMappingUI.SaveJson();
-            }
-
-            jsonData.TexCoordLevel = TexCoordLevel;
-            if(serializeUIComponents)
-            {
-                jsonData.TexCoordLevelUI = TexCoordLevelUI.SaveJson();
-            }
-
-            jsonData.TexCoordName = TexCoordName;
-            if(serializeUIComponents)
-            {
-                jsonData.TexCoordNameUI = TexCoordNameUI.SaveJson();
             }
 
             jsonData.UseAutomaticTextureSize = UseAutomaticTextureSize;
@@ -16350,16 +16521,50 @@ namespace SimplygonUI
                 jsonData.ForcePower2TextureUI = ForcePower2TextureUI.SaveJson();
             }
 
+            jsonData.OnlyParameterizeInvalidUVs = OnlyParameterizeInvalidUVs;
+            if(serializeUIComponents)
+            {
+                jsonData.OnlyParameterizeInvalidUVsUI = OnlyParameterizeInvalidUVsUI.SaveJson();
+            }
+
+            jsonData.AllowTransparencyMapping = AllowTransparencyMapping;
+            if(serializeUIComponents)
+            {
+                jsonData.AllowTransparencyMappingUI = AllowTransparencyMappingUI.SaveJson();
+            }
+
+            jsonData.MaximumLayers = MaximumLayers;
+            if(serializeUIComponents)
+            {
+                jsonData.MaximumLayersUI = MaximumLayersUI.SaveJson();
+            }
+
+            jsonData.TexCoordLevel = TexCoordLevel;
+            if(serializeUIComponents)
+            {
+                jsonData.TexCoordLevelUI = TexCoordLevelUI.SaveJson();
+            }
+
+            jsonData.TexCoordName = TexCoordName;
+            if(serializeUIComponents)
+            {
+                jsonData.TexCoordNameUI = TexCoordNameUI.SaveJson();
+            }
+
             jsonData.TexCoordGeneratorType = (int)TexCoordGeneratorType;
             if(serializeUIComponents)
             {
                 jsonData.TexCoordGeneratorTypeUI = TexCoordGeneratorTypeUI.SaveJson();
             }
 
-            jsonData.OnlyParameterizeInvalidUVs = OnlyParameterizeInvalidUVs;
-            if(serializeUIComponents)
+            if (ChartAggregatorSettings != null)
             {
-                jsonData.OnlyParameterizeInvalidUVsUI = OnlyParameterizeInvalidUVsUI.SaveJson();
+                jsonData.ChartAggregatorSettings = ChartAggregatorSettings.SaveJson(serializeUIComponents);
+            }
+
+            if (ParameterizerSettings != null)
+            {
+                jsonData.ParameterizerSettings = ParameterizerSettings.SaveJson(serializeUIComponents);
             }
 
             if (InputMaterialSettings != null)
@@ -16372,16 +16577,6 @@ namespace SimplygonUI
             {
                 jsonData.OutputMaterialSettings = new JArray();
                 jsonData.OutputMaterialSettings.Add(OutputMaterialSettings.SaveJson(serializeUIComponents));
-            }
-
-            if (ChartAggregatorSettings != null)
-            {
-                jsonData.ChartAggregatorSettings = ChartAggregatorSettings.SaveJson(serializeUIComponents);
-            }
-
-            if (ParameterizerSettings != null)
-            {
-                jsonData.ParameterizerSettings = ParameterizerSettings.SaveJson(serializeUIComponents);
             }
 
             return jsonData;
@@ -16409,21 +16604,6 @@ namespace SimplygonUI
                 GenerateTangents = (bool)jsonData.GenerateTangents;
             }
 
-            if(jsonData.GetValue("MaximumLayers") != null)
-            {
-                var newMaximumLayers = (int)jsonData.MaximumLayers;
-                if (newMaximumLayers >= MaximumLayersUI.DefaultMinValue && newMaximumLayers <= MaximumLayersUI.DefaultMaxValue)
-                {
-                    MaximumLayers = newMaximumLayers;
-                }
-
-                else
-                {
-                    UILogger.Instance.Log(Category.Warning, $"MaximumLayers: Invalid value {newMaximumLayers}, using default value {MaximumLayers.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                }
-
-            }
-
             if(jsonData.GetValue("UseFullRetexturing") != null)
             {
                 UseFullRetexturing = (bool)jsonData.UseFullRetexturing;
@@ -16432,31 +16612,6 @@ namespace SimplygonUI
             if(jsonData.GetValue("ApplyNewMaterialIds") != null)
             {
                 ApplyNewMaterialIds = (bool)jsonData.ApplyNewMaterialIds;
-            }
-
-            if(jsonData.GetValue("AllowTransparencyMapping") != null)
-            {
-                AllowTransparencyMapping = (bool)jsonData.AllowTransparencyMapping;
-            }
-
-            if(jsonData.GetValue("TexCoordLevel") != null)
-            {
-                var newTexCoordLevel = (int)jsonData.TexCoordLevel;
-                if (newTexCoordLevel >= TexCoordLevelUI.DefaultMinValue && newTexCoordLevel <= TexCoordLevelUI.DefaultMaxValue)
-                {
-                    TexCoordLevel = newTexCoordLevel;
-                }
-
-                else
-                {
-                    UILogger.Instance.Log(Category.Warning, $"TexCoordLevel: Invalid value {newTexCoordLevel}, using default value {TexCoordLevel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                }
-
-            }
-
-            if(jsonData.GetValue("TexCoordName") != null)
-            {
-                TexCoordName = (string)jsonData.TexCoordName;
             }
 
             if(jsonData.GetValue("UseAutomaticTextureSize") != null)
@@ -16484,14 +16639,54 @@ namespace SimplygonUI
                 ForcePower2Texture = (bool)jsonData.ForcePower2Texture;
             }
 
-            if(jsonData.GetValue("TexCoordGeneratorType") != null)
-            {
-                TexCoordGeneratorType = (ETexcoordGeneratorType)jsonData.TexCoordGeneratorType;
-            }
-
             if(jsonData.GetValue("OnlyParameterizeInvalidUVs") != null)
             {
                 OnlyParameterizeInvalidUVs = (bool)jsonData.OnlyParameterizeInvalidUVs;
+            }
+
+            if(jsonData.GetValue("AllowTransparencyMapping") != null)
+            {
+                AllowTransparencyMapping = (bool)jsonData.AllowTransparencyMapping;
+            }
+
+            if(jsonData.GetValue("MaximumLayers") != null)
+            {
+                var newMaximumLayers = (int)jsonData.MaximumLayers;
+                if (newMaximumLayers >= MaximumLayersUI.DefaultMinValue && newMaximumLayers <= MaximumLayersUI.DefaultMaxValue)
+                {
+                    MaximumLayers = newMaximumLayers;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MaximumLayers: Invalid value {newMaximumLayers}, using default value {MaximumLayers.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("TexCoordLevel") != null)
+            {
+                var newTexCoordLevel = (int)jsonData.TexCoordLevel;
+                if (newTexCoordLevel >= TexCoordLevelUI.DefaultMinValue && newTexCoordLevel <= TexCoordLevelUI.DefaultMaxValue)
+                {
+                    TexCoordLevel = newTexCoordLevel;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"TexCoordLevel: Invalid value {newTexCoordLevel}, using default value {TexCoordLevel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("TexCoordName") != null)
+            {
+                TexCoordName = (string)jsonData.TexCoordName;
+            }
+
+            if(jsonData.GetValue("TexCoordGeneratorType") != null)
+            {
+                TexCoordGeneratorType = (ETexcoordGeneratorType)jsonData.TexCoordGeneratorType;
             }
 
         }
@@ -16501,27 +16696,17 @@ namespace SimplygonUI
             GenerateMappingImageUI.Reset();
             GenerateTexCoordsUI.Reset();
             GenerateTangentsUI.Reset();
-            MaximumLayersUI.Reset();
             UseFullRetexturingUI.Reset();
             ApplyNewMaterialIdsUI.Reset();
-            AllowTransparencyMappingUI.Reset();
-            TexCoordLevelUI.Reset();
-            TexCoordNameUI.Reset();
             UseAutomaticTextureSizeUI.Reset();
             AutomaticTextureSizeMultiplierUI.Reset();
             ForcePower2TextureUI.Reset();
-            TexCoordGeneratorTypeUI.Reset();
             OnlyParameterizeInvalidUVsUI.Reset();
-            if (InputMaterialSettings != null)
-            {
-                InputMaterialSettings.Reset();
-            }
-
-            if (OutputMaterialSettings != null)
-            {
-                OutputMaterialSettings.Reset();
-            }
-
+            AllowTransparencyMappingUI.Reset();
+            MaximumLayersUI.Reset();
+            TexCoordLevelUI.Reset();
+            TexCoordNameUI.Reset();
+            TexCoordGeneratorTypeUI.Reset();
             if (ChartAggregatorSettings != null)
             {
                 ChartAggregatorSettings.Reset();
@@ -16532,6 +16717,16 @@ namespace SimplygonUI
                 ParameterizerSettings.Reset();
             }
 
+            if (InputMaterialSettings != null)
+            {
+                InputMaterialSettings.Reset();
+            }
+
+            if (OutputMaterialSettings != null)
+            {
+                OutputMaterialSettings.Reset();
+            }
+
         }
 
         public override void SetEditMode(bool isEditEnabled)
@@ -16540,27 +16735,17 @@ namespace SimplygonUI
             GenerateMappingImageUI.IsEditEnabled = isEditEnabled;
             GenerateTexCoordsUI.IsEditEnabled = isEditEnabled;
             GenerateTangentsUI.IsEditEnabled = isEditEnabled;
-            MaximumLayersUI.IsEditEnabled = isEditEnabled;
             UseFullRetexturingUI.IsEditEnabled = isEditEnabled;
             ApplyNewMaterialIdsUI.IsEditEnabled = isEditEnabled;
-            AllowTransparencyMappingUI.IsEditEnabled = isEditEnabled;
-            TexCoordLevelUI.IsEditEnabled = isEditEnabled;
-            TexCoordNameUI.IsEditEnabled = isEditEnabled;
             UseAutomaticTextureSizeUI.IsEditEnabled = isEditEnabled;
             AutomaticTextureSizeMultiplierUI.IsEditEnabled = isEditEnabled;
             ForcePower2TextureUI.IsEditEnabled = isEditEnabled;
-            TexCoordGeneratorTypeUI.IsEditEnabled = isEditEnabled;
             OnlyParameterizeInvalidUVsUI.IsEditEnabled = isEditEnabled;
-            if (InputMaterialSettings != null)
-            {
-                InputMaterialSettings.SetEditMode(isEditEnabled);
-            }
-
-            if (OutputMaterialSettings != null)
-            {
-                OutputMaterialSettings.SetEditMode(isEditEnabled);
-            }
-
+            AllowTransparencyMappingUI.IsEditEnabled = isEditEnabled;
+            MaximumLayersUI.IsEditEnabled = isEditEnabled;
+            TexCoordLevelUI.IsEditEnabled = isEditEnabled;
+            TexCoordNameUI.IsEditEnabled = isEditEnabled;
+            TexCoordGeneratorTypeUI.IsEditEnabled = isEditEnabled;
             if (ChartAggregatorSettings != null)
             {
                 ChartAggregatorSettings.SetEditMode(isEditEnabled);
@@ -16569,6 +16754,16 @@ namespace SimplygonUI
             if (ParameterizerSettings != null)
             {
                 ParameterizerSettings.SetEditMode(isEditEnabled);
+            }
+
+            if (InputMaterialSettings != null)
+            {
+                InputMaterialSettings.SetEditMode(isEditEnabled);
+            }
+
+            if (OutputMaterialSettings != null)
+            {
+                OutputMaterialSettings.SetEditMode(isEditEnabled);
             }
 
         }
@@ -18242,19 +18437,19 @@ namespace SimplygonUI
             {
                 if (!VisibleOverride) return false;
                 if (Name == "InputMaterialSettings") return false;
-                if(TopologicalAccuracyUI.Visible) return true;
-                if(GeometricalAccuracyUI.Visible) return true;
-                if(RemeshingModeManualPositionZUI.Visible) return true;
-                if(RemeshingModeManualPositionYUI.Visible) return true;
-                if(RemeshingModeManualPositionXUI.Visible) return true;
                 if(OnScreenSizeUI.Visible) return true;
                 if(HoleFillingUI.Visible) return true;
                 if(RemeshingModeUI.Visible) return true;
                 if(SurfaceTransferModeUI.Visible) return true;
                 if(HardEdgeAngleUI.Visible) return true;
-                if(ForceSoftEdgesWithinTextureChartsUI.Visible) return true;
                 if(TransferNormalsUI.Visible) return true;
                 if(TransferColorsUI.Visible) return true;
+                if(GeometricalAccuracyUI.Visible) return true;
+                if(TopologicalAccuracyUI.Visible) return true;
+                if(RemeshingModeManualPositionXUI.Visible) return true;
+                if(RemeshingModeManualPositionYUI.Visible) return true;
+                if(RemeshingModeManualPositionZUI.Visible) return true;
+                if(ForceSoftEdgesWithinTextureChartsUI.Visible) return true;
                 if(KeepUnprocessedSceneMeshesUI.Visible) return true;
 
                 return false;
@@ -18268,641 +18463,6 @@ namespace SimplygonUI
         }
 
         public SimplygonTreeViewItem Parent { get; set; }
-        public float TopologicalAccuracy { get { return _TopologicalAccuracy; } set { _TopologicalAccuracy = value; OnPropertyChanged(); } }
-        private float _TopologicalAccuracy;
-        public SimplygonTopologicalAccuracyEx TopologicalAccuracyUI { get; set; }
-        public class SimplygonTopologicalAccuracyEx : SimplygonSettingsProperty
-        {
-            public SimplygonRemeshingSettings Parent { get; set; }
-            public float Value
-            {
-                get
-                {
-                    return Parent.TopologicalAccuracy;
-                }
-
-                set
-                {
-                    bool needReload = Parent.TopologicalAccuracy != value;
-                    Parent.TopologicalAccuracy = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public float DefaultValue { get; set; }
-            public float MinValue { get; set; }
-            public float MaxValue { get; set; }
-            public float DefaultMinValue { get; set; }
-            public float DefaultMaxValue { get; set; }
-            public float TicksFrequencyValue { get; set; }
-
-            public SimplygonTopologicalAccuracyEx() : base("TopologicalAccuracy")
-            {
-                Type = "real";
-                HelpText = "Set the topological accuracy of the output mesh. 1=default accuracy, 0=minimal topological accuracy. Lowering the accuracy will lower the memory requirements, and increase remeshing performance, at the cost of lower topological accuracy, where the remesher fills in larger gaps or holes.";
-                TypeOverride = "";
-                DefaultValue = 1f;
-                MinValue = 0f;
-                MaxValue = 1f;
-                DefaultMinValue = 0f;
-                DefaultMaxValue = 1f;
-                TicksFrequencyValue = 0.1f;
-                Visible = true;
-            }
-
-            public SimplygonTopologicalAccuracyEx(dynamic jsonData) : base("TopologicalAccuracy")
-            {
-                Type = "real";
-                HelpText = "Set the topological accuracy of the output mesh. 1=default accuracy, 0=minimal topological accuracy. Lowering the accuracy will lower the memory requirements, and increase remeshing performance, at the cost of lower topological accuracy, where the remesher fills in larger gaps or holes.";
-                TypeOverride = "";
-                DefaultValue = 1f;
-                MinValue = 0f;
-                DefaultMinValue = 0f;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (float)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"TopologicalAccuracy: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 1f;
-                DefaultMaxValue = 1f;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (float)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"TopologicalAccuracy: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 0.1f;
-                }
-
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonTopologicalAccuracyEx DeepCopy()
-            {
-                return (SimplygonTopologicalAccuracyEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
-                return jsonData;
-            }
-
-        }
-
-        public float GeometricalAccuracy { get { return _GeometricalAccuracy; } set { _GeometricalAccuracy = value; OnPropertyChanged(); } }
-        private float _GeometricalAccuracy;
-        public SimplygonGeometricalAccuracyEx GeometricalAccuracyUI { get; set; }
-        public class SimplygonGeometricalAccuracyEx : SimplygonSettingsProperty
-        {
-            public SimplygonRemeshingSettings Parent { get; set; }
-            public float Value
-            {
-                get
-                {
-                    return Parent.GeometricalAccuracy;
-                }
-
-                set
-                {
-                    bool needReload = Parent.GeometricalAccuracy != value;
-                    Parent.GeometricalAccuracy = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public float DefaultValue { get; set; }
-            public float MinValue { get; set; }
-            public float MaxValue { get; set; }
-            public float DefaultMinValue { get; set; }
-            public float DefaultMaxValue { get; set; }
-            public float TicksFrequencyValue { get; set; }
-
-            public SimplygonGeometricalAccuracyEx() : base("GeometricalAccuracy")
-            {
-                Type = "real";
-                HelpText = "Set the relative geometrical accuracy of the output mesh. A value less than 1 will lower the accuracy, and lower the output triangle count, but might introduce intersections in the output geometry. A value above 1 will introduce more triangles, and will be able to capture the input geometry more accurately in the output.";
-                TypeOverride = "";
-                DefaultValue = 1f;
-                MinValue = 0.5f;
-                MaxValue = 10f;
-                DefaultMinValue = 0.5f;
-                DefaultMaxValue = 10f;
-                TicksFrequencyValue = 0.1f;
-                Visible = true;
-            }
-
-            public SimplygonGeometricalAccuracyEx(dynamic jsonData) : base("GeometricalAccuracy")
-            {
-                Type = "real";
-                HelpText = "Set the relative geometrical accuracy of the output mesh. A value less than 1 will lower the accuracy, and lower the output triangle count, but might introduce intersections in the output geometry. A value above 1 will introduce more triangles, and will be able to capture the input geometry more accurately in the output.";
-                TypeOverride = "";
-                DefaultValue = 1f;
-                MinValue = 0.5f;
-                DefaultMinValue = 0.5f;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (float)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"GeometricalAccuracy: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 10f;
-                DefaultMaxValue = 10f;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (float)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"GeometricalAccuracy: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 0.1f;
-                }
-
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonGeometricalAccuracyEx DeepCopy()
-            {
-                return (SimplygonGeometricalAccuracyEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
-                return jsonData;
-            }
-
-        }
-
-        public float RemeshingModeManualPositionZ { get { return _RemeshingModeManualPositionZ; } set { _RemeshingModeManualPositionZ = value; OnPropertyChanged(); } }
-        private float _RemeshingModeManualPositionZ;
-        public SimplygonRemeshingModeManualPositionZEx RemeshingModeManualPositionZUI { get; set; }
-        public class SimplygonRemeshingModeManualPositionZEx : SimplygonSettingsProperty
-        {
-            public SimplygonRemeshingSettings Parent { get; set; }
-            public float Value
-            {
-                get
-                {
-                    return Parent.RemeshingModeManualPositionZ;
-                }
-
-                set
-                {
-                    bool needReload = Parent.RemeshingModeManualPositionZ != value;
-                    Parent.RemeshingModeManualPositionZ = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public float DefaultValue { get; set; }
-            public float MinValue { get; set; }
-            public float MaxValue { get; set; }
-            public float DefaultMinValue { get; set; }
-            public float DefaultMaxValue { get; set; }
-            public float TicksFrequencyValue { get; set; }
-
-            public SimplygonRemeshingModeManualPositionZEx() : base("RemeshingModeManualPositionZ")
-            {
-                Type = "real";
-                HelpText = "Z component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
-                TypeOverride = "";
-                DefaultValue = 0f;
-                MinValue = -3.402823E+38f;
-                MaxValue = 3.402823E+38f;
-                DefaultMinValue = -3.402823E+38f;
-                DefaultMaxValue = 3.402823E+38f;
-                TicksFrequencyValue = 10f;
-                Visible = true;
-            }
-
-            public SimplygonRemeshingModeManualPositionZEx(dynamic jsonData) : base("RemeshingModeManualPositionZ")
-            {
-                Type = "real";
-                HelpText = "Z component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
-                TypeOverride = "";
-                DefaultValue = 0f;
-                MinValue = -3.402823E+38f;
-                DefaultMinValue = -3.402823E+38f;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (float)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionZ: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 3.402823E+38f;
-                DefaultMaxValue = 3.402823E+38f;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (float)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionZ: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 10f;
-                }
-
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonRemeshingModeManualPositionZEx DeepCopy()
-            {
-                return (SimplygonRemeshingModeManualPositionZEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
-                return jsonData;
-            }
-
-        }
-
-        public float RemeshingModeManualPositionY { get { return _RemeshingModeManualPositionY; } set { _RemeshingModeManualPositionY = value; OnPropertyChanged(); } }
-        private float _RemeshingModeManualPositionY;
-        public SimplygonRemeshingModeManualPositionYEx RemeshingModeManualPositionYUI { get; set; }
-        public class SimplygonRemeshingModeManualPositionYEx : SimplygonSettingsProperty
-        {
-            public SimplygonRemeshingSettings Parent { get; set; }
-            public float Value
-            {
-                get
-                {
-                    return Parent.RemeshingModeManualPositionY;
-                }
-
-                set
-                {
-                    bool needReload = Parent.RemeshingModeManualPositionY != value;
-                    Parent.RemeshingModeManualPositionY = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public float DefaultValue { get; set; }
-            public float MinValue { get; set; }
-            public float MaxValue { get; set; }
-            public float DefaultMinValue { get; set; }
-            public float DefaultMaxValue { get; set; }
-            public float TicksFrequencyValue { get; set; }
-
-            public SimplygonRemeshingModeManualPositionYEx() : base("RemeshingModeManualPositionY")
-            {
-                Type = "real";
-                HelpText = "Y component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
-                TypeOverride = "";
-                DefaultValue = 0f;
-                MinValue = -3.402823E+38f;
-                MaxValue = 3.402823E+38f;
-                DefaultMinValue = -3.402823E+38f;
-                DefaultMaxValue = 3.402823E+38f;
-                TicksFrequencyValue = 10f;
-                Visible = true;
-            }
-
-            public SimplygonRemeshingModeManualPositionYEx(dynamic jsonData) : base("RemeshingModeManualPositionY")
-            {
-                Type = "real";
-                HelpText = "Y component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
-                TypeOverride = "";
-                DefaultValue = 0f;
-                MinValue = -3.402823E+38f;
-                DefaultMinValue = -3.402823E+38f;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (float)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionY: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 3.402823E+38f;
-                DefaultMaxValue = 3.402823E+38f;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (float)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionY: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 10f;
-                }
-
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonRemeshingModeManualPositionYEx DeepCopy()
-            {
-                return (SimplygonRemeshingModeManualPositionYEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
-                return jsonData;
-            }
-
-        }
-
-        public float RemeshingModeManualPositionX { get { return _RemeshingModeManualPositionX; } set { _RemeshingModeManualPositionX = value; OnPropertyChanged(); } }
-        private float _RemeshingModeManualPositionX;
-        public SimplygonRemeshingModeManualPositionXEx RemeshingModeManualPositionXUI { get; set; }
-        public class SimplygonRemeshingModeManualPositionXEx : SimplygonSettingsProperty
-        {
-            public SimplygonRemeshingSettings Parent { get; set; }
-            public float Value
-            {
-                get
-                {
-                    return Parent.RemeshingModeManualPositionX;
-                }
-
-                set
-                {
-                    bool needReload = Parent.RemeshingModeManualPositionX != value;
-                    Parent.RemeshingModeManualPositionX = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public float DefaultValue { get; set; }
-            public float MinValue { get; set; }
-            public float MaxValue { get; set; }
-            public float DefaultMinValue { get; set; }
-            public float DefaultMaxValue { get; set; }
-            public float TicksFrequencyValue { get; set; }
-
-            public SimplygonRemeshingModeManualPositionXEx() : base("RemeshingModeManualPositionX")
-            {
-                Type = "real";
-                HelpText = "X component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
-                TypeOverride = "";
-                DefaultValue = 0f;
-                MinValue = -3.402823E+38f;
-                MaxValue = 3.402823E+38f;
-                DefaultMinValue = -3.402823E+38f;
-                DefaultMaxValue = 3.402823E+38f;
-                TicksFrequencyValue = 10f;
-                Visible = true;
-            }
-
-            public SimplygonRemeshingModeManualPositionXEx(dynamic jsonData) : base("RemeshingModeManualPositionX")
-            {
-                Type = "real";
-                HelpText = "X component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
-                TypeOverride = "";
-                DefaultValue = 0f;
-                MinValue = -3.402823E+38f;
-                DefaultMinValue = -3.402823E+38f;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (float)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionX: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 3.402823E+38f;
-                DefaultMaxValue = 3.402823E+38f;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (float)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionX: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 10f;
-                }
-
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonRemeshingModeManualPositionXEx DeepCopy()
-            {
-                return (SimplygonRemeshingModeManualPositionXEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
-                return jsonData;
-            }
-
-        }
-
         public int OnScreenSize { get { return _OnScreenSize; } set { _OnScreenSize = value; OnPropertyChanged(); } }
         private int _OnScreenSize;
         public SimplygonOnScreenSizeEx OnScreenSizeUI { get; set; }
@@ -19370,76 +18930,6 @@ namespace SimplygonUI
 
         }
 
-        public bool ForceSoftEdgesWithinTextureCharts { get { return _ForceSoftEdgesWithinTextureCharts; } set { _ForceSoftEdgesWithinTextureCharts = value; OnPropertyChanged(); } }
-        private bool _ForceSoftEdgesWithinTextureCharts;
-        public SimplygonForceSoftEdgesWithinTextureChartsEx ForceSoftEdgesWithinTextureChartsUI { get; set; }
-        public class SimplygonForceSoftEdgesWithinTextureChartsEx : SimplygonSettingsProperty
-        {
-            public SimplygonRemeshingSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.ForceSoftEdgesWithinTextureCharts;
-                }
-
-                set
-                {
-                    bool needReload = Parent.ForceSoftEdgesWithinTextureCharts != value;
-                    Parent.ForceSoftEdgesWithinTextureCharts = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-
-            public SimplygonForceSoftEdgesWithinTextureChartsEx() : base("ForceSoftEdgesWithinTextureCharts")
-            {
-                Type = "bool";
-                HelpText = "If the flag is set, the normal calculation will only allow hard edges along texture borders. Any vertex normal within a texture chart (not along the border) will be forced soft. Caveat: If this is enabled, some normals might be highly interpolated, and deviate substantially from the triangle normal.";
-                TypeOverride = "";
-                DefaultValue = false;
-                Visible = true;
-            }
-
-            public SimplygonForceSoftEdgesWithinTextureChartsEx(dynamic jsonData) : base("ForceSoftEdgesWithinTextureCharts")
-            {
-                Type = "bool";
-                HelpText = "If the flag is set, the normal calculation will only allow hard edges along texture borders. Any vertex normal within a texture chart (not along the border) will be forced soft. Caveat: If this is enabled, some normals might be highly interpolated, and deviate substantially from the triangle normal.";
-                TypeOverride = "";
-                DefaultValue = false;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonForceSoftEdgesWithinTextureChartsEx DeepCopy()
-            {
-                return (SimplygonForceSoftEdgesWithinTextureChartsEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
         public bool TransferNormals { get { return _TransferNormals; } set { _TransferNormals = value; OnPropertyChanged(); } }
         private bool _TransferNormals;
         public SimplygonTransferNormalsEx TransferNormalsUI { get; set; }
@@ -19580,6 +19070,711 @@ namespace SimplygonUI
 
         }
 
+        public float GeometricalAccuracy { get { return _GeometricalAccuracy; } set { _GeometricalAccuracy = value; OnPropertyChanged(); } }
+        private float _GeometricalAccuracy;
+        public SimplygonGeometricalAccuracyEx GeometricalAccuracyUI { get; set; }
+        public class SimplygonGeometricalAccuracyEx : SimplygonSettingsProperty
+        {
+            public SimplygonRemeshingSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.GeometricalAccuracy;
+                }
+
+                set
+                {
+                    bool needReload = Parent.GeometricalAccuracy != value;
+                    Parent.GeometricalAccuracy = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+
+            public SimplygonGeometricalAccuracyEx() : base("GeometricalAccuracy")
+            {
+                Type = "real";
+                HelpText = "Set the relative geometrical accuracy of the output mesh. A value less than 1 will lower the accuracy, and lower the output triangle count, but might introduce intersections in the output geometry. A value above 1 will introduce more triangles, and will be able to capture the input geometry more accurately in the output.";
+                TypeOverride = "";
+                DefaultValue = 1f;
+                MinValue = 0.5f;
+                MaxValue = 10f;
+                DefaultMinValue = 0.5f;
+                DefaultMaxValue = 10f;
+                TicksFrequencyValue = 0.1f;
+                Visible = true;
+            }
+
+            public SimplygonGeometricalAccuracyEx(dynamic jsonData) : base("GeometricalAccuracy")
+            {
+                Type = "real";
+                HelpText = "Set the relative geometrical accuracy of the output mesh. A value less than 1 will lower the accuracy, and lower the output triangle count, but might introduce intersections in the output geometry. A value above 1 will introduce more triangles, and will be able to capture the input geometry more accurately in the output.";
+                TypeOverride = "";
+                DefaultValue = 1f;
+                MinValue = 0.5f;
+                DefaultMinValue = 0.5f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GeometricalAccuracy: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"GeometricalAccuracy: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 0.1f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonGeometricalAccuracyEx DeepCopy()
+            {
+                return (SimplygonGeometricalAccuracyEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public float TopologicalAccuracy { get { return _TopologicalAccuracy; } set { _TopologicalAccuracy = value; OnPropertyChanged(); } }
+        private float _TopologicalAccuracy;
+        public SimplygonTopologicalAccuracyEx TopologicalAccuracyUI { get; set; }
+        public class SimplygonTopologicalAccuracyEx : SimplygonSettingsProperty
+        {
+            public SimplygonRemeshingSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.TopologicalAccuracy;
+                }
+
+                set
+                {
+                    bool needReload = Parent.TopologicalAccuracy != value;
+                    Parent.TopologicalAccuracy = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+
+            public SimplygonTopologicalAccuracyEx() : base("TopologicalAccuracy")
+            {
+                Type = "real";
+                HelpText = "Set the topological accuracy of the output mesh. 1=default accuracy, 0=minimal topological accuracy. Lowering the accuracy will lower the memory requirements, and increase remeshing performance, at the cost of lower topological accuracy, where the remesher fills in larger gaps or holes.";
+                TypeOverride = "";
+                DefaultValue = 1f;
+                MinValue = 0f;
+                MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
+                TicksFrequencyValue = 0.1f;
+                Visible = true;
+            }
+
+            public SimplygonTopologicalAccuracyEx(dynamic jsonData) : base("TopologicalAccuracy")
+            {
+                Type = "real";
+                HelpText = "Set the topological accuracy of the output mesh. 1=default accuracy, 0=minimal topological accuracy. Lowering the accuracy will lower the memory requirements, and increase remeshing performance, at the cost of lower topological accuracy, where the remesher fills in larger gaps or holes.";
+                TypeOverride = "";
+                DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TopologicalAccuracy: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TopologicalAccuracy: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 0.1f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonTopologicalAccuracyEx DeepCopy()
+            {
+                return (SimplygonTopologicalAccuracyEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public float RemeshingModeManualPositionX { get { return _RemeshingModeManualPositionX; } set { _RemeshingModeManualPositionX = value; OnPropertyChanged(); } }
+        private float _RemeshingModeManualPositionX;
+        public SimplygonRemeshingModeManualPositionXEx RemeshingModeManualPositionXUI { get; set; }
+        public class SimplygonRemeshingModeManualPositionXEx : SimplygonSettingsProperty
+        {
+            public SimplygonRemeshingSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.RemeshingModeManualPositionX;
+                }
+
+                set
+                {
+                    bool needReload = Parent.RemeshingModeManualPositionX != value;
+                    Parent.RemeshingModeManualPositionX = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+
+            public SimplygonRemeshingModeManualPositionXEx() : base("RemeshingModeManualPositionX")
+            {
+                Type = "real";
+                HelpText = "X component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -3.402823E+38f;
+                MaxValue = 3.402823E+38f;
+                DefaultMinValue = -3.402823E+38f;
+                DefaultMaxValue = 3.402823E+38f;
+                TicksFrequencyValue = 10f;
+                Visible = true;
+            }
+
+            public SimplygonRemeshingModeManualPositionXEx(dynamic jsonData) : base("RemeshingModeManualPositionX")
+            {
+                Type = "real";
+                HelpText = "X component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -3.402823E+38f;
+                DefaultMinValue = -3.402823E+38f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionX: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 3.402823E+38f;
+                DefaultMaxValue = 3.402823E+38f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionX: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 10f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonRemeshingModeManualPositionXEx DeepCopy()
+            {
+                return (SimplygonRemeshingModeManualPositionXEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public float RemeshingModeManualPositionY { get { return _RemeshingModeManualPositionY; } set { _RemeshingModeManualPositionY = value; OnPropertyChanged(); } }
+        private float _RemeshingModeManualPositionY;
+        public SimplygonRemeshingModeManualPositionYEx RemeshingModeManualPositionYUI { get; set; }
+        public class SimplygonRemeshingModeManualPositionYEx : SimplygonSettingsProperty
+        {
+            public SimplygonRemeshingSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.RemeshingModeManualPositionY;
+                }
+
+                set
+                {
+                    bool needReload = Parent.RemeshingModeManualPositionY != value;
+                    Parent.RemeshingModeManualPositionY = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+
+            public SimplygonRemeshingModeManualPositionYEx() : base("RemeshingModeManualPositionY")
+            {
+                Type = "real";
+                HelpText = "Y component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -3.402823E+38f;
+                MaxValue = 3.402823E+38f;
+                DefaultMinValue = -3.402823E+38f;
+                DefaultMaxValue = 3.402823E+38f;
+                TicksFrequencyValue = 10f;
+                Visible = true;
+            }
+
+            public SimplygonRemeshingModeManualPositionYEx(dynamic jsonData) : base("RemeshingModeManualPositionY")
+            {
+                Type = "real";
+                HelpText = "Y component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -3.402823E+38f;
+                DefaultMinValue = -3.402823E+38f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionY: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 3.402823E+38f;
+                DefaultMaxValue = 3.402823E+38f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionY: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 10f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonRemeshingModeManualPositionYEx DeepCopy()
+            {
+                return (SimplygonRemeshingModeManualPositionYEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public float RemeshingModeManualPositionZ { get { return _RemeshingModeManualPositionZ; } set { _RemeshingModeManualPositionZ = value; OnPropertyChanged(); } }
+        private float _RemeshingModeManualPositionZ;
+        public SimplygonRemeshingModeManualPositionZEx RemeshingModeManualPositionZUI { get; set; }
+        public class SimplygonRemeshingModeManualPositionZEx : SimplygonSettingsProperty
+        {
+            public SimplygonRemeshingSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.RemeshingModeManualPositionZ;
+                }
+
+                set
+                {
+                    bool needReload = Parent.RemeshingModeManualPositionZ != value;
+                    Parent.RemeshingModeManualPositionZ = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+
+            public SimplygonRemeshingModeManualPositionZEx() : base("RemeshingModeManualPositionZ")
+            {
+                Type = "real";
+                HelpText = "Z component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -3.402823E+38f;
+                MaxValue = 3.402823E+38f;
+                DefaultMinValue = -3.402823E+38f;
+                DefaultMaxValue = 3.402823E+38f;
+                TicksFrequencyValue = 10f;
+                Visible = true;
+            }
+
+            public SimplygonRemeshingModeManualPositionZEx(dynamic jsonData) : base("RemeshingModeManualPositionZ")
+            {
+                Type = "real";
+                HelpText = "Z component was a 3-tuple real that acts as the marker designating remeshing processors starting position";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = -3.402823E+38f;
+                DefaultMinValue = -3.402823E+38f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionZ: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 3.402823E+38f;
+                DefaultMaxValue = 3.402823E+38f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionZ: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 10f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonRemeshingModeManualPositionZEx DeepCopy()
+            {
+                return (SimplygonRemeshingModeManualPositionZEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public bool ForceSoftEdgesWithinTextureCharts { get { return _ForceSoftEdgesWithinTextureCharts; } set { _ForceSoftEdgesWithinTextureCharts = value; OnPropertyChanged(); } }
+        private bool _ForceSoftEdgesWithinTextureCharts;
+        public SimplygonForceSoftEdgesWithinTextureChartsEx ForceSoftEdgesWithinTextureChartsUI { get; set; }
+        public class SimplygonForceSoftEdgesWithinTextureChartsEx : SimplygonSettingsProperty
+        {
+            public SimplygonRemeshingSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.ForceSoftEdgesWithinTextureCharts;
+                }
+
+                set
+                {
+                    bool needReload = Parent.ForceSoftEdgesWithinTextureCharts != value;
+                    Parent.ForceSoftEdgesWithinTextureCharts = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonForceSoftEdgesWithinTextureChartsEx() : base("ForceSoftEdgesWithinTextureCharts")
+            {
+                Type = "bool";
+                HelpText = "If the flag is set, the normal calculation will only allow hard edges along texture borders. Any vertex normal within a texture chart (not along the border) will be forced soft. Caveat: If this is enabled, some normals might be highly interpolated, and deviate substantially from the triangle normal.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonForceSoftEdgesWithinTextureChartsEx(dynamic jsonData) : base("ForceSoftEdgesWithinTextureCharts")
+            {
+                Type = "bool";
+                HelpText = "If the flag is set, the normal calculation will only allow hard edges along texture borders. Any vertex normal within a texture chart (not along the border) will be forced soft. Caveat: If this is enabled, some normals might be highly interpolated, and deviate substantially from the triangle normal.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonForceSoftEdgesWithinTextureChartsEx DeepCopy()
+            {
+                return (SimplygonForceSoftEdgesWithinTextureChartsEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
         public bool KeepUnprocessedSceneMeshes { get { return _KeepUnprocessedSceneMeshes; } set { _KeepUnprocessedSceneMeshes = value; OnPropertyChanged(); } }
         private bool _KeepUnprocessedSceneMeshes;
         public SimplygonKeepUnprocessedSceneMeshesEx KeepUnprocessedSceneMeshesUI { get; set; }
@@ -19654,26 +19849,6 @@ namespace SimplygonUI
         public SimplygonRemeshingSettings() : base("RemeshingSettings")
         {
             Visible = true;
-            TopologicalAccuracyUI = new SimplygonTopologicalAccuracyEx();
-            TopologicalAccuracyUI.Parent = this;
-            TopologicalAccuracy = TopologicalAccuracyUI.DefaultValue;
-            Items.Add(TopologicalAccuracyUI);
-            GeometricalAccuracyUI = new SimplygonGeometricalAccuracyEx();
-            GeometricalAccuracyUI.Parent = this;
-            GeometricalAccuracy = GeometricalAccuracyUI.DefaultValue;
-            Items.Add(GeometricalAccuracyUI);
-            RemeshingModeManualPositionZUI = new SimplygonRemeshingModeManualPositionZEx();
-            RemeshingModeManualPositionZUI.Parent = this;
-            RemeshingModeManualPositionZ = RemeshingModeManualPositionZUI.DefaultValue;
-            Items.Add(RemeshingModeManualPositionZUI);
-            RemeshingModeManualPositionYUI = new SimplygonRemeshingModeManualPositionYEx();
-            RemeshingModeManualPositionYUI.Parent = this;
-            RemeshingModeManualPositionY = RemeshingModeManualPositionYUI.DefaultValue;
-            Items.Add(RemeshingModeManualPositionYUI);
-            RemeshingModeManualPositionXUI = new SimplygonRemeshingModeManualPositionXEx();
-            RemeshingModeManualPositionXUI.Parent = this;
-            RemeshingModeManualPositionX = RemeshingModeManualPositionXUI.DefaultValue;
-            Items.Add(RemeshingModeManualPositionXUI);
             OnScreenSizeUI = new SimplygonOnScreenSizeEx();
             OnScreenSizeUI.Parent = this;
             OnScreenSize = OnScreenSizeUI.DefaultValue;
@@ -19702,6 +19877,26 @@ namespace SimplygonUI
             TransferColorsUI.Parent = this;
             TransferColors = TransferColorsUI.DefaultValue;
             Items.Add(TransferColorsUI);
+            GeometricalAccuracyUI = new SimplygonGeometricalAccuracyEx();
+            GeometricalAccuracyUI.Parent = this;
+            GeometricalAccuracy = GeometricalAccuracyUI.DefaultValue;
+            Items.Add(GeometricalAccuracyUI);
+            TopologicalAccuracyUI = new SimplygonTopologicalAccuracyEx();
+            TopologicalAccuracyUI.Parent = this;
+            TopologicalAccuracy = TopologicalAccuracyUI.DefaultValue;
+            Items.Add(TopologicalAccuracyUI);
+            RemeshingModeManualPositionXUI = new SimplygonRemeshingModeManualPositionXEx();
+            RemeshingModeManualPositionXUI.Parent = this;
+            RemeshingModeManualPositionX = RemeshingModeManualPositionXUI.DefaultValue;
+            Items.Add(RemeshingModeManualPositionXUI);
+            RemeshingModeManualPositionYUI = new SimplygonRemeshingModeManualPositionYEx();
+            RemeshingModeManualPositionYUI.Parent = this;
+            RemeshingModeManualPositionY = RemeshingModeManualPositionYUI.DefaultValue;
+            Items.Add(RemeshingModeManualPositionYUI);
+            RemeshingModeManualPositionZUI = new SimplygonRemeshingModeManualPositionZEx();
+            RemeshingModeManualPositionZUI.Parent = this;
+            RemeshingModeManualPositionZ = RemeshingModeManualPositionZUI.DefaultValue;
+            Items.Add(RemeshingModeManualPositionZUI);
             ForceSoftEdgesWithinTextureChartsUI = new SimplygonForceSoftEdgesWithinTextureChartsEx();
             ForceSoftEdgesWithinTextureChartsUI.Parent = this;
             ForceSoftEdgesWithinTextureCharts = ForceSoftEdgesWithinTextureChartsUI.DefaultValue;
@@ -19715,26 +19910,6 @@ namespace SimplygonUI
         public SimplygonRemeshingSettings(dynamic jsonData) : base("RemeshingSettings")
         {
             Visible = true;
-            TopologicalAccuracyUI = new SimplygonTopologicalAccuracyEx(jsonData != null && ((JObject)jsonData).GetValue("TopologicalAccuracyUI") != null ? jsonData.TopologicalAccuracyUI : null);
-            TopologicalAccuracyUI.Parent = this;
-            TopologicalAccuracy = TopologicalAccuracyUI.DefaultValue;
-            Items.Add(TopologicalAccuracyUI);
-            GeometricalAccuracyUI = new SimplygonGeometricalAccuracyEx(jsonData != null && ((JObject)jsonData).GetValue("GeometricalAccuracyUI") != null ? jsonData.GeometricalAccuracyUI : null);
-            GeometricalAccuracyUI.Parent = this;
-            GeometricalAccuracy = GeometricalAccuracyUI.DefaultValue;
-            Items.Add(GeometricalAccuracyUI);
-            RemeshingModeManualPositionZUI = new SimplygonRemeshingModeManualPositionZEx(jsonData != null && ((JObject)jsonData).GetValue("RemeshingModeManualPositionZUI") != null ? jsonData.RemeshingModeManualPositionZUI : null);
-            RemeshingModeManualPositionZUI.Parent = this;
-            RemeshingModeManualPositionZ = RemeshingModeManualPositionZUI.DefaultValue;
-            Items.Add(RemeshingModeManualPositionZUI);
-            RemeshingModeManualPositionYUI = new SimplygonRemeshingModeManualPositionYEx(jsonData != null && ((JObject)jsonData).GetValue("RemeshingModeManualPositionYUI") != null ? jsonData.RemeshingModeManualPositionYUI : null);
-            RemeshingModeManualPositionYUI.Parent = this;
-            RemeshingModeManualPositionY = RemeshingModeManualPositionYUI.DefaultValue;
-            Items.Add(RemeshingModeManualPositionYUI);
-            RemeshingModeManualPositionXUI = new SimplygonRemeshingModeManualPositionXEx(jsonData != null && ((JObject)jsonData).GetValue("RemeshingModeManualPositionXUI") != null ? jsonData.RemeshingModeManualPositionXUI : null);
-            RemeshingModeManualPositionXUI.Parent = this;
-            RemeshingModeManualPositionX = RemeshingModeManualPositionXUI.DefaultValue;
-            Items.Add(RemeshingModeManualPositionXUI);
             OnScreenSizeUI = new SimplygonOnScreenSizeEx(jsonData != null && ((JObject)jsonData).GetValue("OnScreenSizeUI") != null ? jsonData.OnScreenSizeUI : null);
             OnScreenSizeUI.Parent = this;
             OnScreenSize = OnScreenSizeUI.DefaultValue;
@@ -19763,6 +19938,26 @@ namespace SimplygonUI
             TransferColorsUI.Parent = this;
             TransferColors = TransferColorsUI.DefaultValue;
             Items.Add(TransferColorsUI);
+            GeometricalAccuracyUI = new SimplygonGeometricalAccuracyEx(jsonData != null && ((JObject)jsonData).GetValue("GeometricalAccuracyUI") != null ? jsonData.GeometricalAccuracyUI : null);
+            GeometricalAccuracyUI.Parent = this;
+            GeometricalAccuracy = GeometricalAccuracyUI.DefaultValue;
+            Items.Add(GeometricalAccuracyUI);
+            TopologicalAccuracyUI = new SimplygonTopologicalAccuracyEx(jsonData != null && ((JObject)jsonData).GetValue("TopologicalAccuracyUI") != null ? jsonData.TopologicalAccuracyUI : null);
+            TopologicalAccuracyUI.Parent = this;
+            TopologicalAccuracy = TopologicalAccuracyUI.DefaultValue;
+            Items.Add(TopologicalAccuracyUI);
+            RemeshingModeManualPositionXUI = new SimplygonRemeshingModeManualPositionXEx(jsonData != null && ((JObject)jsonData).GetValue("RemeshingModeManualPositionXUI") != null ? jsonData.RemeshingModeManualPositionXUI : null);
+            RemeshingModeManualPositionXUI.Parent = this;
+            RemeshingModeManualPositionX = RemeshingModeManualPositionXUI.DefaultValue;
+            Items.Add(RemeshingModeManualPositionXUI);
+            RemeshingModeManualPositionYUI = new SimplygonRemeshingModeManualPositionYEx(jsonData != null && ((JObject)jsonData).GetValue("RemeshingModeManualPositionYUI") != null ? jsonData.RemeshingModeManualPositionYUI : null);
+            RemeshingModeManualPositionYUI.Parent = this;
+            RemeshingModeManualPositionY = RemeshingModeManualPositionYUI.DefaultValue;
+            Items.Add(RemeshingModeManualPositionYUI);
+            RemeshingModeManualPositionZUI = new SimplygonRemeshingModeManualPositionZEx(jsonData != null && ((JObject)jsonData).GetValue("RemeshingModeManualPositionZUI") != null ? jsonData.RemeshingModeManualPositionZUI : null);
+            RemeshingModeManualPositionZUI.Parent = this;
+            RemeshingModeManualPositionZ = RemeshingModeManualPositionZUI.DefaultValue;
+            Items.Add(RemeshingModeManualPositionZUI);
             ForceSoftEdgesWithinTextureChartsUI = new SimplygonForceSoftEdgesWithinTextureChartsEx(jsonData != null && ((JObject)jsonData).GetValue("ForceSoftEdgesWithinTextureChartsUI") != null ? jsonData.ForceSoftEdgesWithinTextureChartsUI : null);
             ForceSoftEdgesWithinTextureChartsUI.Parent = this;
             ForceSoftEdgesWithinTextureCharts = ForceSoftEdgesWithinTextureChartsUI.DefaultValue;
@@ -19778,21 +19973,6 @@ namespace SimplygonUI
         {
             var copy = new SimplygonRemeshingSettings();
             copy.Items.Clear();
-            copy.TopologicalAccuracyUI = this.TopologicalAccuracyUI.DeepCopy();
-            copy.TopologicalAccuracyUI.Parent = copy;
-            copy.Items.Add(copy.TopologicalAccuracyUI);
-            copy.GeometricalAccuracyUI = this.GeometricalAccuracyUI.DeepCopy();
-            copy.GeometricalAccuracyUI.Parent = copy;
-            copy.Items.Add(copy.GeometricalAccuracyUI);
-            copy.RemeshingModeManualPositionZUI = this.RemeshingModeManualPositionZUI.DeepCopy();
-            copy.RemeshingModeManualPositionZUI.Parent = copy;
-            copy.Items.Add(copy.RemeshingModeManualPositionZUI);
-            copy.RemeshingModeManualPositionYUI = this.RemeshingModeManualPositionYUI.DeepCopy();
-            copy.RemeshingModeManualPositionYUI.Parent = copy;
-            copy.Items.Add(copy.RemeshingModeManualPositionYUI);
-            copy.RemeshingModeManualPositionXUI = this.RemeshingModeManualPositionXUI.DeepCopy();
-            copy.RemeshingModeManualPositionXUI.Parent = copy;
-            copy.Items.Add(copy.RemeshingModeManualPositionXUI);
             copy.OnScreenSizeUI = this.OnScreenSizeUI.DeepCopy();
             copy.OnScreenSizeUI.Parent = copy;
             copy.Items.Add(copy.OnScreenSizeUI);
@@ -19814,6 +19994,21 @@ namespace SimplygonUI
             copy.TransferColorsUI = this.TransferColorsUI.DeepCopy();
             copy.TransferColorsUI.Parent = copy;
             copy.Items.Add(copy.TransferColorsUI);
+            copy.GeometricalAccuracyUI = this.GeometricalAccuracyUI.DeepCopy();
+            copy.GeometricalAccuracyUI.Parent = copy;
+            copy.Items.Add(copy.GeometricalAccuracyUI);
+            copy.TopologicalAccuracyUI = this.TopologicalAccuracyUI.DeepCopy();
+            copy.TopologicalAccuracyUI.Parent = copy;
+            copy.Items.Add(copy.TopologicalAccuracyUI);
+            copy.RemeshingModeManualPositionXUI = this.RemeshingModeManualPositionXUI.DeepCopy();
+            copy.RemeshingModeManualPositionXUI.Parent = copy;
+            copy.Items.Add(copy.RemeshingModeManualPositionXUI);
+            copy.RemeshingModeManualPositionYUI = this.RemeshingModeManualPositionYUI.DeepCopy();
+            copy.RemeshingModeManualPositionYUI.Parent = copy;
+            copy.Items.Add(copy.RemeshingModeManualPositionYUI);
+            copy.RemeshingModeManualPositionZUI = this.RemeshingModeManualPositionZUI.DeepCopy();
+            copy.RemeshingModeManualPositionZUI.Parent = copy;
+            copy.Items.Add(copy.RemeshingModeManualPositionZUI);
             copy.ForceSoftEdgesWithinTextureChartsUI = this.ForceSoftEdgesWithinTextureChartsUI.DeepCopy();
             copy.ForceSoftEdgesWithinTextureChartsUI.Parent = copy;
             copy.Items.Add(copy.ForceSoftEdgesWithinTextureChartsUI);
@@ -19826,36 +20021,6 @@ namespace SimplygonUI
         public override JObject SaveJson(bool serializeUIComponents)
         {
             dynamic jsonData = new JObject();
-            jsonData.TopologicalAccuracy = TopologicalAccuracy;
-            if(serializeUIComponents)
-            {
-                jsonData.TopologicalAccuracyUI = TopologicalAccuracyUI.SaveJson();
-            }
-
-            jsonData.GeometricalAccuracy = GeometricalAccuracy;
-            if(serializeUIComponents)
-            {
-                jsonData.GeometricalAccuracyUI = GeometricalAccuracyUI.SaveJson();
-            }
-
-            jsonData.RemeshingModeManualPositionZ = RemeshingModeManualPositionZ;
-            if(serializeUIComponents)
-            {
-                jsonData.RemeshingModeManualPositionZUI = RemeshingModeManualPositionZUI.SaveJson();
-            }
-
-            jsonData.RemeshingModeManualPositionY = RemeshingModeManualPositionY;
-            if(serializeUIComponents)
-            {
-                jsonData.RemeshingModeManualPositionYUI = RemeshingModeManualPositionYUI.SaveJson();
-            }
-
-            jsonData.RemeshingModeManualPositionX = RemeshingModeManualPositionX;
-            if(serializeUIComponents)
-            {
-                jsonData.RemeshingModeManualPositionXUI = RemeshingModeManualPositionXUI.SaveJson();
-            }
-
             jsonData.OnScreenSize = OnScreenSize;
             if(serializeUIComponents)
             {
@@ -19886,12 +20051,6 @@ namespace SimplygonUI
                 jsonData.HardEdgeAngleUI = HardEdgeAngleUI.SaveJson();
             }
 
-            jsonData.ForceSoftEdgesWithinTextureCharts = ForceSoftEdgesWithinTextureCharts;
-            if(serializeUIComponents)
-            {
-                jsonData.ForceSoftEdgesWithinTextureChartsUI = ForceSoftEdgesWithinTextureChartsUI.SaveJson();
-            }
-
             jsonData.TransferNormals = TransferNormals;
             if(serializeUIComponents)
             {
@@ -19902,6 +20061,42 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.TransferColorsUI = TransferColorsUI.SaveJson();
+            }
+
+            jsonData.GeometricalAccuracy = GeometricalAccuracy;
+            if(serializeUIComponents)
+            {
+                jsonData.GeometricalAccuracyUI = GeometricalAccuracyUI.SaveJson();
+            }
+
+            jsonData.TopologicalAccuracy = TopologicalAccuracy;
+            if(serializeUIComponents)
+            {
+                jsonData.TopologicalAccuracyUI = TopologicalAccuracyUI.SaveJson();
+            }
+
+            jsonData.RemeshingModeManualPositionX = RemeshingModeManualPositionX;
+            if(serializeUIComponents)
+            {
+                jsonData.RemeshingModeManualPositionXUI = RemeshingModeManualPositionXUI.SaveJson();
+            }
+
+            jsonData.RemeshingModeManualPositionY = RemeshingModeManualPositionY;
+            if(serializeUIComponents)
+            {
+                jsonData.RemeshingModeManualPositionYUI = RemeshingModeManualPositionYUI.SaveJson();
+            }
+
+            jsonData.RemeshingModeManualPositionZ = RemeshingModeManualPositionZ;
+            if(serializeUIComponents)
+            {
+                jsonData.RemeshingModeManualPositionZUI = RemeshingModeManualPositionZUI.SaveJson();
+            }
+
+            jsonData.ForceSoftEdgesWithinTextureCharts = ForceSoftEdgesWithinTextureCharts;
+            if(serializeUIComponents)
+            {
+                jsonData.ForceSoftEdgesWithinTextureChartsUI = ForceSoftEdgesWithinTextureChartsUI.SaveJson();
             }
 
             jsonData.KeepUnprocessedSceneMeshes = KeepUnprocessedSceneMeshes;
@@ -19918,81 +20113,6 @@ namespace SimplygonUI
             if(jsonData == null)
             {
                 return;
-            }
-
-            if(jsonData.GetValue("TopologicalAccuracy") != null)
-            {
-                float newTopologicalAccuracy = (float)jsonData.TopologicalAccuracy;
-                if (newTopologicalAccuracy >= TopologicalAccuracyUI.DefaultMinValue && newTopologicalAccuracy <= TopologicalAccuracyUI.DefaultMaxValue)
-                {
-                    TopologicalAccuracy = newTopologicalAccuracy;
-                }
-
-                else
-                {
-                    UILogger.Instance.Log(Category.Warning, $"TopologicalAccuracy: Invalid value {newTopologicalAccuracy.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {TopologicalAccuracy.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                }
-
-            }
-
-            if(jsonData.GetValue("GeometricalAccuracy") != null)
-            {
-                float newGeometricalAccuracy = (float)jsonData.GeometricalAccuracy;
-                if (newGeometricalAccuracy >= GeometricalAccuracyUI.DefaultMinValue && newGeometricalAccuracy <= GeometricalAccuracyUI.DefaultMaxValue)
-                {
-                    GeometricalAccuracy = newGeometricalAccuracy;
-                }
-
-                else
-                {
-                    UILogger.Instance.Log(Category.Warning, $"GeometricalAccuracy: Invalid value {newGeometricalAccuracy.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {GeometricalAccuracy.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                }
-
-            }
-
-            if(jsonData.GetValue("RemeshingModeManualPositionZ") != null)
-            {
-                float newRemeshingModeManualPositionZ = (float)jsonData.RemeshingModeManualPositionZ;
-                if (newRemeshingModeManualPositionZ >= RemeshingModeManualPositionZUI.DefaultMinValue && newRemeshingModeManualPositionZ <= RemeshingModeManualPositionZUI.DefaultMaxValue)
-                {
-                    RemeshingModeManualPositionZ = newRemeshingModeManualPositionZ;
-                }
-
-                else
-                {
-                    UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionZ: Invalid value {newRemeshingModeManualPositionZ.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {RemeshingModeManualPositionZ.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                }
-
-            }
-
-            if(jsonData.GetValue("RemeshingModeManualPositionY") != null)
-            {
-                float newRemeshingModeManualPositionY = (float)jsonData.RemeshingModeManualPositionY;
-                if (newRemeshingModeManualPositionY >= RemeshingModeManualPositionYUI.DefaultMinValue && newRemeshingModeManualPositionY <= RemeshingModeManualPositionYUI.DefaultMaxValue)
-                {
-                    RemeshingModeManualPositionY = newRemeshingModeManualPositionY;
-                }
-
-                else
-                {
-                    UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionY: Invalid value {newRemeshingModeManualPositionY.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {RemeshingModeManualPositionY.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                }
-
-            }
-
-            if(jsonData.GetValue("RemeshingModeManualPositionX") != null)
-            {
-                float newRemeshingModeManualPositionX = (float)jsonData.RemeshingModeManualPositionX;
-                if (newRemeshingModeManualPositionX >= RemeshingModeManualPositionXUI.DefaultMinValue && newRemeshingModeManualPositionX <= RemeshingModeManualPositionXUI.DefaultMaxValue)
-                {
-                    RemeshingModeManualPositionX = newRemeshingModeManualPositionX;
-                }
-
-                else
-                {
-                    UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionX: Invalid value {newRemeshingModeManualPositionX.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {RemeshingModeManualPositionX.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                }
-
             }
 
             if(jsonData.GetValue("OnScreenSize") != null)
@@ -20040,11 +20160,6 @@ namespace SimplygonUI
 
             }
 
-            if(jsonData.GetValue("ForceSoftEdgesWithinTextureCharts") != null)
-            {
-                ForceSoftEdgesWithinTextureCharts = (bool)jsonData.ForceSoftEdgesWithinTextureCharts;
-            }
-
             if(jsonData.GetValue("TransferNormals") != null)
             {
                 TransferNormals = (bool)jsonData.TransferNormals;
@@ -20053,6 +20168,86 @@ namespace SimplygonUI
             if(jsonData.GetValue("TransferColors") != null)
             {
                 TransferColors = (bool)jsonData.TransferColors;
+            }
+
+            if(jsonData.GetValue("GeometricalAccuracy") != null)
+            {
+                float newGeometricalAccuracy = (float)jsonData.GeometricalAccuracy;
+                if (newGeometricalAccuracy >= GeometricalAccuracyUI.DefaultMinValue && newGeometricalAccuracy <= GeometricalAccuracyUI.DefaultMaxValue)
+                {
+                    GeometricalAccuracy = newGeometricalAccuracy;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"GeometricalAccuracy: Invalid value {newGeometricalAccuracy.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {GeometricalAccuracy.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("TopologicalAccuracy") != null)
+            {
+                float newTopologicalAccuracy = (float)jsonData.TopologicalAccuracy;
+                if (newTopologicalAccuracy >= TopologicalAccuracyUI.DefaultMinValue && newTopologicalAccuracy <= TopologicalAccuracyUI.DefaultMaxValue)
+                {
+                    TopologicalAccuracy = newTopologicalAccuracy;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"TopologicalAccuracy: Invalid value {newTopologicalAccuracy.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {TopologicalAccuracy.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("RemeshingModeManualPositionX") != null)
+            {
+                float newRemeshingModeManualPositionX = (float)jsonData.RemeshingModeManualPositionX;
+                if (newRemeshingModeManualPositionX >= RemeshingModeManualPositionXUI.DefaultMinValue && newRemeshingModeManualPositionX <= RemeshingModeManualPositionXUI.DefaultMaxValue)
+                {
+                    RemeshingModeManualPositionX = newRemeshingModeManualPositionX;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionX: Invalid value {newRemeshingModeManualPositionX.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {RemeshingModeManualPositionX.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("RemeshingModeManualPositionY") != null)
+            {
+                float newRemeshingModeManualPositionY = (float)jsonData.RemeshingModeManualPositionY;
+                if (newRemeshingModeManualPositionY >= RemeshingModeManualPositionYUI.DefaultMinValue && newRemeshingModeManualPositionY <= RemeshingModeManualPositionYUI.DefaultMaxValue)
+                {
+                    RemeshingModeManualPositionY = newRemeshingModeManualPositionY;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionY: Invalid value {newRemeshingModeManualPositionY.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {RemeshingModeManualPositionY.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("RemeshingModeManualPositionZ") != null)
+            {
+                float newRemeshingModeManualPositionZ = (float)jsonData.RemeshingModeManualPositionZ;
+                if (newRemeshingModeManualPositionZ >= RemeshingModeManualPositionZUI.DefaultMinValue && newRemeshingModeManualPositionZ <= RemeshingModeManualPositionZUI.DefaultMaxValue)
+                {
+                    RemeshingModeManualPositionZ = newRemeshingModeManualPositionZ;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"RemeshingModeManualPositionZ: Invalid value {newRemeshingModeManualPositionZ.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {RemeshingModeManualPositionZ.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("ForceSoftEdgesWithinTextureCharts") != null)
+            {
+                ForceSoftEdgesWithinTextureCharts = (bool)jsonData.ForceSoftEdgesWithinTextureCharts;
             }
 
             if(jsonData.GetValue("KeepUnprocessedSceneMeshes") != null)
@@ -20064,38 +20259,38 @@ namespace SimplygonUI
 
         public override void Reset()
         {
-            TopologicalAccuracyUI.Reset();
-            GeometricalAccuracyUI.Reset();
-            RemeshingModeManualPositionZUI.Reset();
-            RemeshingModeManualPositionYUI.Reset();
-            RemeshingModeManualPositionXUI.Reset();
             OnScreenSizeUI.Reset();
             HoleFillingUI.Reset();
             RemeshingModeUI.Reset();
             SurfaceTransferModeUI.Reset();
             HardEdgeAngleUI.Reset();
-            ForceSoftEdgesWithinTextureChartsUI.Reset();
             TransferNormalsUI.Reset();
             TransferColorsUI.Reset();
+            GeometricalAccuracyUI.Reset();
+            TopologicalAccuracyUI.Reset();
+            RemeshingModeManualPositionXUI.Reset();
+            RemeshingModeManualPositionYUI.Reset();
+            RemeshingModeManualPositionZUI.Reset();
+            ForceSoftEdgesWithinTextureChartsUI.Reset();
             KeepUnprocessedSceneMeshesUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
         {
             IsEditEnabled = isEditEnabled;
-            TopologicalAccuracyUI.IsEditEnabled = isEditEnabled;
-            GeometricalAccuracyUI.IsEditEnabled = isEditEnabled;
-            RemeshingModeManualPositionZUI.IsEditEnabled = isEditEnabled;
-            RemeshingModeManualPositionYUI.IsEditEnabled = isEditEnabled;
-            RemeshingModeManualPositionXUI.IsEditEnabled = isEditEnabled;
             OnScreenSizeUI.IsEditEnabled = isEditEnabled;
             HoleFillingUI.IsEditEnabled = isEditEnabled;
             RemeshingModeUI.IsEditEnabled = isEditEnabled;
             SurfaceTransferModeUI.IsEditEnabled = isEditEnabled;
             HardEdgeAngleUI.IsEditEnabled = isEditEnabled;
-            ForceSoftEdgesWithinTextureChartsUI.IsEditEnabled = isEditEnabled;
             TransferNormalsUI.IsEditEnabled = isEditEnabled;
             TransferColorsUI.IsEditEnabled = isEditEnabled;
+            GeometricalAccuracyUI.IsEditEnabled = isEditEnabled;
+            TopologicalAccuracyUI.IsEditEnabled = isEditEnabled;
+            RemeshingModeManualPositionXUI.IsEditEnabled = isEditEnabled;
+            RemeshingModeManualPositionYUI.IsEditEnabled = isEditEnabled;
+            RemeshingModeManualPositionZUI.IsEditEnabled = isEditEnabled;
+            ForceSoftEdgesWithinTextureChartsUI.IsEditEnabled = isEditEnabled;
             KeepUnprocessedSceneMeshesUI.IsEditEnabled = isEditEnabled;
         }
 
@@ -20367,11 +20562,11 @@ namespace SimplygonUI
                 if (!VisibleOverride) return false;
                 if (Name == "InputMaterialSettings") return false;
                 if(MergeGeometriesUI.Visible) return true;
-                if(KeepUnprocessedSceneMeshesUI.Visible) return true;
                 if(EnableGeometryCullingUI.Visible) return true;
                 if(GeometryCullingPrecisionUI.Visible) return true;
                 if(SubdivideGeometryBasedOnUVTilesUI.Visible) return true;
                 if(SubdivisionTileSizeUI.Visible) return true;
+                if(KeepUnprocessedSceneMeshesUI.Visible) return true;
 
                 return false;
             }
@@ -20443,76 +20638,6 @@ namespace SimplygonUI
             public SimplygonMergeGeometriesEx DeepCopy()
             {
                 return (SimplygonMergeGeometriesEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public bool KeepUnprocessedSceneMeshes { get { return _KeepUnprocessedSceneMeshes; } set { _KeepUnprocessedSceneMeshes = value; OnPropertyChanged(); } }
-        private bool _KeepUnprocessedSceneMeshes;
-        public SimplygonKeepUnprocessedSceneMeshesEx KeepUnprocessedSceneMeshesUI { get; set; }
-        public class SimplygonKeepUnprocessedSceneMeshesEx : SimplygonSettingsProperty
-        {
-            public SimplygonAggregationSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.KeepUnprocessedSceneMeshes;
-                }
-
-                set
-                {
-                    bool needReload = Parent.KeepUnprocessedSceneMeshes != value;
-                    Parent.KeepUnprocessedSceneMeshes = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-
-            public SimplygonKeepUnprocessedSceneMeshesEx() : base("KeepUnprocessedSceneMeshes")
-            {
-                Type = "bool";
-                HelpText = "If false, the processor will remove all geometry and scene meshes which were not selected for processing from the scene. If true, only the geometry in the ProcessSelectionSet will be replaced or updated, while the rest of the scene tree is kept intact. New geometry is always added as the last child of the scene root. If generating a mappingimage to cast materials, new materialIds will also be appended to the end of the old material table instead of replacing the old ones.";
-                TypeOverride = "";
-                DefaultValue = false;
-                Visible = true;
-            }
-
-            public SimplygonKeepUnprocessedSceneMeshesEx(dynamic jsonData) : base("KeepUnprocessedSceneMeshes")
-            {
-                Type = "bool";
-                HelpText = "If false, the processor will remove all geometry and scene meshes which were not selected for processing from the scene. If true, only the geometry in the ProcessSelectionSet will be replaced or updated, while the rest of the scene tree is kept intact. New geometry is always added as the last child of the scene root. If generating a mappingimage to cast materials, new materialIds will also be appended to the end of the old material table instead of replacing the old ones.";
-                TypeOverride = "";
-                DefaultValue = false;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonKeepUnprocessedSceneMeshesEx DeepCopy()
-            {
-                return (SimplygonKeepUnprocessedSceneMeshesEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -20922,6 +21047,76 @@ namespace SimplygonUI
 
         }
 
+        public bool KeepUnprocessedSceneMeshes { get { return _KeepUnprocessedSceneMeshes; } set { _KeepUnprocessedSceneMeshes = value; OnPropertyChanged(); } }
+        private bool _KeepUnprocessedSceneMeshes;
+        public SimplygonKeepUnprocessedSceneMeshesEx KeepUnprocessedSceneMeshesUI { get; set; }
+        public class SimplygonKeepUnprocessedSceneMeshesEx : SimplygonSettingsProperty
+        {
+            public SimplygonAggregationSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.KeepUnprocessedSceneMeshes;
+                }
+
+                set
+                {
+                    bool needReload = Parent.KeepUnprocessedSceneMeshes != value;
+                    Parent.KeepUnprocessedSceneMeshes = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonKeepUnprocessedSceneMeshesEx() : base("KeepUnprocessedSceneMeshes")
+            {
+                Type = "bool";
+                HelpText = "If false, the processor will remove all geometry and scene meshes which were not selected for processing from the scene. If true, only the geometry in the ProcessSelectionSet will be replaced or updated, while the rest of the scene tree is kept intact. New geometry is always added as the last child of the scene root. If generating a mappingimage to cast materials, new materialIds will also be appended to the end of the old material table instead of replacing the old ones.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonKeepUnprocessedSceneMeshesEx(dynamic jsonData) : base("KeepUnprocessedSceneMeshes")
+            {
+                Type = "bool";
+                HelpText = "If false, the processor will remove all geometry and scene meshes which were not selected for processing from the scene. If true, only the geometry in the ProcessSelectionSet will be replaced or updated, while the rest of the scene tree is kept intact. New geometry is always added as the last child of the scene root. If generating a mappingimage to cast materials, new materialIds will also be appended to the end of the old material table instead of replacing the old ones.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonKeepUnprocessedSceneMeshesEx DeepCopy()
+            {
+                return (SimplygonKeepUnprocessedSceneMeshesEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
 
         public SimplygonAggregationSettings() : base("AggregationSettings")
         {
@@ -21016,12 +21211,6 @@ namespace SimplygonUI
                 jsonData.MergeGeometriesUI = MergeGeometriesUI.SaveJson();
             }
 
-            jsonData.KeepUnprocessedSceneMeshes = KeepUnprocessedSceneMeshes;
-            if(serializeUIComponents)
-            {
-                jsonData.KeepUnprocessedSceneMeshesUI = KeepUnprocessedSceneMeshesUI.SaveJson();
-            }
-
             jsonData.EnableGeometryCulling = EnableGeometryCulling;
             if(serializeUIComponents)
             {
@@ -21046,6 +21235,12 @@ namespace SimplygonUI
                 jsonData.SubdivisionTileSizeUI = SubdivisionTileSizeUI.SaveJson();
             }
 
+            jsonData.KeepUnprocessedSceneMeshes = KeepUnprocessedSceneMeshes;
+            if(serializeUIComponents)
+            {
+                jsonData.KeepUnprocessedSceneMeshesUI = KeepUnprocessedSceneMeshesUI.SaveJson();
+            }
+
             return jsonData;
         }
 
@@ -21059,11 +21254,6 @@ namespace SimplygonUI
             if(jsonData.GetValue("MergeGeometries") != null)
             {
                 MergeGeometries = (bool)jsonData.MergeGeometries;
-            }
-
-            if(jsonData.GetValue("KeepUnprocessedSceneMeshes") != null)
-            {
-                KeepUnprocessedSceneMeshes = (bool)jsonData.KeepUnprocessedSceneMeshes;
             }
 
             if(jsonData.GetValue("EnableGeometryCulling") != null)
@@ -21106,27 +21296,32 @@ namespace SimplygonUI
 
             }
 
+            if(jsonData.GetValue("KeepUnprocessedSceneMeshes") != null)
+            {
+                KeepUnprocessedSceneMeshes = (bool)jsonData.KeepUnprocessedSceneMeshes;
+            }
+
         }
 
         public override void Reset()
         {
             MergeGeometriesUI.Reset();
-            KeepUnprocessedSceneMeshesUI.Reset();
             EnableGeometryCullingUI.Reset();
             GeometryCullingPrecisionUI.Reset();
             SubdivideGeometryBasedOnUVTilesUI.Reset();
             SubdivisionTileSizeUI.Reset();
+            KeepUnprocessedSceneMeshesUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
         {
             IsEditEnabled = isEditEnabled;
             MergeGeometriesUI.IsEditEnabled = isEditEnabled;
-            KeepUnprocessedSceneMeshesUI.IsEditEnabled = isEditEnabled;
             EnableGeometryCullingUI.IsEditEnabled = isEditEnabled;
             GeometryCullingPrecisionUI.IsEditEnabled = isEditEnabled;
             SubdivideGeometryBasedOnUVTilesUI.IsEditEnabled = isEditEnabled;
             SubdivisionTileSizeUI.IsEditEnabled = isEditEnabled;
+            KeepUnprocessedSceneMeshesUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -29337,19 +29532,19 @@ namespace SimplygonUI
                 if (!VisibleOverride) return false;
                 if (Name == "InputMaterialSettings") return false;
                 if(MaterialChannelUI.Visible) return true;
+                if(OpacityChannelUI.Visible) return true;
                 if(OpacityChannelComponentUI.Visible) return true;
                 if(DitherTypeUI.Visible) return true;
                 if(FillModeUI.Visible) return true;
-                if(OpacityChannelUI.Visible) return true;
+                if(DilationUI.Visible) return true;
                 if(UseMultisamplingUI.Visible) return true;
-                if(BakeOpacityInAlphaUI.Visible) return true;
+                if(OutputPixelFormatUI.Visible) return true;
                 if(OutputImageFileFormatUI.Visible) return true;
                 if(OutputDDSCompressionTypeUI.Visible) return true;
-                if(DilationUI.Visible) return true;
-                if(OutputOpacityTypeUI.Visible) return true;
-                if(OutputPixelFormatUI.Visible) return true;
-                if(SkipCastingIfNoInputChannelUI.Visible) return true;
                 if(OutputSRGBUI.Visible) return true;
+                if(BakeOpacityInAlphaUI.Visible) return true;
+                if(SkipCastingIfNoInputChannelUI.Visible) return true;
+                if(OutputOpacityTypeUI.Visible) return true;
 
                 return false;
             }
@@ -29421,6 +29616,76 @@ namespace SimplygonUI
             public SimplygonMaterialChannelEx DeepCopy()
             {
                 return (SimplygonMaterialChannelEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
+        private string _OpacityChannel;
+        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
+        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        {
+            public SimplygonColorCasterSettings Parent { get; set; }
+            public string Value
+            {
+                get
+                {
+                    return Parent.OpacityChannel;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OpacityChannel != value;
+                    Parent.OpacityChannel = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public string DefaultValue { get; set; }
+
+            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                Visible = true;
+            }
+
+            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOpacityChannelEx DeepCopy()
+            {
+                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -29645,45 +29910,99 @@ namespace SimplygonUI
 
         }
 
-        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
-        private string _OpacityChannel;
-        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
-        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        public int Dilation { get { return _Dilation; } set { _Dilation = value; OnPropertyChanged(); } }
+        private int _Dilation;
+        public SimplygonDilationEx DilationUI { get; set; }
+        public class SimplygonDilationEx : SimplygonSettingsProperty
         {
             public SimplygonColorCasterSettings Parent { get; set; }
-            public string Value
+            public int Value
             {
                 get
                 {
-                    return Parent.OpacityChannel;
+                    return Parent.Dilation;
                 }
 
                 set
                 {
-                    bool needReload = Parent.OpacityChannel != value;
-                    Parent.OpacityChannel = value;
+                    bool needReload = Parent.Dilation != value;
+                    Parent.Dilation = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public string DefaultValue { get; set; }
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
 
-            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            public SimplygonDilationEx() : base("Dilation")
             {
-                Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
-                DefaultValue = "Opacity";
+                DefaultValue = 10;
+                MinValue = 0;
+                MaxValue = 1000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 1000;
+                TicksFrequencyValue = 1;
                 Visible = true;
             }
 
-            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            public SimplygonDilationEx(dynamic jsonData) : base("Dilation")
             {
-                Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
-                DefaultValue = "Opacity";
+                DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1000;
+                DefaultMaxValue = 1000;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -29701,15 +30020,18 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonOpacityChannelEx DeepCopy()
+            public SimplygonDilationEx DeepCopy()
             {
-                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
+                return (SimplygonDilationEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
                 return jsonData;
             }
 
@@ -29774,6 +30096,291 @@ namespace SimplygonUI
             public SimplygonUseMultisamplingEx DeepCopy()
             {
                 return (SimplygonUseMultisamplingEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public EPixelFormat OutputPixelFormat { get { return _OutputPixelFormat; } set { _OutputPixelFormat = value; OnPropertyChanged(); } }
+        private EPixelFormat _OutputPixelFormat;
+        public SimplygonOutputPixelFormatEx OutputPixelFormatUI { get; set; }
+        public class SimplygonOutputPixelFormatEx : SimplygonSettingsProperty
+        {
+            public SimplygonColorCasterSettings Parent { get; set; }
+            public EPixelFormat Value
+            {
+                get
+                {
+                    return Parent.OutputPixelFormat;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OutputPixelFormat != value;
+                    Parent.OutputPixelFormat = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EPixelFormat DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EPixelFormat)); } }
+
+            public SimplygonOutputPixelFormatEx() : base("OutputPixelFormat")
+            {
+                Type = "enum";
+                HelpText = "The output pixel format";
+                TypeOverride = "";
+                DefaultValue = EPixelFormat.R8G8B8A8;
+                Visible = true;
+            }
+
+            public SimplygonOutputPixelFormatEx(dynamic jsonData) : base("OutputPixelFormat")
+            {
+                Type = "enum";
+                HelpText = "The output pixel format";
+                TypeOverride = "";
+                DefaultValue = EPixelFormat.R8G8B8A8;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOutputPixelFormatEx DeepCopy()
+            {
+                return (SimplygonOutputPixelFormatEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public EImageOutputFormat OutputImageFileFormat { get { return _OutputImageFileFormat; } set { _OutputImageFileFormat = value; OnPropertyChanged(); } }
+        private EImageOutputFormat _OutputImageFileFormat;
+        public SimplygonOutputImageFileFormatEx OutputImageFileFormatUI { get; set; }
+        public class SimplygonOutputImageFileFormatEx : SimplygonSettingsProperty
+        {
+            public SimplygonColorCasterSettings Parent { get; set; }
+            public EImageOutputFormat Value
+            {
+                get
+                {
+                    return Parent.OutputImageFileFormat;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OutputImageFileFormat != value;
+                    Parent.OutputImageFileFormat = value;
+                    Parent.OutputDDSCompressionTypeUI.Visible = Visible;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EImageOutputFormat DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EImageOutputFormat)); } }
+
+            public SimplygonOutputImageFileFormatEx() : base("OutputImageFileFormat")
+            {
+                Type = "enum";
+                HelpText = "File format for output texture.";
+                TypeOverride = "";
+                DefaultValue = EImageOutputFormat.PNG;
+                Visible = true;
+            }
+
+            public SimplygonOutputImageFileFormatEx(dynamic jsonData) : base("OutputImageFileFormat")
+            {
+                Type = "enum";
+                HelpText = "File format for output texture.";
+                TypeOverride = "";
+                DefaultValue = EImageOutputFormat.PNG;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOutputImageFileFormatEx DeepCopy()
+            {
+                return (SimplygonOutputImageFileFormatEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public EDDSCompressionType OutputDDSCompressionType { get { return _OutputDDSCompressionType; } set { _OutputDDSCompressionType = value; OnPropertyChanged(); } }
+        private EDDSCompressionType _OutputDDSCompressionType;
+        public SimplygonOutputDDSCompressionTypeEx OutputDDSCompressionTypeUI { get; set; }
+        public class SimplygonOutputDDSCompressionTypeEx : SimplygonSettingsProperty
+        {
+            public SimplygonColorCasterSettings Parent { get; set; }
+            public EDDSCompressionType Value
+            {
+                get
+                {
+                    return Parent.OutputDDSCompressionType;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OutputDDSCompressionType != value;
+                    Parent.OutputDDSCompressionType = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EDDSCompressionType DefaultValue { get; set; }
+            public override bool Visible { get { if( Parent.OutputImageFileFormatUI != null ) { return Parent.OutputImageFileFormat == EImageOutputFormat.DDS && Parent.OutputImageFileFormatUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EDDSCompressionType)); } }
+
+            public SimplygonOutputDDSCompressionTypeEx() : base("OutputDDSCompressionType")
+            {
+                Type = "enum";
+                HelpText = "DDS compression if output format is DDS.";
+                TypeOverride = "";
+                DefaultValue = EDDSCompressionType.NoCompression;
+                Visible = true;
+            }
+
+            public SimplygonOutputDDSCompressionTypeEx(dynamic jsonData) : base("OutputDDSCompressionType")
+            {
+                Type = "enum";
+                HelpText = "DDS compression if output format is DDS.";
+                TypeOverride = "";
+                DefaultValue = EDDSCompressionType.NoCompression;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOutputDDSCompressionTypeEx DeepCopy()
+            {
+                return (SimplygonOutputDDSCompressionTypeEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool OutputSRGB { get { return _OutputSRGB; } set { _OutputSRGB = value; OnPropertyChanged(); } }
+        private bool _OutputSRGB;
+        public SimplygonOutputSRGBEx OutputSRGBUI { get; set; }
+        public class SimplygonOutputSRGBEx : SimplygonSettingsProperty
+        {
+            public SimplygonColorCasterSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.OutputSRGB;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OutputSRGB != value;
+                    Parent.OutputSRGB = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonOutputSRGBEx() : base("OutputSRGB")
+            {
+                Type = "bool";
+                HelpText = "If set, output textures are exported in sRGB format. Input texture format is determined by the flag in the corresponding texture node in the material definition.";
+                TypeOverride = "";
+                DefaultValue = true;
+                Visible = true;
+            }
+
+            public SimplygonOutputSRGBEx(dynamic jsonData) : base("OutputSRGB")
+            {
+                Type = "bool";
+                HelpText = "If set, output textures are exported in sRGB format. Input texture format is determined by the flag in the corresponding texture node in the material definition.";
+                TypeOverride = "";
+                DefaultValue = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOutputSRGBEx DeepCopy()
+            {
+                return (SimplygonOutputSRGBEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -29855,47 +30462,45 @@ namespace SimplygonUI
 
         }
 
-        public EImageOutputFormat OutputImageFileFormat { get { return _OutputImageFileFormat; } set { _OutputImageFileFormat = value; OnPropertyChanged(); } }
-        private EImageOutputFormat _OutputImageFileFormat;
-        public SimplygonOutputImageFileFormatEx OutputImageFileFormatUI { get; set; }
-        public class SimplygonOutputImageFileFormatEx : SimplygonSettingsProperty
+        public bool SkipCastingIfNoInputChannel { get { return _SkipCastingIfNoInputChannel; } set { _SkipCastingIfNoInputChannel = value; OnPropertyChanged(); } }
+        private bool _SkipCastingIfNoInputChannel;
+        public SimplygonSkipCastingIfNoInputChannelEx SkipCastingIfNoInputChannelUI { get; set; }
+        public class SimplygonSkipCastingIfNoInputChannelEx : SimplygonSettingsProperty
         {
             public SimplygonColorCasterSettings Parent { get; set; }
-            public EImageOutputFormat Value
+            public bool Value
             {
                 get
                 {
-                    return Parent.OutputImageFileFormat;
+                    return Parent.SkipCastingIfNoInputChannel;
                 }
 
                 set
                 {
-                    bool needReload = Parent.OutputImageFileFormat != value;
-                    Parent.OutputImageFileFormat = value;
-                    Parent.OutputDDSCompressionTypeUI.Visible = Visible;
+                    bool needReload = Parent.SkipCastingIfNoInputChannel != value;
+                    Parent.SkipCastingIfNoInputChannel = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public EImageOutputFormat DefaultValue { get; set; }
-            public Array EnumValues { get { return Enum.GetValues(typeof(EImageOutputFormat)); } }
+            public bool DefaultValue { get; set; }
 
-            public SimplygonOutputImageFileFormatEx() : base("OutputImageFileFormat")
+            public SimplygonSkipCastingIfNoInputChannelEx() : base("SkipCastingIfNoInputChannel")
             {
-                Type = "enum";
-                HelpText = "File format for output texture.";
+                Type = "bool";
+                HelpText = "If this flag is set, the caster will only run if there is at least one input material that has the main input channel which is to be cast. If the flag is not set, the caster will always produce an output, even if it is totally empty/unset.";
                 TypeOverride = "";
-                DefaultValue = EImageOutputFormat.PNG;
+                DefaultValue = false;
                 Visible = true;
             }
 
-            public SimplygonOutputImageFileFormatEx(dynamic jsonData) : base("OutputImageFileFormat")
+            public SimplygonSkipCastingIfNoInputChannelEx(dynamic jsonData) : base("SkipCastingIfNoInputChannel")
             {
-                Type = "enum";
-                HelpText = "File format for output texture.";
+                Type = "bool";
+                HelpText = "If this flag is set, the caster will only run if there is at least one input material that has the main input channel which is to be cast. If the flag is not set, the caster will always produce an output, even if it is totally empty/unset.";
                 TypeOverride = "";
-                DefaultValue = EImageOutputFormat.PNG;
+                DefaultValue = false;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -29913,214 +30518,15 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonOutputImageFileFormatEx DeepCopy()
+            public SimplygonSkipCastingIfNoInputChannelEx DeepCopy()
             {
-                return (SimplygonOutputImageFileFormatEx)this.MemberwiseClone();
+                return (SimplygonSkipCastingIfNoInputChannelEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public EDDSCompressionType OutputDDSCompressionType { get { return _OutputDDSCompressionType; } set { _OutputDDSCompressionType = value; OnPropertyChanged(); } }
-        private EDDSCompressionType _OutputDDSCompressionType;
-        public SimplygonOutputDDSCompressionTypeEx OutputDDSCompressionTypeUI { get; set; }
-        public class SimplygonOutputDDSCompressionTypeEx : SimplygonSettingsProperty
-        {
-            public SimplygonColorCasterSettings Parent { get; set; }
-            public EDDSCompressionType Value
-            {
-                get
-                {
-                    return Parent.OutputDDSCompressionType;
-                }
-
-                set
-                {
-                    bool needReload = Parent.OutputDDSCompressionType != value;
-                    Parent.OutputDDSCompressionType = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public EDDSCompressionType DefaultValue { get; set; }
-            public override bool Visible { get { if( Parent.OutputImageFileFormatUI != null ) { return Parent.OutputImageFileFormat == EImageOutputFormat.DDS && Parent.OutputImageFileFormatUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
-            public Array EnumValues { get { return Enum.GetValues(typeof(EDDSCompressionType)); } }
-
-            public SimplygonOutputDDSCompressionTypeEx() : base("OutputDDSCompressionType")
-            {
-                Type = "enum";
-                HelpText = "DDS compression if output format is DDS.";
-                TypeOverride = "";
-                DefaultValue = EDDSCompressionType.NoCompression;
-                Visible = true;
-            }
-
-            public SimplygonOutputDDSCompressionTypeEx(dynamic jsonData) : base("OutputDDSCompressionType")
-            {
-                Type = "enum";
-                HelpText = "DDS compression if output format is DDS.";
-                TypeOverride = "";
-                DefaultValue = EDDSCompressionType.NoCompression;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonOutputDDSCompressionTypeEx DeepCopy()
-            {
-                return (SimplygonOutputDDSCompressionTypeEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public int Dilation { get { return _Dilation; } set { _Dilation = value; OnPropertyChanged(); } }
-        private int _Dilation;
-        public SimplygonDilationEx DilationUI { get; set; }
-        public class SimplygonDilationEx : SimplygonSettingsProperty
-        {
-            public SimplygonColorCasterSettings Parent { get; set; }
-            public int Value
-            {
-                get
-                {
-                    return Parent.Dilation;
-                }
-
-                set
-                {
-                    bool needReload = Parent.Dilation != value;
-                    Parent.Dilation = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public int DefaultValue { get; set; }
-            public int MinValue { get; set; }
-            public int MaxValue { get; set; }
-            public int DefaultMinValue { get; set; }
-            public int DefaultMaxValue { get; set; }
-            public int TicksFrequencyValue { get; set; }
-
-            public SimplygonDilationEx() : base("Dilation")
-            {
-                Type = "uint";
-                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
-                TypeOverride = "";
-                DefaultValue = 10;
-                MinValue = 0;
-                MaxValue = 1000;
-                DefaultMinValue = 0;
-                DefaultMaxValue = 1000;
-                TicksFrequencyValue = 1;
-                Visible = true;
-            }
-
-            public SimplygonDilationEx(dynamic jsonData) : base("Dilation")
-            {
-                Type = "uint";
-                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
-                TypeOverride = "";
-                DefaultValue = 10;
-                MinValue = 0;
-                DefaultMinValue = 0;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (int)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 1000;
-                DefaultMaxValue = 1000;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (int)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 1;
-                }
-
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonDilationEx DeepCopy()
-            {
-                return (SimplygonDilationEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
                 return jsonData;
             }
 
@@ -30197,217 +30603,6 @@ namespace SimplygonUI
 
         }
 
-        public EPixelFormat OutputPixelFormat { get { return _OutputPixelFormat; } set { _OutputPixelFormat = value; OnPropertyChanged(); } }
-        private EPixelFormat _OutputPixelFormat;
-        public SimplygonOutputPixelFormatEx OutputPixelFormatUI { get; set; }
-        public class SimplygonOutputPixelFormatEx : SimplygonSettingsProperty
-        {
-            public SimplygonColorCasterSettings Parent { get; set; }
-            public EPixelFormat Value
-            {
-                get
-                {
-                    return Parent.OutputPixelFormat;
-                }
-
-                set
-                {
-                    bool needReload = Parent.OutputPixelFormat != value;
-                    Parent.OutputPixelFormat = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public EPixelFormat DefaultValue { get; set; }
-            public Array EnumValues { get { return Enum.GetValues(typeof(EPixelFormat)); } }
-
-            public SimplygonOutputPixelFormatEx() : base("OutputPixelFormat")
-            {
-                Type = "enum";
-                HelpText = "The output pixel format";
-                TypeOverride = "";
-                DefaultValue = EPixelFormat.R8G8B8A8;
-                Visible = true;
-            }
-
-            public SimplygonOutputPixelFormatEx(dynamic jsonData) : base("OutputPixelFormat")
-            {
-                Type = "enum";
-                HelpText = "The output pixel format";
-                TypeOverride = "";
-                DefaultValue = EPixelFormat.R8G8B8A8;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonOutputPixelFormatEx DeepCopy()
-            {
-                return (SimplygonOutputPixelFormatEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public bool SkipCastingIfNoInputChannel { get { return _SkipCastingIfNoInputChannel; } set { _SkipCastingIfNoInputChannel = value; OnPropertyChanged(); } }
-        private bool _SkipCastingIfNoInputChannel;
-        public SimplygonSkipCastingIfNoInputChannelEx SkipCastingIfNoInputChannelUI { get; set; }
-        public class SimplygonSkipCastingIfNoInputChannelEx : SimplygonSettingsProperty
-        {
-            public SimplygonColorCasterSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.SkipCastingIfNoInputChannel;
-                }
-
-                set
-                {
-                    bool needReload = Parent.SkipCastingIfNoInputChannel != value;
-                    Parent.SkipCastingIfNoInputChannel = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-
-            public SimplygonSkipCastingIfNoInputChannelEx() : base("SkipCastingIfNoInputChannel")
-            {
-                Type = "bool";
-                HelpText = "If this flag is set, the caster will only run if there is at least one input material that has the main input channel which is to be cast. If the flag is not set, the caster will always produce an output, even if it is totally empty/unset.";
-                TypeOverride = "";
-                DefaultValue = false;
-                Visible = true;
-            }
-
-            public SimplygonSkipCastingIfNoInputChannelEx(dynamic jsonData) : base("SkipCastingIfNoInputChannel")
-            {
-                Type = "bool";
-                HelpText = "If this flag is set, the caster will only run if there is at least one input material that has the main input channel which is to be cast. If the flag is not set, the caster will always produce an output, even if it is totally empty/unset.";
-                TypeOverride = "";
-                DefaultValue = false;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonSkipCastingIfNoInputChannelEx DeepCopy()
-            {
-                return (SimplygonSkipCastingIfNoInputChannelEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public bool OutputSRGB { get { return _OutputSRGB; } set { _OutputSRGB = value; OnPropertyChanged(); } }
-        private bool _OutputSRGB;
-        public SimplygonOutputSRGBEx OutputSRGBUI { get; set; }
-        public class SimplygonOutputSRGBEx : SimplygonSettingsProperty
-        {
-            public SimplygonColorCasterSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.OutputSRGB;
-                }
-
-                set
-                {
-                    bool needReload = Parent.OutputSRGB != value;
-                    Parent.OutputSRGB = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-
-            public SimplygonOutputSRGBEx() : base("OutputSRGB")
-            {
-                Type = "bool";
-                HelpText = "If set, output textures are exported in sRGB format. Input texture format is determined by the flag in the corresponding texture node in the material definition.";
-                TypeOverride = "";
-                DefaultValue = true;
-                Visible = true;
-            }
-
-            public SimplygonOutputSRGBEx(dynamic jsonData) : base("OutputSRGB")
-            {
-                Type = "bool";
-                HelpText = "If set, output textures are exported in sRGB format. Input texture format is determined by the flag in the corresponding texture node in the material definition.";
-                TypeOverride = "";
-                DefaultValue = true;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonOutputSRGBEx DeepCopy()
-            {
-                return (SimplygonOutputSRGBEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
 
         public SimplygonColorCasterSettings() : base("ColorCasterSettings")
         {
@@ -30416,14 +30611,14 @@ namespace SimplygonUI
             MaterialChannelUI.Parent = this;
             MaterialChannel = MaterialChannelUI.DefaultValue;
             Items.Add(MaterialChannelUI);
-            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
-            OpacityChannelComponentUI.Parent = this;
-            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
-            Items.Add(OpacityChannelComponentUI);
             OpacityChannelUI = new SimplygonOpacityChannelEx();
             OpacityChannelUI.Parent = this;
             OpacityChannel = OpacityChannelUI.DefaultValue;
             Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
             DitherTypeUI = new SimplygonDitherTypeEx();
             DitherTypeUI.Parent = this;
             DitherType = DitherTypeUI.DefaultValue;
@@ -30477,14 +30672,14 @@ namespace SimplygonUI
             MaterialChannelUI.Parent = this;
             MaterialChannel = MaterialChannelUI.DefaultValue;
             Items.Add(MaterialChannelUI);
-            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
-            OpacityChannelComponentUI.Parent = this;
-            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
-            Items.Add(OpacityChannelComponentUI);
             OpacityChannelUI = new SimplygonOpacityChannelEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelUI") != null ? jsonData.OpacityChannelUI : null);
             OpacityChannelUI.Parent = this;
             OpacityChannel = OpacityChannelUI.DefaultValue;
             Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
             DitherTypeUI = new SimplygonDitherTypeEx(jsonData != null && ((JObject)jsonData).GetValue("DitherTypeUI") != null ? jsonData.DitherTypeUI : null);
             DitherTypeUI.Parent = this;
             DitherType = DitherTypeUI.DefaultValue;
@@ -30539,12 +30734,12 @@ namespace SimplygonUI
             copy.MaterialChannelUI = this.MaterialChannelUI.DeepCopy();
             copy.MaterialChannelUI.Parent = copy;
             copy.Items.Add(copy.MaterialChannelUI);
-            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
-            copy.OpacityChannelComponentUI.Parent = copy;
-            copy.Items.Add(copy.OpacityChannelComponentUI);
             copy.OpacityChannelUI = this.OpacityChannelUI.DeepCopy();
             copy.OpacityChannelUI.Parent = copy;
             copy.Items.Add(copy.OpacityChannelUI);
+            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
+            copy.OpacityChannelComponentUI.Parent = copy;
+            copy.Items.Add(copy.OpacityChannelComponentUI);
             copy.DitherTypeUI = this.DitherTypeUI.DeepCopy();
             copy.DitherTypeUI.Parent = copy;
             copy.Items.Add(copy.DitherTypeUI);
@@ -30590,6 +30785,12 @@ namespace SimplygonUI
                 jsonData.MaterialChannelUI = MaterialChannelUI.SaveJson();
             }
 
+            jsonData.OpacityChannel = OpacityChannel;
+            if(serializeUIComponents)
+            {
+                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+            }
+
             jsonData.OpacityChannelComponent = (int)OpacityChannelComponent;
             if(serializeUIComponents)
             {
@@ -30608,10 +30809,10 @@ namespace SimplygonUI
                 jsonData.FillModeUI = FillModeUI.SaveJson();
             }
 
-            jsonData.OpacityChannel = OpacityChannel;
+            jsonData.Dilation = Dilation;
             if(serializeUIComponents)
             {
-                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+                jsonData.DilationUI = DilationUI.SaveJson();
             }
 
             jsonData.UseMultisampling = UseMultisampling;
@@ -30620,10 +30821,10 @@ namespace SimplygonUI
                 jsonData.UseMultisamplingUI = UseMultisamplingUI.SaveJson();
             }
 
-            jsonData.BakeOpacityInAlpha = BakeOpacityInAlpha;
+            jsonData.OutputPixelFormat = (int)OutputPixelFormat;
             if(serializeUIComponents)
             {
-                jsonData.BakeOpacityInAlphaUI = BakeOpacityInAlphaUI.SaveJson();
+                jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
             }
 
             jsonData.OutputImageFileFormat = (int)OutputImageFileFormat;
@@ -30638,22 +30839,16 @@ namespace SimplygonUI
                 jsonData.OutputDDSCompressionTypeUI = OutputDDSCompressionTypeUI.SaveJson();
             }
 
-            jsonData.Dilation = Dilation;
+            jsonData.OutputSRGB = OutputSRGB;
             if(serializeUIComponents)
             {
-                jsonData.DilationUI = DilationUI.SaveJson();
+                jsonData.OutputSRGBUI = OutputSRGBUI.SaveJson();
             }
 
-            jsonData.OutputOpacityType = (int)OutputOpacityType;
+            jsonData.BakeOpacityInAlpha = BakeOpacityInAlpha;
             if(serializeUIComponents)
             {
-                jsonData.OutputOpacityTypeUI = OutputOpacityTypeUI.SaveJson();
-            }
-
-            jsonData.OutputPixelFormat = (int)OutputPixelFormat;
-            if(serializeUIComponents)
-            {
-                jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
+                jsonData.BakeOpacityInAlphaUI = BakeOpacityInAlphaUI.SaveJson();
             }
 
             jsonData.SkipCastingIfNoInputChannel = SkipCastingIfNoInputChannel;
@@ -30662,10 +30857,10 @@ namespace SimplygonUI
                 jsonData.SkipCastingIfNoInputChannelUI = SkipCastingIfNoInputChannelUI.SaveJson();
             }
 
-            jsonData.OutputSRGB = OutputSRGB;
+            jsonData.OutputOpacityType = (int)OutputOpacityType;
             if(serializeUIComponents)
             {
-                jsonData.OutputSRGBUI = OutputSRGBUI.SaveJson();
+                jsonData.OutputOpacityTypeUI = OutputOpacityTypeUI.SaveJson();
             }
 
             return jsonData;
@@ -30683,6 +30878,11 @@ namespace SimplygonUI
                 MaterialChannel = (string)jsonData.MaterialChannel;
             }
 
+            if(jsonData.GetValue("OpacityChannel") != null)
+            {
+                OpacityChannel = (string)jsonData.OpacityChannel;
+            }
+
             if(jsonData.GetValue("OpacityChannelComponent") != null)
             {
                 OpacityChannelComponent = (EColorComponent)jsonData.OpacityChannelComponent;
@@ -30696,31 +30896,6 @@ namespace SimplygonUI
             if(jsonData.GetValue("FillMode") != null)
             {
                 FillMode = (EAtlasFillMode)jsonData.FillMode;
-            }
-
-            if(jsonData.GetValue("OpacityChannel") != null)
-            {
-                OpacityChannel = (string)jsonData.OpacityChannel;
-            }
-
-            if(jsonData.GetValue("UseMultisampling") != null)
-            {
-                UseMultisampling = (bool)jsonData.UseMultisampling;
-            }
-
-            if(jsonData.GetValue("BakeOpacityInAlpha") != null)
-            {
-                BakeOpacityInAlpha = (bool)jsonData.BakeOpacityInAlpha;
-            }
-
-            if(jsonData.GetValue("OutputImageFileFormat") != null)
-            {
-                OutputImageFileFormat = (EImageOutputFormat)jsonData.OutputImageFileFormat;
-            }
-
-            if(jsonData.GetValue("OutputDDSCompressionType") != null)
-            {
-                OutputDDSCompressionType = (EDDSCompressionType)jsonData.OutputDDSCompressionType;
             }
 
             if(jsonData.GetValue("Dilation") != null)
@@ -30738,9 +30913,9 @@ namespace SimplygonUI
 
             }
 
-            if(jsonData.GetValue("OutputOpacityType") != null)
+            if(jsonData.GetValue("UseMultisampling") != null)
             {
-                OutputOpacityType = (EOpacityType)jsonData.OutputOpacityType;
+                UseMultisampling = (bool)jsonData.UseMultisampling;
             }
 
             if(jsonData.GetValue("OutputPixelFormat") != null)
@@ -30748,9 +30923,14 @@ namespace SimplygonUI
                 OutputPixelFormat = (EPixelFormat)jsonData.OutputPixelFormat;
             }
 
-            if(jsonData.GetValue("SkipCastingIfNoInputChannel") != null)
+            if(jsonData.GetValue("OutputImageFileFormat") != null)
             {
-                SkipCastingIfNoInputChannel = (bool)jsonData.SkipCastingIfNoInputChannel;
+                OutputImageFileFormat = (EImageOutputFormat)jsonData.OutputImageFileFormat;
+            }
+
+            if(jsonData.GetValue("OutputDDSCompressionType") != null)
+            {
+                OutputDDSCompressionType = (EDDSCompressionType)jsonData.OutputDDSCompressionType;
             }
 
             if(jsonData.GetValue("OutputSRGB") != null)
@@ -30758,43 +30938,58 @@ namespace SimplygonUI
                 OutputSRGB = (bool)jsonData.OutputSRGB;
             }
 
+            if(jsonData.GetValue("BakeOpacityInAlpha") != null)
+            {
+                BakeOpacityInAlpha = (bool)jsonData.BakeOpacityInAlpha;
+            }
+
+            if(jsonData.GetValue("SkipCastingIfNoInputChannel") != null)
+            {
+                SkipCastingIfNoInputChannel = (bool)jsonData.SkipCastingIfNoInputChannel;
+            }
+
+            if(jsonData.GetValue("OutputOpacityType") != null)
+            {
+                OutputOpacityType = (EOpacityType)jsonData.OutputOpacityType;
+            }
+
         }
 
         public override void Reset()
         {
             MaterialChannelUI.Reset();
+            OpacityChannelUI.Reset();
             OpacityChannelComponentUI.Reset();
             DitherTypeUI.Reset();
             FillModeUI.Reset();
-            OpacityChannelUI.Reset();
+            DilationUI.Reset();
             UseMultisamplingUI.Reset();
-            BakeOpacityInAlphaUI.Reset();
+            OutputPixelFormatUI.Reset();
             OutputImageFileFormatUI.Reset();
             OutputDDSCompressionTypeUI.Reset();
-            DilationUI.Reset();
-            OutputOpacityTypeUI.Reset();
-            OutputPixelFormatUI.Reset();
-            SkipCastingIfNoInputChannelUI.Reset();
             OutputSRGBUI.Reset();
+            BakeOpacityInAlphaUI.Reset();
+            SkipCastingIfNoInputChannelUI.Reset();
+            OutputOpacityTypeUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
         {
             IsEditEnabled = isEditEnabled;
             MaterialChannelUI.IsEditEnabled = isEditEnabled;
+            OpacityChannelUI.IsEditEnabled = isEditEnabled;
             OpacityChannelComponentUI.IsEditEnabled = isEditEnabled;
             DitherTypeUI.IsEditEnabled = isEditEnabled;
             FillModeUI.IsEditEnabled = isEditEnabled;
-            OpacityChannelUI.IsEditEnabled = isEditEnabled;
+            DilationUI.IsEditEnabled = isEditEnabled;
             UseMultisamplingUI.IsEditEnabled = isEditEnabled;
-            BakeOpacityInAlphaUI.IsEditEnabled = isEditEnabled;
+            OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
             OutputImageFileFormatUI.IsEditEnabled = isEditEnabled;
             OutputDDSCompressionTypeUI.IsEditEnabled = isEditEnabled;
-            DilationUI.IsEditEnabled = isEditEnabled;
-            OutputOpacityTypeUI.IsEditEnabled = isEditEnabled;
-            OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
-            SkipCastingIfNoInputChannelUI.IsEditEnabled = isEditEnabled;
             OutputSRGBUI.IsEditEnabled = isEditEnabled;
+            BakeOpacityInAlphaUI.IsEditEnabled = isEditEnabled;
+            SkipCastingIfNoInputChannelUI.IsEditEnabled = isEditEnabled;
+            OutputOpacityTypeUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -30808,18 +31003,18 @@ namespace SimplygonUI
                 if (!VisibleOverride) return false;
                 if (Name == "InputMaterialSettings") return false;
                 if(MaterialChannelUI.Visible) return true;
+                if(OpacityChannelUI.Visible) return true;
                 if(OpacityChannelComponentUI.Visible) return true;
                 if(DitherTypeUI.Visible) return true;
                 if(FillModeUI.Visible) return true;
-                if(OpacityChannelUI.Visible) return true;
+                if(DilationUI.Visible) return true;
                 if(UseMultisamplingUI.Visible) return true;
-                if(OutputSRGBUI.Visible) return true;
+                if(OutputPixelFormatUI.Visible) return true;
                 if(OutputImageFileFormatUI.Visible) return true;
                 if(OutputDDSCompressionTypeUI.Visible) return true;
-                if(DilationUI.Visible) return true;
-                if(OutputOpacityTypeUI.Visible) return true;
-                if(OutputPixelFormatUI.Visible) return true;
+                if(OutputSRGBUI.Visible) return true;
                 if(OutputToTessellatedAttributesUI.Visible) return true;
+                if(OutputOpacityTypeUI.Visible) return true;
 
                 return false;
             }
@@ -30891,6 +31086,76 @@ namespace SimplygonUI
             public SimplygonMaterialChannelEx DeepCopy()
             {
                 return (SimplygonMaterialChannelEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
+        private string _OpacityChannel;
+        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
+        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        {
+            public SimplygonOpacityCasterSettings Parent { get; set; }
+            public string Value
+            {
+                get
+                {
+                    return Parent.OpacityChannel;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OpacityChannel != value;
+                    Parent.OpacityChannel = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public string DefaultValue { get; set; }
+
+            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                Visible = true;
+            }
+
+            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOpacityChannelEx DeepCopy()
+            {
+                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -31115,45 +31380,99 @@ namespace SimplygonUI
 
         }
 
-        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
-        private string _OpacityChannel;
-        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
-        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        public int Dilation { get { return _Dilation; } set { _Dilation = value; OnPropertyChanged(); } }
+        private int _Dilation;
+        public SimplygonDilationEx DilationUI { get; set; }
+        public class SimplygonDilationEx : SimplygonSettingsProperty
         {
             public SimplygonOpacityCasterSettings Parent { get; set; }
-            public string Value
+            public int Value
             {
                 get
                 {
-                    return Parent.OpacityChannel;
+                    return Parent.Dilation;
                 }
 
                 set
                 {
-                    bool needReload = Parent.OpacityChannel != value;
-                    Parent.OpacityChannel = value;
+                    bool needReload = Parent.Dilation != value;
+                    Parent.Dilation = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public string DefaultValue { get; set; }
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
 
-            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            public SimplygonDilationEx() : base("Dilation")
             {
-                Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
-                DefaultValue = "Opacity";
+                DefaultValue = 10;
+                MinValue = 0;
+                MaxValue = 1000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 1000;
+                TicksFrequencyValue = 1;
                 Visible = true;
             }
 
-            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            public SimplygonDilationEx(dynamic jsonData) : base("Dilation")
             {
-                Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
-                DefaultValue = "Opacity";
+                DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1000;
+                DefaultMaxValue = 1000;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -31171,15 +31490,18 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonOpacityChannelEx DeepCopy()
+            public SimplygonDilationEx DeepCopy()
             {
-                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
+                return (SimplygonDilationEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
                 return jsonData;
             }
 
@@ -31255,45 +31577,46 @@ namespace SimplygonUI
 
         }
 
-        public bool OutputSRGB { get { return _OutputSRGB; } set { _OutputSRGB = value; OnPropertyChanged(); } }
-        private bool _OutputSRGB;
-        public SimplygonOutputSRGBEx OutputSRGBUI { get; set; }
-        public class SimplygonOutputSRGBEx : SimplygonSettingsProperty
+        public EPixelFormat OutputPixelFormat { get { return _OutputPixelFormat; } set { _OutputPixelFormat = value; OnPropertyChanged(); } }
+        private EPixelFormat _OutputPixelFormat;
+        public SimplygonOutputPixelFormatEx OutputPixelFormatUI { get; set; }
+        public class SimplygonOutputPixelFormatEx : SimplygonSettingsProperty
         {
             public SimplygonOpacityCasterSettings Parent { get; set; }
-            public bool Value
+            public EPixelFormat Value
             {
                 get
                 {
-                    return Parent.OutputSRGB;
+                    return Parent.OutputPixelFormat;
                 }
 
                 set
                 {
-                    bool needReload = Parent.OutputSRGB != value;
-                    Parent.OutputSRGB = value;
+                    bool needReload = Parent.OutputPixelFormat != value;
+                    Parent.OutputPixelFormat = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public bool DefaultValue { get; set; }
+            public EPixelFormat DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EPixelFormat)); } }
 
-            public SimplygonOutputSRGBEx() : base("OutputSRGB")
+            public SimplygonOutputPixelFormatEx() : base("OutputPixelFormat")
             {
-                Type = "bool";
-                HelpText = "If set, output textures are exported in sRGB format. Input texture format is determined by the flag in the corresponding texture node in the material definition.";
+                Type = "enum";
+                HelpText = "The output pixel format";
                 TypeOverride = "";
-                DefaultValue = false;
+                DefaultValue = EPixelFormat.R8G8B8A8;
                 Visible = true;
             }
 
-            public SimplygonOutputSRGBEx(dynamic jsonData) : base("OutputSRGB")
+            public SimplygonOutputPixelFormatEx(dynamic jsonData) : base("OutputPixelFormat")
             {
-                Type = "bool";
-                HelpText = "If set, output textures are exported in sRGB format. Input texture format is determined by the flag in the corresponding texture node in the material definition.";
+                Type = "enum";
+                HelpText = "The output pixel format";
                 TypeOverride = "";
-                DefaultValue = false;
+                DefaultValue = EPixelFormat.R8G8B8A8;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -31311,9 +31634,9 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonOutputSRGBEx DeepCopy()
+            public SimplygonOutputPixelFormatEx DeepCopy()
             {
-                return (SimplygonOutputSRGBEx)this.MemberwiseClone();
+                return (SimplygonOutputPixelFormatEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -31469,99 +31792,45 @@ namespace SimplygonUI
 
         }
 
-        public int Dilation { get { return _Dilation; } set { _Dilation = value; OnPropertyChanged(); } }
-        private int _Dilation;
-        public SimplygonDilationEx DilationUI { get; set; }
-        public class SimplygonDilationEx : SimplygonSettingsProperty
+        public bool OutputSRGB { get { return _OutputSRGB; } set { _OutputSRGB = value; OnPropertyChanged(); } }
+        private bool _OutputSRGB;
+        public SimplygonOutputSRGBEx OutputSRGBUI { get; set; }
+        public class SimplygonOutputSRGBEx : SimplygonSettingsProperty
         {
             public SimplygonOpacityCasterSettings Parent { get; set; }
-            public int Value
+            public bool Value
             {
                 get
                 {
-                    return Parent.Dilation;
+                    return Parent.OutputSRGB;
                 }
 
                 set
                 {
-                    bool needReload = Parent.Dilation != value;
-                    Parent.Dilation = value;
+                    bool needReload = Parent.OutputSRGB != value;
+                    Parent.OutputSRGB = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public int DefaultValue { get; set; }
-            public int MinValue { get; set; }
-            public int MaxValue { get; set; }
-            public int DefaultMinValue { get; set; }
-            public int DefaultMaxValue { get; set; }
-            public int TicksFrequencyValue { get; set; }
+            public bool DefaultValue { get; set; }
 
-            public SimplygonDilationEx() : base("Dilation")
+            public SimplygonOutputSRGBEx() : base("OutputSRGB")
             {
-                Type = "uint";
-                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
+                Type = "bool";
+                HelpText = "If set, output textures are exported in sRGB format. Input texture format is determined by the flag in the corresponding texture node in the material definition.";
                 TypeOverride = "";
-                DefaultValue = 10;
-                MinValue = 0;
-                MaxValue = 1000;
-                DefaultMinValue = 0;
-                DefaultMaxValue = 1000;
-                TicksFrequencyValue = 1;
+                DefaultValue = false;
                 Visible = true;
             }
 
-            public SimplygonDilationEx(dynamic jsonData) : base("Dilation")
+            public SimplygonOutputSRGBEx(dynamic jsonData) : base("OutputSRGB")
             {
-                Type = "uint";
-                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
+                Type = "bool";
+                HelpText = "If set, output textures are exported in sRGB format. Input texture format is determined by the flag in the corresponding texture node in the material definition.";
                 TypeOverride = "";
-                DefaultValue = 10;
-                MinValue = 0;
-                DefaultMinValue = 0;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (int)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 1000;
-                DefaultMaxValue = 1000;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (int)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 1;
-                }
-
+                DefaultValue = false;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -31579,154 +31848,9 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonDilationEx DeepCopy()
+            public SimplygonOutputSRGBEx DeepCopy()
             {
-                return (SimplygonDilationEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
-                return jsonData;
-            }
-
-        }
-
-        public EOpacityType OutputOpacityType { get { return _OutputOpacityType; } set { _OutputOpacityType = value; OnPropertyChanged(); } }
-        private EOpacityType _OutputOpacityType;
-        public SimplygonOutputOpacityTypeEx OutputOpacityTypeUI { get; set; }
-        public class SimplygonOutputOpacityTypeEx : SimplygonSettingsProperty
-        {
-            public SimplygonOpacityCasterSettings Parent { get; set; }
-            public EOpacityType Value
-            {
-                get
-                {
-                    return Parent.OutputOpacityType;
-                }
-
-                set
-                {
-                    bool needReload = Parent.OutputOpacityType != value;
-                    Parent.OutputOpacityType = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public EOpacityType DefaultValue { get; set; }
-            public Array EnumValues { get { return Enum.GetValues(typeof(EOpacityType)); } }
-
-            public SimplygonOutputOpacityTypeEx() : base("OutputOpacityType")
-            {
-                Type = "enum";
-                HelpText = "The opacity type determines how the opacity channel of this material should be saved. To make (0.0->1.0) map to (transparent-opaque), use 'Opacity'. To make (0.0->1.0) map to (opaque-transparent), use 'Transparency'";
-                TypeOverride = "";
-                DefaultValue = EOpacityType.Opacity;
-                Visible = true;
-            }
-
-            public SimplygonOutputOpacityTypeEx(dynamic jsonData) : base("OutputOpacityType")
-            {
-                Type = "enum";
-                HelpText = "The opacity type determines how the opacity channel of this material should be saved. To make (0.0->1.0) map to (transparent-opaque), use 'Opacity'. To make (0.0->1.0) map to (opaque-transparent), use 'Transparency'";
-                TypeOverride = "";
-                DefaultValue = EOpacityType.Opacity;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonOutputOpacityTypeEx DeepCopy()
-            {
-                return (SimplygonOutputOpacityTypeEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public EPixelFormat OutputPixelFormat { get { return _OutputPixelFormat; } set { _OutputPixelFormat = value; OnPropertyChanged(); } }
-        private EPixelFormat _OutputPixelFormat;
-        public SimplygonOutputPixelFormatEx OutputPixelFormatUI { get; set; }
-        public class SimplygonOutputPixelFormatEx : SimplygonSettingsProperty
-        {
-            public SimplygonOpacityCasterSettings Parent { get; set; }
-            public EPixelFormat Value
-            {
-                get
-                {
-                    return Parent.OutputPixelFormat;
-                }
-
-                set
-                {
-                    bool needReload = Parent.OutputPixelFormat != value;
-                    Parent.OutputPixelFormat = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public EPixelFormat DefaultValue { get; set; }
-            public Array EnumValues { get { return Enum.GetValues(typeof(EPixelFormat)); } }
-
-            public SimplygonOutputPixelFormatEx() : base("OutputPixelFormat")
-            {
-                Type = "enum";
-                HelpText = "The output pixel format";
-                TypeOverride = "";
-                DefaultValue = EPixelFormat.R8G8B8A8;
-                Visible = true;
-            }
-
-            public SimplygonOutputPixelFormatEx(dynamic jsonData) : base("OutputPixelFormat")
-            {
-                Type = "enum";
-                HelpText = "The output pixel format";
-                TypeOverride = "";
-                DefaultValue = EPixelFormat.R8G8B8A8;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonOutputPixelFormatEx DeepCopy()
-            {
-                return (SimplygonOutputPixelFormatEx)this.MemberwiseClone();
+                return (SimplygonOutputSRGBEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -31808,6 +31932,77 @@ namespace SimplygonUI
 
         }
 
+        public EOpacityType OutputOpacityType { get { return _OutputOpacityType; } set { _OutputOpacityType = value; OnPropertyChanged(); } }
+        private EOpacityType _OutputOpacityType;
+        public SimplygonOutputOpacityTypeEx OutputOpacityTypeUI { get; set; }
+        public class SimplygonOutputOpacityTypeEx : SimplygonSettingsProperty
+        {
+            public SimplygonOpacityCasterSettings Parent { get; set; }
+            public EOpacityType Value
+            {
+                get
+                {
+                    return Parent.OutputOpacityType;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OutputOpacityType != value;
+                    Parent.OutputOpacityType = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EOpacityType DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EOpacityType)); } }
+
+            public SimplygonOutputOpacityTypeEx() : base("OutputOpacityType")
+            {
+                Type = "enum";
+                HelpText = "The opacity type determines how the opacity channel of this material should be saved. To make (0.0->1.0) map to (transparent-opaque), use 'Opacity'. To make (0.0->1.0) map to (opaque-transparent), use 'Transparency'";
+                TypeOverride = "";
+                DefaultValue = EOpacityType.Opacity;
+                Visible = true;
+            }
+
+            public SimplygonOutputOpacityTypeEx(dynamic jsonData) : base("OutputOpacityType")
+            {
+                Type = "enum";
+                HelpText = "The opacity type determines how the opacity channel of this material should be saved. To make (0.0->1.0) map to (transparent-opaque), use 'Opacity'. To make (0.0->1.0) map to (opaque-transparent), use 'Transparency'";
+                TypeOverride = "";
+                DefaultValue = EOpacityType.Opacity;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOutputOpacityTypeEx DeepCopy()
+            {
+                return (SimplygonOutputOpacityTypeEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
 
         public SimplygonOpacityCasterSettings() : base("OpacityCasterSettings")
         {
@@ -31816,14 +32011,14 @@ namespace SimplygonUI
             MaterialChannelUI.Parent = this;
             MaterialChannel = MaterialChannelUI.DefaultValue;
             Items.Add(MaterialChannelUI);
-            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
-            OpacityChannelComponentUI.Parent = this;
-            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
-            Items.Add(OpacityChannelComponentUI);
             OpacityChannelUI = new SimplygonOpacityChannelEx();
             OpacityChannelUI.Parent = this;
             OpacityChannel = OpacityChannelUI.DefaultValue;
             Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
             DitherTypeUI = new SimplygonDitherTypeEx();
             DitherTypeUI.Parent = this;
             DitherType = DitherTypeUI.DefaultValue;
@@ -31840,14 +32035,14 @@ namespace SimplygonUI
             UseMultisamplingUI.Parent = this;
             UseMultisampling = UseMultisamplingUI.DefaultValue;
             Items.Add(UseMultisamplingUI);
-            OutputSRGBUI = new SimplygonOutputSRGBEx();
-            OutputSRGBUI.Parent = this;
-            OutputSRGB = OutputSRGBUI.DefaultValue;
-            Items.Add(OutputSRGBUI);
             OutputPixelFormatUI = new SimplygonOutputPixelFormatEx();
             OutputPixelFormatUI.Parent = this;
             OutputPixelFormat = OutputPixelFormatUI.DefaultValue;
             Items.Add(OutputPixelFormatUI);
+            OutputSRGBUI = new SimplygonOutputSRGBEx();
+            OutputSRGBUI.Parent = this;
+            OutputSRGB = OutputSRGBUI.DefaultValue;
+            Items.Add(OutputSRGBUI);
             OutputImageFileFormatUI = new SimplygonOutputImageFileFormatEx();
             OutputImageFileFormatUI.Parent = this;
             OutputImageFileFormat = OutputImageFileFormatUI.DefaultValue;
@@ -31873,14 +32068,14 @@ namespace SimplygonUI
             MaterialChannelUI.Parent = this;
             MaterialChannel = MaterialChannelUI.DefaultValue;
             Items.Add(MaterialChannelUI);
-            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
-            OpacityChannelComponentUI.Parent = this;
-            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
-            Items.Add(OpacityChannelComponentUI);
             OpacityChannelUI = new SimplygonOpacityChannelEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelUI") != null ? jsonData.OpacityChannelUI : null);
             OpacityChannelUI.Parent = this;
             OpacityChannel = OpacityChannelUI.DefaultValue;
             Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
             DitherTypeUI = new SimplygonDitherTypeEx(jsonData != null && ((JObject)jsonData).GetValue("DitherTypeUI") != null ? jsonData.DitherTypeUI : null);
             DitherTypeUI.Parent = this;
             DitherType = DitherTypeUI.DefaultValue;
@@ -31897,14 +32092,14 @@ namespace SimplygonUI
             UseMultisamplingUI.Parent = this;
             UseMultisampling = UseMultisamplingUI.DefaultValue;
             Items.Add(UseMultisamplingUI);
-            OutputSRGBUI = new SimplygonOutputSRGBEx(jsonData != null && ((JObject)jsonData).GetValue("OutputSRGBUI") != null ? jsonData.OutputSRGBUI : null);
-            OutputSRGBUI.Parent = this;
-            OutputSRGB = OutputSRGBUI.DefaultValue;
-            Items.Add(OutputSRGBUI);
             OutputPixelFormatUI = new SimplygonOutputPixelFormatEx(jsonData != null && ((JObject)jsonData).GetValue("OutputPixelFormatUI") != null ? jsonData.OutputPixelFormatUI : null);
             OutputPixelFormatUI.Parent = this;
             OutputPixelFormat = OutputPixelFormatUI.DefaultValue;
             Items.Add(OutputPixelFormatUI);
+            OutputSRGBUI = new SimplygonOutputSRGBEx(jsonData != null && ((JObject)jsonData).GetValue("OutputSRGBUI") != null ? jsonData.OutputSRGBUI : null);
+            OutputSRGBUI.Parent = this;
+            OutputSRGB = OutputSRGBUI.DefaultValue;
+            Items.Add(OutputSRGBUI);
             OutputImageFileFormatUI = new SimplygonOutputImageFileFormatEx(jsonData != null && ((JObject)jsonData).GetValue("OutputImageFileFormatUI") != null ? jsonData.OutputImageFileFormatUI : null);
             OutputImageFileFormatUI.Parent = this;
             OutputImageFileFormat = OutputImageFileFormatUI.DefaultValue;
@@ -31931,12 +32126,12 @@ namespace SimplygonUI
             copy.MaterialChannelUI = this.MaterialChannelUI.DeepCopy();
             copy.MaterialChannelUI.Parent = copy;
             copy.Items.Add(copy.MaterialChannelUI);
-            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
-            copy.OpacityChannelComponentUI.Parent = copy;
-            copy.Items.Add(copy.OpacityChannelComponentUI);
             copy.OpacityChannelUI = this.OpacityChannelUI.DeepCopy();
             copy.OpacityChannelUI.Parent = copy;
             copy.Items.Add(copy.OpacityChannelUI);
+            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
+            copy.OpacityChannelComponentUI.Parent = copy;
+            copy.Items.Add(copy.OpacityChannelComponentUI);
             copy.DitherTypeUI = this.DitherTypeUI.DeepCopy();
             copy.DitherTypeUI.Parent = copy;
             copy.Items.Add(copy.DitherTypeUI);
@@ -31949,12 +32144,12 @@ namespace SimplygonUI
             copy.UseMultisamplingUI = this.UseMultisamplingUI.DeepCopy();
             copy.UseMultisamplingUI.Parent = copy;
             copy.Items.Add(copy.UseMultisamplingUI);
-            copy.OutputSRGBUI = this.OutputSRGBUI.DeepCopy();
-            copy.OutputSRGBUI.Parent = copy;
-            copy.Items.Add(copy.OutputSRGBUI);
             copy.OutputPixelFormatUI = this.OutputPixelFormatUI.DeepCopy();
             copy.OutputPixelFormatUI.Parent = copy;
             copy.Items.Add(copy.OutputPixelFormatUI);
+            copy.OutputSRGBUI = this.OutputSRGBUI.DeepCopy();
+            copy.OutputSRGBUI.Parent = copy;
+            copy.Items.Add(copy.OutputSRGBUI);
             copy.OutputImageFileFormatUI = this.OutputImageFileFormatUI.DeepCopy();
             copy.OutputImageFileFormatUI.Parent = copy;
             copy.Items.Add(copy.OutputImageFileFormatUI);
@@ -31979,6 +32174,12 @@ namespace SimplygonUI
                 jsonData.MaterialChannelUI = MaterialChannelUI.SaveJson();
             }
 
+            jsonData.OpacityChannel = OpacityChannel;
+            if(serializeUIComponents)
+            {
+                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+            }
+
             jsonData.OpacityChannelComponent = (int)OpacityChannelComponent;
             if(serializeUIComponents)
             {
@@ -31997,10 +32198,10 @@ namespace SimplygonUI
                 jsonData.FillModeUI = FillModeUI.SaveJson();
             }
 
-            jsonData.OpacityChannel = OpacityChannel;
+            jsonData.Dilation = Dilation;
             if(serializeUIComponents)
             {
-                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+                jsonData.DilationUI = DilationUI.SaveJson();
             }
 
             jsonData.UseMultisampling = UseMultisampling;
@@ -32009,10 +32210,10 @@ namespace SimplygonUI
                 jsonData.UseMultisamplingUI = UseMultisamplingUI.SaveJson();
             }
 
-            jsonData.OutputSRGB = OutputSRGB;
+            jsonData.OutputPixelFormat = (int)OutputPixelFormat;
             if(serializeUIComponents)
             {
-                jsonData.OutputSRGBUI = OutputSRGBUI.SaveJson();
+                jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
             }
 
             jsonData.OutputImageFileFormat = (int)OutputImageFileFormat;
@@ -32027,28 +32228,22 @@ namespace SimplygonUI
                 jsonData.OutputDDSCompressionTypeUI = OutputDDSCompressionTypeUI.SaveJson();
             }
 
-            jsonData.Dilation = Dilation;
+            jsonData.OutputSRGB = OutputSRGB;
             if(serializeUIComponents)
             {
-                jsonData.DilationUI = DilationUI.SaveJson();
-            }
-
-            jsonData.OutputOpacityType = (int)OutputOpacityType;
-            if(serializeUIComponents)
-            {
-                jsonData.OutputOpacityTypeUI = OutputOpacityTypeUI.SaveJson();
-            }
-
-            jsonData.OutputPixelFormat = (int)OutputPixelFormat;
-            if(serializeUIComponents)
-            {
-                jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
+                jsonData.OutputSRGBUI = OutputSRGBUI.SaveJson();
             }
 
             jsonData.OutputToTessellatedAttributes = OutputToTessellatedAttributes;
             if(serializeUIComponents)
             {
                 jsonData.OutputToTessellatedAttributesUI = OutputToTessellatedAttributesUI.SaveJson();
+            }
+
+            jsonData.OutputOpacityType = (int)OutputOpacityType;
+            if(serializeUIComponents)
+            {
+                jsonData.OutputOpacityTypeUI = OutputOpacityTypeUI.SaveJson();
             }
 
             return jsonData;
@@ -32066,6 +32261,11 @@ namespace SimplygonUI
                 MaterialChannel = (string)jsonData.MaterialChannel;
             }
 
+            if(jsonData.GetValue("OpacityChannel") != null)
+            {
+                OpacityChannel = (string)jsonData.OpacityChannel;
+            }
+
             if(jsonData.GetValue("OpacityChannelComponent") != null)
             {
                 OpacityChannelComponent = (EColorComponent)jsonData.OpacityChannelComponent;
@@ -32079,31 +32279,6 @@ namespace SimplygonUI
             if(jsonData.GetValue("FillMode") != null)
             {
                 FillMode = (EAtlasFillMode)jsonData.FillMode;
-            }
-
-            if(jsonData.GetValue("OpacityChannel") != null)
-            {
-                OpacityChannel = (string)jsonData.OpacityChannel;
-            }
-
-            if(jsonData.GetValue("UseMultisampling") != null)
-            {
-                UseMultisampling = (bool)jsonData.UseMultisampling;
-            }
-
-            if(jsonData.GetValue("OutputSRGB") != null)
-            {
-                OutputSRGB = (bool)jsonData.OutputSRGB;
-            }
-
-            if(jsonData.GetValue("OutputImageFileFormat") != null)
-            {
-                OutputImageFileFormat = (EImageOutputFormat)jsonData.OutputImageFileFormat;
-            }
-
-            if(jsonData.GetValue("OutputDDSCompressionType") != null)
-            {
-                OutputDDSCompressionType = (EDDSCompressionType)jsonData.OutputDDSCompressionType;
             }
 
             if(jsonData.GetValue("Dilation") != null)
@@ -32121,9 +32296,9 @@ namespace SimplygonUI
 
             }
 
-            if(jsonData.GetValue("OutputOpacityType") != null)
+            if(jsonData.GetValue("UseMultisampling") != null)
             {
-                OutputOpacityType = (EOpacityType)jsonData.OutputOpacityType;
+                UseMultisampling = (bool)jsonData.UseMultisampling;
             }
 
             if(jsonData.GetValue("OutputPixelFormat") != null)
@@ -32131,9 +32306,29 @@ namespace SimplygonUI
                 OutputPixelFormat = (EPixelFormat)jsonData.OutputPixelFormat;
             }
 
+            if(jsonData.GetValue("OutputImageFileFormat") != null)
+            {
+                OutputImageFileFormat = (EImageOutputFormat)jsonData.OutputImageFileFormat;
+            }
+
+            if(jsonData.GetValue("OutputDDSCompressionType") != null)
+            {
+                OutputDDSCompressionType = (EDDSCompressionType)jsonData.OutputDDSCompressionType;
+            }
+
+            if(jsonData.GetValue("OutputSRGB") != null)
+            {
+                OutputSRGB = (bool)jsonData.OutputSRGB;
+            }
+
             if(jsonData.GetValue("OutputToTessellatedAttributes") != null)
             {
                 OutputToTessellatedAttributes = (bool)jsonData.OutputToTessellatedAttributes;
+            }
+
+            if(jsonData.GetValue("OutputOpacityType") != null)
+            {
+                OutputOpacityType = (EOpacityType)jsonData.OutputOpacityType;
             }
 
         }
@@ -32141,36 +32336,36 @@ namespace SimplygonUI
         public override void Reset()
         {
             MaterialChannelUI.Reset();
+            OpacityChannelUI.Reset();
             OpacityChannelComponentUI.Reset();
             DitherTypeUI.Reset();
             FillModeUI.Reset();
-            OpacityChannelUI.Reset();
+            DilationUI.Reset();
             UseMultisamplingUI.Reset();
-            OutputSRGBUI.Reset();
+            OutputPixelFormatUI.Reset();
             OutputImageFileFormatUI.Reset();
             OutputDDSCompressionTypeUI.Reset();
-            DilationUI.Reset();
-            OutputOpacityTypeUI.Reset();
-            OutputPixelFormatUI.Reset();
+            OutputSRGBUI.Reset();
             OutputToTessellatedAttributesUI.Reset();
+            OutputOpacityTypeUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
         {
             IsEditEnabled = isEditEnabled;
             MaterialChannelUI.IsEditEnabled = isEditEnabled;
+            OpacityChannelUI.IsEditEnabled = isEditEnabled;
             OpacityChannelComponentUI.IsEditEnabled = isEditEnabled;
             DitherTypeUI.IsEditEnabled = isEditEnabled;
             FillModeUI.IsEditEnabled = isEditEnabled;
-            OpacityChannelUI.IsEditEnabled = isEditEnabled;
+            DilationUI.IsEditEnabled = isEditEnabled;
             UseMultisamplingUI.IsEditEnabled = isEditEnabled;
-            OutputSRGBUI.IsEditEnabled = isEditEnabled;
+            OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
             OutputImageFileFormatUI.IsEditEnabled = isEditEnabled;
             OutputDDSCompressionTypeUI.IsEditEnabled = isEditEnabled;
-            DilationUI.IsEditEnabled = isEditEnabled;
-            OutputOpacityTypeUI.IsEditEnabled = isEditEnabled;
-            OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
+            OutputSRGBUI.IsEditEnabled = isEditEnabled;
             OutputToTessellatedAttributesUI.IsEditEnabled = isEditEnabled;
+            OutputOpacityTypeUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -32184,17 +32379,18 @@ namespace SimplygonUI
                 if (!VisibleOverride) return false;
                 if (Name == "InputMaterialSettings") return false;
                 if(MaterialChannelUI.Visible) return true;
+                if(OpacityChannelUI.Visible) return true;
                 if(OpacityChannelComponentUI.Visible) return true;
                 if(DitherTypeUI.Visible) return true;
                 if(FillModeUI.Visible) return true;
-                if(OpacityChannelUI.Visible) return true;
+                if(DilationUI.Visible) return true;
                 if(UseMultisamplingUI.Visible) return true;
-                if(FlipBackfacingNormalsUI.Visible) return true;
+                if(OutputPixelFormatUI.Visible) return true;
                 if(OutputImageFileFormatUI.Visible) return true;
                 if(OutputDDSCompressionTypeUI.Visible) return true;
-                if(DilationUI.Visible) return true;
+                if(FlipBackfacingNormalsUI.Visible) return true;
+                if(FlipBackfacingModeUI.Visible) return true;
                 if(GenerateTangentSpaceNormalsUI.Visible) return true;
-                if(OutputPixelFormatUI.Visible) return true;
                 if(FlipGreenUI.Visible) return true;
                 if(CalculateBitangentPerFragmentUI.Visible) return true;
                 if(NormalizeInterpolatedTangentSpaceUI.Visible) return true;
@@ -32280,6 +32476,76 @@ namespace SimplygonUI
 
         }
 
+        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
+        private string _OpacityChannel;
+        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
+        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        {
+            public SimplygonNormalCasterSettings Parent { get; set; }
+            public string Value
+            {
+                get
+                {
+                    return Parent.OpacityChannel;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OpacityChannel != value;
+                    Parent.OpacityChannel = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public string DefaultValue { get; set; }
+
+            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                Visible = true;
+            }
+
+            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOpacityChannelEx DeepCopy()
+            {
+                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
         public EColorComponent OpacityChannelComponent { get { return _OpacityChannelComponent; } set { _OpacityChannelComponent = value; OnPropertyChanged(); } }
         private EColorComponent _OpacityChannelComponent;
         public SimplygonOpacityChannelComponentEx OpacityChannelComponentUI { get; set; }
@@ -32493,45 +32759,99 @@ namespace SimplygonUI
 
         }
 
-        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
-        private string _OpacityChannel;
-        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
-        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        public int Dilation { get { return _Dilation; } set { _Dilation = value; OnPropertyChanged(); } }
+        private int _Dilation;
+        public SimplygonDilationEx DilationUI { get; set; }
+        public class SimplygonDilationEx : SimplygonSettingsProperty
         {
             public SimplygonNormalCasterSettings Parent { get; set; }
-            public string Value
+            public int Value
             {
                 get
                 {
-                    return Parent.OpacityChannel;
+                    return Parent.Dilation;
                 }
 
                 set
                 {
-                    bool needReload = Parent.OpacityChannel != value;
-                    Parent.OpacityChannel = value;
+                    bool needReload = Parent.Dilation != value;
+                    Parent.Dilation = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public string DefaultValue { get; set; }
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
 
-            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            public SimplygonDilationEx() : base("Dilation")
             {
-                Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
-                DefaultValue = "Opacity";
+                DefaultValue = 10;
+                MinValue = 0;
+                MaxValue = 1000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 1000;
+                TicksFrequencyValue = 1;
                 Visible = true;
             }
 
-            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            public SimplygonDilationEx(dynamic jsonData) : base("Dilation")
             {
-                Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
-                DefaultValue = "Opacity";
+                DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1000;
+                DefaultMaxValue = 1000;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -32549,15 +32869,18 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonOpacityChannelEx DeepCopy()
+            public SimplygonDilationEx DeepCopy()
             {
-                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
+                return (SimplygonDilationEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
                 return jsonData;
             }
 
@@ -32633,45 +32956,46 @@ namespace SimplygonUI
 
         }
 
-        public bool FlipBackfacingNormals { get { return _FlipBackfacingNormals; } set { _FlipBackfacingNormals = value; OnPropertyChanged(); } }
-        private bool _FlipBackfacingNormals;
-        public SimplygonFlipBackfacingNormalsEx FlipBackfacingNormalsUI { get; set; }
-        public class SimplygonFlipBackfacingNormalsEx : SimplygonSettingsProperty
+        public EPixelFormat OutputPixelFormat { get { return _OutputPixelFormat; } set { _OutputPixelFormat = value; OnPropertyChanged(); } }
+        private EPixelFormat _OutputPixelFormat;
+        public SimplygonOutputPixelFormatEx OutputPixelFormatUI { get; set; }
+        public class SimplygonOutputPixelFormatEx : SimplygonSettingsProperty
         {
             public SimplygonNormalCasterSettings Parent { get; set; }
-            public bool Value
+            public EPixelFormat Value
             {
                 get
                 {
-                    return Parent.FlipBackfacingNormals;
+                    return Parent.OutputPixelFormat;
                 }
 
                 set
                 {
-                    bool needReload = Parent.FlipBackfacingNormals != value;
-                    Parent.FlipBackfacingNormals = value;
+                    bool needReload = Parent.OutputPixelFormat != value;
+                    Parent.OutputPixelFormat = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public bool DefaultValue { get; set; }
+            public EPixelFormat DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EPixelFormat)); } }
 
-            public SimplygonFlipBackfacingNormalsEx() : base("FlipBackfacingNormals")
+            public SimplygonOutputPixelFormatEx() : base("OutputPixelFormat")
             {
-                Type = "bool";
-                HelpText = "If set, then normals will be flipped if they are back facing, i.e. pointing into the surface. This may introduce artifacts on geometries that have correctly facing normals, so only use for geometries with known back-facing normals.";
+                Type = "enum";
+                HelpText = "The output pixel format";
                 TypeOverride = "";
-                DefaultValue = false;
+                DefaultValue = EPixelFormat.R8G8B8A8;
                 Visible = true;
             }
 
-            public SimplygonFlipBackfacingNormalsEx(dynamic jsonData) : base("FlipBackfacingNormals")
+            public SimplygonOutputPixelFormatEx(dynamic jsonData) : base("OutputPixelFormat")
             {
-                Type = "bool";
-                HelpText = "If set, then normals will be flipped if they are back facing, i.e. pointing into the surface. This may introduce artifacts on geometries that have correctly facing normals, so only use for geometries with known back-facing normals.";
+                Type = "enum";
+                HelpText = "The output pixel format";
                 TypeOverride = "";
-                DefaultValue = false;
+                DefaultValue = EPixelFormat.R8G8B8A8;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -32689,9 +33013,9 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonFlipBackfacingNormalsEx DeepCopy()
+            public SimplygonOutputPixelFormatEx DeepCopy()
             {
-                return (SimplygonFlipBackfacingNormalsEx)this.MemberwiseClone();
+                return (SimplygonOutputPixelFormatEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -32847,99 +33171,45 @@ namespace SimplygonUI
 
         }
 
-        public int Dilation { get { return _Dilation; } set { _Dilation = value; OnPropertyChanged(); } }
-        private int _Dilation;
-        public SimplygonDilationEx DilationUI { get; set; }
-        public class SimplygonDilationEx : SimplygonSettingsProperty
+        public bool FlipBackfacingNormals { get { return _FlipBackfacingNormals; } set { _FlipBackfacingNormals = value; OnPropertyChanged(); } }
+        private bool _FlipBackfacingNormals;
+        public SimplygonFlipBackfacingNormalsEx FlipBackfacingNormalsUI { get; set; }
+        public class SimplygonFlipBackfacingNormalsEx : SimplygonSettingsProperty
         {
             public SimplygonNormalCasterSettings Parent { get; set; }
-            public int Value
+            public bool Value
             {
                 get
                 {
-                    return Parent.Dilation;
+                    return Parent.FlipBackfacingNormals;
                 }
 
                 set
                 {
-                    bool needReload = Parent.Dilation != value;
-                    Parent.Dilation = value;
+                    bool needReload = Parent.FlipBackfacingNormals != value;
+                    Parent.FlipBackfacingNormals = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public int DefaultValue { get; set; }
-            public int MinValue { get; set; }
-            public int MaxValue { get; set; }
-            public int DefaultMinValue { get; set; }
-            public int DefaultMaxValue { get; set; }
-            public int TicksFrequencyValue { get; set; }
+            public bool DefaultValue { get; set; }
 
-            public SimplygonDilationEx() : base("Dilation")
+            public SimplygonFlipBackfacingNormalsEx() : base("FlipBackfacingNormals")
             {
-                Type = "uint";
-                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
+                Type = "bool";
+                HelpText = "If set, then normals will be flipped if they are back facing, i.e. pointing into the surface. This may introduce artifacts on geometries that have correctly facing normals, so only use for geometries with known back-facing normals.";
                 TypeOverride = "";
-                DefaultValue = 10;
-                MinValue = 0;
-                MaxValue = 1000;
-                DefaultMinValue = 0;
-                DefaultMaxValue = 1000;
-                TicksFrequencyValue = 1;
+                DefaultValue = false;
                 Visible = true;
             }
 
-            public SimplygonDilationEx(dynamic jsonData) : base("Dilation")
+            public SimplygonFlipBackfacingNormalsEx(dynamic jsonData) : base("FlipBackfacingNormals")
             {
-                Type = "uint";
-                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
+                Type = "bool";
+                HelpText = "If set, then normals will be flipped if they are back facing, i.e. pointing into the surface. This may introduce artifacts on geometries that have correctly facing normals, so only use for geometries with known back-facing normals.";
                 TypeOverride = "";
-                DefaultValue = 10;
-                MinValue = 0;
-                DefaultMinValue = 0;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (int)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 1000;
-                DefaultMaxValue = 1000;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (int)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 1;
-                }
-
+                DefaultValue = false;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -32957,18 +33227,86 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonDilationEx DeepCopy()
+            public SimplygonFlipBackfacingNormalsEx DeepCopy()
             {
-                return (SimplygonDilationEx)this.MemberwiseClone();
+                return (SimplygonFlipBackfacingNormalsEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public EFlipBackfacingMode FlipBackfacingMode { get { return _FlipBackfacingMode; } set { _FlipBackfacingMode = value; OnPropertyChanged(); } }
+        private EFlipBackfacingMode _FlipBackfacingMode;
+        public SimplygonFlipBackfacingModeEx FlipBackfacingModeUI { get; set; }
+        public class SimplygonFlipBackfacingModeEx : SimplygonSettingsProperty
+        {
+            public SimplygonNormalCasterSettings Parent { get; set; }
+            public EFlipBackfacingMode Value
+            {
+                get
+                {
+                    return Parent.FlipBackfacingMode;
+                }
+
+                set
+                {
+                    bool needReload = Parent.FlipBackfacingMode != value;
+                    Parent.FlipBackfacingMode = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EFlipBackfacingMode DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EFlipBackfacingMode)); } }
+
+            public SimplygonFlipBackfacingModeEx() : base("FlipBackfacingMode")
+            {
+                Type = "enum";
+                HelpText = "If FlipBackfacingNormals is on, this decides which source normal we should compare the destination normal with when deciding if the normal is back-facing or not. Changing this to FaceNormal can be beneficial for two-sided assets like leaves that can get weirdly flipped pixel normals with the default setting. When using the FaceNormal option together with transparency the front-most layer with an opacity of above 50% will be used.";
+                TypeOverride = "";
+                DefaultValue = EFlipBackfacingMode.PixelNormal;
+                Visible = true;
+            }
+
+            public SimplygonFlipBackfacingModeEx(dynamic jsonData) : base("FlipBackfacingMode")
+            {
+                Type = "enum";
+                HelpText = "If FlipBackfacingNormals is on, this decides which source normal we should compare the destination normal with when deciding if the normal is back-facing or not. Changing this to FaceNormal can be beneficial for two-sided assets like leaves that can get weirdly flipped pixel normals with the default setting. When using the FaceNormal option together with transparency the front-most layer with an opacity of above 50% will be used.";
+                TypeOverride = "";
+                DefaultValue = EFlipBackfacingMode.PixelNormal;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonFlipBackfacingModeEx DeepCopy()
+            {
+                return (SimplygonFlipBackfacingModeEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
                 return jsonData;
             }
 
@@ -33033,77 +33371,6 @@ namespace SimplygonUI
             public SimplygonGenerateTangentSpaceNormalsEx DeepCopy()
             {
                 return (SimplygonGenerateTangentSpaceNormalsEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public EPixelFormat OutputPixelFormat { get { return _OutputPixelFormat; } set { _OutputPixelFormat = value; OnPropertyChanged(); } }
-        private EPixelFormat _OutputPixelFormat;
-        public SimplygonOutputPixelFormatEx OutputPixelFormatUI { get; set; }
-        public class SimplygonOutputPixelFormatEx : SimplygonSettingsProperty
-        {
-            public SimplygonNormalCasterSettings Parent { get; set; }
-            public EPixelFormat Value
-            {
-                get
-                {
-                    return Parent.OutputPixelFormat;
-                }
-
-                set
-                {
-                    bool needReload = Parent.OutputPixelFormat != value;
-                    Parent.OutputPixelFormat = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public EPixelFormat DefaultValue { get; set; }
-            public Array EnumValues { get { return Enum.GetValues(typeof(EPixelFormat)); } }
-
-            public SimplygonOutputPixelFormatEx() : base("OutputPixelFormat")
-            {
-                Type = "enum";
-                HelpText = "The output pixel format";
-                TypeOverride = "";
-                DefaultValue = EPixelFormat.R8G8B8A8;
-                Visible = true;
-            }
-
-            public SimplygonOutputPixelFormatEx(dynamic jsonData) : base("OutputPixelFormat")
-            {
-                Type = "enum";
-                HelpText = "The output pixel format";
-                TypeOverride = "";
-                DefaultValue = EPixelFormat.R8G8B8A8;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonOutputPixelFormatEx DeepCopy()
-            {
-                return (SimplygonOutputPixelFormatEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -33333,14 +33600,14 @@ namespace SimplygonUI
             MaterialChannelUI.Parent = this;
             MaterialChannel = MaterialChannelUI.DefaultValue;
             Items.Add(MaterialChannelUI);
-            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
-            OpacityChannelComponentUI.Parent = this;
-            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
-            Items.Add(OpacityChannelComponentUI);
             OpacityChannelUI = new SimplygonOpacityChannelEx();
             OpacityChannelUI.Parent = this;
             OpacityChannel = OpacityChannelUI.DefaultValue;
             Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
             DitherTypeUI = new SimplygonDitherTypeEx();
             DitherTypeUI.Parent = this;
             DitherType = DitherTypeUI.DefaultValue;
@@ -33373,6 +33640,10 @@ namespace SimplygonUI
             FlipBackfacingNormalsUI.Parent = this;
             FlipBackfacingNormals = FlipBackfacingNormalsUI.DefaultValue;
             Items.Add(FlipBackfacingNormalsUI);
+            FlipBackfacingModeUI = new SimplygonFlipBackfacingModeEx();
+            FlipBackfacingModeUI.Parent = this;
+            FlipBackfacingMode = FlipBackfacingModeUI.DefaultValue;
+            Items.Add(FlipBackfacingModeUI);
             GenerateTangentSpaceNormalsUI = new SimplygonGenerateTangentSpaceNormalsEx();
             GenerateTangentSpaceNormalsUI.Parent = this;
             GenerateTangentSpaceNormals = GenerateTangentSpaceNormalsUI.DefaultValue;
@@ -33398,14 +33669,14 @@ namespace SimplygonUI
             MaterialChannelUI.Parent = this;
             MaterialChannel = MaterialChannelUI.DefaultValue;
             Items.Add(MaterialChannelUI);
-            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
-            OpacityChannelComponentUI.Parent = this;
-            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
-            Items.Add(OpacityChannelComponentUI);
             OpacityChannelUI = new SimplygonOpacityChannelEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelUI") != null ? jsonData.OpacityChannelUI : null);
             OpacityChannelUI.Parent = this;
             OpacityChannel = OpacityChannelUI.DefaultValue;
             Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
             DitherTypeUI = new SimplygonDitherTypeEx(jsonData != null && ((JObject)jsonData).GetValue("DitherTypeUI") != null ? jsonData.DitherTypeUI : null);
             DitherTypeUI.Parent = this;
             DitherType = DitherTypeUI.DefaultValue;
@@ -33438,6 +33709,10 @@ namespace SimplygonUI
             FlipBackfacingNormalsUI.Parent = this;
             FlipBackfacingNormals = FlipBackfacingNormalsUI.DefaultValue;
             Items.Add(FlipBackfacingNormalsUI);
+            FlipBackfacingModeUI = new SimplygonFlipBackfacingModeEx(jsonData != null && ((JObject)jsonData).GetValue("FlipBackfacingModeUI") != null ? jsonData.FlipBackfacingModeUI : null);
+            FlipBackfacingModeUI.Parent = this;
+            FlipBackfacingMode = FlipBackfacingModeUI.DefaultValue;
+            Items.Add(FlipBackfacingModeUI);
             GenerateTangentSpaceNormalsUI = new SimplygonGenerateTangentSpaceNormalsEx(jsonData != null && ((JObject)jsonData).GetValue("GenerateTangentSpaceNormalsUI") != null ? jsonData.GenerateTangentSpaceNormalsUI : null);
             GenerateTangentSpaceNormalsUI.Parent = this;
             GenerateTangentSpaceNormals = GenerateTangentSpaceNormalsUI.DefaultValue;
@@ -33464,12 +33739,12 @@ namespace SimplygonUI
             copy.MaterialChannelUI = this.MaterialChannelUI.DeepCopy();
             copy.MaterialChannelUI.Parent = copy;
             copy.Items.Add(copy.MaterialChannelUI);
-            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
-            copy.OpacityChannelComponentUI.Parent = copy;
-            copy.Items.Add(copy.OpacityChannelComponentUI);
             copy.OpacityChannelUI = this.OpacityChannelUI.DeepCopy();
             copy.OpacityChannelUI.Parent = copy;
             copy.Items.Add(copy.OpacityChannelUI);
+            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
+            copy.OpacityChannelComponentUI.Parent = copy;
+            copy.Items.Add(copy.OpacityChannelComponentUI);
             copy.DitherTypeUI = this.DitherTypeUI.DeepCopy();
             copy.DitherTypeUI.Parent = copy;
             copy.Items.Add(copy.DitherTypeUI);
@@ -33494,6 +33769,9 @@ namespace SimplygonUI
             copy.FlipBackfacingNormalsUI = this.FlipBackfacingNormalsUI.DeepCopy();
             copy.FlipBackfacingNormalsUI.Parent = copy;
             copy.Items.Add(copy.FlipBackfacingNormalsUI);
+            copy.FlipBackfacingModeUI = this.FlipBackfacingModeUI.DeepCopy();
+            copy.FlipBackfacingModeUI.Parent = copy;
+            copy.Items.Add(copy.FlipBackfacingModeUI);
             copy.GenerateTangentSpaceNormalsUI = this.GenerateTangentSpaceNormalsUI.DeepCopy();
             copy.GenerateTangentSpaceNormalsUI.Parent = copy;
             copy.Items.Add(copy.GenerateTangentSpaceNormalsUI);
@@ -33518,6 +33796,12 @@ namespace SimplygonUI
                 jsonData.MaterialChannelUI = MaterialChannelUI.SaveJson();
             }
 
+            jsonData.OpacityChannel = OpacityChannel;
+            if(serializeUIComponents)
+            {
+                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+            }
+
             jsonData.OpacityChannelComponent = (int)OpacityChannelComponent;
             if(serializeUIComponents)
             {
@@ -33536,10 +33820,10 @@ namespace SimplygonUI
                 jsonData.FillModeUI = FillModeUI.SaveJson();
             }
 
-            jsonData.OpacityChannel = OpacityChannel;
+            jsonData.Dilation = Dilation;
             if(serializeUIComponents)
             {
-                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+                jsonData.DilationUI = DilationUI.SaveJson();
             }
 
             jsonData.UseMultisampling = UseMultisampling;
@@ -33548,10 +33832,10 @@ namespace SimplygonUI
                 jsonData.UseMultisamplingUI = UseMultisamplingUI.SaveJson();
             }
 
-            jsonData.FlipBackfacingNormals = FlipBackfacingNormals;
+            jsonData.OutputPixelFormat = (int)OutputPixelFormat;
             if(serializeUIComponents)
             {
-                jsonData.FlipBackfacingNormalsUI = FlipBackfacingNormalsUI.SaveJson();
+                jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
             }
 
             jsonData.OutputImageFileFormat = (int)OutputImageFileFormat;
@@ -33566,22 +33850,22 @@ namespace SimplygonUI
                 jsonData.OutputDDSCompressionTypeUI = OutputDDSCompressionTypeUI.SaveJson();
             }
 
-            jsonData.Dilation = Dilation;
+            jsonData.FlipBackfacingNormals = FlipBackfacingNormals;
             if(serializeUIComponents)
             {
-                jsonData.DilationUI = DilationUI.SaveJson();
+                jsonData.FlipBackfacingNormalsUI = FlipBackfacingNormalsUI.SaveJson();
+            }
+
+            jsonData.FlipBackfacingMode = (int)FlipBackfacingMode;
+            if(serializeUIComponents)
+            {
+                jsonData.FlipBackfacingModeUI = FlipBackfacingModeUI.SaveJson();
             }
 
             jsonData.GenerateTangentSpaceNormals = GenerateTangentSpaceNormals;
             if(serializeUIComponents)
             {
                 jsonData.GenerateTangentSpaceNormalsUI = GenerateTangentSpaceNormalsUI.SaveJson();
-            }
-
-            jsonData.OutputPixelFormat = (int)OutputPixelFormat;
-            if(serializeUIComponents)
-            {
-                jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
             }
 
             jsonData.FlipGreen = FlipGreen;
@@ -33617,6 +33901,11 @@ namespace SimplygonUI
                 MaterialChannel = (string)jsonData.MaterialChannel;
             }
 
+            if(jsonData.GetValue("OpacityChannel") != null)
+            {
+                OpacityChannel = (string)jsonData.OpacityChannel;
+            }
+
             if(jsonData.GetValue("OpacityChannelComponent") != null)
             {
                 OpacityChannelComponent = (EColorComponent)jsonData.OpacityChannelComponent;
@@ -33630,31 +33919,6 @@ namespace SimplygonUI
             if(jsonData.GetValue("FillMode") != null)
             {
                 FillMode = (EAtlasFillMode)jsonData.FillMode;
-            }
-
-            if(jsonData.GetValue("OpacityChannel") != null)
-            {
-                OpacityChannel = (string)jsonData.OpacityChannel;
-            }
-
-            if(jsonData.GetValue("UseMultisampling") != null)
-            {
-                UseMultisampling = (bool)jsonData.UseMultisampling;
-            }
-
-            if(jsonData.GetValue("FlipBackfacingNormals") != null)
-            {
-                FlipBackfacingNormals = (bool)jsonData.FlipBackfacingNormals;
-            }
-
-            if(jsonData.GetValue("OutputImageFileFormat") != null)
-            {
-                OutputImageFileFormat = (EImageOutputFormat)jsonData.OutputImageFileFormat;
-            }
-
-            if(jsonData.GetValue("OutputDDSCompressionType") != null)
-            {
-                OutputDDSCompressionType = (EDDSCompressionType)jsonData.OutputDDSCompressionType;
             }
 
             if(jsonData.GetValue("Dilation") != null)
@@ -33672,14 +33936,39 @@ namespace SimplygonUI
 
             }
 
-            if(jsonData.GetValue("GenerateTangentSpaceNormals") != null)
+            if(jsonData.GetValue("UseMultisampling") != null)
             {
-                GenerateTangentSpaceNormals = (bool)jsonData.GenerateTangentSpaceNormals;
+                UseMultisampling = (bool)jsonData.UseMultisampling;
             }
 
             if(jsonData.GetValue("OutputPixelFormat") != null)
             {
                 OutputPixelFormat = (EPixelFormat)jsonData.OutputPixelFormat;
+            }
+
+            if(jsonData.GetValue("OutputImageFileFormat") != null)
+            {
+                OutputImageFileFormat = (EImageOutputFormat)jsonData.OutputImageFileFormat;
+            }
+
+            if(jsonData.GetValue("OutputDDSCompressionType") != null)
+            {
+                OutputDDSCompressionType = (EDDSCompressionType)jsonData.OutputDDSCompressionType;
+            }
+
+            if(jsonData.GetValue("FlipBackfacingNormals") != null)
+            {
+                FlipBackfacingNormals = (bool)jsonData.FlipBackfacingNormals;
+            }
+
+            if(jsonData.GetValue("FlipBackfacingMode") != null)
+            {
+                FlipBackfacingMode = (EFlipBackfacingMode)jsonData.FlipBackfacingMode;
+            }
+
+            if(jsonData.GetValue("GenerateTangentSpaceNormals") != null)
+            {
+                GenerateTangentSpaceNormals = (bool)jsonData.GenerateTangentSpaceNormals;
             }
 
             if(jsonData.GetValue("FlipGreen") != null)
@@ -33702,17 +33991,18 @@ namespace SimplygonUI
         public override void Reset()
         {
             MaterialChannelUI.Reset();
+            OpacityChannelUI.Reset();
             OpacityChannelComponentUI.Reset();
             DitherTypeUI.Reset();
             FillModeUI.Reset();
-            OpacityChannelUI.Reset();
+            DilationUI.Reset();
             UseMultisamplingUI.Reset();
-            FlipBackfacingNormalsUI.Reset();
+            OutputPixelFormatUI.Reset();
             OutputImageFileFormatUI.Reset();
             OutputDDSCompressionTypeUI.Reset();
-            DilationUI.Reset();
+            FlipBackfacingNormalsUI.Reset();
+            FlipBackfacingModeUI.Reset();
             GenerateTangentSpaceNormalsUI.Reset();
-            OutputPixelFormatUI.Reset();
             FlipGreenUI.Reset();
             CalculateBitangentPerFragmentUI.Reset();
             NormalizeInterpolatedTangentSpaceUI.Reset();
@@ -33722,17 +34012,18 @@ namespace SimplygonUI
         {
             IsEditEnabled = isEditEnabled;
             MaterialChannelUI.IsEditEnabled = isEditEnabled;
+            OpacityChannelUI.IsEditEnabled = isEditEnabled;
             OpacityChannelComponentUI.IsEditEnabled = isEditEnabled;
             DitherTypeUI.IsEditEnabled = isEditEnabled;
             FillModeUI.IsEditEnabled = isEditEnabled;
-            OpacityChannelUI.IsEditEnabled = isEditEnabled;
+            DilationUI.IsEditEnabled = isEditEnabled;
             UseMultisamplingUI.IsEditEnabled = isEditEnabled;
-            FlipBackfacingNormalsUI.IsEditEnabled = isEditEnabled;
+            OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
             OutputImageFileFormatUI.IsEditEnabled = isEditEnabled;
             OutputDDSCompressionTypeUI.IsEditEnabled = isEditEnabled;
-            DilationUI.IsEditEnabled = isEditEnabled;
+            FlipBackfacingNormalsUI.IsEditEnabled = isEditEnabled;
+            FlipBackfacingModeUI.IsEditEnabled = isEditEnabled;
             GenerateTangentSpaceNormalsUI.IsEditEnabled = isEditEnabled;
-            OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
             FlipGreenUI.IsEditEnabled = isEditEnabled;
             CalculateBitangentPerFragmentUI.IsEditEnabled = isEditEnabled;
             NormalizeInterpolatedTangentSpaceUI.IsEditEnabled = isEditEnabled;
@@ -33749,20 +34040,20 @@ namespace SimplygonUI
                 if (!VisibleOverride) return false;
                 if (Name == "InputMaterialSettings") return false;
                 if(MaterialChannelUI.Visible) return true;
+                if(OpacityChannelUI.Visible) return true;
                 if(OpacityChannelComponentUI.Visible) return true;
                 if(DitherTypeUI.Visible) return true;
                 if(FillModeUI.Visible) return true;
-                if(OpacityChannelUI.Visible) return true;
+                if(DilationUI.Visible) return true;
                 if(UseMultisamplingUI.Visible) return true;
-                if(DistanceScalingUI.Visible) return true;
+                if(OutputPixelFormatUI.Visible) return true;
                 if(OutputImageFileFormatUI.Visible) return true;
                 if(OutputDDSCompressionTypeUI.Visible) return true;
-                if(DilationUI.Visible) return true;
+                if(DistanceScalingUI.Visible) return true;
                 if(GenerateScalarDisplacementUI.Visible) return true;
-                if(OutputPixelFormatUI.Visible) return true;
+                if(OutputToTessellatedAttributesUI.Visible) return true;
                 if(GenerateTangentSpaceDisplacementUI.Visible) return true;
                 if(NormalMapTexCoordLevelUI.Visible) return true;
-                if(OutputToTessellatedAttributesUI.Visible) return true;
 
                 return false;
             }
@@ -33834,6 +34125,76 @@ namespace SimplygonUI
             public SimplygonMaterialChannelEx DeepCopy()
             {
                 return (SimplygonMaterialChannelEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
+        private string _OpacityChannel;
+        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
+        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        {
+            public SimplygonDisplacementCasterSettings Parent { get; set; }
+            public string Value
+            {
+                get
+                {
+                    return Parent.OpacityChannel;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OpacityChannel != value;
+                    Parent.OpacityChannel = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public string DefaultValue { get; set; }
+
+            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                Visible = true;
+            }
+
+            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOpacityChannelEx DeepCopy()
+            {
+                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -34058,45 +34419,99 @@ namespace SimplygonUI
 
         }
 
-        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
-        private string _OpacityChannel;
-        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
-        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        public int Dilation { get { return _Dilation; } set { _Dilation = value; OnPropertyChanged(); } }
+        private int _Dilation;
+        public SimplygonDilationEx DilationUI { get; set; }
+        public class SimplygonDilationEx : SimplygonSettingsProperty
         {
             public SimplygonDisplacementCasterSettings Parent { get; set; }
-            public string Value
+            public int Value
             {
                 get
                 {
-                    return Parent.OpacityChannel;
+                    return Parent.Dilation;
                 }
 
                 set
                 {
-                    bool needReload = Parent.OpacityChannel != value;
-                    Parent.OpacityChannel = value;
+                    bool needReload = Parent.Dilation != value;
+                    Parent.Dilation = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public string DefaultValue { get; set; }
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
 
-            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            public SimplygonDilationEx() : base("Dilation")
             {
-                Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
-                DefaultValue = "Opacity";
+                DefaultValue = 10;
+                MinValue = 0;
+                MaxValue = 1000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 1000;
+                TicksFrequencyValue = 1;
                 Visible = true;
             }
 
-            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            public SimplygonDilationEx(dynamic jsonData) : base("Dilation")
             {
-                Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
-                DefaultValue = "Opacity";
+                DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1000;
+                DefaultMaxValue = 1000;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -34114,15 +34529,18 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonOpacityChannelEx DeepCopy()
+            public SimplygonDilationEx DeepCopy()
             {
-                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
+                return (SimplygonDilationEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
                 return jsonData;
             }
 
@@ -34198,99 +34616,46 @@ namespace SimplygonUI
 
         }
 
-        public float DistanceScaling { get { return _DistanceScaling; } set { _DistanceScaling = value; OnPropertyChanged(); } }
-        private float _DistanceScaling;
-        public SimplygonDistanceScalingEx DistanceScalingUI { get; set; }
-        public class SimplygonDistanceScalingEx : SimplygonSettingsProperty
+        public EPixelFormat OutputPixelFormat { get { return _OutputPixelFormat; } set { _OutputPixelFormat = value; OnPropertyChanged(); } }
+        private EPixelFormat _OutputPixelFormat;
+        public SimplygonOutputPixelFormatEx OutputPixelFormatUI { get; set; }
+        public class SimplygonOutputPixelFormatEx : SimplygonSettingsProperty
         {
             public SimplygonDisplacementCasterSettings Parent { get; set; }
-            public float Value
+            public EPixelFormat Value
             {
                 get
                 {
-                    return Parent.DistanceScaling;
+                    return Parent.OutputPixelFormat;
                 }
 
                 set
                 {
-                    bool needReload = Parent.DistanceScaling != value;
-                    Parent.DistanceScaling = value;
+                    bool needReload = Parent.OutputPixelFormat != value;
+                    Parent.OutputPixelFormat = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public float DefaultValue { get; set; }
-            public float MinValue { get; set; }
-            public float MaxValue { get; set; }
-            public float DefaultMinValue { get; set; }
-            public float DefaultMaxValue { get; set; }
-            public float TicksFrequencyValue { get; set; }
+            public EPixelFormat DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EPixelFormat)); } }
 
-            public SimplygonDistanceScalingEx() : base("DistanceScaling")
+            public SimplygonOutputPixelFormatEx() : base("OutputPixelFormat")
             {
-                Type = "real";
-                HelpText = "All the delta values are divided by this value before storing them into an image.";
+                Type = "enum";
+                HelpText = "The output pixel format";
                 TypeOverride = "";
-                DefaultValue = 1f;
-                MinValue = 0f;
-                MaxValue = 10f;
-                DefaultMinValue = 0f;
-                DefaultMaxValue = 10f;
-                TicksFrequencyValue = 0.1f;
+                DefaultValue = EPixelFormat.R8G8B8A8;
                 Visible = true;
             }
 
-            public SimplygonDistanceScalingEx(dynamic jsonData) : base("DistanceScaling")
+            public SimplygonOutputPixelFormatEx(dynamic jsonData) : base("OutputPixelFormat")
             {
-                Type = "real";
-                HelpText = "All the delta values are divided by this value before storing them into an image.";
+                Type = "enum";
+                HelpText = "The output pixel format";
                 TypeOverride = "";
-                DefaultValue = 1f;
-                MinValue = 0f;
-                DefaultMinValue = 0f;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (float)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"DistanceScaling: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 10f;
-                DefaultMaxValue = 10f;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (float)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"DistanceScaling: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 0.1f;
-                }
-
+                DefaultValue = EPixelFormat.R8G8B8A8;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -34308,18 +34673,15 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonDistanceScalingEx DeepCopy()
+            public SimplygonOutputPixelFormatEx DeepCopy()
             {
-                return (SimplygonDistanceScalingEx)this.MemberwiseClone();
+                return (SimplygonOutputPixelFormatEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
                 return jsonData;
             }
 
@@ -34469,60 +34831,60 @@ namespace SimplygonUI
 
         }
 
-        public int Dilation { get { return _Dilation; } set { _Dilation = value; OnPropertyChanged(); } }
-        private int _Dilation;
-        public SimplygonDilationEx DilationUI { get; set; }
-        public class SimplygonDilationEx : SimplygonSettingsProperty
+        public float DistanceScaling { get { return _DistanceScaling; } set { _DistanceScaling = value; OnPropertyChanged(); } }
+        private float _DistanceScaling;
+        public SimplygonDistanceScalingEx DistanceScalingUI { get; set; }
+        public class SimplygonDistanceScalingEx : SimplygonSettingsProperty
         {
             public SimplygonDisplacementCasterSettings Parent { get; set; }
-            public int Value
+            public float Value
             {
                 get
                 {
-                    return Parent.Dilation;
+                    return Parent.DistanceScaling;
                 }
 
                 set
                 {
-                    bool needReload = Parent.Dilation != value;
-                    Parent.Dilation = value;
+                    bool needReload = Parent.DistanceScaling != value;
+                    Parent.DistanceScaling = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public int DefaultValue { get; set; }
-            public int MinValue { get; set; }
-            public int MaxValue { get; set; }
-            public int DefaultMinValue { get; set; }
-            public int DefaultMaxValue { get; set; }
-            public int TicksFrequencyValue { get; set; }
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
 
-            public SimplygonDilationEx() : base("Dilation")
+            public SimplygonDistanceScalingEx() : base("DistanceScaling")
             {
-                Type = "uint";
-                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
+                Type = "real";
+                HelpText = "All the delta values are divided by this value before storing them into an image.";
                 TypeOverride = "";
-                DefaultValue = 10;
-                MinValue = 0;
-                MaxValue = 1000;
-                DefaultMinValue = 0;
-                DefaultMaxValue = 1000;
-                TicksFrequencyValue = 1;
+                DefaultValue = 1f;
+                MinValue = 0f;
+                MaxValue = 10f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 10f;
+                TicksFrequencyValue = 0.1f;
                 Visible = true;
             }
 
-            public SimplygonDilationEx(dynamic jsonData) : base("Dilation")
+            public SimplygonDistanceScalingEx(dynamic jsonData) : base("DistanceScaling")
             {
-                Type = "uint";
-                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
+                Type = "real";
+                HelpText = "All the delta values are divided by this value before storing them into an image.";
                 TypeOverride = "";
-                DefaultValue = 10;
-                MinValue = 0;
-                DefaultMinValue = 0;
+                DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
-                    var newMinValue = (int)jsonData.MinValue;
+                    var newMinValue = (float)jsonData.MinValue;
                     if (newMinValue >= MinValue)
                     {
                         MinValue = newMinValue;
@@ -34530,16 +34892,16 @@ namespace SimplygonUI
 
                     else
                     {
-                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                        UILogger.Instance.Log(Category.Warning, $"DistanceScaling: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
                     }
 
                 }
 
-                MaxValue = 1000;
-                DefaultMaxValue = 1000;
+                MaxValue = 10f;
+                DefaultMaxValue = 10f;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
-                    var newMaxValue = (int)jsonData.MaxValue;
+                    var newMaxValue = (float)jsonData.MaxValue;
                     if (newMaxValue <= MaxValue)
                     {
                         MaxValue = newMaxValue;
@@ -34547,19 +34909,19 @@ namespace SimplygonUI
 
                     else
                     {
-                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                        UILogger.Instance.Log(Category.Warning, $"DistanceScaling: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
                     }
 
                 }
 
                 if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
                 {
-                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
                 }
 
                 else
                 {
-                    TicksFrequencyValue = 1;
+                    TicksFrequencyValue = 0.1f;
                 }
 
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -34579,9 +34941,9 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonDilationEx DeepCopy()
+            public SimplygonDistanceScalingEx DeepCopy()
             {
-                return (SimplygonDilationEx)this.MemberwiseClone();
+                return (SimplygonDistanceScalingEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -34666,46 +35028,45 @@ namespace SimplygonUI
 
         }
 
-        public EPixelFormat OutputPixelFormat { get { return _OutputPixelFormat; } set { _OutputPixelFormat = value; OnPropertyChanged(); } }
-        private EPixelFormat _OutputPixelFormat;
-        public SimplygonOutputPixelFormatEx OutputPixelFormatUI { get; set; }
-        public class SimplygonOutputPixelFormatEx : SimplygonSettingsProperty
+        public bool OutputToTessellatedAttributes { get { return _OutputToTessellatedAttributes; } set { _OutputToTessellatedAttributes = value; OnPropertyChanged(); } }
+        private bool _OutputToTessellatedAttributes;
+        public SimplygonOutputToTessellatedAttributesEx OutputToTessellatedAttributesUI { get; set; }
+        public class SimplygonOutputToTessellatedAttributesEx : SimplygonSettingsProperty
         {
             public SimplygonDisplacementCasterSettings Parent { get; set; }
-            public EPixelFormat Value
+            public bool Value
             {
                 get
                 {
-                    return Parent.OutputPixelFormat;
+                    return Parent.OutputToTessellatedAttributes;
                 }
 
                 set
                 {
-                    bool needReload = Parent.OutputPixelFormat != value;
-                    Parent.OutputPixelFormat = value;
+                    bool needReload = Parent.OutputToTessellatedAttributes != value;
+                    Parent.OutputToTessellatedAttributes = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public EPixelFormat DefaultValue { get; set; }
-            public Array EnumValues { get { return Enum.GetValues(typeof(EPixelFormat)); } }
+            public bool DefaultValue { get; set; }
 
-            public SimplygonOutputPixelFormatEx() : base("OutputPixelFormat")
+            public SimplygonOutputToTessellatedAttributesEx() : base("OutputToTessellatedAttributes")
             {
-                Type = "enum";
-                HelpText = "The output pixel format";
+                Type = "bool";
+                HelpText = "If set to true, the displacement data will be output directly to tessellated attributes in the scene geometries, rather than to an image. This setting requires that the Scene object is set in the caster.";
                 TypeOverride = "";
-                DefaultValue = EPixelFormat.R8G8B8A8;
+                DefaultValue = false;
                 Visible = true;
             }
 
-            public SimplygonOutputPixelFormatEx(dynamic jsonData) : base("OutputPixelFormat")
+            public SimplygonOutputToTessellatedAttributesEx(dynamic jsonData) : base("OutputToTessellatedAttributes")
             {
-                Type = "enum";
-                HelpText = "The output pixel format";
+                Type = "bool";
+                HelpText = "If set to true, the displacement data will be output directly to tessellated attributes in the scene geometries, rather than to an image. This setting requires that the Scene object is set in the caster.";
                 TypeOverride = "";
-                DefaultValue = EPixelFormat.R8G8B8A8;
+                DefaultValue = false;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -34723,9 +35084,9 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonOutputPixelFormatEx DeepCopy()
+            public SimplygonOutputToTessellatedAttributesEx DeepCopy()
             {
-                return (SimplygonOutputPixelFormatEx)this.MemberwiseClone();
+                return (SimplygonOutputToTessellatedAttributesEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -34934,76 +35295,6 @@ namespace SimplygonUI
 
         }
 
-        public bool OutputToTessellatedAttributes { get { return _OutputToTessellatedAttributes; } set { _OutputToTessellatedAttributes = value; OnPropertyChanged(); } }
-        private bool _OutputToTessellatedAttributes;
-        public SimplygonOutputToTessellatedAttributesEx OutputToTessellatedAttributesUI { get; set; }
-        public class SimplygonOutputToTessellatedAttributesEx : SimplygonSettingsProperty
-        {
-            public SimplygonDisplacementCasterSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.OutputToTessellatedAttributes;
-                }
-
-                set
-                {
-                    bool needReload = Parent.OutputToTessellatedAttributes != value;
-                    Parent.OutputToTessellatedAttributes = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-
-            public SimplygonOutputToTessellatedAttributesEx() : base("OutputToTessellatedAttributes")
-            {
-                Type = "bool";
-                HelpText = "If set to true, the displacement data will be output directly to tessellated attributes in the scene geometries, rather than to an image. This setting requires that the Scene object is set in the caster.";
-                TypeOverride = "";
-                DefaultValue = false;
-                Visible = true;
-            }
-
-            public SimplygonOutputToTessellatedAttributesEx(dynamic jsonData) : base("OutputToTessellatedAttributes")
-            {
-                Type = "bool";
-                HelpText = "If set to true, the displacement data will be output directly to tessellated attributes in the scene geometries, rather than to an image. This setting requires that the Scene object is set in the caster.";
-                TypeOverride = "";
-                DefaultValue = false;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonOutputToTessellatedAttributesEx DeepCopy()
-            {
-                return (SimplygonOutputToTessellatedAttributesEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
 
         public SimplygonDisplacementCasterSettings() : base("DisplacementCasterSettings")
         {
@@ -35012,14 +35303,14 @@ namespace SimplygonUI
             MaterialChannelUI.Parent = this;
             MaterialChannel = MaterialChannelUI.DefaultValue;
             Items.Add(MaterialChannelUI);
-            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
-            OpacityChannelComponentUI.Parent = this;
-            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
-            Items.Add(OpacityChannelComponentUI);
             OpacityChannelUI = new SimplygonOpacityChannelEx();
             OpacityChannelUI.Parent = this;
             OpacityChannel = OpacityChannelUI.DefaultValue;
             Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
             DitherTypeUI = new SimplygonDitherTypeEx();
             DitherTypeUI.Parent = this;
             DitherType = DitherTypeUI.DefaultValue;
@@ -35077,14 +35368,14 @@ namespace SimplygonUI
             MaterialChannelUI.Parent = this;
             MaterialChannel = MaterialChannelUI.DefaultValue;
             Items.Add(MaterialChannelUI);
-            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
-            OpacityChannelComponentUI.Parent = this;
-            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
-            Items.Add(OpacityChannelComponentUI);
             OpacityChannelUI = new SimplygonOpacityChannelEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelUI") != null ? jsonData.OpacityChannelUI : null);
             OpacityChannelUI.Parent = this;
             OpacityChannel = OpacityChannelUI.DefaultValue;
             Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
             DitherTypeUI = new SimplygonDitherTypeEx(jsonData != null && ((JObject)jsonData).GetValue("DitherTypeUI") != null ? jsonData.DitherTypeUI : null);
             DitherTypeUI.Parent = this;
             DitherType = DitherTypeUI.DefaultValue;
@@ -35143,12 +35434,12 @@ namespace SimplygonUI
             copy.MaterialChannelUI = this.MaterialChannelUI.DeepCopy();
             copy.MaterialChannelUI.Parent = copy;
             copy.Items.Add(copy.MaterialChannelUI);
-            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
-            copy.OpacityChannelComponentUI.Parent = copy;
-            copy.Items.Add(copy.OpacityChannelComponentUI);
             copy.OpacityChannelUI = this.OpacityChannelUI.DeepCopy();
             copy.OpacityChannelUI.Parent = copy;
             copy.Items.Add(copy.OpacityChannelUI);
+            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
+            copy.OpacityChannelComponentUI.Parent = copy;
+            copy.Items.Add(copy.OpacityChannelComponentUI);
             copy.DitherTypeUI = this.DitherTypeUI.DeepCopy();
             copy.DitherTypeUI.Parent = copy;
             copy.Items.Add(copy.DitherTypeUI);
@@ -35197,6 +35488,12 @@ namespace SimplygonUI
                 jsonData.MaterialChannelUI = MaterialChannelUI.SaveJson();
             }
 
+            jsonData.OpacityChannel = OpacityChannel;
+            if(serializeUIComponents)
+            {
+                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+            }
+
             jsonData.OpacityChannelComponent = (int)OpacityChannelComponent;
             if(serializeUIComponents)
             {
@@ -35215,10 +35512,10 @@ namespace SimplygonUI
                 jsonData.FillModeUI = FillModeUI.SaveJson();
             }
 
-            jsonData.OpacityChannel = OpacityChannel;
+            jsonData.Dilation = Dilation;
             if(serializeUIComponents)
             {
-                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+                jsonData.DilationUI = DilationUI.SaveJson();
             }
 
             jsonData.UseMultisampling = UseMultisampling;
@@ -35227,10 +35524,10 @@ namespace SimplygonUI
                 jsonData.UseMultisamplingUI = UseMultisamplingUI.SaveJson();
             }
 
-            jsonData.DistanceScaling = DistanceScaling;
+            jsonData.OutputPixelFormat = (int)OutputPixelFormat;
             if(serializeUIComponents)
             {
-                jsonData.DistanceScalingUI = DistanceScalingUI.SaveJson();
+                jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
             }
 
             jsonData.OutputImageFileFormat = (int)OutputImageFileFormat;
@@ -35245,10 +35542,10 @@ namespace SimplygonUI
                 jsonData.OutputDDSCompressionTypeUI = OutputDDSCompressionTypeUI.SaveJson();
             }
 
-            jsonData.Dilation = Dilation;
+            jsonData.DistanceScaling = DistanceScaling;
             if(serializeUIComponents)
             {
-                jsonData.DilationUI = DilationUI.SaveJson();
+                jsonData.DistanceScalingUI = DistanceScalingUI.SaveJson();
             }
 
             jsonData.GenerateScalarDisplacement = GenerateScalarDisplacement;
@@ -35257,10 +35554,10 @@ namespace SimplygonUI
                 jsonData.GenerateScalarDisplacementUI = GenerateScalarDisplacementUI.SaveJson();
             }
 
-            jsonData.OutputPixelFormat = (int)OutputPixelFormat;
+            jsonData.OutputToTessellatedAttributes = OutputToTessellatedAttributes;
             if(serializeUIComponents)
             {
-                jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
+                jsonData.OutputToTessellatedAttributesUI = OutputToTessellatedAttributesUI.SaveJson();
             }
 
             jsonData.GenerateTangentSpaceDisplacement = GenerateTangentSpaceDisplacement;
@@ -35273,12 +35570,6 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.NormalMapTexCoordLevelUI = NormalMapTexCoordLevelUI.SaveJson();
-            }
-
-            jsonData.OutputToTessellatedAttributes = OutputToTessellatedAttributes;
-            if(serializeUIComponents)
-            {
-                jsonData.OutputToTessellatedAttributesUI = OutputToTessellatedAttributesUI.SaveJson();
             }
 
             return jsonData;
@@ -35296,6 +35587,11 @@ namespace SimplygonUI
                 MaterialChannel = (string)jsonData.MaterialChannel;
             }
 
+            if(jsonData.GetValue("OpacityChannel") != null)
+            {
+                OpacityChannel = (string)jsonData.OpacityChannel;
+            }
+
             if(jsonData.GetValue("OpacityChannelComponent") != null)
             {
                 OpacityChannelComponent = (EColorComponent)jsonData.OpacityChannelComponent;
@@ -35309,41 +35605,6 @@ namespace SimplygonUI
             if(jsonData.GetValue("FillMode") != null)
             {
                 FillMode = (EAtlasFillMode)jsonData.FillMode;
-            }
-
-            if(jsonData.GetValue("OpacityChannel") != null)
-            {
-                OpacityChannel = (string)jsonData.OpacityChannel;
-            }
-
-            if(jsonData.GetValue("UseMultisampling") != null)
-            {
-                UseMultisampling = (bool)jsonData.UseMultisampling;
-            }
-
-            if(jsonData.GetValue("DistanceScaling") != null)
-            {
-                float newDistanceScaling = (float)jsonData.DistanceScaling;
-                if (newDistanceScaling >= DistanceScalingUI.DefaultMinValue && newDistanceScaling <= DistanceScalingUI.DefaultMaxValue)
-                {
-                    DistanceScaling = newDistanceScaling;
-                }
-
-                else
-                {
-                    UILogger.Instance.Log(Category.Warning, $"DistanceScaling: Invalid value {newDistanceScaling.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DistanceScaling.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                }
-
-            }
-
-            if(jsonData.GetValue("OutputImageFileFormat") != null)
-            {
-                OutputImageFileFormat = (EImageOutputFormat)jsonData.OutputImageFileFormat;
-            }
-
-            if(jsonData.GetValue("OutputDDSCompressionType") != null)
-            {
-                OutputDDSCompressionType = (EDDSCompressionType)jsonData.OutputDDSCompressionType;
             }
 
             if(jsonData.GetValue("Dilation") != null)
@@ -35361,14 +35622,49 @@ namespace SimplygonUI
 
             }
 
-            if(jsonData.GetValue("GenerateScalarDisplacement") != null)
+            if(jsonData.GetValue("UseMultisampling") != null)
             {
-                GenerateScalarDisplacement = (bool)jsonData.GenerateScalarDisplacement;
+                UseMultisampling = (bool)jsonData.UseMultisampling;
             }
 
             if(jsonData.GetValue("OutputPixelFormat") != null)
             {
                 OutputPixelFormat = (EPixelFormat)jsonData.OutputPixelFormat;
+            }
+
+            if(jsonData.GetValue("OutputImageFileFormat") != null)
+            {
+                OutputImageFileFormat = (EImageOutputFormat)jsonData.OutputImageFileFormat;
+            }
+
+            if(jsonData.GetValue("OutputDDSCompressionType") != null)
+            {
+                OutputDDSCompressionType = (EDDSCompressionType)jsonData.OutputDDSCompressionType;
+            }
+
+            if(jsonData.GetValue("DistanceScaling") != null)
+            {
+                float newDistanceScaling = (float)jsonData.DistanceScaling;
+                if (newDistanceScaling >= DistanceScalingUI.DefaultMinValue && newDistanceScaling <= DistanceScalingUI.DefaultMaxValue)
+                {
+                    DistanceScaling = newDistanceScaling;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"DistanceScaling: Invalid value {newDistanceScaling.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DistanceScaling.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("GenerateScalarDisplacement") != null)
+            {
+                GenerateScalarDisplacement = (bool)jsonData.GenerateScalarDisplacement;
+            }
+
+            if(jsonData.GetValue("OutputToTessellatedAttributes") != null)
+            {
+                OutputToTessellatedAttributes = (bool)jsonData.OutputToTessellatedAttributes;
             }
 
             if(jsonData.GetValue("GenerateTangentSpaceDisplacement") != null)
@@ -35391,50 +35687,45 @@ namespace SimplygonUI
 
             }
 
-            if(jsonData.GetValue("OutputToTessellatedAttributes") != null)
-            {
-                OutputToTessellatedAttributes = (bool)jsonData.OutputToTessellatedAttributes;
-            }
-
         }
 
         public override void Reset()
         {
             MaterialChannelUI.Reset();
+            OpacityChannelUI.Reset();
             OpacityChannelComponentUI.Reset();
             DitherTypeUI.Reset();
             FillModeUI.Reset();
-            OpacityChannelUI.Reset();
+            DilationUI.Reset();
             UseMultisamplingUI.Reset();
-            DistanceScalingUI.Reset();
+            OutputPixelFormatUI.Reset();
             OutputImageFileFormatUI.Reset();
             OutputDDSCompressionTypeUI.Reset();
-            DilationUI.Reset();
+            DistanceScalingUI.Reset();
             GenerateScalarDisplacementUI.Reset();
-            OutputPixelFormatUI.Reset();
+            OutputToTessellatedAttributesUI.Reset();
             GenerateTangentSpaceDisplacementUI.Reset();
             NormalMapTexCoordLevelUI.Reset();
-            OutputToTessellatedAttributesUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
         {
             IsEditEnabled = isEditEnabled;
             MaterialChannelUI.IsEditEnabled = isEditEnabled;
+            OpacityChannelUI.IsEditEnabled = isEditEnabled;
             OpacityChannelComponentUI.IsEditEnabled = isEditEnabled;
             DitherTypeUI.IsEditEnabled = isEditEnabled;
             FillModeUI.IsEditEnabled = isEditEnabled;
-            OpacityChannelUI.IsEditEnabled = isEditEnabled;
+            DilationUI.IsEditEnabled = isEditEnabled;
             UseMultisamplingUI.IsEditEnabled = isEditEnabled;
-            DistanceScalingUI.IsEditEnabled = isEditEnabled;
+            OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
             OutputImageFileFormatUI.IsEditEnabled = isEditEnabled;
             OutputDDSCompressionTypeUI.IsEditEnabled = isEditEnabled;
-            DilationUI.IsEditEnabled = isEditEnabled;
+            DistanceScalingUI.IsEditEnabled = isEditEnabled;
             GenerateScalarDisplacementUI.IsEditEnabled = isEditEnabled;
-            OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
+            OutputToTessellatedAttributesUI.IsEditEnabled = isEditEnabled;
             GenerateTangentSpaceDisplacementUI.IsEditEnabled = isEditEnabled;
             NormalMapTexCoordLevelUI.IsEditEnabled = isEditEnabled;
-            OutputToTessellatedAttributesUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -35448,17 +35739,17 @@ namespace SimplygonUI
                 if (!VisibleOverride) return false;
                 if (Name == "InputMaterialSettings") return false;
                 if(MaterialChannelUI.Visible) return true;
+                if(OpacityChannelUI.Visible) return true;
                 if(OpacityChannelComponentUI.Visible) return true;
                 if(DitherTypeUI.Visible) return true;
                 if(FillModeUI.Visible) return true;
-                if(OpacityChannelUI.Visible) return true;
+                if(DilationUI.Visible) return true;
                 if(UseMultisamplingUI.Visible) return true;
-                if(RaysPerPixelUI.Visible) return true;
+                if(OutputPixelFormatUI.Visible) return true;
                 if(OutputImageFileFormatUI.Visible) return true;
                 if(OutputDDSCompressionTypeUI.Visible) return true;
-                if(DilationUI.Visible) return true;
+                if(RaysPerPixelUI.Visible) return true;
                 if(OcclusionFalloffUI.Visible) return true;
-                if(OutputPixelFormatUI.Visible) return true;
                 if(OcclusionMultiplierUI.Visible) return true;
                 if(UseSimpleOcclusionModeUI.Visible) return true;
 
@@ -35532,6 +35823,76 @@ namespace SimplygonUI
             public SimplygonMaterialChannelEx DeepCopy()
             {
                 return (SimplygonMaterialChannelEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
+        private string _OpacityChannel;
+        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
+        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        {
+            public SimplygonAmbientOcclusionCasterSettings Parent { get; set; }
+            public string Value
+            {
+                get
+                {
+                    return Parent.OpacityChannel;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OpacityChannel != value;
+                    Parent.OpacityChannel = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public string DefaultValue { get; set; }
+
+            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                Visible = true;
+            }
+
+            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOpacityChannelEx DeepCopy()
+            {
+                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -35756,45 +36117,99 @@ namespace SimplygonUI
 
         }
 
-        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
-        private string _OpacityChannel;
-        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
-        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        public int Dilation { get { return _Dilation; } set { _Dilation = value; OnPropertyChanged(); } }
+        private int _Dilation;
+        public SimplygonDilationEx DilationUI { get; set; }
+        public class SimplygonDilationEx : SimplygonSettingsProperty
         {
             public SimplygonAmbientOcclusionCasterSettings Parent { get; set; }
-            public string Value
+            public int Value
             {
                 get
                 {
-                    return Parent.OpacityChannel;
+                    return Parent.Dilation;
                 }
 
                 set
                 {
-                    bool needReload = Parent.OpacityChannel != value;
-                    Parent.OpacityChannel = value;
+                    bool needReload = Parent.Dilation != value;
+                    Parent.Dilation = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public string DefaultValue { get; set; }
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
 
-            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            public SimplygonDilationEx() : base("Dilation")
             {
-                Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
-                DefaultValue = "Opacity";
+                DefaultValue = 10;
+                MinValue = 0;
+                MaxValue = 1000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 1000;
+                TicksFrequencyValue = 1;
                 Visible = true;
             }
 
-            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            public SimplygonDilationEx(dynamic jsonData) : base("Dilation")
             {
-                Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
-                DefaultValue = "Opacity";
+                DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1000;
+                DefaultMaxValue = 1000;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -35812,15 +36227,18 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonOpacityChannelEx DeepCopy()
+            public SimplygonDilationEx DeepCopy()
             {
-                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
+                return (SimplygonDilationEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
                 return jsonData;
             }
 
@@ -35896,99 +36314,46 @@ namespace SimplygonUI
 
         }
 
-        public int RaysPerPixel { get { return _RaysPerPixel; } set { _RaysPerPixel = value; OnPropertyChanged(); } }
-        private int _RaysPerPixel;
-        public SimplygonRaysPerPixelEx RaysPerPixelUI { get; set; }
-        public class SimplygonRaysPerPixelEx : SimplygonSettingsProperty
+        public EPixelFormat OutputPixelFormat { get { return _OutputPixelFormat; } set { _OutputPixelFormat = value; OnPropertyChanged(); } }
+        private EPixelFormat _OutputPixelFormat;
+        public SimplygonOutputPixelFormatEx OutputPixelFormatUI { get; set; }
+        public class SimplygonOutputPixelFormatEx : SimplygonSettingsProperty
         {
             public SimplygonAmbientOcclusionCasterSettings Parent { get; set; }
-            public int Value
+            public EPixelFormat Value
             {
                 get
                 {
-                    return Parent.RaysPerPixel;
+                    return Parent.OutputPixelFormat;
                 }
 
                 set
                 {
-                    bool needReload = Parent.RaysPerPixel != value;
-                    Parent.RaysPerPixel = value;
+                    bool needReload = Parent.OutputPixelFormat != value;
+                    Parent.OutputPixelFormat = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public int DefaultValue { get; set; }
-            public int MinValue { get; set; }
-            public int MaxValue { get; set; }
-            public int DefaultMinValue { get; set; }
-            public int DefaultMaxValue { get; set; }
-            public int TicksFrequencyValue { get; set; }
+            public EPixelFormat DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EPixelFormat)); } }
 
-            public SimplygonRaysPerPixelEx() : base("RaysPerPixel")
+            public SimplygonOutputPixelFormatEx() : base("OutputPixelFormat")
             {
-                Type = "uint";
-                HelpText = "This determines how many rays are traced per pixel (or subpixel) to evaluate the occlusion.";
+                Type = "enum";
+                HelpText = "The output pixel format";
                 TypeOverride = "";
-                DefaultValue = 64;
-                MinValue = 0;
-                MaxValue = 256;
-                DefaultMinValue = 0;
-                DefaultMaxValue = 256;
-                TicksFrequencyValue = 1;
+                DefaultValue = EPixelFormat.R8G8B8A8;
                 Visible = true;
             }
 
-            public SimplygonRaysPerPixelEx(dynamic jsonData) : base("RaysPerPixel")
+            public SimplygonOutputPixelFormatEx(dynamic jsonData) : base("OutputPixelFormat")
             {
-                Type = "uint";
-                HelpText = "This determines how many rays are traced per pixel (or subpixel) to evaluate the occlusion.";
+                Type = "enum";
+                HelpText = "The output pixel format";
                 TypeOverride = "";
-                DefaultValue = 64;
-                MinValue = 0;
-                DefaultMinValue = 0;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (int)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"RaysPerPixel: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 256;
-                DefaultMaxValue = 256;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (int)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"RaysPerPixel: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 1;
-                }
-
+                DefaultValue = EPixelFormat.R8G8B8A8;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -36006,18 +36371,15 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonRaysPerPixelEx DeepCopy()
+            public SimplygonOutputPixelFormatEx DeepCopy()
             {
-                return (SimplygonRaysPerPixelEx)this.MemberwiseClone();
+                return (SimplygonOutputPixelFormatEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
                 return jsonData;
             }
 
@@ -36167,23 +36529,23 @@ namespace SimplygonUI
 
         }
 
-        public int Dilation { get { return _Dilation; } set { _Dilation = value; OnPropertyChanged(); } }
-        private int _Dilation;
-        public SimplygonDilationEx DilationUI { get; set; }
-        public class SimplygonDilationEx : SimplygonSettingsProperty
+        public int RaysPerPixel { get { return _RaysPerPixel; } set { _RaysPerPixel = value; OnPropertyChanged(); } }
+        private int _RaysPerPixel;
+        public SimplygonRaysPerPixelEx RaysPerPixelUI { get; set; }
+        public class SimplygonRaysPerPixelEx : SimplygonSettingsProperty
         {
             public SimplygonAmbientOcclusionCasterSettings Parent { get; set; }
             public int Value
             {
                 get
                 {
-                    return Parent.Dilation;
+                    return Parent.RaysPerPixel;
                 }
 
                 set
                 {
-                    bool needReload = Parent.Dilation != value;
-                    Parent.Dilation = value;
+                    bool needReload = Parent.RaysPerPixel != value;
+                    Parent.RaysPerPixel = value;
                     OnPropertyChanged();
                 }
 
@@ -36196,26 +36558,26 @@ namespace SimplygonUI
             public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
-            public SimplygonDilationEx() : base("Dilation")
+            public SimplygonRaysPerPixelEx() : base("RaysPerPixel")
             {
                 Type = "uint";
-                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
+                HelpText = "This determines how many rays are traced per pixel (or subpixel) to evaluate the occlusion.";
                 TypeOverride = "";
-                DefaultValue = 10;
+                DefaultValue = 64;
                 MinValue = 0;
-                MaxValue = 1000;
+                MaxValue = 256;
                 DefaultMinValue = 0;
-                DefaultMaxValue = 1000;
+                DefaultMaxValue = 256;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
 
-            public SimplygonDilationEx(dynamic jsonData) : base("Dilation")
+            public SimplygonRaysPerPixelEx(dynamic jsonData) : base("RaysPerPixel")
             {
                 Type = "uint";
-                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
+                HelpText = "This determines how many rays are traced per pixel (or subpixel) to evaluate the occlusion.";
                 TypeOverride = "";
-                DefaultValue = 10;
+                DefaultValue = 64;
                 MinValue = 0;
                 DefaultMinValue = 0;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
@@ -36228,13 +36590,13 @@ namespace SimplygonUI
 
                     else
                     {
-                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                        UILogger.Instance.Log(Category.Warning, $"RaysPerPixel: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
                     }
 
                 }
 
-                MaxValue = 1000;
-                DefaultMaxValue = 1000;
+                MaxValue = 256;
+                DefaultMaxValue = 256;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
                     var newMaxValue = (int)jsonData.MaxValue;
@@ -36245,7 +36607,7 @@ namespace SimplygonUI
 
                     else
                     {
-                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                        UILogger.Instance.Log(Category.Warning, $"RaysPerPixel: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
                     }
 
                 }
@@ -36277,9 +36639,9 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonDilationEx DeepCopy()
+            public SimplygonRaysPerPixelEx DeepCopy()
             {
-                return (SimplygonDilationEx)this.MemberwiseClone();
+                return (SimplygonRaysPerPixelEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -36416,77 +36778,6 @@ namespace SimplygonUI
                 jsonData.MinValue = MinValue;
                 jsonData.MaxValue = MaxValue;
                 jsonData.TicksFrequencyValue = TicksFrequencyValue;
-                return jsonData;
-            }
-
-        }
-
-        public EPixelFormat OutputPixelFormat { get { return _OutputPixelFormat; } set { _OutputPixelFormat = value; OnPropertyChanged(); } }
-        private EPixelFormat _OutputPixelFormat;
-        public SimplygonOutputPixelFormatEx OutputPixelFormatUI { get; set; }
-        public class SimplygonOutputPixelFormatEx : SimplygonSettingsProperty
-        {
-            public SimplygonAmbientOcclusionCasterSettings Parent { get; set; }
-            public EPixelFormat Value
-            {
-                get
-                {
-                    return Parent.OutputPixelFormat;
-                }
-
-                set
-                {
-                    bool needReload = Parent.OutputPixelFormat != value;
-                    Parent.OutputPixelFormat = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public EPixelFormat DefaultValue { get; set; }
-            public Array EnumValues { get { return Enum.GetValues(typeof(EPixelFormat)); } }
-
-            public SimplygonOutputPixelFormatEx() : base("OutputPixelFormat")
-            {
-                Type = "enum";
-                HelpText = "The output pixel format";
-                TypeOverride = "";
-                DefaultValue = EPixelFormat.R8G8B8A8;
-                Visible = true;
-            }
-
-            public SimplygonOutputPixelFormatEx(dynamic jsonData) : base("OutputPixelFormat")
-            {
-                Type = "enum";
-                HelpText = "The output pixel format";
-                TypeOverride = "";
-                DefaultValue = EPixelFormat.R8G8B8A8;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonOutputPixelFormatEx DeepCopy()
-            {
-                return (SimplygonOutputPixelFormatEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
                 return jsonData;
             }
 
@@ -36697,14 +36988,14 @@ namespace SimplygonUI
             MaterialChannelUI.Parent = this;
             MaterialChannel = MaterialChannelUI.DefaultValue;
             Items.Add(MaterialChannelUI);
-            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
-            OpacityChannelComponentUI.Parent = this;
-            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
-            Items.Add(OpacityChannelComponentUI);
             OpacityChannelUI = new SimplygonOpacityChannelEx();
             OpacityChannelUI.Parent = this;
             OpacityChannel = OpacityChannelUI.DefaultValue;
             Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
             DitherTypeUI = new SimplygonDitherTypeEx();
             DitherTypeUI.Parent = this;
             DitherType = DitherTypeUI.DefaultValue;
@@ -36758,14 +37049,14 @@ namespace SimplygonUI
             MaterialChannelUI.Parent = this;
             MaterialChannel = MaterialChannelUI.DefaultValue;
             Items.Add(MaterialChannelUI);
-            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
-            OpacityChannelComponentUI.Parent = this;
-            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
-            Items.Add(OpacityChannelComponentUI);
             OpacityChannelUI = new SimplygonOpacityChannelEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelUI") != null ? jsonData.OpacityChannelUI : null);
             OpacityChannelUI.Parent = this;
             OpacityChannel = OpacityChannelUI.DefaultValue;
             Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
             DitherTypeUI = new SimplygonDitherTypeEx(jsonData != null && ((JObject)jsonData).GetValue("DitherTypeUI") != null ? jsonData.DitherTypeUI : null);
             DitherTypeUI.Parent = this;
             DitherType = DitherTypeUI.DefaultValue;
@@ -36820,12 +37111,12 @@ namespace SimplygonUI
             copy.MaterialChannelUI = this.MaterialChannelUI.DeepCopy();
             copy.MaterialChannelUI.Parent = copy;
             copy.Items.Add(copy.MaterialChannelUI);
-            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
-            copy.OpacityChannelComponentUI.Parent = copy;
-            copy.Items.Add(copy.OpacityChannelComponentUI);
             copy.OpacityChannelUI = this.OpacityChannelUI.DeepCopy();
             copy.OpacityChannelUI.Parent = copy;
             copy.Items.Add(copy.OpacityChannelUI);
+            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
+            copy.OpacityChannelComponentUI.Parent = copy;
+            copy.Items.Add(copy.OpacityChannelComponentUI);
             copy.DitherTypeUI = this.DitherTypeUI.DeepCopy();
             copy.DitherTypeUI.Parent = copy;
             copy.Items.Add(copy.DitherTypeUI);
@@ -36871,6 +37162,12 @@ namespace SimplygonUI
                 jsonData.MaterialChannelUI = MaterialChannelUI.SaveJson();
             }
 
+            jsonData.OpacityChannel = OpacityChannel;
+            if(serializeUIComponents)
+            {
+                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+            }
+
             jsonData.OpacityChannelComponent = (int)OpacityChannelComponent;
             if(serializeUIComponents)
             {
@@ -36889,10 +37186,10 @@ namespace SimplygonUI
                 jsonData.FillModeUI = FillModeUI.SaveJson();
             }
 
-            jsonData.OpacityChannel = OpacityChannel;
+            jsonData.Dilation = Dilation;
             if(serializeUIComponents)
             {
-                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+                jsonData.DilationUI = DilationUI.SaveJson();
             }
 
             jsonData.UseMultisampling = UseMultisampling;
@@ -36901,10 +37198,10 @@ namespace SimplygonUI
                 jsonData.UseMultisamplingUI = UseMultisamplingUI.SaveJson();
             }
 
-            jsonData.RaysPerPixel = RaysPerPixel;
+            jsonData.OutputPixelFormat = (int)OutputPixelFormat;
             if(serializeUIComponents)
             {
-                jsonData.RaysPerPixelUI = RaysPerPixelUI.SaveJson();
+                jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
             }
 
             jsonData.OutputImageFileFormat = (int)OutputImageFileFormat;
@@ -36919,22 +37216,16 @@ namespace SimplygonUI
                 jsonData.OutputDDSCompressionTypeUI = OutputDDSCompressionTypeUI.SaveJson();
             }
 
-            jsonData.Dilation = Dilation;
+            jsonData.RaysPerPixel = RaysPerPixel;
             if(serializeUIComponents)
             {
-                jsonData.DilationUI = DilationUI.SaveJson();
+                jsonData.RaysPerPixelUI = RaysPerPixelUI.SaveJson();
             }
 
             jsonData.OcclusionFalloff = OcclusionFalloff;
             if(serializeUIComponents)
             {
                 jsonData.OcclusionFalloffUI = OcclusionFalloffUI.SaveJson();
-            }
-
-            jsonData.OutputPixelFormat = (int)OutputPixelFormat;
-            if(serializeUIComponents)
-            {
-                jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
             }
 
             jsonData.OcclusionMultiplier = OcclusionMultiplier;
@@ -36964,6 +37255,11 @@ namespace SimplygonUI
                 MaterialChannel = (string)jsonData.MaterialChannel;
             }
 
+            if(jsonData.GetValue("OpacityChannel") != null)
+            {
+                OpacityChannel = (string)jsonData.OpacityChannel;
+            }
+
             if(jsonData.GetValue("OpacityChannelComponent") != null)
             {
                 OpacityChannelComponent = (EColorComponent)jsonData.OpacityChannelComponent;
@@ -36977,41 +37273,6 @@ namespace SimplygonUI
             if(jsonData.GetValue("FillMode") != null)
             {
                 FillMode = (EAtlasFillMode)jsonData.FillMode;
-            }
-
-            if(jsonData.GetValue("OpacityChannel") != null)
-            {
-                OpacityChannel = (string)jsonData.OpacityChannel;
-            }
-
-            if(jsonData.GetValue("UseMultisampling") != null)
-            {
-                UseMultisampling = (bool)jsonData.UseMultisampling;
-            }
-
-            if(jsonData.GetValue("RaysPerPixel") != null)
-            {
-                var newRaysPerPixel = (int)jsonData.RaysPerPixel;
-                if (newRaysPerPixel >= RaysPerPixelUI.DefaultMinValue && newRaysPerPixel <= RaysPerPixelUI.DefaultMaxValue)
-                {
-                    RaysPerPixel = newRaysPerPixel;
-                }
-
-                else
-                {
-                    UILogger.Instance.Log(Category.Warning, $"RaysPerPixel: Invalid value {newRaysPerPixel}, using default value {RaysPerPixel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                }
-
-            }
-
-            if(jsonData.GetValue("OutputImageFileFormat") != null)
-            {
-                OutputImageFileFormat = (EImageOutputFormat)jsonData.OutputImageFileFormat;
-            }
-
-            if(jsonData.GetValue("OutputDDSCompressionType") != null)
-            {
-                OutputDDSCompressionType = (EDDSCompressionType)jsonData.OutputDDSCompressionType;
             }
 
             if(jsonData.GetValue("Dilation") != null)
@@ -37029,6 +37290,41 @@ namespace SimplygonUI
 
             }
 
+            if(jsonData.GetValue("UseMultisampling") != null)
+            {
+                UseMultisampling = (bool)jsonData.UseMultisampling;
+            }
+
+            if(jsonData.GetValue("OutputPixelFormat") != null)
+            {
+                OutputPixelFormat = (EPixelFormat)jsonData.OutputPixelFormat;
+            }
+
+            if(jsonData.GetValue("OutputImageFileFormat") != null)
+            {
+                OutputImageFileFormat = (EImageOutputFormat)jsonData.OutputImageFileFormat;
+            }
+
+            if(jsonData.GetValue("OutputDDSCompressionType") != null)
+            {
+                OutputDDSCompressionType = (EDDSCompressionType)jsonData.OutputDDSCompressionType;
+            }
+
+            if(jsonData.GetValue("RaysPerPixel") != null)
+            {
+                var newRaysPerPixel = (int)jsonData.RaysPerPixel;
+                if (newRaysPerPixel >= RaysPerPixelUI.DefaultMinValue && newRaysPerPixel <= RaysPerPixelUI.DefaultMaxValue)
+                {
+                    RaysPerPixel = newRaysPerPixel;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"RaysPerPixel: Invalid value {newRaysPerPixel}, using default value {RaysPerPixel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
             if(jsonData.GetValue("OcclusionFalloff") != null)
             {
                 float newOcclusionFalloff = (float)jsonData.OcclusionFalloff;
@@ -37042,11 +37338,6 @@ namespace SimplygonUI
                     UILogger.Instance.Log(Category.Warning, $"OcclusionFalloff: Invalid value {newOcclusionFalloff.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {OcclusionFalloff.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
                 }
 
-            }
-
-            if(jsonData.GetValue("OutputPixelFormat") != null)
-            {
-                OutputPixelFormat = (EPixelFormat)jsonData.OutputPixelFormat;
             }
 
             if(jsonData.GetValue("OcclusionMultiplier") != null)
@@ -37074,17 +37365,17 @@ namespace SimplygonUI
         public override void Reset()
         {
             MaterialChannelUI.Reset();
+            OpacityChannelUI.Reset();
             OpacityChannelComponentUI.Reset();
             DitherTypeUI.Reset();
             FillModeUI.Reset();
-            OpacityChannelUI.Reset();
+            DilationUI.Reset();
             UseMultisamplingUI.Reset();
-            RaysPerPixelUI.Reset();
+            OutputPixelFormatUI.Reset();
             OutputImageFileFormatUI.Reset();
             OutputDDSCompressionTypeUI.Reset();
-            DilationUI.Reset();
+            RaysPerPixelUI.Reset();
             OcclusionFalloffUI.Reset();
-            OutputPixelFormatUI.Reset();
             OcclusionMultiplierUI.Reset();
             UseSimpleOcclusionModeUI.Reset();
         }
@@ -37093,17 +37384,17 @@ namespace SimplygonUI
         {
             IsEditEnabled = isEditEnabled;
             MaterialChannelUI.IsEditEnabled = isEditEnabled;
+            OpacityChannelUI.IsEditEnabled = isEditEnabled;
             OpacityChannelComponentUI.IsEditEnabled = isEditEnabled;
             DitherTypeUI.IsEditEnabled = isEditEnabled;
             FillModeUI.IsEditEnabled = isEditEnabled;
-            OpacityChannelUI.IsEditEnabled = isEditEnabled;
+            DilationUI.IsEditEnabled = isEditEnabled;
             UseMultisamplingUI.IsEditEnabled = isEditEnabled;
-            RaysPerPixelUI.IsEditEnabled = isEditEnabled;
+            OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
             OutputImageFileFormatUI.IsEditEnabled = isEditEnabled;
             OutputDDSCompressionTypeUI.IsEditEnabled = isEditEnabled;
-            DilationUI.IsEditEnabled = isEditEnabled;
+            RaysPerPixelUI.IsEditEnabled = isEditEnabled;
             OcclusionFalloffUI.IsEditEnabled = isEditEnabled;
-            OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
             OcclusionMultiplierUI.IsEditEnabled = isEditEnabled;
             UseSimpleOcclusionModeUI.IsEditEnabled = isEditEnabled;
         }
@@ -37119,17 +37410,17 @@ namespace SimplygonUI
                 if (!VisibleOverride) return false;
                 if (Name == "InputMaterialSettings") return false;
                 if(MaterialChannelUI.Visible) return true;
+                if(OpacityChannelUI.Visible) return true;
                 if(OpacityChannelComponentUI.Visible) return true;
                 if(DitherTypeUI.Visible) return true;
                 if(FillModeUI.Visible) return true;
-                if(OpacityChannelUI.Visible) return true;
+                if(DilationUI.Visible) return true;
                 if(UseMultisamplingUI.Visible) return true;
-                if(GeometryDataFieldTypeUI.Visible) return true;
+                if(OutputPixelFormatUI.Visible) return true;
                 if(OutputImageFileFormatUI.Visible) return true;
                 if(OutputDDSCompressionTypeUI.Visible) return true;
-                if(DilationUI.Visible) return true;
+                if(GeometryDataFieldTypeUI.Visible) return true;
                 if(GeometryDataFieldIndexUI.Visible) return true;
-                if(OutputPixelFormatUI.Visible) return true;
                 if(MappingLayerIndexUI.Visible) return true;
                 if(MappingInfRUI.Visible) return true;
                 if(MappingSupRUI.Visible) return true;
@@ -37210,6 +37501,76 @@ namespace SimplygonUI
             public SimplygonMaterialChannelEx DeepCopy()
             {
                 return (SimplygonMaterialChannelEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
+        private string _OpacityChannel;
+        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
+        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        {
+            public SimplygonGeometryDataCasterSettings Parent { get; set; }
+            public string Value
+            {
+                get
+                {
+                    return Parent.OpacityChannel;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OpacityChannel != value;
+                    Parent.OpacityChannel = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public string DefaultValue { get; set; }
+
+            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                Visible = true;
+            }
+
+            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOpacityChannelEx DeepCopy()
+            {
+                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -37434,45 +37795,99 @@ namespace SimplygonUI
 
         }
 
-        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
-        private string _OpacityChannel;
-        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
-        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        public int Dilation { get { return _Dilation; } set { _Dilation = value; OnPropertyChanged(); } }
+        private int _Dilation;
+        public SimplygonDilationEx DilationUI { get; set; }
+        public class SimplygonDilationEx : SimplygonSettingsProperty
         {
             public SimplygonGeometryDataCasterSettings Parent { get; set; }
-            public string Value
+            public int Value
             {
                 get
                 {
-                    return Parent.OpacityChannel;
+                    return Parent.Dilation;
                 }
 
                 set
                 {
-                    bool needReload = Parent.OpacityChannel != value;
-                    Parent.OpacityChannel = value;
+                    bool needReload = Parent.Dilation != value;
+                    Parent.Dilation = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public string DefaultValue { get; set; }
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
 
-            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            public SimplygonDilationEx() : base("Dilation")
             {
-                Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
-                DefaultValue = "Opacity";
+                DefaultValue = 10;
+                MinValue = 0;
+                MaxValue = 1000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 1000;
+                TicksFrequencyValue = 1;
                 Visible = true;
             }
 
-            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            public SimplygonDilationEx(dynamic jsonData) : base("Dilation")
             {
-                Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
-                DefaultValue = "Opacity";
+                DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1000;
+                DefaultMaxValue = 1000;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -37490,15 +37905,18 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonOpacityChannelEx DeepCopy()
+            public SimplygonDilationEx DeepCopy()
             {
-                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
+                return (SimplygonDilationEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
                 return jsonData;
             }
 
@@ -37574,46 +37992,46 @@ namespace SimplygonUI
 
         }
 
-        public EGeometryDataFieldType GeometryDataFieldType { get { return _GeometryDataFieldType; } set { _GeometryDataFieldType = value; OnPropertyChanged(); } }
-        private EGeometryDataFieldType _GeometryDataFieldType;
-        public SimplygonGeometryDataFieldTypeEx GeometryDataFieldTypeUI { get; set; }
-        public class SimplygonGeometryDataFieldTypeEx : SimplygonSettingsProperty
+        public EPixelFormat OutputPixelFormat { get { return _OutputPixelFormat; } set { _OutputPixelFormat = value; OnPropertyChanged(); } }
+        private EPixelFormat _OutputPixelFormat;
+        public SimplygonOutputPixelFormatEx OutputPixelFormatUI { get; set; }
+        public class SimplygonOutputPixelFormatEx : SimplygonSettingsProperty
         {
             public SimplygonGeometryDataCasterSettings Parent { get; set; }
-            public EGeometryDataFieldType Value
+            public EPixelFormat Value
             {
                 get
                 {
-                    return Parent.GeometryDataFieldType;
+                    return Parent.OutputPixelFormat;
                 }
 
                 set
                 {
-                    bool needReload = Parent.GeometryDataFieldType != value;
-                    Parent.GeometryDataFieldType = value;
+                    bool needReload = Parent.OutputPixelFormat != value;
+                    Parent.OutputPixelFormat = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public EGeometryDataFieldType DefaultValue { get; set; }
-            public Array EnumValues { get { return Enum.GetValues(typeof(EGeometryDataFieldType)); } }
+            public EPixelFormat DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EPixelFormat)); } }
 
-            public SimplygonGeometryDataFieldTypeEx() : base("GeometryDataFieldType")
+            public SimplygonOutputPixelFormatEx() : base("OutputPixelFormat")
             {
                 Type = "enum";
-                HelpText = "The GeometryDataFieldType setting, which specifies what field type to cast in the GeometryDataCaster.";
+                HelpText = "The output pixel format";
                 TypeOverride = "";
-                DefaultValue = EGeometryDataFieldType.Coords;
+                DefaultValue = EPixelFormat.R8G8B8A8;
                 Visible = true;
             }
 
-            public SimplygonGeometryDataFieldTypeEx(dynamic jsonData) : base("GeometryDataFieldType")
+            public SimplygonOutputPixelFormatEx(dynamic jsonData) : base("OutputPixelFormat")
             {
                 Type = "enum";
-                HelpText = "The GeometryDataFieldType setting, which specifies what field type to cast in the GeometryDataCaster.";
+                HelpText = "The output pixel format";
                 TypeOverride = "";
-                DefaultValue = EGeometryDataFieldType.Coords;
+                DefaultValue = EPixelFormat.R8G8B8A8;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -37631,9 +38049,9 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonGeometryDataFieldTypeEx DeepCopy()
+            public SimplygonOutputPixelFormatEx DeepCopy()
             {
-                return (SimplygonGeometryDataFieldTypeEx)this.MemberwiseClone();
+                return (SimplygonOutputPixelFormatEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -37789,99 +38207,46 @@ namespace SimplygonUI
 
         }
 
-        public int Dilation { get { return _Dilation; } set { _Dilation = value; OnPropertyChanged(); } }
-        private int _Dilation;
-        public SimplygonDilationEx DilationUI { get; set; }
-        public class SimplygonDilationEx : SimplygonSettingsProperty
+        public EGeometryDataFieldType GeometryDataFieldType { get { return _GeometryDataFieldType; } set { _GeometryDataFieldType = value; OnPropertyChanged(); } }
+        private EGeometryDataFieldType _GeometryDataFieldType;
+        public SimplygonGeometryDataFieldTypeEx GeometryDataFieldTypeUI { get; set; }
+        public class SimplygonGeometryDataFieldTypeEx : SimplygonSettingsProperty
         {
             public SimplygonGeometryDataCasterSettings Parent { get; set; }
-            public int Value
+            public EGeometryDataFieldType Value
             {
                 get
                 {
-                    return Parent.Dilation;
+                    return Parent.GeometryDataFieldType;
                 }
 
                 set
                 {
-                    bool needReload = Parent.Dilation != value;
-                    Parent.Dilation = value;
+                    bool needReload = Parent.GeometryDataFieldType != value;
+                    Parent.GeometryDataFieldType = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public int DefaultValue { get; set; }
-            public int MinValue { get; set; }
-            public int MaxValue { get; set; }
-            public int DefaultMinValue { get; set; }
-            public int DefaultMaxValue { get; set; }
-            public int TicksFrequencyValue { get; set; }
+            public EGeometryDataFieldType DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EGeometryDataFieldType)); } }
 
-            public SimplygonDilationEx() : base("Dilation")
+            public SimplygonGeometryDataFieldTypeEx() : base("GeometryDataFieldType")
             {
-                Type = "uint";
-                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
+                Type = "enum";
+                HelpText = "The GeometryDataFieldType setting, which specifies what field type to cast in the GeometryDataCaster.";
                 TypeOverride = "";
-                DefaultValue = 10;
-                MinValue = 0;
-                MaxValue = 1000;
-                DefaultMinValue = 0;
-                DefaultMaxValue = 1000;
-                TicksFrequencyValue = 1;
+                DefaultValue = EGeometryDataFieldType.Coords;
                 Visible = true;
             }
 
-            public SimplygonDilationEx(dynamic jsonData) : base("Dilation")
+            public SimplygonGeometryDataFieldTypeEx(dynamic jsonData) : base("GeometryDataFieldType")
             {
-                Type = "uint";
-                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
+                Type = "enum";
+                HelpText = "The GeometryDataFieldType setting, which specifies what field type to cast in the GeometryDataCaster.";
                 TypeOverride = "";
-                DefaultValue = 10;
-                MinValue = 0;
-                DefaultMinValue = 0;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (int)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 1000;
-                DefaultMaxValue = 1000;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (int)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 1;
-                }
-
+                DefaultValue = EGeometryDataFieldType.Coords;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -37899,18 +38264,15 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonDilationEx DeepCopy()
+            public SimplygonGeometryDataFieldTypeEx DeepCopy()
             {
-                return (SimplygonDilationEx)this.MemberwiseClone();
+                return (SimplygonGeometryDataFieldTypeEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
                 return jsonData;
             }
 
@@ -38038,77 +38400,6 @@ namespace SimplygonUI
                 jsonData.MinValue = MinValue;
                 jsonData.MaxValue = MaxValue;
                 jsonData.TicksFrequencyValue = TicksFrequencyValue;
-                return jsonData;
-            }
-
-        }
-
-        public EPixelFormat OutputPixelFormat { get { return _OutputPixelFormat; } set { _OutputPixelFormat = value; OnPropertyChanged(); } }
-        private EPixelFormat _OutputPixelFormat;
-        public SimplygonOutputPixelFormatEx OutputPixelFormatUI { get; set; }
-        public class SimplygonOutputPixelFormatEx : SimplygonSettingsProperty
-        {
-            public SimplygonGeometryDataCasterSettings Parent { get; set; }
-            public EPixelFormat Value
-            {
-                get
-                {
-                    return Parent.OutputPixelFormat;
-                }
-
-                set
-                {
-                    bool needReload = Parent.OutputPixelFormat != value;
-                    Parent.OutputPixelFormat = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public EPixelFormat DefaultValue { get; set; }
-            public Array EnumValues { get { return Enum.GetValues(typeof(EPixelFormat)); } }
-
-            public SimplygonOutputPixelFormatEx() : base("OutputPixelFormat")
-            {
-                Type = "enum";
-                HelpText = "The output pixel format";
-                TypeOverride = "";
-                DefaultValue = EPixelFormat.R8G8B8A8;
-                Visible = true;
-            }
-
-            public SimplygonOutputPixelFormatEx(dynamic jsonData) : base("OutputPixelFormat")
-            {
-                Type = "enum";
-                HelpText = "The output pixel format";
-                TypeOverride = "";
-                DefaultValue = EPixelFormat.R8G8B8A8;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonOutputPixelFormatEx DeepCopy()
-            {
-                return (SimplygonOutputPixelFormatEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
                 return jsonData;
             }
 
@@ -39265,14 +39556,14 @@ namespace SimplygonUI
             MaterialChannelUI.Parent = this;
             MaterialChannel = MaterialChannelUI.DefaultValue;
             Items.Add(MaterialChannelUI);
-            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
-            OpacityChannelComponentUI.Parent = this;
-            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
-            Items.Add(OpacityChannelComponentUI);
             OpacityChannelUI = new SimplygonOpacityChannelEx();
             OpacityChannelUI.Parent = this;
             OpacityChannel = OpacityChannelUI.DefaultValue;
             Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
             DitherTypeUI = new SimplygonDitherTypeEx();
             DitherTypeUI.Parent = this;
             DitherType = DitherTypeUI.DefaultValue;
@@ -39354,14 +39645,14 @@ namespace SimplygonUI
             MaterialChannelUI.Parent = this;
             MaterialChannel = MaterialChannelUI.DefaultValue;
             Items.Add(MaterialChannelUI);
-            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
-            OpacityChannelComponentUI.Parent = this;
-            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
-            Items.Add(OpacityChannelComponentUI);
             OpacityChannelUI = new SimplygonOpacityChannelEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelUI") != null ? jsonData.OpacityChannelUI : null);
             OpacityChannelUI.Parent = this;
             OpacityChannel = OpacityChannelUI.DefaultValue;
             Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
             DitherTypeUI = new SimplygonDitherTypeEx(jsonData != null && ((JObject)jsonData).GetValue("DitherTypeUI") != null ? jsonData.DitherTypeUI : null);
             DitherTypeUI.Parent = this;
             DitherType = DitherTypeUI.DefaultValue;
@@ -39444,12 +39735,12 @@ namespace SimplygonUI
             copy.MaterialChannelUI = this.MaterialChannelUI.DeepCopy();
             copy.MaterialChannelUI.Parent = copy;
             copy.Items.Add(copy.MaterialChannelUI);
-            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
-            copy.OpacityChannelComponentUI.Parent = copy;
-            copy.Items.Add(copy.OpacityChannelComponentUI);
             copy.OpacityChannelUI = this.OpacityChannelUI.DeepCopy();
             copy.OpacityChannelUI.Parent = copy;
             copy.Items.Add(copy.OpacityChannelUI);
+            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
+            copy.OpacityChannelComponentUI.Parent = copy;
+            copy.Items.Add(copy.OpacityChannelComponentUI);
             copy.DitherTypeUI = this.DitherTypeUI.DeepCopy();
             copy.DitherTypeUI.Parent = copy;
             copy.Items.Add(copy.DitherTypeUI);
@@ -39516,6 +39807,12 @@ namespace SimplygonUI
                 jsonData.MaterialChannelUI = MaterialChannelUI.SaveJson();
             }
 
+            jsonData.OpacityChannel = OpacityChannel;
+            if(serializeUIComponents)
+            {
+                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+            }
+
             jsonData.OpacityChannelComponent = (int)OpacityChannelComponent;
             if(serializeUIComponents)
             {
@@ -39534,10 +39831,10 @@ namespace SimplygonUI
                 jsonData.FillModeUI = FillModeUI.SaveJson();
             }
 
-            jsonData.OpacityChannel = OpacityChannel;
+            jsonData.Dilation = Dilation;
             if(serializeUIComponents)
             {
-                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+                jsonData.DilationUI = DilationUI.SaveJson();
             }
 
             jsonData.UseMultisampling = UseMultisampling;
@@ -39546,10 +39843,10 @@ namespace SimplygonUI
                 jsonData.UseMultisamplingUI = UseMultisamplingUI.SaveJson();
             }
 
-            jsonData.GeometryDataFieldType = (int)GeometryDataFieldType;
+            jsonData.OutputPixelFormat = (int)OutputPixelFormat;
             if(serializeUIComponents)
             {
-                jsonData.GeometryDataFieldTypeUI = GeometryDataFieldTypeUI.SaveJson();
+                jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
             }
 
             jsonData.OutputImageFileFormat = (int)OutputImageFileFormat;
@@ -39564,22 +39861,16 @@ namespace SimplygonUI
                 jsonData.OutputDDSCompressionTypeUI = OutputDDSCompressionTypeUI.SaveJson();
             }
 
-            jsonData.Dilation = Dilation;
+            jsonData.GeometryDataFieldType = (int)GeometryDataFieldType;
             if(serializeUIComponents)
             {
-                jsonData.DilationUI = DilationUI.SaveJson();
+                jsonData.GeometryDataFieldTypeUI = GeometryDataFieldTypeUI.SaveJson();
             }
 
             jsonData.GeometryDataFieldIndex = GeometryDataFieldIndex;
             if(serializeUIComponents)
             {
                 jsonData.GeometryDataFieldIndexUI = GeometryDataFieldIndexUI.SaveJson();
-            }
-
-            jsonData.OutputPixelFormat = (int)OutputPixelFormat;
-            if(serializeUIComponents)
-            {
-                jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
             }
 
             jsonData.MappingLayerIndex = MappingLayerIndex;
@@ -39651,6 +39942,11 @@ namespace SimplygonUI
                 MaterialChannel = (string)jsonData.MaterialChannel;
             }
 
+            if(jsonData.GetValue("OpacityChannel") != null)
+            {
+                OpacityChannel = (string)jsonData.OpacityChannel;
+            }
+
             if(jsonData.GetValue("OpacityChannelComponent") != null)
             {
                 OpacityChannelComponent = (EColorComponent)jsonData.OpacityChannelComponent;
@@ -39664,31 +39960,6 @@ namespace SimplygonUI
             if(jsonData.GetValue("FillMode") != null)
             {
                 FillMode = (EAtlasFillMode)jsonData.FillMode;
-            }
-
-            if(jsonData.GetValue("OpacityChannel") != null)
-            {
-                OpacityChannel = (string)jsonData.OpacityChannel;
-            }
-
-            if(jsonData.GetValue("UseMultisampling") != null)
-            {
-                UseMultisampling = (bool)jsonData.UseMultisampling;
-            }
-
-            if(jsonData.GetValue("GeometryDataFieldType") != null)
-            {
-                GeometryDataFieldType = (EGeometryDataFieldType)jsonData.GeometryDataFieldType;
-            }
-
-            if(jsonData.GetValue("OutputImageFileFormat") != null)
-            {
-                OutputImageFileFormat = (EImageOutputFormat)jsonData.OutputImageFileFormat;
-            }
-
-            if(jsonData.GetValue("OutputDDSCompressionType") != null)
-            {
-                OutputDDSCompressionType = (EDDSCompressionType)jsonData.OutputDDSCompressionType;
             }
 
             if(jsonData.GetValue("Dilation") != null)
@@ -39706,6 +39977,31 @@ namespace SimplygonUI
 
             }
 
+            if(jsonData.GetValue("UseMultisampling") != null)
+            {
+                UseMultisampling = (bool)jsonData.UseMultisampling;
+            }
+
+            if(jsonData.GetValue("OutputPixelFormat") != null)
+            {
+                OutputPixelFormat = (EPixelFormat)jsonData.OutputPixelFormat;
+            }
+
+            if(jsonData.GetValue("OutputImageFileFormat") != null)
+            {
+                OutputImageFileFormat = (EImageOutputFormat)jsonData.OutputImageFileFormat;
+            }
+
+            if(jsonData.GetValue("OutputDDSCompressionType") != null)
+            {
+                OutputDDSCompressionType = (EDDSCompressionType)jsonData.OutputDDSCompressionType;
+            }
+
+            if(jsonData.GetValue("GeometryDataFieldType") != null)
+            {
+                GeometryDataFieldType = (EGeometryDataFieldType)jsonData.GeometryDataFieldType;
+            }
+
             if(jsonData.GetValue("GeometryDataFieldIndex") != null)
             {
                 var newGeometryDataFieldIndex = (int)jsonData.GeometryDataFieldIndex;
@@ -39719,11 +40015,6 @@ namespace SimplygonUI
                     UILogger.Instance.Log(Category.Warning, $"GeometryDataFieldIndex: Invalid value {newGeometryDataFieldIndex}, using default value {GeometryDataFieldIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
                 }
 
-            }
-
-            if(jsonData.GetValue("OutputPixelFormat") != null)
-            {
-                OutputPixelFormat = (EPixelFormat)jsonData.OutputPixelFormat;
             }
 
             if(jsonData.GetValue("MappingLayerIndex") != null)
@@ -39866,17 +40157,17 @@ namespace SimplygonUI
         public override void Reset()
         {
             MaterialChannelUI.Reset();
+            OpacityChannelUI.Reset();
             OpacityChannelComponentUI.Reset();
             DitherTypeUI.Reset();
             FillModeUI.Reset();
-            OpacityChannelUI.Reset();
+            DilationUI.Reset();
             UseMultisamplingUI.Reset();
-            GeometryDataFieldTypeUI.Reset();
+            OutputPixelFormatUI.Reset();
             OutputImageFileFormatUI.Reset();
             OutputDDSCompressionTypeUI.Reset();
-            DilationUI.Reset();
+            GeometryDataFieldTypeUI.Reset();
             GeometryDataFieldIndexUI.Reset();
-            OutputPixelFormatUI.Reset();
             MappingLayerIndexUI.Reset();
             MappingInfRUI.Reset();
             MappingSupRUI.Reset();
@@ -39892,17 +40183,17 @@ namespace SimplygonUI
         {
             IsEditEnabled = isEditEnabled;
             MaterialChannelUI.IsEditEnabled = isEditEnabled;
+            OpacityChannelUI.IsEditEnabled = isEditEnabled;
             OpacityChannelComponentUI.IsEditEnabled = isEditEnabled;
             DitherTypeUI.IsEditEnabled = isEditEnabled;
             FillModeUI.IsEditEnabled = isEditEnabled;
-            OpacityChannelUI.IsEditEnabled = isEditEnabled;
+            DilationUI.IsEditEnabled = isEditEnabled;
             UseMultisamplingUI.IsEditEnabled = isEditEnabled;
-            GeometryDataFieldTypeUI.IsEditEnabled = isEditEnabled;
+            OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
             OutputImageFileFormatUI.IsEditEnabled = isEditEnabled;
             OutputDDSCompressionTypeUI.IsEditEnabled = isEditEnabled;
-            DilationUI.IsEditEnabled = isEditEnabled;
+            GeometryDataFieldTypeUI.IsEditEnabled = isEditEnabled;
             GeometryDataFieldIndexUI.IsEditEnabled = isEditEnabled;
-            OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
             MappingLayerIndexUI.IsEditEnabled = isEditEnabled;
             MappingInfRUI.IsEditEnabled = isEditEnabled;
             MappingSupRUI.IsEditEnabled = isEditEnabled;
@@ -39925,17 +40216,17 @@ namespace SimplygonUI
                 if (!VisibleOverride) return false;
                 if (Name == "InputMaterialSettings") return false;
                 if(MaterialChannelUI.Visible) return true;
+                if(OpacityChannelUI.Visible) return true;
                 if(OpacityChannelComponentUI.Visible) return true;
                 if(DitherTypeUI.Visible) return true;
                 if(FillModeUI.Visible) return true;
-                if(OpacityChannelUI.Visible) return true;
+                if(DilationUI.Visible) return true;
                 if(UseMultisamplingUI.Visible) return true;
-                if(OutputColorLevelUI.Visible) return true;
+                if(OutputPixelFormatUI.Visible) return true;
                 if(OutputImageFileFormatUI.Visible) return true;
                 if(OutputDDSCompressionTypeUI.Visible) return true;
-                if(DilationUI.Visible) return true;
+                if(OutputColorLevelUI.Visible) return true;
                 if(OutputColorNameUI.Visible) return true;
-                if(OutputPixelFormatUI.Visible) return true;
                 if(ColorSpaceEdgeThresholdUI.Visible) return true;
 
                 return false;
@@ -40008,6 +40299,76 @@ namespace SimplygonUI
             public SimplygonMaterialChannelEx DeepCopy()
             {
                 return (SimplygonMaterialChannelEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
+        private string _OpacityChannel;
+        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
+        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        {
+            public SimplygonVertexColorCasterSettings Parent { get; set; }
+            public string Value
+            {
+                get
+                {
+                    return Parent.OpacityChannel;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OpacityChannel != value;
+                    Parent.OpacityChannel = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public string DefaultValue { get; set; }
+
+            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                Visible = true;
+            }
+
+            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOpacityChannelEx DeepCopy()
+            {
+                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -40232,45 +40593,99 @@ namespace SimplygonUI
 
         }
 
-        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
-        private string _OpacityChannel;
-        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
-        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        public int Dilation { get { return _Dilation; } set { _Dilation = value; OnPropertyChanged(); } }
+        private int _Dilation;
+        public SimplygonDilationEx DilationUI { get; set; }
+        public class SimplygonDilationEx : SimplygonSettingsProperty
         {
             public SimplygonVertexColorCasterSettings Parent { get; set; }
-            public string Value
+            public int Value
             {
                 get
                 {
-                    return Parent.OpacityChannel;
+                    return Parent.Dilation;
                 }
 
                 set
                 {
-                    bool needReload = Parent.OpacityChannel != value;
-                    Parent.OpacityChannel = value;
+                    bool needReload = Parent.Dilation != value;
+                    Parent.Dilation = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public string DefaultValue { get; set; }
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
 
-            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            public SimplygonDilationEx() : base("Dilation")
             {
-                Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
-                DefaultValue = "Opacity";
+                DefaultValue = 10;
+                MinValue = 0;
+                MaxValue = 1000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 1000;
+                TicksFrequencyValue = 1;
                 Visible = true;
             }
 
-            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            public SimplygonDilationEx(dynamic jsonData) : base("Dilation")
             {
-                Type = "string";
-                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
                 TypeOverride = "";
-                DefaultValue = "Opacity";
+                DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1000;
+                DefaultMaxValue = 1000;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -40288,15 +40703,18 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonOpacityChannelEx DeepCopy()
+            public SimplygonDilationEx DeepCopy()
             {
-                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
+                return (SimplygonDilationEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
                 return jsonData;
             }
 
@@ -40372,99 +40790,46 @@ namespace SimplygonUI
 
         }
 
-        public int OutputColorLevel { get { return _OutputColorLevel; } set { _OutputColorLevel = value; OnPropertyChanged(); } }
-        private int _OutputColorLevel;
-        public SimplygonOutputColorLevelEx OutputColorLevelUI { get; set; }
-        public class SimplygonOutputColorLevelEx : SimplygonSettingsProperty
+        public EPixelFormat OutputPixelFormat { get { return _OutputPixelFormat; } set { _OutputPixelFormat = value; OnPropertyChanged(); } }
+        private EPixelFormat _OutputPixelFormat;
+        public SimplygonOutputPixelFormatEx OutputPixelFormatUI { get; set; }
+        public class SimplygonOutputPixelFormatEx : SimplygonSettingsProperty
         {
             public SimplygonVertexColorCasterSettings Parent { get; set; }
-            public int Value
+            public EPixelFormat Value
             {
                 get
                 {
-                    return Parent.OutputColorLevel;
+                    return Parent.OutputPixelFormat;
                 }
 
                 set
                 {
-                    bool needReload = Parent.OutputColorLevel != value;
-                    Parent.OutputColorLevel = value;
+                    bool needReload = Parent.OutputPixelFormat != value;
+                    Parent.OutputPixelFormat = value;
                     OnPropertyChanged();
                 }
 
             }
 
-            public int DefaultValue { get; set; }
-            public int MinValue { get; set; }
-            public int MaxValue { get; set; }
-            public int DefaultMinValue { get; set; }
-            public int DefaultMaxValue { get; set; }
-            public int TicksFrequencyValue { get; set; }
+            public EPixelFormat DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EPixelFormat)); } }
 
-            public SimplygonOutputColorLevelEx() : base("OutputColorLevel")
+            public SimplygonOutputPixelFormatEx() : base("OutputPixelFormat")
             {
-                Type = "rid";
-                HelpText = "The OutputColorLevel index.";
+                Type = "enum";
+                HelpText = "The output pixel format";
                 TypeOverride = "";
-                DefaultValue = -1;
-                MinValue = -1;
-                MaxValue = 10;
-                DefaultMinValue = -1;
-                DefaultMaxValue = 10;
-                TicksFrequencyValue = 1;
+                DefaultValue = EPixelFormat.R8G8B8A8;
                 Visible = true;
             }
 
-            public SimplygonOutputColorLevelEx(dynamic jsonData) : base("OutputColorLevel")
+            public SimplygonOutputPixelFormatEx(dynamic jsonData) : base("OutputPixelFormat")
             {
-                Type = "rid";
-                HelpText = "The OutputColorLevel index.";
+                Type = "enum";
+                HelpText = "The output pixel format";
                 TypeOverride = "";
-                DefaultValue = -1;
-                MinValue = -1;
-                DefaultMinValue = -1;
-                if (jsonData != null && jsonData.GetValue("MinValue") != null)
-                {
-                    var newMinValue = (int)jsonData.MinValue;
-                    if (newMinValue >= MinValue)
-                    {
-                        MinValue = newMinValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"OutputColorLevel: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                MaxValue = 10;
-                DefaultMaxValue = 10;
-                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
-                {
-                    var newMaxValue = (int)jsonData.MaxValue;
-                    if (newMaxValue <= MaxValue)
-                    {
-                        MaxValue = newMaxValue;
-                    }
-
-                    else
-                    {
-                        UILogger.Instance.Log(Category.Warning, $"OutputColorLevel: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                    }
-
-                }
-
-                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
-                {
-                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
-                }
-
-                else
-                {
-                    TicksFrequencyValue = 1;
-                }
-
+                DefaultValue = EPixelFormat.R8G8B8A8;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
                 {
                     Visible = Convert.ToBoolean(jsonData.Visible);
@@ -40482,18 +40847,15 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonOutputColorLevelEx DeepCopy()
+            public SimplygonOutputPixelFormatEx DeepCopy()
             {
-                return (SimplygonOutputColorLevelEx)this.MemberwiseClone();
+                return (SimplygonOutputPixelFormatEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
             {
                 dynamic jsonData = new JObject();
                 jsonData.Visible = Visible;
-                jsonData.MinValue = MinValue;
-                jsonData.MaxValue = MaxValue;
-                jsonData.TicksFrequencyValue = TicksFrequencyValue;
                 return jsonData;
             }
 
@@ -40643,23 +41005,23 @@ namespace SimplygonUI
 
         }
 
-        public int Dilation { get { return _Dilation; } set { _Dilation = value; OnPropertyChanged(); } }
-        private int _Dilation;
-        public SimplygonDilationEx DilationUI { get; set; }
-        public class SimplygonDilationEx : SimplygonSettingsProperty
+        public int OutputColorLevel { get { return _OutputColorLevel; } set { _OutputColorLevel = value; OnPropertyChanged(); } }
+        private int _OutputColorLevel;
+        public SimplygonOutputColorLevelEx OutputColorLevelUI { get; set; }
+        public class SimplygonOutputColorLevelEx : SimplygonSettingsProperty
         {
             public SimplygonVertexColorCasterSettings Parent { get; set; }
             public int Value
             {
                 get
                 {
-                    return Parent.Dilation;
+                    return Parent.OutputColorLevel;
                 }
 
                 set
                 {
-                    bool needReload = Parent.Dilation != value;
-                    Parent.Dilation = value;
+                    bool needReload = Parent.OutputColorLevel != value;
+                    Parent.OutputColorLevel = value;
                     OnPropertyChanged();
                 }
 
@@ -40672,28 +41034,28 @@ namespace SimplygonUI
             public int DefaultMaxValue { get; set; }
             public int TicksFrequencyValue { get; set; }
 
-            public SimplygonDilationEx() : base("Dilation")
+            public SimplygonOutputColorLevelEx() : base("OutputColorLevel")
             {
-                Type = "uint";
-                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
+                Type = "rid";
+                HelpText = "The OutputColorLevel index.";
                 TypeOverride = "";
-                DefaultValue = 10;
-                MinValue = 0;
-                MaxValue = 1000;
-                DefaultMinValue = 0;
-                DefaultMaxValue = 1000;
+                DefaultValue = -1;
+                MinValue = -1;
+                MaxValue = 10;
+                DefaultMinValue = -1;
+                DefaultMaxValue = 10;
                 TicksFrequencyValue = 1;
                 Visible = true;
             }
 
-            public SimplygonDilationEx(dynamic jsonData) : base("Dilation")
+            public SimplygonOutputColorLevelEx(dynamic jsonData) : base("OutputColorLevel")
             {
-                Type = "uint";
-                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
+                Type = "rid";
+                HelpText = "The OutputColorLevel index.";
                 TypeOverride = "";
-                DefaultValue = 10;
-                MinValue = 0;
-                DefaultMinValue = 0;
+                DefaultValue = -1;
+                MinValue = -1;
+                DefaultMinValue = -1;
                 if (jsonData != null && jsonData.GetValue("MinValue") != null)
                 {
                     var newMinValue = (int)jsonData.MinValue;
@@ -40704,13 +41066,13 @@ namespace SimplygonUI
 
                     else
                     {
-                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                        UILogger.Instance.Log(Category.Warning, $"OutputColorLevel: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
                     }
 
                 }
 
-                MaxValue = 1000;
-                DefaultMaxValue = 1000;
+                MaxValue = 10;
+                DefaultMaxValue = 10;
                 if (jsonData != null && jsonData.GetValue("MaxValue") != null)
                 {
                     var newMaxValue = (int)jsonData.MaxValue;
@@ -40721,7 +41083,7 @@ namespace SimplygonUI
 
                     else
                     {
-                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                        UILogger.Instance.Log(Category.Warning, $"OutputColorLevel: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
                     }
 
                 }
@@ -40753,9 +41115,9 @@ namespace SimplygonUI
                 Value = DefaultValue;
             }
 
-            public SimplygonDilationEx DeepCopy()
+            public SimplygonOutputColorLevelEx DeepCopy()
             {
-                return (SimplygonDilationEx)this.MemberwiseClone();
+                return (SimplygonOutputColorLevelEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -40829,77 +41191,6 @@ namespace SimplygonUI
             public SimplygonOutputColorNameEx DeepCopy()
             {
                 return (SimplygonOutputColorNameEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public EPixelFormat OutputPixelFormat { get { return _OutputPixelFormat; } set { _OutputPixelFormat = value; OnPropertyChanged(); } }
-        private EPixelFormat _OutputPixelFormat;
-        public SimplygonOutputPixelFormatEx OutputPixelFormatUI { get; set; }
-        public class SimplygonOutputPixelFormatEx : SimplygonSettingsProperty
-        {
-            public SimplygonVertexColorCasterSettings Parent { get; set; }
-            public EPixelFormat Value
-            {
-                get
-                {
-                    return Parent.OutputPixelFormat;
-                }
-
-                set
-                {
-                    bool needReload = Parent.OutputPixelFormat != value;
-                    Parent.OutputPixelFormat = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public EPixelFormat DefaultValue { get; set; }
-            public Array EnumValues { get { return Enum.GetValues(typeof(EPixelFormat)); } }
-
-            public SimplygonOutputPixelFormatEx() : base("OutputPixelFormat")
-            {
-                Type = "enum";
-                HelpText = "The output pixel format";
-                TypeOverride = "";
-                DefaultValue = EPixelFormat.R8G8B8A8;
-                Visible = true;
-            }
-
-            public SimplygonOutputPixelFormatEx(dynamic jsonData) : base("OutputPixelFormat")
-            {
-                Type = "enum";
-                HelpText = "The output pixel format";
-                TypeOverride = "";
-                DefaultValue = EPixelFormat.R8G8B8A8;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonOutputPixelFormatEx DeepCopy()
-            {
-                return (SimplygonOutputPixelFormatEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -41046,14 +41337,14 @@ namespace SimplygonUI
             MaterialChannelUI.Parent = this;
             MaterialChannel = MaterialChannelUI.DefaultValue;
             Items.Add(MaterialChannelUI);
-            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
-            OpacityChannelComponentUI.Parent = this;
-            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
-            Items.Add(OpacityChannelComponentUI);
             OpacityChannelUI = new SimplygonOpacityChannelEx();
             OpacityChannelUI.Parent = this;
             OpacityChannel = OpacityChannelUI.DefaultValue;
             Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
             DitherTypeUI = new SimplygonDitherTypeEx();
             DitherTypeUI.Parent = this;
             DitherType = DitherTypeUI.DefaultValue;
@@ -41103,14 +41394,14 @@ namespace SimplygonUI
             MaterialChannelUI.Parent = this;
             MaterialChannel = MaterialChannelUI.DefaultValue;
             Items.Add(MaterialChannelUI);
-            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
-            OpacityChannelComponentUI.Parent = this;
-            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
-            Items.Add(OpacityChannelComponentUI);
             OpacityChannelUI = new SimplygonOpacityChannelEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelUI") != null ? jsonData.OpacityChannelUI : null);
             OpacityChannelUI.Parent = this;
             OpacityChannel = OpacityChannelUI.DefaultValue;
             Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
             DitherTypeUI = new SimplygonDitherTypeEx(jsonData != null && ((JObject)jsonData).GetValue("DitherTypeUI") != null ? jsonData.DitherTypeUI : null);
             DitherTypeUI.Parent = this;
             DitherType = DitherTypeUI.DefaultValue;
@@ -41161,12 +41452,12 @@ namespace SimplygonUI
             copy.MaterialChannelUI = this.MaterialChannelUI.DeepCopy();
             copy.MaterialChannelUI.Parent = copy;
             copy.Items.Add(copy.MaterialChannelUI);
-            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
-            copy.OpacityChannelComponentUI.Parent = copy;
-            copy.Items.Add(copy.OpacityChannelComponentUI);
             copy.OpacityChannelUI = this.OpacityChannelUI.DeepCopy();
             copy.OpacityChannelUI.Parent = copy;
             copy.Items.Add(copy.OpacityChannelUI);
+            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
+            copy.OpacityChannelComponentUI.Parent = copy;
+            copy.Items.Add(copy.OpacityChannelComponentUI);
             copy.DitherTypeUI = this.DitherTypeUI.DeepCopy();
             copy.DitherTypeUI.Parent = copy;
             copy.Items.Add(copy.DitherTypeUI);
@@ -41209,6 +41500,12 @@ namespace SimplygonUI
                 jsonData.MaterialChannelUI = MaterialChannelUI.SaveJson();
             }
 
+            jsonData.OpacityChannel = OpacityChannel;
+            if(serializeUIComponents)
+            {
+                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+            }
+
             jsonData.OpacityChannelComponent = (int)OpacityChannelComponent;
             if(serializeUIComponents)
             {
@@ -41227,10 +41524,10 @@ namespace SimplygonUI
                 jsonData.FillModeUI = FillModeUI.SaveJson();
             }
 
-            jsonData.OpacityChannel = OpacityChannel;
+            jsonData.Dilation = Dilation;
             if(serializeUIComponents)
             {
-                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+                jsonData.DilationUI = DilationUI.SaveJson();
             }
 
             jsonData.UseMultisampling = UseMultisampling;
@@ -41239,10 +41536,10 @@ namespace SimplygonUI
                 jsonData.UseMultisamplingUI = UseMultisamplingUI.SaveJson();
             }
 
-            jsonData.OutputColorLevel = OutputColorLevel;
+            jsonData.OutputPixelFormat = (int)OutputPixelFormat;
             if(serializeUIComponents)
             {
-                jsonData.OutputColorLevelUI = OutputColorLevelUI.SaveJson();
+                jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
             }
 
             jsonData.OutputImageFileFormat = (int)OutputImageFileFormat;
@@ -41257,22 +41554,16 @@ namespace SimplygonUI
                 jsonData.OutputDDSCompressionTypeUI = OutputDDSCompressionTypeUI.SaveJson();
             }
 
-            jsonData.Dilation = Dilation;
+            jsonData.OutputColorLevel = OutputColorLevel;
             if(serializeUIComponents)
             {
-                jsonData.DilationUI = DilationUI.SaveJson();
+                jsonData.OutputColorLevelUI = OutputColorLevelUI.SaveJson();
             }
 
             jsonData.OutputColorName = OutputColorName;
             if(serializeUIComponents)
             {
                 jsonData.OutputColorNameUI = OutputColorNameUI.SaveJson();
-            }
-
-            jsonData.OutputPixelFormat = (int)OutputPixelFormat;
-            if(serializeUIComponents)
-            {
-                jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
             }
 
             jsonData.ColorSpaceEdgeThreshold = ColorSpaceEdgeThreshold;
@@ -41296,6 +41587,11 @@ namespace SimplygonUI
                 MaterialChannel = (string)jsonData.MaterialChannel;
             }
 
+            if(jsonData.GetValue("OpacityChannel") != null)
+            {
+                OpacityChannel = (string)jsonData.OpacityChannel;
+            }
+
             if(jsonData.GetValue("OpacityChannelComponent") != null)
             {
                 OpacityChannelComponent = (EColorComponent)jsonData.OpacityChannelComponent;
@@ -41309,41 +41605,6 @@ namespace SimplygonUI
             if(jsonData.GetValue("FillMode") != null)
             {
                 FillMode = (EAtlasFillMode)jsonData.FillMode;
-            }
-
-            if(jsonData.GetValue("OpacityChannel") != null)
-            {
-                OpacityChannel = (string)jsonData.OpacityChannel;
-            }
-
-            if(jsonData.GetValue("UseMultisampling") != null)
-            {
-                UseMultisampling = (bool)jsonData.UseMultisampling;
-            }
-
-            if(jsonData.GetValue("OutputColorLevel") != null)
-            {
-                var newOutputColorLevel = (int)jsonData.OutputColorLevel;
-                if (newOutputColorLevel >= OutputColorLevelUI.DefaultMinValue && newOutputColorLevel <= OutputColorLevelUI.DefaultMaxValue)
-                {
-                    OutputColorLevel = newOutputColorLevel;
-                }
-
-                else
-                {
-                    UILogger.Instance.Log(Category.Warning, $"OutputColorLevel: Invalid value {newOutputColorLevel}, using default value {OutputColorLevel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
-                }
-
-            }
-
-            if(jsonData.GetValue("OutputImageFileFormat") != null)
-            {
-                OutputImageFileFormat = (EImageOutputFormat)jsonData.OutputImageFileFormat;
-            }
-
-            if(jsonData.GetValue("OutputDDSCompressionType") != null)
-            {
-                OutputDDSCompressionType = (EDDSCompressionType)jsonData.OutputDDSCompressionType;
             }
 
             if(jsonData.GetValue("Dilation") != null)
@@ -41361,14 +41622,44 @@ namespace SimplygonUI
 
             }
 
-            if(jsonData.GetValue("OutputColorName") != null)
+            if(jsonData.GetValue("UseMultisampling") != null)
             {
-                OutputColorName = (string)jsonData.OutputColorName;
+                UseMultisampling = (bool)jsonData.UseMultisampling;
             }
 
             if(jsonData.GetValue("OutputPixelFormat") != null)
             {
                 OutputPixelFormat = (EPixelFormat)jsonData.OutputPixelFormat;
+            }
+
+            if(jsonData.GetValue("OutputImageFileFormat") != null)
+            {
+                OutputImageFileFormat = (EImageOutputFormat)jsonData.OutputImageFileFormat;
+            }
+
+            if(jsonData.GetValue("OutputDDSCompressionType") != null)
+            {
+                OutputDDSCompressionType = (EDDSCompressionType)jsonData.OutputDDSCompressionType;
+            }
+
+            if(jsonData.GetValue("OutputColorLevel") != null)
+            {
+                var newOutputColorLevel = (int)jsonData.OutputColorLevel;
+                if (newOutputColorLevel >= OutputColorLevelUI.DefaultMinValue && newOutputColorLevel <= OutputColorLevelUI.DefaultMaxValue)
+                {
+                    OutputColorLevel = newOutputColorLevel;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"OutputColorLevel: Invalid value {newOutputColorLevel}, using default value {OutputColorLevel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("OutputColorName") != null)
+            {
+                OutputColorName = (string)jsonData.OutputColorName;
             }
 
             if(jsonData.GetValue("ColorSpaceEdgeThreshold") != null)
@@ -41391,17 +41682,17 @@ namespace SimplygonUI
         public override void Reset()
         {
             MaterialChannelUI.Reset();
+            OpacityChannelUI.Reset();
             OpacityChannelComponentUI.Reset();
             DitherTypeUI.Reset();
             FillModeUI.Reset();
-            OpacityChannelUI.Reset();
+            DilationUI.Reset();
             UseMultisamplingUI.Reset();
-            OutputColorLevelUI.Reset();
+            OutputPixelFormatUI.Reset();
             OutputImageFileFormatUI.Reset();
             OutputDDSCompressionTypeUI.Reset();
-            DilationUI.Reset();
+            OutputColorLevelUI.Reset();
             OutputColorNameUI.Reset();
-            OutputPixelFormatUI.Reset();
             ColorSpaceEdgeThresholdUI.Reset();
         }
 
@@ -41409,18 +41700,1461 @@ namespace SimplygonUI
         {
             IsEditEnabled = isEditEnabled;
             MaterialChannelUI.IsEditEnabled = isEditEnabled;
+            OpacityChannelUI.IsEditEnabled = isEditEnabled;
             OpacityChannelComponentUI.IsEditEnabled = isEditEnabled;
             DitherTypeUI.IsEditEnabled = isEditEnabled;
             FillModeUI.IsEditEnabled = isEditEnabled;
-            OpacityChannelUI.IsEditEnabled = isEditEnabled;
+            DilationUI.IsEditEnabled = isEditEnabled;
             UseMultisamplingUI.IsEditEnabled = isEditEnabled;
-            OutputColorLevelUI.IsEditEnabled = isEditEnabled;
+            OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
             OutputImageFileFormatUI.IsEditEnabled = isEditEnabled;
             OutputDDSCompressionTypeUI.IsEditEnabled = isEditEnabled;
-            DilationUI.IsEditEnabled = isEditEnabled;
+            OutputColorLevelUI.IsEditEnabled = isEditEnabled;
             OutputColorNameUI.IsEditEnabled = isEditEnabled;
-            OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
             ColorSpaceEdgeThresholdUI.IsEditEnabled = isEditEnabled;
+        }
+
+    }
+
+    public class SimplygonComputeCasterSettings : SimplygonSettings
+    {
+        public override bool Visible
+        {
+            get
+            {
+                if (!VisibleOverride) return false;
+                if (Name == "InputMaterialSettings") return false;
+                if(MaterialChannelUI.Visible) return true;
+                if(OpacityChannelUI.Visible) return true;
+                if(OpacityChannelComponentUI.Visible) return true;
+                if(DitherTypeUI.Visible) return true;
+                if(FillModeUI.Visible) return true;
+                if(DilationUI.Visible) return true;
+                if(UseMultisamplingUI.Visible) return true;
+                if(OutputPixelFormatUI.Visible) return true;
+                if(OutputImageFileFormatUI.Visible) return true;
+                if(OutputDDSCompressionTypeUI.Visible) return true;
+                if(OutputColorSpaceUI.Visible) return true;
+                if(CastLayersFrontToBackUI.Visible) return true;
+                if(MaxCastLayersUI.Visible) return true;
+
+                return false;
+            }
+
+            set
+            {
+                OnPropertyChanged();
+            }
+
+        }
+
+        public SimplygonTreeViewItem Parent { get; set; }
+        public string MaterialChannel { get { return _MaterialChannel; } set { _MaterialChannel = value; OnPropertyChanged(); } }
+        private string _MaterialChannel;
+        public SimplygonMaterialChannelEx MaterialChannelUI { get; set; }
+        public class SimplygonMaterialChannelEx : SimplygonSettingsProperty
+        {
+            public SimplygonComputeCasterSettings Parent { get; set; }
+            public string Value
+            {
+                get
+                {
+                    return Parent.MaterialChannel;
+                }
+
+                set
+                {
+                    bool needReload = Parent.MaterialChannel != value;
+                    Parent.MaterialChannel = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public string DefaultValue { get; set; }
+
+            public SimplygonMaterialChannelEx() : base("MaterialChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input material channel to cast. Existing user channels of any arbitrary name in the input materials can be cast.";
+                TypeOverride = "";
+                DefaultValue = "";
+                Visible = true;
+            }
+
+            public SimplygonMaterialChannelEx(dynamic jsonData) : base("MaterialChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input material channel to cast. Existing user channels of any arbitrary name in the input materials can be cast.";
+                TypeOverride = "";
+                DefaultValue = "";
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonMaterialChannelEx DeepCopy()
+            {
+                return (SimplygonMaterialChannelEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
+        private string _OpacityChannel;
+        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
+        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        {
+            public SimplygonComputeCasterSettings Parent { get; set; }
+            public string Value
+            {
+                get
+                {
+                    return Parent.OpacityChannel;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OpacityChannel != value;
+                    Parent.OpacityChannel = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public string DefaultValue { get; set; }
+
+            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                Visible = true;
+            }
+
+            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "The name of the input opacity channel to use for combining layers in most casters and casting opacity in the opacitycaster. User channels of any arbitrary name can be used. If the caster is run through a Pipeline object, the OpacityChannel set here will also be set as the output materials OpacityChannel property.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOpacityChannelEx DeepCopy()
+            {
+                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public EColorComponent OpacityChannelComponent { get { return _OpacityChannelComponent; } set { _OpacityChannelComponent = value; OnPropertyChanged(); } }
+        private EColorComponent _OpacityChannelComponent;
+        public SimplygonOpacityChannelComponentEx OpacityChannelComponentUI { get; set; }
+        public class SimplygonOpacityChannelComponentEx : SimplygonSettingsProperty
+        {
+            public SimplygonComputeCasterSettings Parent { get; set; }
+            public EColorComponent Value
+            {
+                get
+                {
+                    return Parent.OpacityChannelComponent;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OpacityChannelComponent != value;
+                    Parent.OpacityChannelComponent = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EColorComponent DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EColorComponent)); } }
+
+            public SimplygonOpacityChannelComponentEx() : base("OpacityChannelComponent")
+            {
+                Type = "enum";
+                HelpText = "The component in the opacity channel to use as opacity value.";
+                TypeOverride = "";
+                DefaultValue = EColorComponent.Red;
+                Visible = true;
+            }
+
+            public SimplygonOpacityChannelComponentEx(dynamic jsonData) : base("OpacityChannelComponent")
+            {
+                Type = "enum";
+                HelpText = "The component in the opacity channel to use as opacity value.";
+                TypeOverride = "";
+                DefaultValue = EColorComponent.Red;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOpacityChannelComponentEx DeepCopy()
+            {
+                return (SimplygonOpacityChannelComponentEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public EDitherPatterns DitherType { get { return _DitherType; } set { _DitherType = value; OnPropertyChanged(); } }
+        private EDitherPatterns _DitherType;
+        public SimplygonDitherTypeEx DitherTypeUI { get; set; }
+        public class SimplygonDitherTypeEx : SimplygonSettingsProperty
+        {
+            public SimplygonComputeCasterSettings Parent { get; set; }
+            public EDitherPatterns Value
+            {
+                get
+                {
+                    return Parent.DitherType;
+                }
+
+                set
+                {
+                    bool needReload = Parent.DitherType != value;
+                    Parent.DitherType = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EDitherPatterns DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EDitherPatterns)); } }
+
+            public SimplygonDitherTypeEx() : base("DitherType")
+            {
+                Type = "enum";
+                HelpText = "The type of dithering to use when creating the output object.";
+                TypeOverride = "";
+                DefaultValue = EDitherPatterns.FloydSteinberg;
+                Visible = true;
+            }
+
+            public SimplygonDitherTypeEx(dynamic jsonData) : base("DitherType")
+            {
+                Type = "enum";
+                HelpText = "The type of dithering to use when creating the output object.";
+                TypeOverride = "";
+                DefaultValue = EDitherPatterns.FloydSteinberg;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonDitherTypeEx DeepCopy()
+            {
+                return (SimplygonDitherTypeEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public EAtlasFillMode FillMode { get { return _FillMode; } set { _FillMode = value; OnPropertyChanged(); } }
+        private EAtlasFillMode _FillMode;
+        public SimplygonFillModeEx FillModeUI { get; set; }
+        public class SimplygonFillModeEx : SimplygonSettingsProperty
+        {
+            public SimplygonComputeCasterSettings Parent { get; set; }
+            public EAtlasFillMode Value
+            {
+                get
+                {
+                    return Parent.FillMode;
+                }
+
+                set
+                {
+                    bool needReload = Parent.FillMode != value;
+                    Parent.FillMode = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EAtlasFillMode DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EAtlasFillMode)); } }
+
+            public SimplygonFillModeEx() : base("FillMode")
+            {
+                Type = "enum";
+                HelpText = "The fill mode determines what to do with the pixels that remain unfilled after both the casting and dilation has been performed. Options are:  None = Do not fill remaining pixels  Interpolate = linearly interpolate the closest samples  NearestNeighbor = use the closest available pixel value without interpolation.";
+                TypeOverride = "";
+                DefaultValue = EAtlasFillMode.Interpolate;
+                Visible = true;
+            }
+
+            public SimplygonFillModeEx(dynamic jsonData) : base("FillMode")
+            {
+                Type = "enum";
+                HelpText = "The fill mode determines what to do with the pixels that remain unfilled after both the casting and dilation has been performed. Options are:  None = Do not fill remaining pixels  Interpolate = linearly interpolate the closest samples  NearestNeighbor = use the closest available pixel value without interpolation.";
+                TypeOverride = "";
+                DefaultValue = EAtlasFillMode.Interpolate;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonFillModeEx DeepCopy()
+            {
+                return (SimplygonFillModeEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public int Dilation { get { return _Dilation; } set { _Dilation = value; OnPropertyChanged(); } }
+        private int _Dilation;
+        public SimplygonDilationEx DilationUI { get; set; }
+        public class SimplygonDilationEx : SimplygonSettingsProperty
+        {
+            public SimplygonComputeCasterSettings Parent { get; set; }
+            public int Value
+            {
+                get
+                {
+                    return Parent.Dilation;
+                }
+
+                set
+                {
+                    bool needReload = Parent.Dilation != value;
+                    Parent.Dilation = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
+
+            public SimplygonDilationEx() : base("Dilation")
+            {
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
+                TypeOverride = "";
+                DefaultValue = 10;
+                MinValue = 0;
+                MaxValue = 1000;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 1000;
+                TicksFrequencyValue = 1;
+                Visible = true;
+            }
+
+            public SimplygonDilationEx(dynamic jsonData) : base("Dilation")
+            {
+                Type = "uint";
+                HelpText = "The Dilation value. Where applicable, such as colors and normals, the caster will fill empty pixels surrounding filled pixels with values mixed from the filled ones. This setting sets how many pixels to fill outside the original filled pixels.";
+                TypeOverride = "";
+                DefaultValue = 10;
+                MinValue = 0;
+                DefaultMinValue = 0;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1000;
+                DefaultMaxValue = 1000;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonDilationEx DeepCopy()
+            {
+                return (SimplygonDilationEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public bool UseMultisampling { get { return _UseMultisampling; } set { _UseMultisampling = value; OnPropertyChanged(); } }
+        private bool _UseMultisampling;
+        public SimplygonUseMultisamplingEx UseMultisamplingUI { get; set; }
+        public class SimplygonUseMultisamplingEx : SimplygonSettingsProperty
+        {
+            public SimplygonComputeCasterSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.UseMultisampling;
+                }
+
+                set
+                {
+                    bool needReload = Parent.UseMultisampling != value;
+                    Parent.UseMultisampling = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonUseMultisamplingEx() : base("UseMultisampling")
+            {
+                Type = "bool";
+                HelpText = "Enable or disable multisampling.";
+                TypeOverride = "";
+                DefaultValue = true;
+                Visible = true;
+            }
+
+            public SimplygonUseMultisamplingEx(dynamic jsonData) : base("UseMultisampling")
+            {
+                Type = "bool";
+                HelpText = "Enable or disable multisampling.";
+                TypeOverride = "";
+                DefaultValue = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonUseMultisamplingEx DeepCopy()
+            {
+                return (SimplygonUseMultisamplingEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public EPixelFormat OutputPixelFormat { get { return _OutputPixelFormat; } set { _OutputPixelFormat = value; OnPropertyChanged(); } }
+        private EPixelFormat _OutputPixelFormat;
+        public SimplygonOutputPixelFormatEx OutputPixelFormatUI { get; set; }
+        public class SimplygonOutputPixelFormatEx : SimplygonSettingsProperty
+        {
+            public SimplygonComputeCasterSettings Parent { get; set; }
+            public EPixelFormat Value
+            {
+                get
+                {
+                    return Parent.OutputPixelFormat;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OutputPixelFormat != value;
+                    Parent.OutputPixelFormat = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EPixelFormat DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EPixelFormat)); } }
+
+            public SimplygonOutputPixelFormatEx() : base("OutputPixelFormat")
+            {
+                Type = "enum";
+                HelpText = "The output pixel format";
+                TypeOverride = "";
+                DefaultValue = EPixelFormat.R8G8B8A8;
+                Visible = true;
+            }
+
+            public SimplygonOutputPixelFormatEx(dynamic jsonData) : base("OutputPixelFormat")
+            {
+                Type = "enum";
+                HelpText = "The output pixel format";
+                TypeOverride = "";
+                DefaultValue = EPixelFormat.R8G8B8A8;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOutputPixelFormatEx DeepCopy()
+            {
+                return (SimplygonOutputPixelFormatEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public EImageOutputFormat OutputImageFileFormat { get { return _OutputImageFileFormat; } set { _OutputImageFileFormat = value; OnPropertyChanged(); } }
+        private EImageOutputFormat _OutputImageFileFormat;
+        public SimplygonOutputImageFileFormatEx OutputImageFileFormatUI { get; set; }
+        public class SimplygonOutputImageFileFormatEx : SimplygonSettingsProperty
+        {
+            public SimplygonComputeCasterSettings Parent { get; set; }
+            public EImageOutputFormat Value
+            {
+                get
+                {
+                    return Parent.OutputImageFileFormat;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OutputImageFileFormat != value;
+                    Parent.OutputImageFileFormat = value;
+                    Parent.OutputDDSCompressionTypeUI.Visible = Visible;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EImageOutputFormat DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EImageOutputFormat)); } }
+
+            public SimplygonOutputImageFileFormatEx() : base("OutputImageFileFormat")
+            {
+                Type = "enum";
+                HelpText = "File format for output texture.";
+                TypeOverride = "";
+                DefaultValue = EImageOutputFormat.PNG;
+                Visible = true;
+            }
+
+            public SimplygonOutputImageFileFormatEx(dynamic jsonData) : base("OutputImageFileFormat")
+            {
+                Type = "enum";
+                HelpText = "File format for output texture.";
+                TypeOverride = "";
+                DefaultValue = EImageOutputFormat.PNG;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOutputImageFileFormatEx DeepCopy()
+            {
+                return (SimplygonOutputImageFileFormatEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public EDDSCompressionType OutputDDSCompressionType { get { return _OutputDDSCompressionType; } set { _OutputDDSCompressionType = value; OnPropertyChanged(); } }
+        private EDDSCompressionType _OutputDDSCompressionType;
+        public SimplygonOutputDDSCompressionTypeEx OutputDDSCompressionTypeUI { get; set; }
+        public class SimplygonOutputDDSCompressionTypeEx : SimplygonSettingsProperty
+        {
+            public SimplygonComputeCasterSettings Parent { get; set; }
+            public EDDSCompressionType Value
+            {
+                get
+                {
+                    return Parent.OutputDDSCompressionType;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OutputDDSCompressionType != value;
+                    Parent.OutputDDSCompressionType = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EDDSCompressionType DefaultValue { get; set; }
+            public override bool Visible { get { if( Parent.OutputImageFileFormatUI != null ) { return Parent.OutputImageFileFormat == EImageOutputFormat.DDS && Parent.OutputImageFileFormatUI.Visible; } else { return visible; } } set { OnPropertyChanged(); } }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EDDSCompressionType)); } }
+
+            public SimplygonOutputDDSCompressionTypeEx() : base("OutputDDSCompressionType")
+            {
+                Type = "enum";
+                HelpText = "DDS compression if output format is DDS.";
+                TypeOverride = "";
+                DefaultValue = EDDSCompressionType.NoCompression;
+                Visible = true;
+            }
+
+            public SimplygonOutputDDSCompressionTypeEx(dynamic jsonData) : base("OutputDDSCompressionType")
+            {
+                Type = "enum";
+                HelpText = "DDS compression if output format is DDS.";
+                TypeOverride = "";
+                DefaultValue = EDDSCompressionType.NoCompression;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOutputDDSCompressionTypeEx DeepCopy()
+            {
+                return (SimplygonOutputDDSCompressionTypeEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public EImageColorSpace OutputColorSpace { get { return _OutputColorSpace; } set { _OutputColorSpace = value; OnPropertyChanged(); } }
+        private EImageColorSpace _OutputColorSpace;
+        public SimplygonOutputColorSpaceEx OutputColorSpaceUI { get; set; }
+        public class SimplygonOutputColorSpaceEx : SimplygonSettingsProperty
+        {
+            public SimplygonComputeCasterSettings Parent { get; set; }
+            public EImageColorSpace Value
+            {
+                get
+                {
+                    return Parent.OutputColorSpace;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OutputColorSpace != value;
+                    Parent.OutputColorSpace = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EImageColorSpace DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EImageColorSpace)); } }
+
+            public SimplygonOutputColorSpaceEx() : base("OutputColorSpace")
+            {
+                Type = "enum";
+                HelpText = "Defines the output pixel color space to use. Please note that all internal processing is done in linear space, including super sampling mixing. Conversion to gamma space is done after mixing, right before conversion to the output pixel format.";
+                TypeOverride = "";
+                DefaultValue = EImageColorSpace.Linear;
+                Visible = true;
+            }
+
+            public SimplygonOutputColorSpaceEx(dynamic jsonData) : base("OutputColorSpace")
+            {
+                Type = "enum";
+                HelpText = "Defines the output pixel color space to use. Please note that all internal processing is done in linear space, including super sampling mixing. Conversion to gamma space is done after mixing, right before conversion to the output pixel format.";
+                TypeOverride = "";
+                DefaultValue = EImageColorSpace.Linear;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOutputColorSpaceEx DeepCopy()
+            {
+                return (SimplygonOutputColorSpaceEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool CastLayersFrontToBack { get { return _CastLayersFrontToBack; } set { _CastLayersFrontToBack = value; OnPropertyChanged(); } }
+        private bool _CastLayersFrontToBack;
+        public SimplygonCastLayersFrontToBackEx CastLayersFrontToBackUI { get; set; }
+        public class SimplygonCastLayersFrontToBackEx : SimplygonSettingsProperty
+        {
+            public SimplygonComputeCasterSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.CastLayersFrontToBack;
+                }
+
+                set
+                {
+                    bool needReload = Parent.CastLayersFrontToBack != value;
+                    Parent.CastLayersFrontToBack = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonCastLayersFrontToBackEx() : base("CastLayersFrontToBack")
+            {
+                Type = "bool";
+                HelpText = "If set, will cast a multi-layer mapping image front-to-back, rather than the default back-to-front.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonCastLayersFrontToBackEx(dynamic jsonData) : base("CastLayersFrontToBack")
+            {
+                Type = "bool";
+                HelpText = "If set, will cast a multi-layer mapping image front-to-back, rather than the default back-to-front.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonCastLayersFrontToBackEx DeepCopy()
+            {
+                return (SimplygonCastLayersFrontToBackEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public int MaxCastLayers { get { return _MaxCastLayers; } set { _MaxCastLayers = value; OnPropertyChanged(); } }
+        private int _MaxCastLayers;
+        public SimplygonMaxCastLayersEx MaxCastLayersUI { get; set; }
+        public class SimplygonMaxCastLayersEx : SimplygonSettingsProperty
+        {
+            public SimplygonComputeCasterSettings Parent { get; set; }
+            public int Value
+            {
+                get
+                {
+                    return Parent.MaxCastLayers;
+                }
+
+                set
+                {
+                    bool needReload = Parent.MaxCastLayers != value;
+                    Parent.MaxCastLayers = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
+
+            public SimplygonMaxCastLayersEx() : base("MaxCastLayers")
+            {
+                Type = "uint";
+                HelpText = "Use this to set maximum number of layers to cast. The caster will never cast more layers than what is in the mapping image.";
+                TypeOverride = "";
+                DefaultValue = 255;
+                MinValue = 1;
+                MaxValue = 255;
+                DefaultMinValue = 1;
+                DefaultMaxValue = 255;
+                TicksFrequencyValue = 1;
+                Visible = true;
+            }
+
+            public SimplygonMaxCastLayersEx(dynamic jsonData) : base("MaxCastLayers")
+            {
+                Type = "uint";
+                HelpText = "Use this to set maximum number of layers to cast. The caster will never cast more layers than what is in the mapping image.";
+                TypeOverride = "";
+                DefaultValue = 255;
+                MinValue = 1;
+                DefaultMinValue = 1;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaxCastLayers: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 255;
+                DefaultMaxValue = 255;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"MaxCastLayers: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonMaxCastLayersEx DeepCopy()
+            {
+                return (SimplygonMaxCastLayersEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+
+        public SimplygonComputeCasterSettings() : base("ComputeCasterSettings")
+        {
+            Visible = true;
+            MaterialChannelUI = new SimplygonMaterialChannelEx();
+            MaterialChannelUI.Parent = this;
+            MaterialChannel = MaterialChannelUI.DefaultValue;
+            Items.Add(MaterialChannelUI);
+            OpacityChannelUI = new SimplygonOpacityChannelEx();
+            OpacityChannelUI.Parent = this;
+            OpacityChannel = OpacityChannelUI.DefaultValue;
+            Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
+            OutputColorSpaceUI = new SimplygonOutputColorSpaceEx();
+            OutputColorSpaceUI.Parent = this;
+            OutputColorSpace = OutputColorSpaceUI.DefaultValue;
+            Items.Add(OutputColorSpaceUI);
+            DitherTypeUI = new SimplygonDitherTypeEx();
+            DitherTypeUI.Parent = this;
+            DitherType = DitherTypeUI.DefaultValue;
+            Items.Add(DitherTypeUI);
+            FillModeUI = new SimplygonFillModeEx();
+            FillModeUI.Parent = this;
+            FillMode = FillModeUI.DefaultValue;
+            Items.Add(FillModeUI);
+            DilationUI = new SimplygonDilationEx();
+            DilationUI.Parent = this;
+            Dilation = DilationUI.DefaultValue;
+            Items.Add(DilationUI);
+            UseMultisamplingUI = new SimplygonUseMultisamplingEx();
+            UseMultisamplingUI.Parent = this;
+            UseMultisampling = UseMultisamplingUI.DefaultValue;
+            Items.Add(UseMultisamplingUI);
+            OutputPixelFormatUI = new SimplygonOutputPixelFormatEx();
+            OutputPixelFormatUI.Parent = this;
+            OutputPixelFormat = OutputPixelFormatUI.DefaultValue;
+            Items.Add(OutputPixelFormatUI);
+            OutputImageFileFormatUI = new SimplygonOutputImageFileFormatEx();
+            OutputImageFileFormatUI.Parent = this;
+            OutputImageFileFormat = OutputImageFileFormatUI.DefaultValue;
+            Items.Add(OutputImageFileFormatUI);
+            OutputDDSCompressionTypeUI = new SimplygonOutputDDSCompressionTypeEx();
+            OutputDDSCompressionTypeUI.Parent = this;
+            OutputDDSCompressionType = OutputDDSCompressionTypeUI.DefaultValue;
+            Items.Add(OutputDDSCompressionTypeUI);
+            CastLayersFrontToBackUI = new SimplygonCastLayersFrontToBackEx();
+            CastLayersFrontToBackUI.Parent = this;
+            CastLayersFrontToBack = CastLayersFrontToBackUI.DefaultValue;
+            Items.Add(CastLayersFrontToBackUI);
+            MaxCastLayersUI = new SimplygonMaxCastLayersEx();
+            MaxCastLayersUI.Parent = this;
+            MaxCastLayers = MaxCastLayersUI.DefaultValue;
+            Items.Add(MaxCastLayersUI);
+        }
+
+        public SimplygonComputeCasterSettings(dynamic jsonData) : base("ComputeCasterSettings")
+        {
+            Visible = true;
+            MaterialChannelUI = new SimplygonMaterialChannelEx(jsonData != null && ((JObject)jsonData).GetValue("MaterialChannelUI") != null ? jsonData.MaterialChannelUI : null);
+            MaterialChannelUI.Parent = this;
+            MaterialChannel = MaterialChannelUI.DefaultValue;
+            Items.Add(MaterialChannelUI);
+            OpacityChannelUI = new SimplygonOpacityChannelEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelUI") != null ? jsonData.OpacityChannelUI : null);
+            OpacityChannelUI.Parent = this;
+            OpacityChannel = OpacityChannelUI.DefaultValue;
+            Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
+            OutputColorSpaceUI = new SimplygonOutputColorSpaceEx(jsonData != null && ((JObject)jsonData).GetValue("OutputColorSpaceUI") != null ? jsonData.OutputColorSpaceUI : null);
+            OutputColorSpaceUI.Parent = this;
+            OutputColorSpace = OutputColorSpaceUI.DefaultValue;
+            Items.Add(OutputColorSpaceUI);
+            DitherTypeUI = new SimplygonDitherTypeEx(jsonData != null && ((JObject)jsonData).GetValue("DitherTypeUI") != null ? jsonData.DitherTypeUI : null);
+            DitherTypeUI.Parent = this;
+            DitherType = DitherTypeUI.DefaultValue;
+            Items.Add(DitherTypeUI);
+            FillModeUI = new SimplygonFillModeEx(jsonData != null && ((JObject)jsonData).GetValue("FillModeUI") != null ? jsonData.FillModeUI : null);
+            FillModeUI.Parent = this;
+            FillMode = FillModeUI.DefaultValue;
+            Items.Add(FillModeUI);
+            DilationUI = new SimplygonDilationEx(jsonData != null && ((JObject)jsonData).GetValue("DilationUI") != null ? jsonData.DilationUI : null);
+            DilationUI.Parent = this;
+            Dilation = DilationUI.DefaultValue;
+            Items.Add(DilationUI);
+            UseMultisamplingUI = new SimplygonUseMultisamplingEx(jsonData != null && ((JObject)jsonData).GetValue("UseMultisamplingUI") != null ? jsonData.UseMultisamplingUI : null);
+            UseMultisamplingUI.Parent = this;
+            UseMultisampling = UseMultisamplingUI.DefaultValue;
+            Items.Add(UseMultisamplingUI);
+            OutputPixelFormatUI = new SimplygonOutputPixelFormatEx(jsonData != null && ((JObject)jsonData).GetValue("OutputPixelFormatUI") != null ? jsonData.OutputPixelFormatUI : null);
+            OutputPixelFormatUI.Parent = this;
+            OutputPixelFormat = OutputPixelFormatUI.DefaultValue;
+            Items.Add(OutputPixelFormatUI);
+            OutputImageFileFormatUI = new SimplygonOutputImageFileFormatEx(jsonData != null && ((JObject)jsonData).GetValue("OutputImageFileFormatUI") != null ? jsonData.OutputImageFileFormatUI : null);
+            OutputImageFileFormatUI.Parent = this;
+            OutputImageFileFormat = OutputImageFileFormatUI.DefaultValue;
+            Items.Add(OutputImageFileFormatUI);
+            OutputDDSCompressionTypeUI = new SimplygonOutputDDSCompressionTypeEx(jsonData != null && ((JObject)jsonData).GetValue("OutputDDSCompressionTypeUI") != null ? jsonData.OutputDDSCompressionTypeUI : null);
+            OutputDDSCompressionTypeUI.Parent = this;
+            OutputDDSCompressionType = OutputDDSCompressionTypeUI.DefaultValue;
+            Items.Add(OutputDDSCompressionTypeUI);
+            CastLayersFrontToBackUI = new SimplygonCastLayersFrontToBackEx(jsonData != null && ((JObject)jsonData).GetValue("CastLayersFrontToBackUI") != null ? jsonData.CastLayersFrontToBackUI : null);
+            CastLayersFrontToBackUI.Parent = this;
+            CastLayersFrontToBack = CastLayersFrontToBackUI.DefaultValue;
+            Items.Add(CastLayersFrontToBackUI);
+            MaxCastLayersUI = new SimplygonMaxCastLayersEx(jsonData != null && ((JObject)jsonData).GetValue("MaxCastLayersUI") != null ? jsonData.MaxCastLayersUI : null);
+            MaxCastLayersUI.Parent = this;
+            MaxCastLayers = MaxCastLayersUI.DefaultValue;
+            Items.Add(MaxCastLayersUI);
+            LoadJson(jsonData);
+        }
+
+        public override SimplygonSettings DeepCopy()
+        {
+            var copy = new SimplygonComputeCasterSettings();
+            copy.Items.Clear();
+            copy.MaterialChannelUI = this.MaterialChannelUI.DeepCopy();
+            copy.MaterialChannelUI.Parent = copy;
+            copy.Items.Add(copy.MaterialChannelUI);
+            copy.OpacityChannelUI = this.OpacityChannelUI.DeepCopy();
+            copy.OpacityChannelUI.Parent = copy;
+            copy.Items.Add(copy.OpacityChannelUI);
+            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
+            copy.OpacityChannelComponentUI.Parent = copy;
+            copy.Items.Add(copy.OpacityChannelComponentUI);
+            copy.OutputColorSpaceUI = this.OutputColorSpaceUI.DeepCopy();
+            copy.OutputColorSpaceUI.Parent = copy;
+            copy.Items.Add(copy.OutputColorSpaceUI);
+            copy.DitherTypeUI = this.DitherTypeUI.DeepCopy();
+            copy.DitherTypeUI.Parent = copy;
+            copy.Items.Add(copy.DitherTypeUI);
+            copy.FillModeUI = this.FillModeUI.DeepCopy();
+            copy.FillModeUI.Parent = copy;
+            copy.Items.Add(copy.FillModeUI);
+            copy.DilationUI = this.DilationUI.DeepCopy();
+            copy.DilationUI.Parent = copy;
+            copy.Items.Add(copy.DilationUI);
+            copy.UseMultisamplingUI = this.UseMultisamplingUI.DeepCopy();
+            copy.UseMultisamplingUI.Parent = copy;
+            copy.Items.Add(copy.UseMultisamplingUI);
+            copy.OutputPixelFormatUI = this.OutputPixelFormatUI.DeepCopy();
+            copy.OutputPixelFormatUI.Parent = copy;
+            copy.Items.Add(copy.OutputPixelFormatUI);
+            copy.OutputImageFileFormatUI = this.OutputImageFileFormatUI.DeepCopy();
+            copy.OutputImageFileFormatUI.Parent = copy;
+            copy.Items.Add(copy.OutputImageFileFormatUI);
+            copy.OutputDDSCompressionTypeUI = this.OutputDDSCompressionTypeUI.DeepCopy();
+            copy.OutputDDSCompressionTypeUI.Parent = copy;
+            copy.Items.Add(copy.OutputDDSCompressionTypeUI);
+            copy.CastLayersFrontToBackUI = this.CastLayersFrontToBackUI.DeepCopy();
+            copy.CastLayersFrontToBackUI.Parent = copy;
+            copy.Items.Add(copy.CastLayersFrontToBackUI);
+            copy.MaxCastLayersUI = this.MaxCastLayersUI.DeepCopy();
+            copy.MaxCastLayersUI.Parent = copy;
+            copy.Items.Add(copy.MaxCastLayersUI);
+            return copy;
+        }
+
+        public override JObject SaveJson(bool serializeUIComponents)
+        {
+            dynamic jsonData = new JObject();
+            jsonData.MaterialChannel = MaterialChannel;
+            if(serializeUIComponents)
+            {
+                jsonData.MaterialChannelUI = MaterialChannelUI.SaveJson();
+            }
+
+            jsonData.OpacityChannel = OpacityChannel;
+            if(serializeUIComponents)
+            {
+                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+            }
+
+            jsonData.OpacityChannelComponent = (int)OpacityChannelComponent;
+            if(serializeUIComponents)
+            {
+                jsonData.OpacityChannelComponentUI = OpacityChannelComponentUI.SaveJson();
+            }
+
+            jsonData.DitherType = (int)DitherType;
+            if(serializeUIComponents)
+            {
+                jsonData.DitherTypeUI = DitherTypeUI.SaveJson();
+            }
+
+            jsonData.FillMode = (int)FillMode;
+            if(serializeUIComponents)
+            {
+                jsonData.FillModeUI = FillModeUI.SaveJson();
+            }
+
+            jsonData.Dilation = Dilation;
+            if(serializeUIComponents)
+            {
+                jsonData.DilationUI = DilationUI.SaveJson();
+            }
+
+            jsonData.UseMultisampling = UseMultisampling;
+            if(serializeUIComponents)
+            {
+                jsonData.UseMultisamplingUI = UseMultisamplingUI.SaveJson();
+            }
+
+            jsonData.OutputPixelFormat = (int)OutputPixelFormat;
+            if(serializeUIComponents)
+            {
+                jsonData.OutputPixelFormatUI = OutputPixelFormatUI.SaveJson();
+            }
+
+            jsonData.OutputImageFileFormat = (int)OutputImageFileFormat;
+            if(serializeUIComponents)
+            {
+                jsonData.OutputImageFileFormatUI = OutputImageFileFormatUI.SaveJson();
+            }
+
+            jsonData.OutputDDSCompressionType = (int)OutputDDSCompressionType;
+            if(serializeUIComponents)
+            {
+                jsonData.OutputDDSCompressionTypeUI = OutputDDSCompressionTypeUI.SaveJson();
+            }
+
+            jsonData.OutputColorSpace = (int)OutputColorSpace;
+            if(serializeUIComponents)
+            {
+                jsonData.OutputColorSpaceUI = OutputColorSpaceUI.SaveJson();
+            }
+
+            jsonData.CastLayersFrontToBack = CastLayersFrontToBack;
+            if(serializeUIComponents)
+            {
+                jsonData.CastLayersFrontToBackUI = CastLayersFrontToBackUI.SaveJson();
+            }
+
+            jsonData.MaxCastLayers = MaxCastLayers;
+            if(serializeUIComponents)
+            {
+                jsonData.MaxCastLayersUI = MaxCastLayersUI.SaveJson();
+            }
+
+            return jsonData;
+        }
+
+        protected void LoadJson(dynamic jsonData)
+        {
+            if(jsonData == null)
+            {
+                return;
+            }
+
+            if(jsonData.GetValue("MaterialChannel") != null)
+            {
+                MaterialChannel = (string)jsonData.MaterialChannel;
+            }
+
+            if(jsonData.GetValue("OpacityChannel") != null)
+            {
+                OpacityChannel = (string)jsonData.OpacityChannel;
+            }
+
+            if(jsonData.GetValue("OpacityChannelComponent") != null)
+            {
+                OpacityChannelComponent = (EColorComponent)jsonData.OpacityChannelComponent;
+            }
+
+            if(jsonData.GetValue("DitherType") != null)
+            {
+                DitherType = (EDitherPatterns)jsonData.DitherType;
+            }
+
+            if(jsonData.GetValue("FillMode") != null)
+            {
+                FillMode = (EAtlasFillMode)jsonData.FillMode;
+            }
+
+            if(jsonData.GetValue("Dilation") != null)
+            {
+                var newDilation = (int)jsonData.Dilation;
+                if (newDilation >= DilationUI.DefaultMinValue && newDilation <= DilationUI.DefaultMaxValue)
+                {
+                    Dilation = newDilation;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"Dilation: Invalid value {newDilation}, using default value {Dilation.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("UseMultisampling") != null)
+            {
+                UseMultisampling = (bool)jsonData.UseMultisampling;
+            }
+
+            if(jsonData.GetValue("OutputPixelFormat") != null)
+            {
+                OutputPixelFormat = (EPixelFormat)jsonData.OutputPixelFormat;
+            }
+
+            if(jsonData.GetValue("OutputImageFileFormat") != null)
+            {
+                OutputImageFileFormat = (EImageOutputFormat)jsonData.OutputImageFileFormat;
+            }
+
+            if(jsonData.GetValue("OutputDDSCompressionType") != null)
+            {
+                OutputDDSCompressionType = (EDDSCompressionType)jsonData.OutputDDSCompressionType;
+            }
+
+            if(jsonData.GetValue("OutputColorSpace") != null)
+            {
+                OutputColorSpace = (EImageColorSpace)jsonData.OutputColorSpace;
+            }
+
+            if(jsonData.GetValue("CastLayersFrontToBack") != null)
+            {
+                CastLayersFrontToBack = (bool)jsonData.CastLayersFrontToBack;
+            }
+
+            if(jsonData.GetValue("MaxCastLayers") != null)
+            {
+                var newMaxCastLayers = (int)jsonData.MaxCastLayers;
+                if (newMaxCastLayers >= MaxCastLayersUI.DefaultMinValue && newMaxCastLayers <= MaxCastLayersUI.DefaultMaxValue)
+                {
+                    MaxCastLayers = newMaxCastLayers;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"MaxCastLayers: Invalid value {newMaxCastLayers}, using default value {MaxCastLayers.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+        }
+
+        public override void Reset()
+        {
+            MaterialChannelUI.Reset();
+            OpacityChannelUI.Reset();
+            OpacityChannelComponentUI.Reset();
+            DitherTypeUI.Reset();
+            FillModeUI.Reset();
+            DilationUI.Reset();
+            UseMultisamplingUI.Reset();
+            OutputPixelFormatUI.Reset();
+            OutputImageFileFormatUI.Reset();
+            OutputDDSCompressionTypeUI.Reset();
+            OutputColorSpaceUI.Reset();
+            CastLayersFrontToBackUI.Reset();
+            MaxCastLayersUI.Reset();
+        }
+
+        public override void SetEditMode(bool isEditEnabled)
+        {
+            IsEditEnabled = isEditEnabled;
+            MaterialChannelUI.IsEditEnabled = isEditEnabled;
+            OpacityChannelUI.IsEditEnabled = isEditEnabled;
+            OpacityChannelComponentUI.IsEditEnabled = isEditEnabled;
+            DitherTypeUI.IsEditEnabled = isEditEnabled;
+            FillModeUI.IsEditEnabled = isEditEnabled;
+            DilationUI.IsEditEnabled = isEditEnabled;
+            UseMultisamplingUI.IsEditEnabled = isEditEnabled;
+            OutputPixelFormatUI.IsEditEnabled = isEditEnabled;
+            OutputImageFileFormatUI.IsEditEnabled = isEditEnabled;
+            OutputDDSCompressionTypeUI.IsEditEnabled = isEditEnabled;
+            OutputColorSpaceUI.IsEditEnabled = isEditEnabled;
+            CastLayersFrontToBackUI.IsEditEnabled = isEditEnabled;
+            MaxCastLayersUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -41434,6 +43168,7 @@ namespace SimplygonUI
         AmbientOcclusionCaster,
         GeometryDataCaster,
         VertexColorCaster,
+        ComputeCaster,
     }
 
     public class SimplygonMaterialCaster : SimplygonSettings
@@ -41483,6 +43218,11 @@ namespace SimplygonUI
                     return VertexColorCasterSettings.MaterialChannel;
                 }
 
+                if (MaterialCasterType == ESimplygonMaterialCaster.ComputeCaster)
+                {
+                    return ComputeCasterSettings.MaterialChannel;
+                }
+
                 return string.Empty;
             }
 
@@ -41495,6 +43235,7 @@ namespace SimplygonUI
         public SimplygonAmbientOcclusionCasterSettings AmbientOcclusionCasterSettings { get; set; }
         public SimplygonGeometryDataCasterSettings GeometryDataCasterSettings { get; set; }
         public SimplygonVertexColorCasterSettings VertexColorCasterSettings { get; set; }
+        public SimplygonComputeCasterSettings ComputeCasterSettings { get; set; }
 
         public SimplygonMaterialCaster(ESimplygonPipeline pipelineType, ESimplygonMaterialCaster materialCasterType, string materialChannelName, string menuPath, bool allowMaterialChannelOverride = true) : base("")
         {
@@ -41566,6 +43307,15 @@ namespace SimplygonUI
                 Items.Add(Settings);
             }
 
+            if (MaterialCasterType == ESimplygonMaterialCaster.ComputeCaster)
+            {
+                ComputeCasterSettings = new SimplygonComputeCasterSettings();
+                ComputeCasterSettings.MaterialChannel = materialChannelName;
+                ComputeCasterSettings.Parent = this;
+                Settings = ComputeCasterSettings;
+                Items.Add(Settings);
+            }
+
             SetTemplateOverrides(allowMaterialChannelOverride);
         }
 
@@ -41632,6 +43382,14 @@ namespace SimplygonUI
                 Items.Add(Settings);
             }
 
+            if (MaterialCasterType == ESimplygonMaterialCaster.ComputeCaster)
+            {
+                ComputeCasterSettings = new SimplygonComputeCasterSettings(jsonData.ComputeCasterSettings);
+                ComputeCasterSettings.Parent = this;
+                Settings = ComputeCasterSettings;
+                Items.Add(Settings);
+            }
+
         }
 
         public SimplygonMaterialCaster DeepCopy(ESimplygonPipeline pipelineType)
@@ -41674,6 +43432,11 @@ namespace SimplygonUI
             if (MaterialCasterType == ESimplygonMaterialCaster.VertexColorCaster)
             {
                 return SaveJsonVertexColorCaster(serializeUIComponents);
+            }
+
+            if (MaterialCasterType == ESimplygonMaterialCaster.ComputeCaster)
+            {
+                return SaveJsonComputeCaster(serializeUIComponents);
             }
 
             return new JObject();
@@ -41728,6 +43491,13 @@ namespace SimplygonUI
             return jsonData;
         }
 
+        protected JObject SaveJsonComputeCaster(bool serializeUIComponents)
+        {
+            dynamic jsonData = new JObject();
+            jsonData.ComputeCasterSettings = ComputeCasterSettings.SaveJson(serializeUIComponents);
+            return jsonData;
+        }
+
         protected void LoadJson(dynamic jsonData)
         {
             if(jsonData == null)
@@ -41777,6 +43547,12 @@ namespace SimplygonUI
                 VertexColorCasterSettings = new SimplygonVertexColorCasterSettings(jsonData.VertexColorCasterSettings);
             }
 
+            if(jsonData.GetValue("ComputeCasterSettings") != null)
+            {
+                MaterialCasterType = ESimplygonMaterialCaster.ComputeCaster;
+                ComputeCasterSettings = new SimplygonComputeCasterSettings(jsonData.ComputeCasterSettings);
+            }
+
         }
 
         public new void SetEditMode(bool isEditEnabled)
@@ -41815,6 +43591,11 @@ namespace SimplygonUI
             if (MaterialCasterType == ESimplygonMaterialCaster.VertexColorCaster)
             {
                 VertexColorCasterSettings.SetEditMode(isEditEnabled);
+            }
+
+            if (MaterialCasterType == ESimplygonMaterialCaster.ComputeCaster)
+            {
+                ComputeCasterSettings.SetEditMode(isEditEnabled);
             }
 
         }
@@ -43292,6 +45073,23 @@ namespace SimplygonUI
                     VertexColorCasterSettings.OutputColorName = "color";
                 }
 
+                if (MaterialCasterType == ESimplygonMaterialCaster.ComputeCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && (MenuPath == "Template/Advanced/ComputeCaster"))
+                {
+                    ComputeCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    if (allowMaterialChannelOverride)
+                    {
+                        ComputeCasterSettings.MaterialChannel = "BaseMap";
+                    }
+
+                    ComputeCasterSettings.MaterialChannelUI.VisibleOverride = true;
+                    ComputeCasterSettings.MaxCastLayersUI.VisibleOverride = false;
+                    ComputeCasterSettings.CastLayersFrontToBackUI.VisibleOverride = false;
+                    ComputeCasterSettings.OpacityChannel = "diffuseColor";
+                    ComputeCasterSettings.OpacityChannelUI.Visible = false;
+                    ComputeCasterSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                    ComputeCasterSettings.OpacityChannelComponentUI.Visible = false;
+                }
+
                 if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && (MenuPath == "Template/Advanced/ColorCaster"))
                 {
                     ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
@@ -44047,9 +45845,9 @@ namespace SimplygonUI
                 jsonData.Pipeline = "HighDensityMeshReduction";
             }
 
-            jsonData.Version = "10.1";
-            jsonData.Build = "10.1.11000.0";
-            jsonData.Commit = "00bb463ecde667acc6b8c8b433b131c55a99d406";
+            jsonData.Version = "10.2";
+            jsonData.Build = "10.2.400.0";
+            jsonData.Commit = "1a691ff83783d6ed500092943d1df7dc2bb4053b";
             jsonData.Settings.GlobalSettings = GlobalSettings.SaveJson(serializeUIComponents);
             jsonData.Settings.PipelineSettings = PipelineSettings.SaveJson(serializeUIComponents);
 
@@ -44244,9 +46042,9 @@ namespace SimplygonUI
                 PipelineType = ESimplygonPipeline.Passthrough;
             }
 
-            if ((string)jsonData.Version != "10.1")
+            if ((string)jsonData.Version != "10.2")
             {
-                UILogger.Instance.Log(Category.Warning, $"Pipeline '{FilePath}' updated to version 10.1. Please save the updated pipeline so it can be used with the Simplygon 10.1 API.");
+                UILogger.Instance.Log(Category.Warning, $"Pipeline '{FilePath}' updated to version 10.2. Please save the updated pipeline so it can be used with the Simplygon 10.2 API.");
             }
 
             if ((string)jsonData.Pipeline == "Reduction")
@@ -46684,8 +48482,8 @@ namespace SimplygonUI
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
                 BillboardCloudSettings.UpVectorX = 0;
-                BillboardCloudSettings.UpVectorY = 0;
-                BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.UpVectorY = 1;
+                BillboardCloudSettings.UpVectorZ = 0;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -46695,8 +48493,8 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
                 BillboardCloudSettings.UpVectorX = 0;
-                BillboardCloudSettings.UpVectorY = 0;
-                BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.UpVectorY = 1;
+                BillboardCloudSettings.UpVectorZ = 0;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -46950,8 +48748,8 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorX = 0;
-                BillboardCloudSettings.UpVectorY = 0;
-                BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.UpVectorY = 1;
+                BillboardCloudSettings.UpVectorZ = 0;
                 AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
@@ -46994,8 +48792,8 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorX = 0;
-                BillboardCloudSettings.UpVectorY = 0;
-                BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.UpVectorY = 1;
+                BillboardCloudSettings.UpVectorZ = 0;
                 AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
@@ -47038,6 +48836,7 @@ namespace SimplygonUI
                 VertexWeightSettings.WeightsFromColorLevelUI.VisibleOverride = false;
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -47051,6 +48850,7 @@ namespace SimplygonUI
             if (PipelineType == ESimplygonPipeline.RemeshingPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && MenuPath == "Template/Advanced/Remeshing")
             {
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -47062,12 +48862,14 @@ namespace SimplygonUI
                 AggregationSettings.EnableGeometryCulling = true;
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
             if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && MenuPath == "Template/Advanced/Billboard cloud")
             {
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
@@ -47077,6 +48879,7 @@ namespace SimplygonUI
             if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && MenuPath == "Template/Advanced/Billboard cloud for vegetation")
             {
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 BillboardCloudSettings.FoliageSettings.SeparateFoliageMaterialsUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
@@ -47086,6 +48889,7 @@ namespace SimplygonUI
             if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && MenuPath == "Template/Advanced/Impostor from single view")
             {
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 ImpostorFromSingleViewSettings.ViewDirectionX = 0;
                 ImpostorFromSingleViewSettings.ViewDirectionY = 0;
                 ImpostorFromSingleViewSettings.ViewDirectionZ = 1;
@@ -47103,6 +48907,7 @@ namespace SimplygonUI
                 ReductionSettings.PreserveQuadFlagsUI.VisibleOverride = false;
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 ReductionSettings.ReductionTargetTriangleCountUI.VisibleOverride = false;
                 ReductionSettings.ReductionTargetMaxDeviationUI.VisibleOverride = false;
                 ReductionSettings.ReductionTargetOnScreenSizeUI.VisibleOverride = false;
@@ -47142,6 +48947,7 @@ namespace SimplygonUI
                 ReductionSettings.PreserveQuadFlagsUI.VisibleOverride = false;
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 ReductionSettings.ReductionTargetTriangleCountUI.VisibleOverride = false;
                 ReductionSettings.ReductionTargetMaxDeviationUI.VisibleOverride = false;
                 ReductionSettings.ReductionTargetOnScreenSizeUI.VisibleOverride = false;
@@ -47196,6 +49002,7 @@ namespace SimplygonUI
             if (PipelineType == ESimplygonPipeline.RemeshingPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && MenuPath == "Template/Basic/Remeshing with material baking")
             {
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 RemeshingSettings.RemeshingModeManualPositionXUI.VisibleOverride = false;
                 RemeshingSettings.RemeshingModeManualPositionYUI.VisibleOverride = false;
                 RemeshingSettings.RemeshingModeManualPositionZUI.VisibleOverride = false;
@@ -47239,6 +49046,7 @@ namespace SimplygonUI
                 AggregationSettings.EnableGeometryCulling = true;
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 AggregationSettings.SubdivideGeometryBasedOnUVTilesUI.VisibleOverride = false;
                 AggregationSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
                 VisibilitySettings.VisibleOverride = false;
@@ -47253,6 +49061,7 @@ namespace SimplygonUI
                 AggregationSettings.EnableGeometryCulling = true;
                 MappingImageSettings.TexCoordGeneratorType = ETexcoordGeneratorType.ChartAggregator;
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 AggregationSettings.SubdivideGeometryBasedOnUVTilesUI.VisibleOverride = false;
                 AggregationSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
@@ -47282,6 +49091,7 @@ namespace SimplygonUI
             if (PipelineType == ESimplygonPipeline.BillboardCloudPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && MenuPath == "Template/Basic/Billboard cloud")
             {
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardDensityUI.VisibleOverride = true;
                 BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = true;
@@ -47317,6 +49127,7 @@ namespace SimplygonUI
             if (PipelineType == ESimplygonPipeline.BillboardCloudVegetationPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && MenuPath == "Template/Basic/Billboard cloud for vegetation")
             {
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardDensityUI.VisibleOverride = true;
                 BillboardCloudSettings.MaxPlaneCountUI.VisibleOverride = true;
@@ -47358,6 +49169,7 @@ namespace SimplygonUI
             if (PipelineType == ESimplygonPipeline.ImpostorFromSingleViewPipeline && SimplygonIntegration.Type == SimplygonIntegrationType.Unity && MenuPath == "Template/Basic/Impostor from single view")
             {
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "diffuseColor";
+                MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 ImpostorFromSingleViewSettings.TightFittingDepthOffsetUI.VisibleOverride = false;
                 ImpostorFromSingleViewSettings.TexCoordPaddingUI.VisibleOverride = false;
                 ImpostorFromSingleViewSettings.ViewDirectionX = 0;

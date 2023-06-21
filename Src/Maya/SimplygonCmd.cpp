@@ -641,29 +641,44 @@ MStatus SimplygonCmd::ParseArguments( const MArgList& mArgs )
 			if( !mStatus )
 				return mStatus;
 
-			std::basic_string<TCHAR> tErrorMessage = _T("ParseArguments::SettingsFile - ");
-
 			INT64 pipelineId = 0;
+			std::vector<std::string> sErrorMessages;
+			std::vector<std::string> sWarningMessages;
 			try
 			{
-				pipelineId = PipelineHelper::Instance()->LoadSettingsPipeline( mSettingsPath.asChar() );
+				pipelineId = PipelineHelper::Instance()->LoadSettingsPipeline( mSettingsPath.asChar(), sErrorMessages, sWarningMessages );
 			}
-			catch( const std::exception& ex )
+			catch( const PipelineHelper::NullPipelineException& ex )
+			{
+				// if a nullPipelineException has been caught sErrorMessages will have a minimum of 1 entry
+			}
+
+			// Write errors and warnings to log.
+			if( sErrorMessages.size() > 0 )
 			{
 				mStatus = MStatus::kFailure;
-				tErrorMessage += ex.what();
+				for( const auto& sError : sErrorMessages )
+				{
+					this->LogErrorToWindow( sError );
+				}
+			}
+			if( sWarningMessages.size() > 0 )
+			{
+				for( const auto& sWarning : sWarningMessages )
+				{
+					this->LogWarningToWindow( sWarning );
+				}
 			}
 
 			if( mStatus != MStatus::kSuccess )
 			{
-				MGlobal::displayError( tErrorMessage.c_str() );
 				return mStatus;
 			}
 
 			const bool bPipelineSet = this->UseSettingsPipelineForProcessing( pipelineId );
 			if( !bPipelineSet )
 			{
-				tErrorMessage += std::basic_string<TCHAR>( " Could not assign the given pipeline id" );
+				std::string tErrorMessage = std::basic_string<TCHAR>( " Could not assign the given pipeline id" );
 				MGlobal::displayError( tErrorMessage.c_str() );
 				return MStatus::kInvalidParameter;
 			}

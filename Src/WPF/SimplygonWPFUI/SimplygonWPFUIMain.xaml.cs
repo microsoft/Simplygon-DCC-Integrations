@@ -302,13 +302,13 @@ namespace SimplygonUI
         {
             try
             {
-                string simplygon9Path = Environment.GetEnvironmentVariable("SIMPLYGON_10_PATH");
+                string simplygonPath = Environment.GetEnvironmentVariable("SIMPLYGON_10_PATH");
 
-                if (!string.IsNullOrEmpty(simplygon9Path))
+                if (!string.IsNullOrEmpty(simplygonPath))
                 {
-                    simplygon9Path = Environment.ExpandEnvironmentVariables(simplygon9Path);
+                    simplygonPath = Environment.ExpandEnvironmentVariables(simplygonPath);
 
-                    System.Diagnostics.Process.Start($@"{simplygon9Path}/SimplygonLicenseApplication.exe");
+                    System.Diagnostics.Process.Start($@"{simplygonPath}/SimplygonLicenseApplication.exe");
                 }
             }
             catch (Exception)

@@ -32,10 +32,12 @@ const char* cPipeline_GetMaterialCasterType = "-gmt";    // 9.1+
 
 SimplygonPipelineCmd::SimplygonPipelineCmd()
 {
+	InitializeCriticalSection( &this->cs );
 }
 
 SimplygonPipelineCmd::~SimplygonPipelineCmd()
 {
+	DeleteCriticalSection( &this->cs );
 }
 
 void SimplygonPipelineCmd::Callback( std::basic_string<TCHAR> tId, bool error, std::basic_string<TCHAR> tMessage, int progress )
@@ -65,6 +67,40 @@ MStatus SimplygonPipelineCmd::undoIt()
 bool SimplygonPipelineCmd::isUndoable() const
 {
 	return true;
+}
+
+void SimplygonPipelineCmd::LogErrorToWindow( std::basic_string<TCHAR> tMessage )
+{
+	EnterCriticalSection( &this->cs );
+	{
+		MString mMessage = LPCTSTRToConstCharPtr( tMessage.c_str() );
+
+		MGlobal::displayError( MString( "(Simplygon): " ) + mMessage );
+
+		// Send log message to Simplygon UI.
+		MString sendLogToUICommand = "SimplygonUI -SendErrorToLog ";
+		sendLogToUICommand += CreateQuotedTextAndRemoveLineBreaks( mMessage );
+		sendLogToUICommand += ";";
+		MGlobal::executeCommand( sendLogToUICommand );
+	}
+	LeaveCriticalSection( &this->cs );
+}
+
+void SimplygonPipelineCmd::LogWarningToWindow( std::basic_string<TCHAR> tMessage )
+{
+	EnterCriticalSection( &this->cs );
+	{
+		MString mMessage = LPCTSTRToConstCharPtr( tMessage.c_str() );
+
+		MGlobal::displayWarning( MString( "(Simplygon): " ) + mMessage );
+
+		// Send log message to Simplygon UI.
+		MString sendLogToUICommand = "SimplygonUI -SendWarningToLog ";
+		sendLogToUICommand += CreateQuotedTextAndRemoveLineBreaks( mMessage );
+		sendLogToUICommand += ";";
+		MGlobal::executeCommand( sendLogToUICommand );
+	}
+	LeaveCriticalSection( &this->cs );
 }
 
 void* SimplygonPipelineCmd::creator()
@@ -234,19 +270,42 @@ MStatus SimplygonPipelineCmd::ParseArguments( const MArgList& mArgs )
 				return mStatus;
 
 			INT64 pipelineId = 0;
+			std::vector<std::string> sErrorMessages;
+			std::vector<std::string> sWarningMessages;
 			try
 			{
-				pipelineId = PipelineHelper::Instance()->LoadSettingsPipeline( mFilePath.asChar() );
+				pipelineId = PipelineHelper::Instance()->LoadSettingsPipeline( mFilePath.asChar(), sErrorMessages, sWarningMessages );
 			}
-			catch( std::exception ex )
+			catch( PipelineHelper::NullPipelineException ex )
 			{
-				MGlobal::displayError( MString( "ParseArguments::Load failed with an error: " ) + ex.what() );
-				mStatus = MStatus::kFailure;
+				// if a nullPipelineException has been caught sErrorMessages will have a minimum of 1 entry
 			}
 			catch( ... )
 			{
 				MGlobal::displayError( MString( "ParseArguments::Load failed with an unknown error." ) );
 				mStatus = MStatus::kFailure;
+			}
+
+			// Write errors and warnings to log.
+			if( sErrorMessages.size() > 0 )
+			{
+				mStatus = MStatus::kFailure;
+				for( const auto& sError : sErrorMessages )
+				{
+					this->LogErrorToWindow( sError );
+				}
+			}
+			if( sWarningMessages.size() > 0 )
+			{
+				for( const auto& sWarning : sWarningMessages )
+				{
+					this->LogWarningToWindow( sWarning );
+				}
+			}
+
+			if( mStatus != MStatus::kSuccess )
+			{
+				return mStatus;
 			}
 
 			this->setResult( (uint)pipelineId );
