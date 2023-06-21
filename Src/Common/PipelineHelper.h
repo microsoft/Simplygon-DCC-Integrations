@@ -8,7 +8,7 @@ class PipelineHelper
 	public:
 	std::map<INT64, Simplygon::spPipeline> nameToSettingsPipeline;
 
-	INT64 LoadSettingsPipeline( std::basic_string<TCHAR> tPipelineFilePath );
+	INT64 LoadSettingsPipeline( std::basic_string<TCHAR> tPipelineFilePath, std::vector<std::string>& sErrors, std::vector<std::string>& sWarnings );
 	bool SaveSettingsPipeline( const INT64 pipelineId, std::basic_string<TCHAR> tPipelineFilePath );
 
 	INT64 CreateSettingsPipeline( std::basic_string<TCHAR> tPipelineType );
@@ -19,6 +19,12 @@ class PipelineHelper
 
 	std::vector<INT64> GetPipelines();
 	std::basic_string<TCHAR> GetPipelineType( const INT64 pipelineId );
+
+	class NullPipelineException : public std::exception
+	{
+		public:
+		const char* what() { return "Pipeline is null."; }
+	};
 
 	bool GetPipelineSetting( const INT64 pipelineId, std::basic_string<TCHAR> tSettingsPath, float& fValue );
 	bool GetPipelineSetting( const INT64 pipelineId, std::basic_string<TCHAR> tSettingsPath, double& fValue );

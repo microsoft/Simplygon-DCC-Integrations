@@ -20,7 +20,13 @@ class SimplygonPipelineCmd : public MPxCommand
 	MStatus undoIt() override;
 	bool isUndoable() const override;
 
+	void LogWarningToWindow( std::basic_string<TCHAR> tMessage );
+	void LogErrorToWindow( std::basic_string<TCHAR> tMessage );
+
 	static void* creator();
 	static MSyntax createSyntax();
 	MStatus ParseArguments( const MArgList& mArgList );
+
+	private:
+	CRITICAL_SECTION cs;
 };

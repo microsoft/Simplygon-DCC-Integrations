@@ -127,21 +127,55 @@ bool PipelineHelper::ClearAllSettingsPipelines()
 	return true;
 }
 
-INT64 PipelineHelper::LoadSettingsPipeline( std::basic_string<TCHAR> tPipelineFilePath )
+INT64 PipelineHelper::LoadSettingsPipeline( std::basic_string<TCHAR> tPipelineFilePath, std::vector<std::string>& sErrors, std::vector<std::string>& sWarnings )
 {
 	const INT64 currentCounter = pipelineCounter++;
 
+	spPipeline sgPipeline = Simplygon::NullPtr;
 	Simplygon::spPipelineSerializer sgSerializer = sg->CreatePipelineSerializer();
 	if( sgSerializer.IsNull() )
 	{
 		std::string sErrorMessage = "Failed to create pipeline serializer.";
 		throw std::exception( sErrorMessage.c_str() );
 	}
-
-	spPipeline sgPipeline = sgSerializer->LoadPipelineFromFile( LPCTSTRToConstCharPtr( tPipelineFilePath.c_str() ) );
-	if( sgPipeline.IsNull() )
+	try
 	{
-		throw std::exception( "Could not load pipeline from file." );
+		sgPipeline = sgSerializer->LoadPipelineFromFile( LPCTSTRToConstCharPtr( tPipelineFilePath.c_str() ) );
+	}
+	catch (std::exception ex)
+	{
+		sErrors.emplace_back( ex.what() );
+	}
+	
+	bool bHasErrors = sg->ErrorOccurred();
+
+	// Get errors and warnings from processing.
+	if( bHasErrors )
+	{
+		spStringArray errorArray = sg->CreateStringArray();
+		sg->GetErrorMessages( errorArray );
+		for( uint32_t i = 0; i < errorArray.GetItemCount(); ++i )
+		{
+			sErrors.push_back( errorArray.GetItem( i ).c_str() );
+		}
+	}
+
+	if( sg->WarningOccurred() )
+	{
+		spStringArray warningArray = sg->CreateStringArray();
+		sg->GetWarningMessages( warningArray );
+		for( uint32_t i = 0; i < warningArray.GetItemCount(); ++i )
+		{
+			sWarnings.push_back( warningArray.GetItem( i ).c_str() );
+		}
+	}
+
+	sg->ClearErrorMessages();
+	sg->ClearWarningMessages();
+
+	if( sgPipeline.IsNull() || bHasErrors )
+	{
+		throw NullPipelineException();
 	}
 
 	sgPipeline->GetPipelineSettings()->SetValidateParameterNames( true );

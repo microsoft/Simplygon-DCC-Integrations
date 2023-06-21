@@ -1078,17 +1078,46 @@ Value* sgsdk_LoadPipeline_cf( Value** arg_list, int count )
 	std::basic_string<TCHAR> tPipelineFilePath = std::basic_string<TCHAR>( arg_list[ 0 ]->to_string() );
 
 	INT64 pipelineId = -1;
+	std::vector<std::string> sErrorMessages;
+	std::vector<std::string> sWarningMessages;
+	bool bHasException = false;
+	std::basic_string<TCHAR> tThrownErrorMessage = _T("sgsdk_LoadPipeline: Failed to load pipeline ");
 	try
 	{
-		pipelineId = PipelineHelper::Instance()->LoadSettingsPipeline( tPipelineFilePath );
+		pipelineId = PipelineHelper::Instance()->LoadSettingsPipeline( tPipelineFilePath, sErrorMessages, sWarningMessages );
 	}
-	catch( std::exception ex )
+	catch( PipelineHelper::NullPipelineException ex )
 	{
-		std::basic_string<TCHAR> tErrorMessage = _T("sgsdk_LoadPipeline: Failed to load pipeline (");
-		tErrorMessage += tPipelineFilePath;
-		tErrorMessage += _T(") - ");
-		tErrorMessage += ConstCharPtrToLPCTSTR( ex.what() );
-		throw UserThrownError( tErrorMessage.c_str(), TRUE );
+		// if a nullPipelineException has been caught sErrorMessages will have a minimum of 1 entry
+	}
+
+	// Write errors and warnings to log.
+	if( sErrorMessages.size() > 0 )
+	{
+		bHasException = true;
+		tThrownErrorMessage += _T("(");
+		tThrownErrorMessage += tPipelineFilePath;
+		tThrownErrorMessage += _T(")\n");
+		tThrownErrorMessage += ConstCharPtrToLPCTSTR( sErrorMessages.front().c_str() );
+		tThrownErrorMessage += _T("\r\n");
+		tThrownErrorMessage += _T("Further details can be found in the log.");
+		tThrownErrorMessage += _T("\r\n");
+		for( const auto& sError : sErrorMessages )
+		{
+			SimplygonMaxInstance->LogToWindow( ConstCharPtrToLPCWSTRr( sError.c_str() ), ErrorType::Error, false );
+		}
+	}
+	if( sWarningMessages.size() > 0 )
+	{
+		for( const auto& sWarning : sWarningMessages )
+		{
+			SimplygonMaxInstance->LogToWindow( ConstCharPtrToLPCWSTRr( sWarning.c_str() ), ErrorType::Warning, false );
+		}
+	}
+
+	if( bHasException )
+	{
+		throw UserThrownError( tThrownErrorMessage.c_str(), TRUE );
 	}
 
 	return Integer::intern( pipelineId );
@@ -1678,18 +1707,47 @@ Value* sgsdk_RunPipelineOnSelection_cf( Value** arg_list, int count )
 	}
 	else if( tPipelineFilePath.size() > 0 )
 	{
+		std::vector<std::string> sErrorMessages;
+		std::vector<std::string> sWarningMessages;
+		bool bHasException = false;
+		std::basic_string<TCHAR> tThrownErrorMessage = _T("sgsdk_RunPipelineOnSelection: Failed to load pipeline ");
 		try
 		{
-			pipelineId = PipelineHelper::Instance()->LoadSettingsPipeline( tPipelineFilePath );
+			pipelineId = PipelineHelper::Instance()->LoadSettingsPipeline( tPipelineFilePath, sErrorMessages, sWarningMessages );
 			SimplygonMaxInstance->UseSettingsPipelineForProcessing( pipelineId );
 		}
-		catch( std::exception ex )
+		catch( PipelineHelper::NullPipelineException ex )
 		{
-			std::basic_string<TCHAR> tErrorMessage = _T("sgsdk_RunPipelineOnSelection: Failed to load pipeline (");
-			tErrorMessage += tPipelineFilePath;
-			tErrorMessage += _T(")\n");
-			tErrorMessage += ConstCharPtrToLPCTSTR( ex.what() );
-			throw UserThrownError( tErrorMessage.c_str(), TRUE );
+			// if a nullPipelineException has been caught sErrorMessages will have a minimum of 1 entry
+		}
+
+		// Write errors and warnings to log.
+		if( sErrorMessages.size() > 0 )
+		{
+			bHasException = true;
+			tThrownErrorMessage += _T("(");
+			tThrownErrorMessage += tPipelineFilePath;
+			tThrownErrorMessage += _T(")\n");
+			tThrownErrorMessage += ConstCharPtrToLPCTSTR( sErrorMessages.front().c_str() );
+			tThrownErrorMessage += _T("\r\n");
+			tThrownErrorMessage += _T("Further details can be found in the log.");
+			tThrownErrorMessage += _T("\r\n");
+			for( const auto& sError : sErrorMessages )
+			{
+				SimplygonMaxInstance->LogToWindow( ConstCharPtrToLPCWSTRr( sError.c_str() ), ErrorType::Error, false );
+			}
+		}
+		if( sWarningMessages.size() > 0 )
+		{
+			for( const auto& sWarning : sWarningMessages )
+			{
+				SimplygonMaxInstance->LogToWindow( ConstCharPtrToLPCWSTRr( sWarning.c_str() ), ErrorType::Warning, false );
+			}
+		}
+
+		if( bHasException )
+		{
+			throw UserThrownError( tThrownErrorMessage.c_str(), TRUE );
 		}
 	}
 	else
@@ -1749,18 +1807,46 @@ Value* sgsdk_RunPipelineOnFile_cf( Value** arg_list, int count )
 	}
 	else if( tPipelineFilePath.size() > 0 )
 	{
+		std::vector<std::string> sErrorMessages;
+		std::vector<std::string> sWarningMessages;
+		bool bHasException = false;
+		std::basic_string<TCHAR> tThrownErrorMessage = _T("sgsdk_RunPipelineOnFile: Failed to load pipeline ");
 		try
 		{
-			pipelineId = PipelineHelper::Instance()->LoadSettingsPipeline( tPipelineFilePath );
+			pipelineId = PipelineHelper::Instance()->LoadSettingsPipeline( tPipelineFilePath, sErrorMessages, sWarningMessages );
 			SimplygonMaxInstance->UseSettingsPipelineForProcessing( pipelineId );
 		}
-		catch( std::exception ex )
+		catch( PipelineHelper::NullPipelineException ex )
 		{
-			std::basic_string<TCHAR> tErrorMessage = _T("sgsdk_RunPipelineOnFile: Failed to load pipeline (");
-			tErrorMessage += tPipelineFilePath;
-			tErrorMessage += _T(")\n");
-			tErrorMessage += ConstCharPtrToLPCTSTR( ex.what() );
-			throw UserThrownError( tErrorMessage.c_str(), TRUE );
+			// if a nullPipelineException has been caught sErrorMessages will have a minimum of 1 entry
+		}
+
+		// Write errors and warnings to log.
+		if( sErrorMessages.size() > 0 )
+		{
+			bHasException = true;
+			tThrownErrorMessage += _T("(");
+			tThrownErrorMessage += tPipelineFilePath;
+			tThrownErrorMessage += _T(")\n");
+			tThrownErrorMessage += ConstCharPtrToLPCTSTR( sErrorMessages.front().c_str() );
+			tThrownErrorMessage += _T("\r\n");
+			tThrownErrorMessage += _T("Further details can be found in the log.");
+			tThrownErrorMessage += _T("\r\n");
+			for( const auto& sError : sErrorMessages )
+			{
+				SimplygonMaxInstance->LogToWindow( ConstCharPtrToLPCWSTRr( sError.c_str() ), ErrorType::Error, false );
+			}
+		}
+		if( sWarningMessages.size() > 0 )
+		{
+			for( const auto& sWarning : sWarningMessages )
+			{
+				SimplygonMaxInstance->LogToWindow( ConstCharPtrToLPCWSTRr( sWarning.c_str() ), ErrorType::Warning, false );
+			}
+		}
+		if( bHasException )
+		{
+			throw UserThrownError( tThrownErrorMessage.c_str(), TRUE );
 		}
 	}
 	else
