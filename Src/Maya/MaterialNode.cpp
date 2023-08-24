@@ -631,7 +631,10 @@ MStatus MaterialNode::InternalSetup()
 				bool bTextureExists = false;
 				for( uint j = 0; j < UserTextures.size(); ++j )
 				{
-					if( mType.toLowerCase() == UserTextures[ j ].MappingChannelName.toLowerCase() )
+					MString mMappingChannelName = UserTextures[ j ].MappingChannelName;
+					mMappingChannelName.toLowerCase();
+
+					if( mType == mMappingChannelName)
 					{
 						bTextureExists = true;
 					}
@@ -639,7 +642,7 @@ MStatus MaterialNode::InternalSetup()
 				if( !bTextureExists )
 				{
 					MaterialTextures tmpMaterialTextures;
-					tmpMaterialTextures.MappingChannelName = materialTextureOverride.TextureType.asChar();
+					tmpMaterialTextures.MappingChannelName = materialTextureOverride.TextureType;
 					UserTextures.push_back( tmpMaterialTextures );
 					materialTextures = &UserTextures[ UserTextures.size() - 1 ];
 				}

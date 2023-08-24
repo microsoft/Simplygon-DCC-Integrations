@@ -14,7 +14,7 @@
     <ProjectGuid>{CAA21B12-4384-4C0B-BBAA-440DCBE7C41E}</ProjectGuid>
     <RootNamespace>SimplygonMax2021</RootNamespace>
     <ProjectName>SimplygonMax2021</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">

@@ -14,7 +14,7 @@
     <ProjectGuid>{43856CDC-4C9F-4910-ACD3-7C3BF9081AE2}</ProjectGuid>
     <RootNamespace>SimplygonMaya2017</RootNamespace>
     <ProjectName>SimplygonMaya2017</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
