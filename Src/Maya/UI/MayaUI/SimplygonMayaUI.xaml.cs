@@ -16,7 +16,7 @@ namespace SimplygonUI.MayaUI
     public partial class SimplygonMayaUI : Window, SimplygonIntegrationCallback
     {
         // supported material channels for Maya std materials
-        readonly List<string> MaterialChannelNames = new List<string>() { "color", "transparency", "ambientColor", "incandescence", "normalCamera", "translucence", "translucenceDepth", "translucenceFocus", "specularColor", };
+        readonly List<string> MaterialChannelNames = new List<string>() { "color", "transparency", "ambientColor", "incandescence", "normalCamera", "translucence", "translucenceDepth", "translucenceFocus", "specularColor", "reflectivity", "reflectedColor", };
 
         // supported Maya std material types
         readonly List<MFn.Type> StandardMaterialTypes = new List<MFn.Type>() { MFn.Type.kAnisotropy, MFn.Type.kBlinn, MFn.Type.kPhong, MFn.Type.kLambert };

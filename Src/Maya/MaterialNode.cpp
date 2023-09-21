@@ -77,6 +77,10 @@ MaterialNode::MaterialNode( SimplygonCmd* cmd, MaterialHandler* materialHandler 
 	this->ReflectedColorValue.ColorValue[ 1 ] = 0.f;
 	this->ReflectedColorValue.ColorValue[ 2 ] = 0.f;
 	this->ReflectedColorValue.ColorValue[ 3 ] = 0.f;
+	this->ReflectivityColorValue.ColorValue[ 0 ] = 0.f;
+	this->ReflectivityColorValue.ColorValue[ 1 ] = 0.f;
+	this->ReflectivityColorValue.ColorValue[ 2 ] = 0.f;
+	this->ReflectivityColorValue.ColorValue[ 3 ] = 0.f;
 }
 
 MaterialNode::~MaterialNode()
@@ -592,6 +596,8 @@ MStatus MaterialNode::InternalSetup()
 				materialTextures = &TranslucenceFocusTextures;
 			else if( mType == MAYA_MATERIAL_CHANNEL_REFLECTEDCOLOR )
 				materialTextures = &ReflectedColorTextures;
+			else if( mType == MAYA_MATERIAL_CHANNEL_REFLECTIVITY )
+				materialTextures = &ReflectivityTextures;
 			else
 			{
 				// loop through the user textures
@@ -601,7 +607,7 @@ MStatus MaterialNode::InternalSetup()
 					MString mMappingChannelName = UserTextures[ j ].MappingChannelName;
 					mMappingChannelName.toLowerCase();
 
-					if( mType == mMappingChannelName)
+					if( mType == mMappingChannelName )
 					{
 						bTextureExists = true;
 					}
@@ -971,6 +977,26 @@ MStatus MaterialNode::InternalSetup()
 
 	this->SetMaterialColor( this->ReflectedColorValue, reflectedColorFactor[ 0 ], reflectedColorFactor[ 1 ], reflectedColorFactor[ 2 ] );
 
+	// get the reflectivity plug
+	float mReflectivity = 0.0f;
+	mMaterialPlug = mShaderDependencyNode.findPlug( MAYA_MATERIAL_CHANNEL_REFLECTIVITY, mStatus );
+	if( !mMaterialPlug.isNull() )
+	{
+		// get the texture if one exists
+		if( this->GetFileTexture( ::GetConnectedUpstreamNode( mMaterialPlug ), this->ReflectivityTextures ) )
+		{
+			// we have a texture, reset the reflectivity to one
+			mReflectivity = 1.0f;
+		}
+		else
+		{
+			// get the float value instead of the texture
+			MPlug mReflectivityPlug = mShaderDependencyNode.findPlug( "reflectivity", true, &mStatus );
+			mReflectivityPlug.getValue( mReflectivity );
+		}
+	}
+
+	this->SetMaterialColor( this->ReflectivityColorValue, mReflectivity, mReflectivity, mReflectivity, mReflectivity );
 
 	return MStatus::kSuccess;
 }
@@ -1550,6 +1576,13 @@ void MaterialNode::HandleMaterialOverride()
 			this->ReflectedColorValue.ColorValue[ 2 ] = materialColorOverrides[ i ].ColorValue[ 2 ];
 			this->ReflectedColorValue.ColorValue[ 3 ] = materialColorOverrides[ i ].ColorValue[ 3 ];
 		}
+		else if( mColorType.toLowerCase() == MAYA_MATERIAL_CHANNEL_REFLECTIVITY )
+		{
+			this->ReflectivityColorValue.ColorValue[ 0 ] = materialColorOverrides[ i ].ColorValue[ 0 ];
+			this->ReflectivityColorValue.ColorValue[ 1 ] = materialColorOverrides[ i ].ColorValue[ 1 ];
+			this->ReflectivityColorValue.ColorValue[ 2 ] = materialColorOverrides[ i ].ColorValue[ 2 ];
+			this->ReflectivityColorValue.ColorValue[ 3 ] = materialColorOverrides[ i ].ColorValue[ 3 ];
+		}
 	}
 }
 
@@ -1588,7 +1621,7 @@ void MaterialNode::CreateAndAssignColorNode( const char* cChannelName, float v )
 
 std::string MaterialNode::GetSimplygonMaterialForShape( MeshNode* meshNode )
 {
-	const uint numTextureChannels = 10;
+	const uint numTextureChannels = 11;
 	bool textureInUse[ numTextureChannels ];
 	SetArray<bool>( textureInUse, numTextureChannels, false );
 
@@ -1659,6 +1692,11 @@ std::string MaterialNode::GetSimplygonMaterialForShape( MeshNode* meshNode )
 	if( this->ReflectedColorTextures.TextureLayers.size() > 0 )
 	{
 		this->CreateSgMaterialChannel( MAYA_MATERIAL_CHANNEL_REFLECTEDCOLOR, meshNode, this->ReflectedColorTextures, textureInUse[ 9 ], sRGBInUse[ 9 ] );
+	}
+
+	if( this->ReflectivityTextures.TextureLayers.size() > 0 )
+	{
+		this->CreateSgMaterialChannel( MAYA_MATERIAL_CHANNEL_REFLECTIVITY, meshNode, this->ReflectivityTextures, textureInUse[ 10 ], sRGBInUse[ 10 ] );
 	}
 
 	// user material channels and textures (custom channels)
@@ -1738,6 +1776,11 @@ std::string MaterialNode::GetSimplygonMaterialForShape( MeshNode* meshNode )
 	if( !MaterialChannelHasShadingNetwork( MAYA_MATERIAL_CHANNEL_REFLECTEDCOLOR ) )
 	{
 		this->CreateAndAssignColorNode( MAYA_MATERIAL_CHANNEL_REFLECTEDCOLOR, this->ReflectedColorValue.ColorValue );
+	}
+
+	if( !MaterialChannelHasShadingNetwork( MAYA_MATERIAL_CHANNEL_REFLECTIVITY ) )
+	{
+		this->CreateAndAssignColorNode( MAYA_MATERIAL_CHANNEL_REFLECTIVITY, this->ReflectivityColorValue.ColorValue );
 	}
 
 	// handle user defined channels and color
@@ -2157,6 +2200,131 @@ void MaterialNode::SetMaterialTextureForMeshNode(
 				spShadingMultiplyNode sgFinalBaseOutput = sg->CreateShadingMultiplyNode();
 				sgFinalBaseOutput->SetInput( 0, sgBaseTextureSwizzle );
 				sgFinalBaseOutput->SetInput( 1, sgBaseColor );
+
+				if( layeredAlphaTexture )
+				{
+					// combine RGB from base texture and R from alpha texture
+					spShadingNode sgFinalCompositeOutput = OverrideAlphaForShadingNode( sgFinalBaseOutput, sgLayeredAlpha );
+					spShadingNode sgExitNode = AddExitNodeToLayeredBlendNode( sgBlendNode, (int)upLayerIndex, (spShadingNode)sgFinalCompositeOutput );
+				}
+				else
+				{
+					spShadingNode sgExitNode = AddExitNodeToLayeredBlendNode( sgBlendNode, upLayerIndex, (spShadingNode)sgFinalBaseOutput );
+				}
+			}
+
+			// special case for reflectivity
+			else if( CompareStrings( sMaterialChannel, MAYA_MATERIAL_CHANNEL_REFLECTIVITY ) )
+			{
+				spShadingNode sgBaseTexture = GenerateSgTextureNodeFromLayer( &textureLayer, tMayaUVSet, false );
+				spShadingNode sgExitNode = Simplygon::NullPtr;
+
+				const bool bHasAlpha = TextureHasAlpha( textureLayer.OriginalTextureFileName.asChar() );
+
+				// if there is an alpha, use it for all channels
+				if( bHasAlpha )
+				{
+					spShadingSwizzlingNode sgBaseTextureSwizzle = sg->CreateShadingSwizzlingNode();
+					sgBaseTextureSwizzle->SetInput( 0, sgBaseTexture );
+					sgBaseTextureSwizzle->SetInput( 1, sgBaseTexture );
+					sgBaseTextureSwizzle->SetInput( 2, sgBaseTexture );
+					sgBaseTextureSwizzle->SetInput( 3, sgBaseTexture );
+					sgBaseTextureSwizzle->SetRedComponent( 3 );
+					sgBaseTextureSwizzle->SetGreenComponent( 3 );
+					sgBaseTextureSwizzle->SetBlueComponent( 3 );
+					sgBaseTextureSwizzle->SetAlphaComponent( 3 );
+
+					sgExitNode = sgBaseTextureSwizzle;
+				}
+
+				// otherwise, calculate RGB grayscale:
+				// 0.299 * Red + 0.587 * Green + 0.114 * Blue
+				else
+				{
+					// constant * base
+					spShadingMultiplyNode sgCorrected = sg->CreateShadingMultiplyNode();
+					sgCorrected->SetInput( 0, sgBaseTexture );
+					sgCorrected->SetDefaultParameter( 1, 0.299f, 0.587f, 0.114f, 1.0f );
+
+					spShadingSwizzlingNode R = sg->CreateShadingSwizzlingNode();
+					R->SetInput( 0, sgCorrected );
+					R->SetInput( 1, sgCorrected );
+					R->SetInput( 2, sgCorrected );
+					R->SetInput( 3, sgCorrected );
+					R->SetRedComponent( 0 );
+					R->SetGreenComponent( 0 );
+					R->SetBlueComponent( 0 );
+					R->SetAlphaComponent( 0 );
+
+					spShadingSwizzlingNode G = sg->CreateShadingSwizzlingNode();
+					G->SetInput( 0, sgCorrected );
+					G->SetInput( 1, sgCorrected );
+					G->SetInput( 2, sgCorrected );
+					G->SetInput( 3, sgCorrected );
+					G->SetRedComponent( 1 );
+					G->SetGreenComponent( 1 );
+					G->SetBlueComponent( 1 );
+					G->SetAlphaComponent( 1 );
+
+					spShadingSwizzlingNode B = sg->CreateShadingSwizzlingNode();
+					B->SetInput( 0, sgCorrected );
+					B->SetInput( 1, sgCorrected );
+					B->SetInput( 2, sgCorrected );
+					B->SetInput( 3, sgCorrected );
+					B->SetRedComponent( 2 );
+					B->SetGreenComponent( 2 );
+					B->SetBlueComponent( 2 );
+					B->SetAlphaComponent( 2 );
+
+					// R + G + B
+					spShadingAddNode sgR_G = sg->CreateShadingAddNode();
+					sgR_G->SetInput( 0, R );
+					sgR_G->SetInput( 1, G );
+
+					spShadingAddNode sgRG_B = sg->CreateShadingAddNode();
+					sgRG_B->SetInput( 0, sgR_G );
+					sgRG_B->SetInput( 1, B );
+
+					// clamp to avoid over/undershoot
+					spShadingClampNode sgClamp = sg->CreateShadingClampNode();
+					sgClamp->SetInput( 0, sgRG_B );
+					sgClamp->SetDefaultParameter( 1, 0, 0, 0, 0 );
+					sgClamp->SetDefaultParameter( 2, 1, 1, 1, 1 );
+
+					// take main channel (intensity) and copy it into all output channels
+					spShadingSwizzlingNode sgBaseTextureSwizzle = sg->CreateShadingSwizzlingNode();
+					sgBaseTextureSwizzle->SetInput( 0, sgClamp );
+					sgBaseTextureSwizzle->SetInput( 1, sgClamp );
+					sgBaseTextureSwizzle->SetInput( 2, sgClamp );
+					sgBaseTextureSwizzle->SetInput( 3, sgClamp );
+					sgBaseTextureSwizzle->SetRedComponent( 0 );
+					sgBaseTextureSwizzle->SetGreenComponent( 0 );
+					sgBaseTextureSwizzle->SetBlueComponent( 0 );
+					sgBaseTextureSwizzle->SetAlphaComponent( 0 );
+
+					sgExitNode = sgBaseTextureSwizzle;
+				}
+
+				spShadingColorNode sgBlackColor = sg->CreateShadingColorNode();
+				sgBlackColor->SetColor( 0.f, 0.f, 0.f, 1.f );
+
+				spShadingColorNode sgBaseColor = sg->CreateShadingColorNode();
+				if( colorOverride != nullptr )
+				{
+					sgBaseColor->SetColor( colorOverride->ColorValue[ 0 ] * textureLayer.ColorGain[ 0 ],
+					                       colorOverride->ColorValue[ 1 ] * textureLayer.ColorGain[ 1 ],
+					                       colorOverride->ColorValue[ 2 ] * textureLayer.ColorGain[ 2 ],
+					                       colorOverride->ColorValue[ 3 ] );
+				}
+				else
+				{
+					sgBaseColor->SetColor( textureLayer.ColorGain[ 0 ], textureLayer.ColorGain[ 1 ], textureLayer.ColorGain[ 2 ], 1.f );
+				}
+
+				spShadingInterpolateNode sgFinalBaseOutput = sg->CreateShadingInterpolateNode();
+				sgFinalBaseOutput->SetInput( 0, sgBlackColor );
+				sgFinalBaseOutput->SetInput( 1, sgExitNode );
+				sgFinalBaseOutput->SetInput( 2, sgBaseColor );
 
 				if( layeredAlphaTexture )
 				{

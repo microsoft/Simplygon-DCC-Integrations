@@ -18,8 +18,8 @@ namespace SimplygonUI
     public class SimplygonVersion
     {
         public static readonly string Version = "10.2";
-        public static readonly string Build = "10.2.400.0";
-        public static readonly string Commit = "1a691ff83783d6ed500092943d1df7dc2bb4053b";
+        public static readonly string Build = "10.2.5200.0";
+        public static readonly string Commit = "9bf5bfd47512ba7e3a1be8d77e69dacea1a3f165";
     }
 
     public enum SimplygonIntegrationType
@@ -1078,6 +1078,11 @@ namespace SimplygonUI
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
             {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Blinn/Reflectivity"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
                 MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Blinn/SpecularColor"));
             }
 
@@ -1134,6 +1139,11 @@ namespace SimplygonUI
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
             {
                 MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Phong/ReflectedColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Phong/Reflectivity"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
@@ -35752,6 +35762,7 @@ namespace SimplygonUI
                 if(OcclusionFalloffUI.Visible) return true;
                 if(OcclusionMultiplierUI.Visible) return true;
                 if(UseSimpleOcclusionModeUI.Visible) return true;
+                if(FlipBackfacingNormalsUI.Visible) return true;
 
                 return false;
             }
@@ -36980,6 +36991,76 @@ namespace SimplygonUI
 
         }
 
+        public bool FlipBackfacingNormals { get { return _FlipBackfacingNormals; } set { _FlipBackfacingNormals = value; OnPropertyChanged(); } }
+        private bool _FlipBackfacingNormals;
+        public SimplygonFlipBackfacingNormalsEx FlipBackfacingNormalsUI { get; set; }
+        public class SimplygonFlipBackfacingNormalsEx : SimplygonSettingsProperty
+        {
+            public SimplygonAmbientOcclusionCasterSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.FlipBackfacingNormals;
+                }
+
+                set
+                {
+                    bool needReload = Parent.FlipBackfacingNormals != value;
+                    Parent.FlipBackfacingNormals = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonFlipBackfacingNormalsEx() : base("FlipBackfacingNormals")
+            {
+                Type = "bool";
+                HelpText = "If set, the sampling hemispheres will be flipped to align with the normals of the destination geometry rather than with the source geometry. This can be used to get more consistent sampling directions when using remeshing of input geometries with inconsistently aligned normals.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonFlipBackfacingNormalsEx(dynamic jsonData) : base("FlipBackfacingNormals")
+            {
+                Type = "bool";
+                HelpText = "If set, the sampling hemispheres will be flipped to align with the normals of the destination geometry rather than with the source geometry. This can be used to get more consistent sampling directions when using remeshing of input geometries with inconsistently aligned normals.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonFlipBackfacingNormalsEx DeepCopy()
+            {
+                return (SimplygonFlipBackfacingNormalsEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
 
         public SimplygonAmbientOcclusionCasterSettings() : base("AmbientOcclusionCasterSettings")
         {
@@ -37040,6 +37121,10 @@ namespace SimplygonUI
             UseSimpleOcclusionModeUI.Parent = this;
             UseSimpleOcclusionMode = UseSimpleOcclusionModeUI.DefaultValue;
             Items.Add(UseSimpleOcclusionModeUI);
+            FlipBackfacingNormalsUI = new SimplygonFlipBackfacingNormalsEx();
+            FlipBackfacingNormalsUI.Parent = this;
+            FlipBackfacingNormals = FlipBackfacingNormalsUI.DefaultValue;
+            Items.Add(FlipBackfacingNormalsUI);
         }
 
         public SimplygonAmbientOcclusionCasterSettings(dynamic jsonData) : base("AmbientOcclusionCasterSettings")
@@ -37101,6 +37186,10 @@ namespace SimplygonUI
             UseSimpleOcclusionModeUI.Parent = this;
             UseSimpleOcclusionMode = UseSimpleOcclusionModeUI.DefaultValue;
             Items.Add(UseSimpleOcclusionModeUI);
+            FlipBackfacingNormalsUI = new SimplygonFlipBackfacingNormalsEx(jsonData != null && ((JObject)jsonData).GetValue("FlipBackfacingNormalsUI") != null ? jsonData.FlipBackfacingNormalsUI : null);
+            FlipBackfacingNormalsUI.Parent = this;
+            FlipBackfacingNormals = FlipBackfacingNormalsUI.DefaultValue;
+            Items.Add(FlipBackfacingNormalsUI);
             LoadJson(jsonData);
         }
 
@@ -37150,6 +37239,9 @@ namespace SimplygonUI
             copy.UseSimpleOcclusionModeUI = this.UseSimpleOcclusionModeUI.DeepCopy();
             copy.UseSimpleOcclusionModeUI.Parent = copy;
             copy.Items.Add(copy.UseSimpleOcclusionModeUI);
+            copy.FlipBackfacingNormalsUI = this.FlipBackfacingNormalsUI.DeepCopy();
+            copy.FlipBackfacingNormalsUI.Parent = copy;
+            copy.Items.Add(copy.FlipBackfacingNormalsUI);
             return copy;
         }
 
@@ -37238,6 +37330,12 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.UseSimpleOcclusionModeUI = UseSimpleOcclusionModeUI.SaveJson();
+            }
+
+            jsonData.FlipBackfacingNormals = FlipBackfacingNormals;
+            if(serializeUIComponents)
+            {
+                jsonData.FlipBackfacingNormalsUI = FlipBackfacingNormalsUI.SaveJson();
             }
 
             return jsonData;
@@ -37360,6 +37458,11 @@ namespace SimplygonUI
                 UseSimpleOcclusionMode = (bool)jsonData.UseSimpleOcclusionMode;
             }
 
+            if(jsonData.GetValue("FlipBackfacingNormals") != null)
+            {
+                FlipBackfacingNormals = (bool)jsonData.FlipBackfacingNormals;
+            }
+
         }
 
         public override void Reset()
@@ -37378,6 +37481,7 @@ namespace SimplygonUI
             OcclusionFalloffUI.Reset();
             OcclusionMultiplierUI.Reset();
             UseSimpleOcclusionModeUI.Reset();
+            FlipBackfacingNormalsUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
@@ -37397,6 +37501,7 @@ namespace SimplygonUI
             OcclusionFalloffUI.IsEditEnabled = isEditEnabled;
             OcclusionMultiplierUI.IsEditEnabled = isEditEnabled;
             UseSimpleOcclusionModeUI.IsEditEnabled = isEditEnabled;
+            FlipBackfacingNormalsUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -41737,6 +41842,7 @@ namespace SimplygonUI
                 if(OutputColorSpaceUI.Visible) return true;
                 if(CastLayersFrontToBackUI.Visible) return true;
                 if(MaxCastLayersUI.Visible) return true;
+                if(ShaderCodeInputModeUI.Visible) return true;
 
                 return false;
             }
@@ -42782,6 +42888,77 @@ namespace SimplygonUI
 
         }
 
+        public EComputeCasterShaderCodeInputMode ShaderCodeInputMode { get { return _ShaderCodeInputMode; } set { _ShaderCodeInputMode = value; OnPropertyChanged(); } }
+        private EComputeCasterShaderCodeInputMode _ShaderCodeInputMode;
+        public SimplygonShaderCodeInputModeEx ShaderCodeInputModeUI { get; set; }
+        public class SimplygonShaderCodeInputModeEx : SimplygonSettingsProperty
+        {
+            public SimplygonComputeCasterSettings Parent { get; set; }
+            public EComputeCasterShaderCodeInputMode Value
+            {
+                get
+                {
+                    return Parent.ShaderCodeInputMode;
+                }
+
+                set
+                {
+                    bool needReload = Parent.ShaderCodeInputMode != value;
+                    Parent.ShaderCodeInputMode = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EComputeCasterShaderCodeInputMode DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EComputeCasterShaderCodeInputMode)); } }
+
+            public SimplygonShaderCodeInputModeEx() : base("ShaderCodeInputMode")
+            {
+                Type = "enum";
+                HelpText = "Select what kind of shader source or binary data the compute caster expects as input.";
+                TypeOverride = "";
+                DefaultValue = EComputeCasterShaderCodeInputMode.Source;
+                Visible = true;
+            }
+
+            public SimplygonShaderCodeInputModeEx(dynamic jsonData) : base("ShaderCodeInputMode")
+            {
+                Type = "enum";
+                HelpText = "Select what kind of shader source or binary data the compute caster expects as input.";
+                TypeOverride = "";
+                DefaultValue = EComputeCasterShaderCodeInputMode.Source;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonShaderCodeInputModeEx DeepCopy()
+            {
+                return (SimplygonShaderCodeInputModeEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
 
         public SimplygonComputeCasterSettings() : base("ComputeCasterSettings")
         {
@@ -42838,6 +43015,10 @@ namespace SimplygonUI
             MaxCastLayersUI.Parent = this;
             MaxCastLayers = MaxCastLayersUI.DefaultValue;
             Items.Add(MaxCastLayersUI);
+            ShaderCodeInputModeUI = new SimplygonShaderCodeInputModeEx();
+            ShaderCodeInputModeUI.Parent = this;
+            ShaderCodeInputMode = ShaderCodeInputModeUI.DefaultValue;
+            Items.Add(ShaderCodeInputModeUI);
         }
 
         public SimplygonComputeCasterSettings(dynamic jsonData) : base("ComputeCasterSettings")
@@ -42895,6 +43076,10 @@ namespace SimplygonUI
             MaxCastLayersUI.Parent = this;
             MaxCastLayers = MaxCastLayersUI.DefaultValue;
             Items.Add(MaxCastLayersUI);
+            ShaderCodeInputModeUI = new SimplygonShaderCodeInputModeEx(jsonData != null && ((JObject)jsonData).GetValue("ShaderCodeInputModeUI") != null ? jsonData.ShaderCodeInputModeUI : null);
+            ShaderCodeInputModeUI.Parent = this;
+            ShaderCodeInputMode = ShaderCodeInputModeUI.DefaultValue;
+            Items.Add(ShaderCodeInputModeUI);
             LoadJson(jsonData);
         }
 
@@ -42941,6 +43126,9 @@ namespace SimplygonUI
             copy.MaxCastLayersUI = this.MaxCastLayersUI.DeepCopy();
             copy.MaxCastLayersUI.Parent = copy;
             copy.Items.Add(copy.MaxCastLayersUI);
+            copy.ShaderCodeInputModeUI = this.ShaderCodeInputModeUI.DeepCopy();
+            copy.ShaderCodeInputModeUI.Parent = copy;
+            copy.Items.Add(copy.ShaderCodeInputModeUI);
             return copy;
         }
 
@@ -43023,6 +43211,12 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.MaxCastLayersUI = MaxCastLayersUI.SaveJson();
+            }
+
+            jsonData.ShaderCodeInputMode = (int)ShaderCodeInputMode;
+            if(serializeUIComponents)
+            {
+                jsonData.ShaderCodeInputModeUI = ShaderCodeInputModeUI.SaveJson();
             }
 
             return jsonData;
@@ -43120,6 +43314,11 @@ namespace SimplygonUI
 
             }
 
+            if(jsonData.GetValue("ShaderCodeInputMode") != null)
+            {
+                ShaderCodeInputMode = (EComputeCasterShaderCodeInputMode)jsonData.ShaderCodeInputMode;
+            }
+
         }
 
         public override void Reset()
@@ -43137,6 +43336,7 @@ namespace SimplygonUI
             OutputColorSpaceUI.Reset();
             CastLayersFrontToBackUI.Reset();
             MaxCastLayersUI.Reset();
+            ShaderCodeInputModeUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
@@ -43155,6 +43355,7 @@ namespace SimplygonUI
             OutputColorSpaceUI.IsEditEnabled = isEditEnabled;
             CastLayersFrontToBackUI.IsEditEnabled = isEditEnabled;
             MaxCastLayersUI.IsEditEnabled = isEditEnabled;
+            ShaderCodeInputModeUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -44728,6 +44929,11 @@ namespace SimplygonUI
                     ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Blinn/Reflectivity"))
+                {
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
                 if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Blinn/SpecularColor"))
                 {
                     if (allowMaterialChannelOverride)
@@ -44859,6 +45065,11 @@ namespace SimplygonUI
                     }
 
                     ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Phong/Reflectivity"))
+                {
                     ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
@@ -45846,8 +46057,8 @@ namespace SimplygonUI
             }
 
             jsonData.Version = "10.2";
-            jsonData.Build = "10.2.400.0";
-            jsonData.Commit = "1a691ff83783d6ed500092943d1df7dc2bb4053b";
+            jsonData.Build = "10.2.5200.0";
+            jsonData.Commit = "9bf5bfd47512ba7e3a1be8d77e69dacea1a3f165";
             jsonData.Settings.GlobalSettings = GlobalSettings.SaveJson(serializeUIComponents);
             jsonData.Settings.PipelineSettings = PipelineSettings.SaveJson(serializeUIComponents);
 

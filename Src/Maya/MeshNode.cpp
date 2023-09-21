@@ -490,7 +490,7 @@ MStatus MeshNode::ExtractVertexData()
 
 		if( !this->cmd->UseCurrentPoseAsBindPose() )
 		{
-			ExecuteCommand( MString( "dagPose -restore -bindPose" ) );
+			mStatus = ExecuteCommand( MString( "dagPose -restore -bindPose" ) );
 		}
 
 		MayaMesh.updateSurface();
@@ -5938,7 +5938,13 @@ MStatus MeshNode::AddSkinning( spScene sgProcessedScene )
 	if( !mStatus )
 		return mStatus;
 
+	// Maya 2024 has a bug where dagPose command on models with 2 or more skinclusters
+#if MAYA_APP_VERSION != 2024
 	mStatus = ExecuteCommand( MString( "dagPose -restore -bindPose" ) );
+#else
+	std::string sWarningMessage = "AddSkinning - 'dagPose -restore -bindpose' is broken in Maya 2024, using current pose instead!";
+	MGlobal::displayWarning( sWarningMessage.c_str() );
+#endif
 
 	// create the skinCluster
 	MStringArray mSkinClusterNameArray;

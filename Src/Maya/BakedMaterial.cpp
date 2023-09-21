@@ -207,6 +207,7 @@ StandardMaterial::StandardMaterial( SimplygonCmd* cmd, spTextureTable sgTextureT
 	this->IncandescenceChannel = new StandardMaterialChannel( true );
 	this->NormalCameraChannel = new StandardMaterialChannel( false );
 	this->ReflectedColorChannel = new StandardMaterialChannel( true );
+	this->ReflectivityChannel = new StandardMaterialChannel( true );
 }
 
 StandardMaterial::~StandardMaterial()
@@ -221,6 +222,7 @@ StandardMaterial::~StandardMaterial()
 	delete this->IncandescenceChannel;
 	delete this->NormalCameraChannel;
 	delete this->ReflectedColorChannel;
+	delete this->ReflectivityChannel;
 }
 
 MStatus StandardMaterial::ExtractMapping( MDagPath mShape )
@@ -348,6 +350,12 @@ MStatus StandardMaterial::CreatePhong( MDagPath mShape, MString mMeshName, MStri
 		MGlobal::displayError( "Failed to import texture: " + this->ReflectedColorChannel->TexturePath );
 		return mStatus;
 	}
+	mStatus = this->ImportMaterialTextureFile( MAYA_MATERIAL_CHANNEL_REFLECTIVITY, this->ReflectivityChannel, mMeshName, mMaterialNameOverride );
+	if( !mStatus )
+	{
+		MGlobal::displayError( "Failed to import texture: " + this->ReflectivityChannel->TexturePath );
+		return mStatus;
+	}
 
 	if( !this->sgMaterial.IsNull() )
 	{
@@ -378,6 +386,8 @@ MStatus StandardMaterial::CreatePhong( MDagPath mShape, MString mMeshName, MStri
 			else if( strcmp( channelName, MAYA_MATERIAL_CHANNEL_INCANDESCENCE ) == 0 )
 				continue;
 			else if( strcmp( channelName, MAYA_MATERIAL_CHANNEL_REFLECTEDCOLOR ) == 0 )
+				continue;
+			else if( strcmp( channelName, MAYA_MATERIAL_CHANNEL_REFLECTIVITY ) == 0 )
 				continue;
 
 			StandardMaterialChannel standardMaterialChannel( true );
@@ -414,6 +424,7 @@ MStatus StandardMaterial::CreatePhong( MDagPath mShape, MString mMeshName, MStri
 	mCommand += CreateQuotedText( this->TranslucenceFocusChannel->TexturePath ) + ", ";
 	mCommand += CreateQuotedText( this->IncandescenceChannel->TexturePath ) + ", ";
 	mCommand += CreateQuotedText( this->ReflectedColorChannel->TexturePath ) + ", ";
+	mCommand += CreateQuotedText( this->ReflectivityChannel->TexturePath ) + ", ";
 	mCommand += baseCosinePower;
 	mCommand += ", ";
 	mCommand += CreateQuotedText( this->AmbientChannel->UVSet ) + ", ";
@@ -426,6 +437,7 @@ MStatus StandardMaterial::CreatePhong( MDagPath mShape, MString mMeshName, MStri
 	mCommand += CreateQuotedText( this->TranslucenceFocusChannel->UVSet ) + ", ";
 	mCommand += CreateQuotedText( this->IncandescenceChannel->UVSet ) + ", ";
 	mCommand += CreateQuotedText( this->ReflectedColorChannel->UVSet ) + ", ";
+	mCommand += CreateQuotedText( this->ReflectivityChannel->UVSet ) + ", ";
 
 	mCommand += this->AmbientChannel->IsSRGB;
 	mCommand += ", ";
@@ -444,6 +456,8 @@ MStatus StandardMaterial::CreatePhong( MDagPath mShape, MString mMeshName, MStri
 	mCommand += this->IncandescenceChannel->IsSRGB;
 	mCommand += ", ";
 	mCommand += this->ReflectedColorChannel->IsSRGB;
+	mCommand += ", ";
+	mCommand += this->ReflectivityChannel->IsSRGB;
 	mCommand += ");";
 
 	mStatus = ExecuteCommand( mCommand, mShaderArray );
