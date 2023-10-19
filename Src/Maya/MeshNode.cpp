@@ -441,6 +441,8 @@ MStatus MeshNode::ExtractVertexData()
 			// make sure there is a dependency node
 			if( mSelectedOriginalNode == MObject::kNullObj )
 			{
+				std::string sErrorMessage = "Skinning: No valid nodes found in skincluster: ";
+				this->cmd->LogErrorToWindow( sErrorMessage + mOriginalSkinClusterName.asChar() );
 				return MStatus::kFailure;
 			}
 		}
@@ -461,6 +463,8 @@ MStatus MeshNode::ExtractVertexData()
 			// make sure there is a dependency node
 			if( mSelectedDuplicateNode == MObject::kNullObj )
 			{
+				std::string sErrorMessage = "Skinning: No valid nodes found in skincluster: ";
+				this->cmd->LogErrorToWindow( sErrorMessage + mOriginalSkinClusterName.asChar() );
 				return MStatus::kFailure;
 			}
 		}
@@ -485,13 +489,25 @@ MStatus MeshNode::ExtractVertexData()
 
 		for( uint i = 0; i < numInfluences; ++i )
 		{
-			MGlobal::select( (const MDagPath&)mInfluenceDagPaths[ i ], MObject::kNullObj );
+			 MGlobal::select( (const MDagPath&)mInfluenceDagPaths[ i ], MObject::kNullObj );
 		}
 
 		if( !this->cmd->UseCurrentPoseAsBindPose() )
 		{
 			mStatus = ExecuteCommand( MString( "dagPose -restore -bindPose" ) );
+			
+			if( mStatus == MStatus::kFailure )
+			{
+				std::string sErrorMessage = "Skinning: Unable to restore asset to bindpose, please verify that your asset can be reset to bindpose before "
+				                            "sending it ( dagPose -restore -bindPose ), skincluster: ";
+											
+				sErrorMessage += mOriginalSkinClusterName.asChar();
+				sErrorMessage += ".";
+				this->cmd->LogErrorToWindow( sErrorMessage );
+				return MStatus::kFailure;
+			}
 		}
+
 
 		MayaMesh.updateSurface();
 
@@ -1677,7 +1693,7 @@ MStatus MeshNode::ExtractTriangleData_Quad()
 			}
 		}
 	}
-	
+
 	for( std::set<int>::const_iterator& colorSetIndexIterator = invalidColorChannels.begin(); colorSetIndexIterator != invalidColorChannels.end();
 	     colorSetIndexIterator++ )
 	{
