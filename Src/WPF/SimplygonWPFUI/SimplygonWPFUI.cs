@@ -18,8 +18,8 @@ namespace SimplygonUI
     public class SimplygonVersion
     {
         public static readonly string Version = "10.2";
-        public static readonly string Build = "10.2.8400.0";
-        public static readonly string Commit = "ef79fddb69cc6d8591863a951ade19df5adcbb32";
+        public static readonly string Build = "10.2.11500.0";
+        public static readonly string Commit = "afc95ee65df2dbbff4f249e8ff6b71d4f414743b";
     }
 
     public enum SimplygonIntegrationType
@@ -46410,8 +46410,8 @@ namespace SimplygonUI
             }
 
             jsonData.Version = "10.2";
-            jsonData.Build = "10.2.8400.0";
-            jsonData.Commit = "ef79fddb69cc6d8591863a951ade19df5adcbb32";
+            jsonData.Build = "10.2.11500.0";
+            jsonData.Commit = "afc95ee65df2dbbff4f249e8ff6b71d4f414743b";
             jsonData.Settings.GlobalSettings = GlobalSettings.SaveJson(serializeUIComponents);
             jsonData.Settings.PipelineSettings = PipelineSettings.SaveJson(serializeUIComponents);
 

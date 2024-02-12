@@ -81,7 +81,16 @@ namespace SimplygonUI.MayaUI
             MainUI.IntegrationParent = this;
             MainUI.SetIntegrationType(SimplygonIntegrationType.Maya);
 
+            this.LostFocus += SimplygonMayaUI_RestoreFocusToMayaWindow;
+            this.MouseLeftButtonUp += SimplygonMayaUI_RestoreFocusToMayaWindow;
+            this.MouseLeave += SimplygonMayaUI_RestoreFocusToMayaWindow;
+
             Application.Current.Resources.MergedDictionaries.Add(this.Resources);
+        }
+
+        private void SimplygonMayaUI_RestoreFocusToMayaWindow(object sender, EventArgs e)
+        {
+            EnableShortcuts();
         }
 
         public void OnProcess(List<SimplygonSettingsProperty> integrationSettings)
@@ -383,7 +392,7 @@ namespace SimplygonUI.MayaUI
 
         public void EnableShortcuts()
         {
-
+            MGlobal.executeCommand("setFocus MayaWindow");
         }
 
         public void DisableShortcuts()
