@@ -648,7 +648,7 @@ MStatus SimplygonCmd::ParseArguments( const MArgList& mArgs )
 			{
 				pipelineId = PipelineHelper::Instance()->LoadSettingsPipeline( mSettingsPath.asChar(), sErrorMessages, sWarningMessages );
 			}
-			catch( const PipelineHelper::NullPipelineException& ex )
+			catch( const PipelineHelper::NullPipelineException& )
 			{
 				// if a nullPipelineException has been caught sErrorMessages will have a minimum of 1 entry
 			}

@@ -3,11 +3,11 @@
   <Import Project="$(ProjectDir)..\..\..\..\packages\Costura.Fody.4.1.0\build\Costura.Fody.props" Condition="Exists('$(ProjectDir)..\..\..\..\packages\Costura.Fody.4.1.0\build\Costura.Fody.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <ProjectGuid>{E9776283-8EF6-4E83-9F53-7D8F547D3C1A}</ProjectGuid>
+    <ProjectGuid>{5F3FB5A3-4139-4A31-A369-35409AA986D4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SimplygonUI.MaxUI</RootNamespace>
-    <AssemblyName>SimplygonMax2023UIIntermediate</AssemblyName>
+    <AssemblyName>SimplygonMax2024UIIntermediate</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -15,9 +15,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>$(ProjectDir)..\..\..\..\Build\SimplygonMax2023UI\$(Platform)\$(Configuration)\</OutputPath>
-    <IntermediateOutputPath>obj\2023</IntermediateOutputPath>
-    <DefineConstants>TRACE;DEBUG;SIMPLYGONMAX2023UI</DefineConstants>
+    <OutputPath>$(ProjectDir)..\..\..\..\Build\SimplygonMax2024UI\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\2024</IntermediateOutputPath>
+    <DefineConstants>TRACE;DEBUG;SIMPLYGONMAX2024UI</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <LangVersion>7.3</LangVersion>
@@ -25,9 +25,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>$(ProjectDir)..\..\..\..\Build\SimplygonMax2023UI\$(Platform)\$(Configuration)\</OutputPath>
-    <IntermediateOutputPath>obj\2023</IntermediateOutputPath>
-    <DefineConstants>TRACE;SIMPLYGONMAX2023UI</DefineConstants>
+    <OutputPath>$(ProjectDir)..\..\..\..\Build\SimplygonMax2024UI\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\2024</IntermediateOutputPath>
+    <DefineConstants>TRACE;SIMPLYGONMAX2024UI</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -37,19 +37,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Autodesk.Max">
-      <HintPath>C:\Program Files\Autodesk\3ds Max 2023\Autodesk.Max.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\3ds Max 2024\Autodesk.Max.dll</HintPath>
     </Reference>
     <Reference Include="Costura, Version=4.1.0.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
       <HintPath>$(ProjectDir)..\..\..\..\packages\Costura.Fody.4.1.0\lib\net40\Costura.dll</HintPath>
     </Reference>
     <Reference Include="CSharpUtilities">
-      <HintPath>C:\Program Files\Autodesk\3ds Max 2023\CSharpUtilities.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\3ds Max 2024\CSharpUtilities.dll</HintPath>
     </Reference>
     <Reference Include="ManagedServices">
-      <HintPath>C:\Program Files\Autodesk\3ds Max 2023\ManagedServices.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\3ds Max 2024\ManagedServices.dll</HintPath>
     </Reference>
     <Reference Include="MaxCustomControls">
-      <HintPath>C:\Program Files\Autodesk\3ds Max 2023\MaxCustomControls.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\3ds Max 2024\MaxCustomControls.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -70,7 +70,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="UiViewModels">
-      <HintPath>C:\Program Files\Autodesk\3ds Max 2023\UiViewModels.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\3ds Max 2024\UiViewModels.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>

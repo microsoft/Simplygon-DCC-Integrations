@@ -112,6 +112,45 @@
     <Resource Include="simplygon_process_enabled.png" />
     <Resource Include="Trash.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\..\Build\Core\DotNet\SimplygonLoader.cs" Condition="'$(Configuration)' == 'Debug'">
+      <Link>Testing\TestFramework\SimplygonLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Testing\IntegrationTests\IntegrationWatcher\IntegrationConfigs.cs" Condition="'$(Configuration)' == 'Debug'">
+      <Link>Testing\IntegrationWatcher\IntegrationConfigs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Testing\IntegrationTests\IntegrationWatcher\IntegrationWatcher.cs" Condition="'$(Configuration)' == 'Debug'">
+      <Link>Testing\IntegrationWatcher\IntegrationWatcher.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Testing\IntegrationTests\TestFramework\Globals.cs" Condition="'$(Configuration)' == 'Debug'">
+      <Link>Testing\TestFramework\Globals.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Testing\IntegrationTests\TestFramework\PipelineNames.cs" Condition="'$(Configuration)' == 'Debug'">
+      <Link>Testing\TestFramework\PipelineNames.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Testing\IntegrationTests\TestFramework\SimplygonLogEntry.cs" Condition="'$(Configuration)' == 'Debug'">
+      <Link>Testing\TestFramework\SimplygonLogEntry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Testing\IntegrationTests\TestFramework\SimplygonUIElement.cs" Condition="'$(Configuration)' == 'Debug'">
+      <Link>Testing\TestFramework\SimplygonUIElement.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Testing\IntegrationTests\TestFramework\SimplyValidRunner.cs" Condition="'$(Configuration)' == 'Debug'">
+      <Link>Testing\TestFramework\SimplyValidRunner.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Testing\IntegrationTests\TestFramework\TestSequence.cs" Condition="'$(Configuration)' == 'Debug'">
+      <Link>Testing\TestFramework\TestSequence.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Testing\IntegrationTests\TestFramework\TestSequenceResult.cs" Condition="'$(Configuration)' == 'Debug'">
+      <Link>Testing\TestFramework\TestSequenceResult.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Testing\IntegrationTests\TestFramework\TestSequenceWatcher.cs" Condition="'$(Configuration)' == 'Debug'">
+      <Link>Testing\TestFramework\TestSequenceWatcher.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Testing\IntegrationTests\TestFramework\UIStrings.cs" Condition="'$(Configuration)' == 'Debug'">
+      <Link>Testing\TestFramework\UIStrings.cs</Link>
+    </Compile>
+    <Compile Include="Testing\WPFDriver.cs" Condition="'$(Configuration)' == 'Debug'" />
+  </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

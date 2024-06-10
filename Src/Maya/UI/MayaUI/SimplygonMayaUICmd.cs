@@ -6,14 +6,27 @@ using Autodesk.Maya.OpenMaya;
 using System;
 using System.Collections.Generic;
 
-[assembly: MPxCommandClass(typeof(SimplygonUI.MayaUI.SimplygonUICmd), "SimplygonUI")]
+[assembly: MPxCommandClass(typeof(SimplygonUI.MayaUI.SimplygonUICmd), "SimplygonUI", hasSyntax = true)]
 
 namespace SimplygonUI.MayaUI
 {
+    [MPxCommandSyntaxFlag("-lpf", "-LoadPipelineFromFile", Arg1=typeof(System.String))]
+    [MPxCommandSyntaxFlag("-spf", "-SavePipelineToFile", Arg1=typeof(System.String))]
+    [MPxCommandSyntaxFlag("-sel", "-SendErrorToLog", Arg1=typeof(System.String))]
+    [MPxCommandSyntaxFlag("-swl", "-SendWarningToLog", Arg1=typeof(System.String))]
     public class SimplygonUICmd : MPxCommand, IMPxCommand
     {
         public static SimplygonMayaUI ui = null;
         public static MForeignWindowWrapper fww;
+
+        private static readonly string usageString = @"
+Unknown script command: {scriptCommand}
+Usage:
+SimplygonUI -SavePipelineToFile ""<file path>""
+SimplygonUI -LoadPipelineFromFile ""<file path>""
+SimplygonUI -SendErrorToLog ""<message>""
+SimplygonUI -SendWarningToLog ""<message>""
+""";
 
         List<MDagPath> selectedDagPaths = new List<MDagPath>();
         public override void doIt(MArgList argl)
@@ -26,10 +39,18 @@ namespace SimplygonUI.MayaUI
                 return;
             }
 
-            if(argl.length > 0)
+            try
             {
-                ExecuteScriptCommands(argl);
-                return;
+                MArgDatabase argsDb = new MArgDatabase(syntax, argl);
+                if (argsDb.numberOfFlagsUsed > 0)
+                {
+                    ExecuteScriptCommands(argsDb);
+                    return;
+                }
+            }
+            catch
+            {
+                MGlobal.displayInfo(usageString);
             }
 
             if (ui != null)
@@ -126,69 +147,87 @@ namespace SimplygonUI.MayaUI
             UpdateSelectionSets();
         }
 
-        private void ExecuteScriptCommands(MArgList argl)
+        private void ExecuteScriptCommands(MArgDatabase argsDb)
         {
-            var scriptCommand = argl.asString(0);
-
-            if (!string.IsNullOrEmpty(scriptCommand) && ui != null)
+            if (ui != null)
             {
-                scriptCommand = scriptCommand.ToLower();
-                if (scriptCommand == "-loadpipelinefromfile")
+                if (argsDb.isFlagSet("-LoadPipelineFromFile"))
                 {
-                    if (argl.length > 1)
+                    bool cmdSuccess = false;
+                    try
                     {
-                        string filepath = argl.asString(1);
-                        ui.MainUI.LoadPipelineFromFile(filepath);
+                        string filepath = argsDb.flagArgumentString("-LoadPipelineFromFile", 0);
+                        if (!string.IsNullOrEmpty(filepath))
+                        {
+                            ui.MainUI.LoadPipelineFromFile(filepath);
+                            cmdSuccess = true;
+                        }
                     }
-                    else
+                    catch { }
+                    finally
                     {
-                        MGlobal.displayInfo(@"
+                        if (!cmdSuccess)
+                        {
+                            MGlobal.displayInfo(@"
 Missing file path
 Usage:
 SimplygonUI -LoadPipelineFromFile ""<file path>""
 """);
+                        }
                     }
                 }
-                else if (scriptCommand == "-savepipelinetofile")
+                else if (argsDb.isFlagSet("-SavePipelineToFile"))
                 {
-                    if (argl.length > 1)
+                    bool cmdSuccess = false;
+                    try
                     {
-                        string filepath = argl.asString(1);
-                        ui.MainUI.SavePipeline(filepath, true);
+                        string filepath = argsDb.flagArgumentString("-SavePipelineToFile", 0);
+                        if (!string.IsNullOrEmpty(filepath))
+                        {
+                            ui.MainUI.SavePipeline(filepath, true);
+                            cmdSuccess = true;
+                        }
                     }
-                    else
+                    catch { }
+                    finally
                     {
-                        MGlobal.displayInfo(@"
+                        if (!cmdSuccess)
+                        {
+                            MGlobal.displayInfo(@"
 Missing file path
 Usage:
 SimplygonUI -SavePipelineToFile ""<file path>""
 """);
+                        }
                     }
                 }
-                else if (scriptCommand == "-senderrortolog")
+                else if (argsDb.isFlagSet("-SendErrorToLog"))
                 {
-                    if (argl.length > 1)
+                    try
                     {
-                        string errorMessage = argl.asString(1);
-                        ui.MainUI.SendErrorToLog(errorMessage);
+                        string errorMessage = argsDb.flagArgumentString("-SendErrorToLog", 0);
+                        if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            ui.MainUI.SendErrorToLog(errorMessage);
+                        }
                     }
+                    catch { }
                 }
-                else if (scriptCommand == "-sendwarningtolog")
+                else if (argsDb.isFlagSet("-SendWarningToLog"))
                 {
-                    if (argl.length > 1)
+                    try
                     {
-                        string warningMessage = argl.asString(1);
-                        ui.MainUI.SendWarningToLog(warningMessage);
+                        string warningMessage = argsDb.flagArgumentString("-SendWarningToLog", 0);
+                        if (!string.IsNullOrEmpty(warningMessage))
+                        {
+                            ui.MainUI.SendWarningToLog(warningMessage);
+                        }
                     }
+                    catch { }
                 }
                 else
                 {
-                    MGlobal.displayInfo(@"
-Unknown script command: {scriptCommand}
-Usage:
-SimplygonUI -SavePipelineToFile ""<file path>""
-SimplygonUI -LoadPipelineFromFile ""<file path>""
-""");
+                    MGlobal.displayInfo(usageString);
                 }
             }
         }

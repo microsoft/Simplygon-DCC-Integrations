@@ -10,8 +10,6 @@
 #include <objbase.h>
 #include "SgCodeAnalysisSetup.h"
 
-using std::auto_ptr;
-
 std::basic_string<TCHAR> ToLower( std::basic_string<TCHAR> tString )
 {
 	std::basic_string<TCHAR> tStringLower = tString;

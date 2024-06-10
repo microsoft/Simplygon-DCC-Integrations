@@ -41,6 +41,10 @@ void AddDirectoriesToSimplygonSearchPaths()
 void AddPluginSearchPath( const TCHAR* tSearchpath, bool bAppendSimplygonDirectory )
 {
 #ifdef UNICODE
+// Max 2023, 2024 is alot more sensitive when converting wstring to string
+// disabling pragma warning as a temporary workaround
+#pragma warning( push )
+#pragma warning( disable : 4244 )
 	std::wstring wSearchPath( tSearchpath );
 	std::string sSearchPath;
 	sSearchPath.assign( wSearchPath.begin(), wSearchPath.end() );
@@ -55,6 +59,7 @@ void AddPluginSearchPath( const TCHAR* tSearchpath, bool bAppendSimplygonDirecto
 		Simplygon::AddSearchPath( sSearchPath.c_str() );
 		SimplygonProcessAdditionalSearchPaths.push_back( wSearchPath.c_str() );
 	}
+#pragma warning( pop )
 #else
 	const char* cSearchpath = LPCTSTRToConstCharPtr( tSearchpath );
 	Simplygon::AddSearchPath( cSearchpath );
@@ -151,15 +156,7 @@ bool SimplygonInitClass::Initialize()
 	this->isSetup = true;
 
 	// Initiate telemetry
-#ifdef MAX_INTEGRATION
-	sg->SendTelemetry( "IntegrationInit", "3ds Max", TOSTRING( MAX_PRODUCT_YEAR_NUMBER ), "{}" );
-#elif MAYA_INTEGRATION
-	#ifdef MAYA_APP_VERSION
-	sg->SendTelemetry( "IntegrationInit", "Maya", TOSTRING( MAYA_APP_VERSION ), "{}" );
-	#else
-	sg->SendTelemetry( "IntegrationInit", "Maya", TOSTRING( MAYA_API_VERSION ), "{}" );
-	#endif
-#endif
+	this->SendTelemetry();
 	return true;
 }
 
@@ -221,4 +218,19 @@ bool SimplygonInitClass::OnProgress( Simplygon::spObject subject, Simplygon::rea
 		eventRelay->ProgressCallback( (int)progressPercentage );
 	}
 	return true;
+}
+
+void SimplygonInitClass::SendTelemetry( const std::string& payload )
+{
+	const char* payloadData = payload.c_str();
+	// Initiate telemetry
+#ifdef MAX_INTEGRATION
+	sg->SendTelemetry( "IntegrationInit", "3ds Max", TOSTRING( MAX_PRODUCT_YEAR_NUMBER ), payloadData );
+#elif MAYA_INTEGRATION
+#ifdef MAYA_APP_VERSION
+	sg->SendTelemetry( "IntegrationInit", "Maya", TOSTRING( MAYA_APP_VERSION ), payloadData );
+#else
+	sg->SendTelemetry( "IntegrationInit", "Maya", TOSTRING( MAYA_API_VERSION ), payloadData );
+#endif
+#endif
 }

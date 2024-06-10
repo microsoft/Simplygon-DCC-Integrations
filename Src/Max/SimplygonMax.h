@@ -47,7 +47,26 @@ class MorpherChannelSettings;
 #define DEFAULT_VERTEXBAKED_SPECUALR_CHANNEL_MAX 3
 #define DEFAULT_VERTEXBAKED_OPACITY_CHANNEL_MAX  -2 // should be MAX_ALPHA
 
+#if MAX_VERSION_MAJOR >= 26
+#define sg_createnode_declare( varname ) int Create##varname( std::basic_string<TCHAR> name );
+#else
 #define sg_createnode_declare( varname ) int SimplygonMax::Create##varname( std::basic_string<TCHAR> name );
+#endif
+
+// checks that the object state is correct, then calls CanConvertToType
+inline bool ObjectStateIsValidAndCanConvertToType( const ObjectState & objectState, Class_ID obtype )
+{
+	if( objectState.obj == nullptr )
+		return false;
+	return (objectState.obj->CanConvertToType( obtype ) != 0);
+}
+
+inline Object* SafeConvertToType(const ObjectState & objectState, TimeValue t, Class_ID obtype)
+{
+	if( !ObjectStateIsValidAndCanConvertToType(objectState, obtype) )
+		return nullptr;
+	return objectState.obj->ConvertToType( t, obtype );
+}
 
 enum ErrorType
 {

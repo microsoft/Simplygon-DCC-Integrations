@@ -750,7 +750,11 @@ MString CreateQuotedTextAndRemoveLineBreaks( MString mText )
 	for( int i = 0; i < len; ++i )
 	{
 		if( cText[ i ] != '\n' && cText[ i ] != '\r' )
+		{
+			if( cText[ i ] == '"' )
+				sResult += '\\';
 			sResult += cText[ i ];
+		}
 	}
 	sResult += '"';
 

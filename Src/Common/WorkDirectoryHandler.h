@@ -16,7 +16,7 @@ class WorkDirectoryHandler
 	std::basic_string<TCHAR> GetOriginalTexturesPath();
 	std::basic_string<TCHAR> GetBakedTexturesPath();
 	void SetTextureOutputDirectoryOverride( std::basic_string<TCHAR> tOutputDirectory );
-	std::basic_string<TCHAR> WorkDirectoryHandler::GetTextureOutputDirectoryOverride();
+	std::basic_string<TCHAR> GetTextureOutputDirectoryOverride();
 
 	std::basic_string<TCHAR> GetImportWorkDirectory();
 	std::basic_string<TCHAR> GetExportWorkDirectory();

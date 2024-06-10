@@ -4,6 +4,7 @@
 #pragma once
 
 #include "SimplygonLoader.h"
+#include <string>
 
 void AddPluginSearchPath( const TCHAR* cPath, bool appendSimplygonDirectory = true );
 
@@ -28,6 +29,7 @@ class SimplygonInitClass
 	HandleError( Simplygon::spObject object, const char* cInterfaceName, const char* cMethodName, Simplygon::rid errortype, const char* cErrorText ) override;
 
 	void SetRelay( SimplygonEventRelay* eventRelay );
+	void SendTelemetry( const std::string& payload = "{}" );
 	SimplygonInitClass();
 	virtual ~SimplygonInitClass();
 
