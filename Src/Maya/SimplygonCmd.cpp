@@ -60,7 +60,7 @@ SimplygonCmd::SimplygonCmd()
 	this->listSettings = false;
 	this->creaseValues = false;
 	this->skipBlendShapePostfix = false;
-	this->useCurrentPoseAsBindPose = false;
+	this->useCurrentPoseAsBindPose = true;
 	this->useOldSkinningMethod = false;
 
 	this->runInternally = false;
@@ -1296,6 +1296,11 @@ MStatus SimplygonCmd::ParseArguments( const MArgList& mArgs )
 		( *( flagValues[ index ] ) ) = mArgData.isFlagSet( cFlagNames[ index ] );
 	}
 
+	// Maya 2024 has a bug where dagPose command on models with 2 or more skinclusters
+	// force currentbindpose
+#if MAYA_APP_VERSION == 2024
+	*( flagValues[ 2 ] ) = true;
+#endif
 	return mStatus;
 }
 
@@ -1588,10 +1593,10 @@ MStatus SimplygonCmd::RegisterGlobalScripts()
 	    "	 }\n"
 	    "	};\n"
 	    "proc string[] SimplygonMaya_createPhongMaterial(string $srcshape, string $shader_name, string $ambient, string $diffuse, string $specular, "
-	    "string $normals, string $transparency, string $translucence, string $translucence_depth, string $translucence_focus, string $incandescence, string $reflectedcolor, float "
+	    "string $normals, string $transparency, string $translucence, string $translucence_depth, string $translucence_focus, string $incandescence, string $reflectedcolor, string $reflectivity, float "
 	    "$base_cosine_power, string $ambient_uv, string $diffuse_uv, string $specular_uv, string $normals_uv, string $transparency_uv, string "
-	    "$translucence_uv, string $translucence_depth_uv, string $translucence_focus_uv, string $incandescence_uv, string $reflectedcolor_uv, int $ambient_srgb, int $diffuse_srgb, int "
-	    "$specular_srgb, int $transparency_srgb, int $translucence_srgb, int $translucence_depth_srgb, int $translucence_focus_srgb, int $incandescence_srgb, int $reflectedcolor_srgb "
+	    "$translucence_uv, string $translucence_depth_uv, string $translucence_focus_uv, string $incandescence_uv, string $reflectedcolor_uv, string $reflectivity_uv, int $ambient_srgb, int $diffuse_srgb, int "
+	    "$specular_srgb, int $transparency_srgb, int $translucence_srgb, int $translucence_depth_srgb, int $translucence_focus_srgb, int $incandescence_srgb, int $reflectedcolor_srgb, int $reflectivity_srgb "
 	    ")\n"
 	    "	{\n"
 	    "	string $file_node;\n"
@@ -1709,6 +1714,16 @@ MStatus SimplygonCmd::RegisterGlobalScripts()
 	    "	 setAttr ($reflectedcolor_file_node+\".fileTextureName\") -type \"string\" $reflectedcolor;\n"
 	    "	 connectAttr -f ($reflectedcolor_file_node+\".outColor\") ($shader_node+\".reflectedColor\");\n"
 	    "	 CreateLink($srcshape, $reflectedcolor_uv, $reflectedcolor_file_node); \n"
+	    "   }"
+	    "	\n"
+	    "   string $reflectivity_file_node;"
+	    "   if( $reflectivity != \"\"){\n"
+	    "	 $reflectivity_file_node = `shadingNode -isColorManaged -asTexture file`;\n"
+	    "	 SimplygonMaya_setColorSpace($reflectivity_file_node, $reflectivity_srgb == 1 ? \"sRGB\" : \"Raw\");\n"
+	    "	 SimplygonMaya_addPlacementNode( $reflectivity_file_node );\n"
+	    "	 setAttr ($reflectivity_file_node+\".fileTextureName\") -type \"string\" $reflectivity;\n"
+	    "	 connectAttr -f ($reflectivity_file_node+\".outAlpha\") ($shader_node+\".reflectivity\");\n"
+	    "	 CreateLink($srcshape, $reflectivity_uv, $reflectivity_file_node); \n"
 	    "   }"
 	    "	\n"
 	    "	return $shader;\n"

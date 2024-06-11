@@ -18,8 +18,8 @@ namespace SimplygonUI
     public class SimplygonVersion
     {
         public static readonly string Version = "10.2";
-        public static readonly string Build = "10.2.400.0";
-        public static readonly string Commit = "1a691ff83783d6ed500092943d1df7dc2bb4053b";
+        public static readonly string Build = "10.2.11500.0";
+        public static readonly string Commit = "afc95ee65df2dbbff4f249e8ff6b71d4f414743b";
     }
 
     public enum SimplygonIntegrationType
@@ -1078,6 +1078,11 @@ namespace SimplygonUI
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
             {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Blinn/Reflectivity"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
                 MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Blinn/SpecularColor"));
             }
 
@@ -1134,6 +1139,11 @@ namespace SimplygonUI
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
             {
                 MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Phong/ReflectedColor"));
+            }
+
+            if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
+            {
+                MaterialCasterTemplates.Add(new SimplygonMaterialCaster(ESimplygonPipeline.Passthrough, ESimplygonMaterialCaster.ColorCaster, "Color", "Template/Phong/Reflectivity"));
             }
 
             if (SimplygonIntegration.Type == SimplygonIntegrationType.Maya)
@@ -9405,7 +9415,7 @@ namespace SimplygonUI
             public SimplygonLimitBonesPerVertexEx() : base("LimitBonesPerVertex")
             {
                 Type = "bool";
-                HelpText = "Decides whether unused bones should be removed.";
+                HelpText = "Decides if there should be a limit of how many bones can be referenced per vertex. The limit is set by MaxBonePerVertex.";
                 TypeOverride = "";
                 DefaultValue = false;
                 Visible = true;
@@ -9414,7 +9424,7 @@ namespace SimplygonUI
             public SimplygonLimitBonesPerVertexEx(dynamic jsonData) : base("LimitBonesPerVertex")
             {
                 Type = "bool";
-                HelpText = "Decides whether unused bones should be removed.";
+                HelpText = "Decides if there should be a limit of how many bones can be referenced per vertex. The limit is set by MaxBonePerVertex.";
                 TypeOverride = "";
                 DefaultValue = false;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -23496,12 +23506,15 @@ namespace SimplygonUI
                 if (!VisibleOverride) return false;
                 if (Name == "InputMaterialSettings") return false;
                 if(BillboardModeUI.Visible) return true;
-                if(FavorVerticalPlanesUI.Visible) return true;
-                if(TwoSidedUI.Visible) return true;
-                if(UseVisibilityWeightsUI.Visible) return true;
                 if(BillboardDensityUI.Visible) return true;
                 if(MaxPlaneCountUI.Visible) return true;
                 if(GeometricComplexityUI.Visible) return true;
+                if(FavorVerticalPlanesUI.Visible) return true;
+                if(OpacityCutoffUI.Visible) return true;
+                if(OpacityChannelUI.Visible) return true;
+                if(OpacityChannelComponentUI.Visible) return true;
+                if(TwoSidedUI.Visible) return true;
+                if(UseVisibilityWeightsUI.Visible) return true;
                 if(UpVectorXUI.Visible) return true;
                 if(UpVectorYUI.Visible) return true;
                 if(UpVectorZUI.Visible) return true;
@@ -23579,216 +23592,6 @@ namespace SimplygonUI
             public SimplygonBillboardModeEx DeepCopy()
             {
                 return (SimplygonBillboardModeEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public bool FavorVerticalPlanes { get { return _FavorVerticalPlanes; } set { _FavorVerticalPlanes = value; OnPropertyChanged(); } }
-        private bool _FavorVerticalPlanes;
-        public SimplygonFavorVerticalPlanesEx FavorVerticalPlanesUI { get; set; }
-        public class SimplygonFavorVerticalPlanesEx : SimplygonSettingsProperty
-        {
-            public SimplygonBillboardCloudSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.FavorVerticalPlanes;
-                }
-
-                set
-                {
-                    bool needReload = Parent.FavorVerticalPlanes != value;
-                    Parent.FavorVerticalPlanes = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-
-            public SimplygonFavorVerticalPlanesEx() : base("FavorVerticalPlanes")
-            {
-                Type = "bool";
-                HelpText = "Determines whether to prioritize generating vertical billboards which means they will be optimized to be viewed from the side. Otherwise, if the geometry in the input scene is mostly facing upwards/downwards then the generated billboards will also be facing upwards/downwards which makes them not well suited to being viewed from the side.";
-                TypeOverride = "";
-                DefaultValue = false;
-                Visible = true;
-            }
-
-            public SimplygonFavorVerticalPlanesEx(dynamic jsonData) : base("FavorVerticalPlanes")
-            {
-                Type = "bool";
-                HelpText = "Determines whether to prioritize generating vertical billboards which means they will be optimized to be viewed from the side. Otherwise, if the geometry in the input scene is mostly facing upwards/downwards then the generated billboards will also be facing upwards/downwards which makes them not well suited to being viewed from the side.";
-                TypeOverride = "";
-                DefaultValue = false;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonFavorVerticalPlanesEx DeepCopy()
-            {
-                return (SimplygonFavorVerticalPlanesEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public bool TwoSided { get { return _TwoSided; } set { _TwoSided = value; OnPropertyChanged(); } }
-        private bool _TwoSided;
-        public SimplygonTwoSidedEx TwoSidedUI { get; set; }
-        public class SimplygonTwoSidedEx : SimplygonSettingsProperty
-        {
-            public SimplygonBillboardCloudSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.TwoSided;
-                }
-
-                set
-                {
-                    bool needReload = Parent.TwoSided != value;
-                    Parent.TwoSided = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-
-            public SimplygonTwoSidedEx() : base("TwoSided")
-            {
-                Type = "bool";
-                HelpText = "Only applicable if BillboardMode: Foliage. Determines if the scene is intended to be viewed from both sides without back face culling.";
-                TypeOverride = "";
-                DefaultValue = true;
-                Visible = true;
-            }
-
-            public SimplygonTwoSidedEx(dynamic jsonData) : base("TwoSided")
-            {
-                Type = "bool";
-                HelpText = "Only applicable if BillboardMode: Foliage. Determines if the scene is intended to be viewed from both sides without back face culling.";
-                TypeOverride = "";
-                DefaultValue = true;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonTwoSidedEx DeepCopy()
-            {
-                return (SimplygonTwoSidedEx)this.MemberwiseClone();
-            }
-
-            public JObject SaveJson()
-            {
-                dynamic jsonData = new JObject();
-                jsonData.Visible = Visible;
-                return jsonData;
-            }
-
-        }
-
-        public bool UseVisibilityWeights { get { return _UseVisibilityWeights; } set { _UseVisibilityWeights = value; OnPropertyChanged(); } }
-        private bool _UseVisibilityWeights;
-        public SimplygonUseVisibilityWeightsEx UseVisibilityWeightsUI { get; set; }
-        public class SimplygonUseVisibilityWeightsEx : SimplygonSettingsProperty
-        {
-            public SimplygonBillboardCloudSettings Parent { get; set; }
-            public bool Value
-            {
-                get
-                {
-                    return Parent.UseVisibilityWeights;
-                }
-
-                set
-                {
-                    bool needReload = Parent.UseVisibilityWeights != value;
-                    Parent.UseVisibilityWeights = value;
-                    OnPropertyChanged();
-                }
-
-            }
-
-            public bool DefaultValue { get; set; }
-
-            public SimplygonUseVisibilityWeightsEx() : base("UseVisibilityWeights")
-            {
-                Type = "bool";
-                HelpText = "Determines whether to prioritize accurately mapping triangles with higher visibility to billboards.";
-                TypeOverride = "";
-                DefaultValue = true;
-                Visible = true;
-            }
-
-            public SimplygonUseVisibilityWeightsEx(dynamic jsonData) : base("UseVisibilityWeights")
-            {
-                Type = "bool";
-                HelpText = "Determines whether to prioritize accurately mapping triangles with higher visibility to billboards.";
-                TypeOverride = "";
-                DefaultValue = true;
-                if (jsonData != null && jsonData.GetValue("Visible") != null)
-                {
-                    Visible = Convert.ToBoolean(jsonData.Visible);
-                }
-
-                else
-                {
-                    Visible = true;
-                }
-
-            }
-
-            public override void Reset()
-            {
-                Value = DefaultValue;
-            }
-
-            public SimplygonUseVisibilityWeightsEx DeepCopy()
-            {
-                return (SimplygonUseVisibilityWeightsEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -24176,6 +23979,484 @@ namespace SimplygonUI
                 jsonData.MinValue = MinValue;
                 jsonData.MaxValue = MaxValue;
                 jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public bool FavorVerticalPlanes { get { return _FavorVerticalPlanes; } set { _FavorVerticalPlanes = value; OnPropertyChanged(); } }
+        private bool _FavorVerticalPlanes;
+        public SimplygonFavorVerticalPlanesEx FavorVerticalPlanesUI { get; set; }
+        public class SimplygonFavorVerticalPlanesEx : SimplygonSettingsProperty
+        {
+            public SimplygonBillboardCloudSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.FavorVerticalPlanes;
+                }
+
+                set
+                {
+                    bool needReload = Parent.FavorVerticalPlanes != value;
+                    Parent.FavorVerticalPlanes = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonFavorVerticalPlanesEx() : base("FavorVerticalPlanes")
+            {
+                Type = "bool";
+                HelpText = "Determines whether to prioritize generating vertical billboards which means they will be optimized to be viewed from the side. Otherwise, if the geometry in the input scene is mostly facing upwards/downwards then the generated billboards will also be facing upwards/downwards which makes them not well suited to being viewed from the side.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonFavorVerticalPlanesEx(dynamic jsonData) : base("FavorVerticalPlanes")
+            {
+                Type = "bool";
+                HelpText = "Determines whether to prioritize generating vertical billboards which means they will be optimized to be viewed from the side. Otherwise, if the geometry in the input scene is mostly facing upwards/downwards then the generated billboards will also be facing upwards/downwards which makes them not well suited to being viewed from the side.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonFavorVerticalPlanesEx DeepCopy()
+            {
+                return (SimplygonFavorVerticalPlanesEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public float OpacityCutoff { get { return _OpacityCutoff; } set { _OpacityCutoff = value; OnPropertyChanged(); } }
+        private float _OpacityCutoff;
+        public SimplygonOpacityCutoffEx OpacityCutoffUI { get; set; }
+        public class SimplygonOpacityCutoffEx : SimplygonSettingsProperty
+        {
+            public SimplygonBillboardCloudSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.OpacityCutoff;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OpacityCutoff != value;
+                    Parent.OpacityCutoff = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+
+            public SimplygonOpacityCutoffEx() : base("OpacityCutoff")
+            {
+                Type = "real";
+                HelpText = "The value that compared with the opacity value determines if the surface is either opaque or transparent.";
+                TypeOverride = "";
+                DefaultValue = 0.5f;
+                MinValue = 0f;
+                MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
+                TicksFrequencyValue = 0.1f;
+                Visible = true;
+            }
+
+            public SimplygonOpacityCutoffEx(dynamic jsonData) : base("OpacityCutoff")
+            {
+                Type = "real";
+                HelpText = "The value that compared with the opacity value determines if the surface is either opaque or transparent.";
+                TypeOverride = "";
+                DefaultValue = 0.5f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OpacityCutoff: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"OpacityCutoff: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 0.1f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOpacityCutoffEx DeepCopy()
+            {
+                return (SimplygonOpacityCutoffEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public string OpacityChannel { get { return _OpacityChannel; } set { _OpacityChannel = value; OnPropertyChanged(); } }
+        private string _OpacityChannel;
+        public SimplygonOpacityChannelEx OpacityChannelUI { get; set; }
+        public class SimplygonOpacityChannelEx : SimplygonSettingsProperty
+        {
+            public SimplygonBillboardCloudSettings Parent { get; set; }
+            public string Value
+            {
+                get
+                {
+                    return Parent.OpacityChannel;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OpacityChannel != value;
+                    Parent.OpacityChannel = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public string DefaultValue { get; set; }
+
+            public SimplygonOpacityChannelEx() : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "Determines which input material channel to use for opacity. Some standard material channels are defined as SG_MATERIAL_CHANNEL_[ CHANNEL ] but arbitrary names for user created channels works also.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                Visible = true;
+            }
+
+            public SimplygonOpacityChannelEx(dynamic jsonData) : base("OpacityChannel")
+            {
+                Type = "string";
+                HelpText = "Determines which input material channel to use for opacity. Some standard material channels are defined as SG_MATERIAL_CHANNEL_[ CHANNEL ] but arbitrary names for user created channels works also.";
+                TypeOverride = "";
+                DefaultValue = "Opacity";
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOpacityChannelEx DeepCopy()
+            {
+                return (SimplygonOpacityChannelEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public EColorComponent OpacityChannelComponent { get { return _OpacityChannelComponent; } set { _OpacityChannelComponent = value; OnPropertyChanged(); } }
+        private EColorComponent _OpacityChannelComponent;
+        public SimplygonOpacityChannelComponentEx OpacityChannelComponentUI { get; set; }
+        public class SimplygonOpacityChannelComponentEx : SimplygonSettingsProperty
+        {
+            public SimplygonBillboardCloudSettings Parent { get; set; }
+            public EColorComponent Value
+            {
+                get
+                {
+                    return Parent.OpacityChannelComponent;
+                }
+
+                set
+                {
+                    bool needReload = Parent.OpacityChannelComponent != value;
+                    Parent.OpacityChannelComponent = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EColorComponent DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EColorComponent)); } }
+
+            public SimplygonOpacityChannelComponentEx() : base("OpacityChannelComponent")
+            {
+                Type = "enum";
+                HelpText = "The component in the opacity channel to use as opacity value.";
+                TypeOverride = "";
+                DefaultValue = EColorComponent.Red;
+                Visible = true;
+            }
+
+            public SimplygonOpacityChannelComponentEx(dynamic jsonData) : base("OpacityChannelComponent")
+            {
+                Type = "enum";
+                HelpText = "The component in the opacity channel to use as opacity value.";
+                TypeOverride = "";
+                DefaultValue = EColorComponent.Red;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonOpacityChannelComponentEx DeepCopy()
+            {
+                return (SimplygonOpacityChannelComponentEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool TwoSided { get { return _TwoSided; } set { _TwoSided = value; OnPropertyChanged(); } }
+        private bool _TwoSided;
+        public SimplygonTwoSidedEx TwoSidedUI { get; set; }
+        public class SimplygonTwoSidedEx : SimplygonSettingsProperty
+        {
+            public SimplygonBillboardCloudSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.TwoSided;
+                }
+
+                set
+                {
+                    bool needReload = Parent.TwoSided != value;
+                    Parent.TwoSided = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonTwoSidedEx() : base("TwoSided")
+            {
+                Type = "bool";
+                HelpText = "Only applicable if BillboardMode: Foliage. Determines if the scene is intended to be viewed from both sides without back face culling.";
+                TypeOverride = "";
+                DefaultValue = true;
+                Visible = true;
+            }
+
+            public SimplygonTwoSidedEx(dynamic jsonData) : base("TwoSided")
+            {
+                Type = "bool";
+                HelpText = "Only applicable if BillboardMode: Foliage. Determines if the scene is intended to be viewed from both sides without back face culling.";
+                TypeOverride = "";
+                DefaultValue = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonTwoSidedEx DeepCopy()
+            {
+                return (SimplygonTwoSidedEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool UseVisibilityWeights { get { return _UseVisibilityWeights; } set { _UseVisibilityWeights = value; OnPropertyChanged(); } }
+        private bool _UseVisibilityWeights;
+        public SimplygonUseVisibilityWeightsEx UseVisibilityWeightsUI { get; set; }
+        public class SimplygonUseVisibilityWeightsEx : SimplygonSettingsProperty
+        {
+            public SimplygonBillboardCloudSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.UseVisibilityWeights;
+                }
+
+                set
+                {
+                    bool needReload = Parent.UseVisibilityWeights != value;
+                    Parent.UseVisibilityWeights = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonUseVisibilityWeightsEx() : base("UseVisibilityWeights")
+            {
+                Type = "bool";
+                HelpText = "Determines whether to prioritize accurately mapping triangles with higher visibility to billboards.";
+                TypeOverride = "";
+                DefaultValue = true;
+                Visible = true;
+            }
+
+            public SimplygonUseVisibilityWeightsEx(dynamic jsonData) : base("UseVisibilityWeights")
+            {
+                Type = "bool";
+                HelpText = "Determines whether to prioritize accurately mapping triangles with higher visibility to billboards.";
+                TypeOverride = "";
+                DefaultValue = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonUseVisibilityWeightsEx DeepCopy()
+            {
+                return (SimplygonUseVisibilityWeightsEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
                 return jsonData;
             }
 
@@ -24570,18 +24851,6 @@ namespace SimplygonUI
             BillboardModeUI.Parent = this;
             BillboardMode = BillboardModeUI.DefaultValue;
             Items.Add(BillboardModeUI);
-            FavorVerticalPlanesUI = new SimplygonFavorVerticalPlanesEx();
-            FavorVerticalPlanesUI.Parent = this;
-            FavorVerticalPlanes = FavorVerticalPlanesUI.DefaultValue;
-            Items.Add(FavorVerticalPlanesUI);
-            TwoSidedUI = new SimplygonTwoSidedEx();
-            TwoSidedUI.Parent = this;
-            TwoSided = TwoSidedUI.DefaultValue;
-            Items.Add(TwoSidedUI);
-            UseVisibilityWeightsUI = new SimplygonUseVisibilityWeightsEx();
-            UseVisibilityWeightsUI.Parent = this;
-            UseVisibilityWeights = UseVisibilityWeightsUI.DefaultValue;
-            Items.Add(UseVisibilityWeightsUI);
             BillboardDensityUI = new SimplygonBillboardDensityEx();
             BillboardDensityUI.Parent = this;
             BillboardDensity = BillboardDensityUI.DefaultValue;
@@ -24594,6 +24863,30 @@ namespace SimplygonUI
             GeometricComplexityUI.Parent = this;
             GeometricComplexity = GeometricComplexityUI.DefaultValue;
             Items.Add(GeometricComplexityUI);
+            FavorVerticalPlanesUI = new SimplygonFavorVerticalPlanesEx();
+            FavorVerticalPlanesUI.Parent = this;
+            FavorVerticalPlanes = FavorVerticalPlanesUI.DefaultValue;
+            Items.Add(FavorVerticalPlanesUI);
+            OpacityCutoffUI = new SimplygonOpacityCutoffEx();
+            OpacityCutoffUI.Parent = this;
+            OpacityCutoff = OpacityCutoffUI.DefaultValue;
+            Items.Add(OpacityCutoffUI);
+            OpacityChannelUI = new SimplygonOpacityChannelEx();
+            OpacityChannelUI.Parent = this;
+            OpacityChannel = OpacityChannelUI.DefaultValue;
+            Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx();
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
+            TwoSidedUI = new SimplygonTwoSidedEx();
+            TwoSidedUI.Parent = this;
+            TwoSided = TwoSidedUI.DefaultValue;
+            Items.Add(TwoSidedUI);
+            UseVisibilityWeightsUI = new SimplygonUseVisibilityWeightsEx();
+            UseVisibilityWeightsUI.Parent = this;
+            UseVisibilityWeights = UseVisibilityWeightsUI.DefaultValue;
+            Items.Add(UseVisibilityWeightsUI);
             UpVectorXUI = new SimplygonUpVectorXEx();
             UpVectorXUI.Parent = this;
             UpVectorX = UpVectorXUI.DefaultValue;
@@ -24617,18 +24910,6 @@ namespace SimplygonUI
             BillboardModeUI.Parent = this;
             BillboardMode = BillboardModeUI.DefaultValue;
             Items.Add(BillboardModeUI);
-            FavorVerticalPlanesUI = new SimplygonFavorVerticalPlanesEx(jsonData != null && ((JObject)jsonData).GetValue("FavorVerticalPlanesUI") != null ? jsonData.FavorVerticalPlanesUI : null);
-            FavorVerticalPlanesUI.Parent = this;
-            FavorVerticalPlanes = FavorVerticalPlanesUI.DefaultValue;
-            Items.Add(FavorVerticalPlanesUI);
-            TwoSidedUI = new SimplygonTwoSidedEx(jsonData != null && ((JObject)jsonData).GetValue("TwoSidedUI") != null ? jsonData.TwoSidedUI : null);
-            TwoSidedUI.Parent = this;
-            TwoSided = TwoSidedUI.DefaultValue;
-            Items.Add(TwoSidedUI);
-            UseVisibilityWeightsUI = new SimplygonUseVisibilityWeightsEx(jsonData != null && ((JObject)jsonData).GetValue("UseVisibilityWeightsUI") != null ? jsonData.UseVisibilityWeightsUI : null);
-            UseVisibilityWeightsUI.Parent = this;
-            UseVisibilityWeights = UseVisibilityWeightsUI.DefaultValue;
-            Items.Add(UseVisibilityWeightsUI);
             BillboardDensityUI = new SimplygonBillboardDensityEx(jsonData != null && ((JObject)jsonData).GetValue("BillboardDensityUI") != null ? jsonData.BillboardDensityUI : null);
             BillboardDensityUI.Parent = this;
             BillboardDensity = BillboardDensityUI.DefaultValue;
@@ -24641,6 +24922,30 @@ namespace SimplygonUI
             GeometricComplexityUI.Parent = this;
             GeometricComplexity = GeometricComplexityUI.DefaultValue;
             Items.Add(GeometricComplexityUI);
+            FavorVerticalPlanesUI = new SimplygonFavorVerticalPlanesEx(jsonData != null && ((JObject)jsonData).GetValue("FavorVerticalPlanesUI") != null ? jsonData.FavorVerticalPlanesUI : null);
+            FavorVerticalPlanesUI.Parent = this;
+            FavorVerticalPlanes = FavorVerticalPlanesUI.DefaultValue;
+            Items.Add(FavorVerticalPlanesUI);
+            OpacityCutoffUI = new SimplygonOpacityCutoffEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityCutoffUI") != null ? jsonData.OpacityCutoffUI : null);
+            OpacityCutoffUI.Parent = this;
+            OpacityCutoff = OpacityCutoffUI.DefaultValue;
+            Items.Add(OpacityCutoffUI);
+            OpacityChannelUI = new SimplygonOpacityChannelEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelUI") != null ? jsonData.OpacityChannelUI : null);
+            OpacityChannelUI.Parent = this;
+            OpacityChannel = OpacityChannelUI.DefaultValue;
+            Items.Add(OpacityChannelUI);
+            OpacityChannelComponentUI = new SimplygonOpacityChannelComponentEx(jsonData != null && ((JObject)jsonData).GetValue("OpacityChannelComponentUI") != null ? jsonData.OpacityChannelComponentUI : null);
+            OpacityChannelComponentUI.Parent = this;
+            OpacityChannelComponent = OpacityChannelComponentUI.DefaultValue;
+            Items.Add(OpacityChannelComponentUI);
+            TwoSidedUI = new SimplygonTwoSidedEx(jsonData != null && ((JObject)jsonData).GetValue("TwoSidedUI") != null ? jsonData.TwoSidedUI : null);
+            TwoSidedUI.Parent = this;
+            TwoSided = TwoSidedUI.DefaultValue;
+            Items.Add(TwoSidedUI);
+            UseVisibilityWeightsUI = new SimplygonUseVisibilityWeightsEx(jsonData != null && ((JObject)jsonData).GetValue("UseVisibilityWeightsUI") != null ? jsonData.UseVisibilityWeightsUI : null);
+            UseVisibilityWeightsUI.Parent = this;
+            UseVisibilityWeights = UseVisibilityWeightsUI.DefaultValue;
+            Items.Add(UseVisibilityWeightsUI);
             UpVectorXUI = new SimplygonUpVectorXEx(jsonData != null && ((JObject)jsonData).GetValue("UpVectorXUI") != null ? jsonData.UpVectorXUI : null);
             UpVectorXUI.Parent = this;
             UpVectorX = UpVectorXUI.DefaultValue;
@@ -24669,15 +24974,6 @@ namespace SimplygonUI
             copy.BillboardModeUI = this.BillboardModeUI.DeepCopy();
             copy.BillboardModeUI.Parent = copy;
             copy.Items.Add(copy.BillboardModeUI);
-            copy.FavorVerticalPlanesUI = this.FavorVerticalPlanesUI.DeepCopy();
-            copy.FavorVerticalPlanesUI.Parent = copy;
-            copy.Items.Add(copy.FavorVerticalPlanesUI);
-            copy.TwoSidedUI = this.TwoSidedUI.DeepCopy();
-            copy.TwoSidedUI.Parent = copy;
-            copy.Items.Add(copy.TwoSidedUI);
-            copy.UseVisibilityWeightsUI = this.UseVisibilityWeightsUI.DeepCopy();
-            copy.UseVisibilityWeightsUI.Parent = copy;
-            copy.Items.Add(copy.UseVisibilityWeightsUI);
             copy.BillboardDensityUI = this.BillboardDensityUI.DeepCopy();
             copy.BillboardDensityUI.Parent = copy;
             copy.Items.Add(copy.BillboardDensityUI);
@@ -24687,6 +24983,24 @@ namespace SimplygonUI
             copy.GeometricComplexityUI = this.GeometricComplexityUI.DeepCopy();
             copy.GeometricComplexityUI.Parent = copy;
             copy.Items.Add(copy.GeometricComplexityUI);
+            copy.FavorVerticalPlanesUI = this.FavorVerticalPlanesUI.DeepCopy();
+            copy.FavorVerticalPlanesUI.Parent = copy;
+            copy.Items.Add(copy.FavorVerticalPlanesUI);
+            copy.OpacityCutoffUI = this.OpacityCutoffUI.DeepCopy();
+            copy.OpacityCutoffUI.Parent = copy;
+            copy.Items.Add(copy.OpacityCutoffUI);
+            copy.OpacityChannelUI = this.OpacityChannelUI.DeepCopy();
+            copy.OpacityChannelUI.Parent = copy;
+            copy.Items.Add(copy.OpacityChannelUI);
+            copy.OpacityChannelComponentUI = this.OpacityChannelComponentUI.DeepCopy();
+            copy.OpacityChannelComponentUI.Parent = copy;
+            copy.Items.Add(copy.OpacityChannelComponentUI);
+            copy.TwoSidedUI = this.TwoSidedUI.DeepCopy();
+            copy.TwoSidedUI.Parent = copy;
+            copy.Items.Add(copy.TwoSidedUI);
+            copy.UseVisibilityWeightsUI = this.UseVisibilityWeightsUI.DeepCopy();
+            copy.UseVisibilityWeightsUI.Parent = copy;
+            copy.Items.Add(copy.UseVisibilityWeightsUI);
             copy.UpVectorXUI = this.UpVectorXUI.DeepCopy();
             copy.UpVectorXUI.Parent = copy;
             copy.Items.Add(copy.UpVectorXUI);
@@ -24714,24 +25028,6 @@ namespace SimplygonUI
                 jsonData.BillboardModeUI = BillboardModeUI.SaveJson();
             }
 
-            jsonData.FavorVerticalPlanes = FavorVerticalPlanes;
-            if(serializeUIComponents)
-            {
-                jsonData.FavorVerticalPlanesUI = FavorVerticalPlanesUI.SaveJson();
-            }
-
-            jsonData.TwoSided = TwoSided;
-            if(serializeUIComponents)
-            {
-                jsonData.TwoSidedUI = TwoSidedUI.SaveJson();
-            }
-
-            jsonData.UseVisibilityWeights = UseVisibilityWeights;
-            if(serializeUIComponents)
-            {
-                jsonData.UseVisibilityWeightsUI = UseVisibilityWeightsUI.SaveJson();
-            }
-
             jsonData.BillboardDensity = BillboardDensity;
             if(serializeUIComponents)
             {
@@ -24748,6 +25044,42 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.GeometricComplexityUI = GeometricComplexityUI.SaveJson();
+            }
+
+            jsonData.FavorVerticalPlanes = FavorVerticalPlanes;
+            if(serializeUIComponents)
+            {
+                jsonData.FavorVerticalPlanesUI = FavorVerticalPlanesUI.SaveJson();
+            }
+
+            jsonData.OpacityCutoff = OpacityCutoff;
+            if(serializeUIComponents)
+            {
+                jsonData.OpacityCutoffUI = OpacityCutoffUI.SaveJson();
+            }
+
+            jsonData.OpacityChannel = OpacityChannel;
+            if(serializeUIComponents)
+            {
+                jsonData.OpacityChannelUI = OpacityChannelUI.SaveJson();
+            }
+
+            jsonData.OpacityChannelComponent = (int)OpacityChannelComponent;
+            if(serializeUIComponents)
+            {
+                jsonData.OpacityChannelComponentUI = OpacityChannelComponentUI.SaveJson();
+            }
+
+            jsonData.TwoSided = TwoSided;
+            if(serializeUIComponents)
+            {
+                jsonData.TwoSidedUI = TwoSidedUI.SaveJson();
+            }
+
+            jsonData.UseVisibilityWeights = UseVisibilityWeights;
+            if(serializeUIComponents)
+            {
+                jsonData.UseVisibilityWeightsUI = UseVisibilityWeightsUI.SaveJson();
             }
 
             jsonData.UpVectorX = UpVectorX;
@@ -24786,21 +25118,6 @@ namespace SimplygonUI
             if(jsonData.GetValue("BillboardMode") != null)
             {
                 BillboardMode = (EBillboardMode)jsonData.BillboardMode;
-            }
-
-            if(jsonData.GetValue("FavorVerticalPlanes") != null)
-            {
-                FavorVerticalPlanes = (bool)jsonData.FavorVerticalPlanes;
-            }
-
-            if(jsonData.GetValue("TwoSided") != null)
-            {
-                TwoSided = (bool)jsonData.TwoSided;
-            }
-
-            if(jsonData.GetValue("UseVisibilityWeights") != null)
-            {
-                UseVisibilityWeights = (bool)jsonData.UseVisibilityWeights;
             }
 
             if(jsonData.GetValue("BillboardDensity") != null)
@@ -24846,6 +25163,46 @@ namespace SimplygonUI
                     UILogger.Instance.Log(Category.Warning, $"GeometricComplexity: Invalid value {newGeometricComplexity.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {GeometricComplexity.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
                 }
 
+            }
+
+            if(jsonData.GetValue("FavorVerticalPlanes") != null)
+            {
+                FavorVerticalPlanes = (bool)jsonData.FavorVerticalPlanes;
+            }
+
+            if(jsonData.GetValue("OpacityCutoff") != null)
+            {
+                float newOpacityCutoff = (float)jsonData.OpacityCutoff;
+                if (newOpacityCutoff >= OpacityCutoffUI.DefaultMinValue && newOpacityCutoff <= OpacityCutoffUI.DefaultMaxValue)
+                {
+                    OpacityCutoff = newOpacityCutoff;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"OpacityCutoff: Invalid value {newOpacityCutoff.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {OpacityCutoff.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("OpacityChannel") != null)
+            {
+                OpacityChannel = (string)jsonData.OpacityChannel;
+            }
+
+            if(jsonData.GetValue("OpacityChannelComponent") != null)
+            {
+                OpacityChannelComponent = (EColorComponent)jsonData.OpacityChannelComponent;
+            }
+
+            if(jsonData.GetValue("TwoSided") != null)
+            {
+                TwoSided = (bool)jsonData.TwoSided;
+            }
+
+            if(jsonData.GetValue("UseVisibilityWeights") != null)
+            {
+                UseVisibilityWeights = (bool)jsonData.UseVisibilityWeights;
             }
 
             if(jsonData.GetValue("UpVectorX") != null)
@@ -24898,12 +25255,15 @@ namespace SimplygonUI
         public override void Reset()
         {
             BillboardModeUI.Reset();
-            FavorVerticalPlanesUI.Reset();
-            TwoSidedUI.Reset();
-            UseVisibilityWeightsUI.Reset();
             BillboardDensityUI.Reset();
             MaxPlaneCountUI.Reset();
             GeometricComplexityUI.Reset();
+            FavorVerticalPlanesUI.Reset();
+            OpacityCutoffUI.Reset();
+            OpacityChannelUI.Reset();
+            OpacityChannelComponentUI.Reset();
+            TwoSidedUI.Reset();
+            UseVisibilityWeightsUI.Reset();
             UpVectorXUI.Reset();
             UpVectorYUI.Reset();
             UpVectorZUI.Reset();
@@ -24918,12 +25278,15 @@ namespace SimplygonUI
         {
             IsEditEnabled = isEditEnabled;
             BillboardModeUI.IsEditEnabled = isEditEnabled;
-            FavorVerticalPlanesUI.IsEditEnabled = isEditEnabled;
-            TwoSidedUI.IsEditEnabled = isEditEnabled;
-            UseVisibilityWeightsUI.IsEditEnabled = isEditEnabled;
             BillboardDensityUI.IsEditEnabled = isEditEnabled;
             MaxPlaneCountUI.IsEditEnabled = isEditEnabled;
             GeometricComplexityUI.IsEditEnabled = isEditEnabled;
+            FavorVerticalPlanesUI.IsEditEnabled = isEditEnabled;
+            OpacityCutoffUI.IsEditEnabled = isEditEnabled;
+            OpacityChannelUI.IsEditEnabled = isEditEnabled;
+            OpacityChannelComponentUI.IsEditEnabled = isEditEnabled;
+            TwoSidedUI.IsEditEnabled = isEditEnabled;
+            UseVisibilityWeightsUI.IsEditEnabled = isEditEnabled;
             UpVectorXUI.IsEditEnabled = isEditEnabled;
             UpVectorYUI.IsEditEnabled = isEditEnabled;
             UpVectorZUI.IsEditEnabled = isEditEnabled;
@@ -35752,6 +36115,7 @@ namespace SimplygonUI
                 if(OcclusionFalloffUI.Visible) return true;
                 if(OcclusionMultiplierUI.Visible) return true;
                 if(UseSimpleOcclusionModeUI.Visible) return true;
+                if(FlipBackfacingNormalsUI.Visible) return true;
 
                 return false;
             }
@@ -36980,6 +37344,76 @@ namespace SimplygonUI
 
         }
 
+        public bool FlipBackfacingNormals { get { return _FlipBackfacingNormals; } set { _FlipBackfacingNormals = value; OnPropertyChanged(); } }
+        private bool _FlipBackfacingNormals;
+        public SimplygonFlipBackfacingNormalsEx FlipBackfacingNormalsUI { get; set; }
+        public class SimplygonFlipBackfacingNormalsEx : SimplygonSettingsProperty
+        {
+            public SimplygonAmbientOcclusionCasterSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.FlipBackfacingNormals;
+                }
+
+                set
+                {
+                    bool needReload = Parent.FlipBackfacingNormals != value;
+                    Parent.FlipBackfacingNormals = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonFlipBackfacingNormalsEx() : base("FlipBackfacingNormals")
+            {
+                Type = "bool";
+                HelpText = "If set, the sampling hemispheres will be flipped to align with the normals of the destination geometry rather than with the source geometry. This can be used to get more consistent sampling directions when using remeshing of input geometries with inconsistently aligned normals.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonFlipBackfacingNormalsEx(dynamic jsonData) : base("FlipBackfacingNormals")
+            {
+                Type = "bool";
+                HelpText = "If set, the sampling hemispheres will be flipped to align with the normals of the destination geometry rather than with the source geometry. This can be used to get more consistent sampling directions when using remeshing of input geometries with inconsistently aligned normals.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonFlipBackfacingNormalsEx DeepCopy()
+            {
+                return (SimplygonFlipBackfacingNormalsEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
 
         public SimplygonAmbientOcclusionCasterSettings() : base("AmbientOcclusionCasterSettings")
         {
@@ -37040,6 +37474,10 @@ namespace SimplygonUI
             UseSimpleOcclusionModeUI.Parent = this;
             UseSimpleOcclusionMode = UseSimpleOcclusionModeUI.DefaultValue;
             Items.Add(UseSimpleOcclusionModeUI);
+            FlipBackfacingNormalsUI = new SimplygonFlipBackfacingNormalsEx();
+            FlipBackfacingNormalsUI.Parent = this;
+            FlipBackfacingNormals = FlipBackfacingNormalsUI.DefaultValue;
+            Items.Add(FlipBackfacingNormalsUI);
         }
 
         public SimplygonAmbientOcclusionCasterSettings(dynamic jsonData) : base("AmbientOcclusionCasterSettings")
@@ -37101,6 +37539,10 @@ namespace SimplygonUI
             UseSimpleOcclusionModeUI.Parent = this;
             UseSimpleOcclusionMode = UseSimpleOcclusionModeUI.DefaultValue;
             Items.Add(UseSimpleOcclusionModeUI);
+            FlipBackfacingNormalsUI = new SimplygonFlipBackfacingNormalsEx(jsonData != null && ((JObject)jsonData).GetValue("FlipBackfacingNormalsUI") != null ? jsonData.FlipBackfacingNormalsUI : null);
+            FlipBackfacingNormalsUI.Parent = this;
+            FlipBackfacingNormals = FlipBackfacingNormalsUI.DefaultValue;
+            Items.Add(FlipBackfacingNormalsUI);
             LoadJson(jsonData);
         }
 
@@ -37150,6 +37592,9 @@ namespace SimplygonUI
             copy.UseSimpleOcclusionModeUI = this.UseSimpleOcclusionModeUI.DeepCopy();
             copy.UseSimpleOcclusionModeUI.Parent = copy;
             copy.Items.Add(copy.UseSimpleOcclusionModeUI);
+            copy.FlipBackfacingNormalsUI = this.FlipBackfacingNormalsUI.DeepCopy();
+            copy.FlipBackfacingNormalsUI.Parent = copy;
+            copy.Items.Add(copy.FlipBackfacingNormalsUI);
             return copy;
         }
 
@@ -37238,6 +37683,12 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.UseSimpleOcclusionModeUI = UseSimpleOcclusionModeUI.SaveJson();
+            }
+
+            jsonData.FlipBackfacingNormals = FlipBackfacingNormals;
+            if(serializeUIComponents)
+            {
+                jsonData.FlipBackfacingNormalsUI = FlipBackfacingNormalsUI.SaveJson();
             }
 
             return jsonData;
@@ -37360,6 +37811,11 @@ namespace SimplygonUI
                 UseSimpleOcclusionMode = (bool)jsonData.UseSimpleOcclusionMode;
             }
 
+            if(jsonData.GetValue("FlipBackfacingNormals") != null)
+            {
+                FlipBackfacingNormals = (bool)jsonData.FlipBackfacingNormals;
+            }
+
         }
 
         public override void Reset()
@@ -37378,6 +37834,7 @@ namespace SimplygonUI
             OcclusionFalloffUI.Reset();
             OcclusionMultiplierUI.Reset();
             UseSimpleOcclusionModeUI.Reset();
+            FlipBackfacingNormalsUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
@@ -37397,6 +37854,7 @@ namespace SimplygonUI
             OcclusionFalloffUI.IsEditEnabled = isEditEnabled;
             OcclusionMultiplierUI.IsEditEnabled = isEditEnabled;
             UseSimpleOcclusionModeUI.IsEditEnabled = isEditEnabled;
+            FlipBackfacingNormalsUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -41737,6 +42195,7 @@ namespace SimplygonUI
                 if(OutputColorSpaceUI.Visible) return true;
                 if(CastLayersFrontToBackUI.Visible) return true;
                 if(MaxCastLayersUI.Visible) return true;
+                if(ShaderCodeInputModeUI.Visible) return true;
 
                 return false;
             }
@@ -42782,6 +43241,77 @@ namespace SimplygonUI
 
         }
 
+        public EComputeCasterShaderCodeInputMode ShaderCodeInputMode { get { return _ShaderCodeInputMode; } set { _ShaderCodeInputMode = value; OnPropertyChanged(); } }
+        private EComputeCasterShaderCodeInputMode _ShaderCodeInputMode;
+        public SimplygonShaderCodeInputModeEx ShaderCodeInputModeUI { get; set; }
+        public class SimplygonShaderCodeInputModeEx : SimplygonSettingsProperty
+        {
+            public SimplygonComputeCasterSettings Parent { get; set; }
+            public EComputeCasterShaderCodeInputMode Value
+            {
+                get
+                {
+                    return Parent.ShaderCodeInputMode;
+                }
+
+                set
+                {
+                    bool needReload = Parent.ShaderCodeInputMode != value;
+                    Parent.ShaderCodeInputMode = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EComputeCasterShaderCodeInputMode DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EComputeCasterShaderCodeInputMode)); } }
+
+            public SimplygonShaderCodeInputModeEx() : base("ShaderCodeInputMode")
+            {
+                Type = "enum";
+                HelpText = "Select what kind of shader source or binary data the compute caster expects as input.";
+                TypeOverride = "";
+                DefaultValue = EComputeCasterShaderCodeInputMode.Source;
+                Visible = true;
+            }
+
+            public SimplygonShaderCodeInputModeEx(dynamic jsonData) : base("ShaderCodeInputMode")
+            {
+                Type = "enum";
+                HelpText = "Select what kind of shader source or binary data the compute caster expects as input.";
+                TypeOverride = "";
+                DefaultValue = EComputeCasterShaderCodeInputMode.Source;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonShaderCodeInputModeEx DeepCopy()
+            {
+                return (SimplygonShaderCodeInputModeEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
 
         public SimplygonComputeCasterSettings() : base("ComputeCasterSettings")
         {
@@ -42838,6 +43368,10 @@ namespace SimplygonUI
             MaxCastLayersUI.Parent = this;
             MaxCastLayers = MaxCastLayersUI.DefaultValue;
             Items.Add(MaxCastLayersUI);
+            ShaderCodeInputModeUI = new SimplygonShaderCodeInputModeEx();
+            ShaderCodeInputModeUI.Parent = this;
+            ShaderCodeInputMode = ShaderCodeInputModeUI.DefaultValue;
+            Items.Add(ShaderCodeInputModeUI);
         }
 
         public SimplygonComputeCasterSettings(dynamic jsonData) : base("ComputeCasterSettings")
@@ -42895,6 +43429,10 @@ namespace SimplygonUI
             MaxCastLayersUI.Parent = this;
             MaxCastLayers = MaxCastLayersUI.DefaultValue;
             Items.Add(MaxCastLayersUI);
+            ShaderCodeInputModeUI = new SimplygonShaderCodeInputModeEx(jsonData != null && ((JObject)jsonData).GetValue("ShaderCodeInputModeUI") != null ? jsonData.ShaderCodeInputModeUI : null);
+            ShaderCodeInputModeUI.Parent = this;
+            ShaderCodeInputMode = ShaderCodeInputModeUI.DefaultValue;
+            Items.Add(ShaderCodeInputModeUI);
             LoadJson(jsonData);
         }
 
@@ -42941,6 +43479,9 @@ namespace SimplygonUI
             copy.MaxCastLayersUI = this.MaxCastLayersUI.DeepCopy();
             copy.MaxCastLayersUI.Parent = copy;
             copy.Items.Add(copy.MaxCastLayersUI);
+            copy.ShaderCodeInputModeUI = this.ShaderCodeInputModeUI.DeepCopy();
+            copy.ShaderCodeInputModeUI.Parent = copy;
+            copy.Items.Add(copy.ShaderCodeInputModeUI);
             return copy;
         }
 
@@ -43023,6 +43564,12 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.MaxCastLayersUI = MaxCastLayersUI.SaveJson();
+            }
+
+            jsonData.ShaderCodeInputMode = (int)ShaderCodeInputMode;
+            if(serializeUIComponents)
+            {
+                jsonData.ShaderCodeInputModeUI = ShaderCodeInputModeUI.SaveJson();
             }
 
             return jsonData;
@@ -43120,6 +43667,11 @@ namespace SimplygonUI
 
             }
 
+            if(jsonData.GetValue("ShaderCodeInputMode") != null)
+            {
+                ShaderCodeInputMode = (EComputeCasterShaderCodeInputMode)jsonData.ShaderCodeInputMode;
+            }
+
         }
 
         public override void Reset()
@@ -43137,6 +43689,7 @@ namespace SimplygonUI
             OutputColorSpaceUI.Reset();
             CastLayersFrontToBackUI.Reset();
             MaxCastLayersUI.Reset();
+            ShaderCodeInputModeUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
@@ -43155,6 +43708,7 @@ namespace SimplygonUI
             OutputColorSpaceUI.IsEditEnabled = isEditEnabled;
             CastLayersFrontToBackUI.IsEditEnabled = isEditEnabled;
             MaxCastLayersUI.IsEditEnabled = isEditEnabled;
+            ShaderCodeInputModeUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -44728,6 +45282,11 @@ namespace SimplygonUI
                     ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Blinn/Reflectivity"))
+                {
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
                 if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Blinn/SpecularColor"))
                 {
                     if (allowMaterialChannelOverride)
@@ -44859,6 +45418,11 @@ namespace SimplygonUI
                     }
 
                     ColorCasterSettings.MaterialChannelUI.VisibleOverride = false;
+                    ColorCasterSettings.OpacityChannel = "transparency";
+                }
+
+                if (MaterialCasterType == ESimplygonMaterialCaster.ColorCaster && SimplygonIntegration.Type == SimplygonIntegrationType.Maya && (MenuPath == "Template/Phong/Reflectivity"))
+                {
                     ColorCasterSettings.OpacityChannel = "transparency";
                 }
 
@@ -45846,8 +46410,8 @@ namespace SimplygonUI
             }
 
             jsonData.Version = "10.2";
-            jsonData.Build = "10.2.400.0";
-            jsonData.Commit = "1a691ff83783d6ed500092943d1df7dc2bb4053b";
+            jsonData.Build = "10.2.11500.0";
+            jsonData.Commit = "afc95ee65df2dbbff4f249e8ff6b71d4f414743b";
             jsonData.Settings.GlobalSettings = GlobalSettings.SaveJson(serializeUIComponents);
             jsonData.Settings.PipelineSettings = PipelineSettings.SaveJson(serializeUIComponents);
 
@@ -46665,6 +47229,7 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -46677,6 +47242,7 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -46923,6 +47489,9 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityCutoffUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelComponentUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
@@ -46946,6 +47515,7 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
@@ -46962,6 +47532,9 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityCutoffUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelComponentUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.MaintainLeafConnectionsUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.SeparateFoliageMaterialsUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleRatioUI.VisibleOverride = false;
@@ -46991,6 +47564,7 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
@@ -47121,6 +47695,8 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.OpacityChannel = "transparency";
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -47133,6 +47709,8 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.OpacityChannel = "transparency";
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -47379,6 +47957,9 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityCutoffUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelComponentUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
@@ -47402,6 +47983,8 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.OpacityChannel = "transparency";
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
@@ -47418,6 +48001,9 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityCutoffUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelComponentUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.MaintainLeafConnectionsUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.SeparateFoliageMaterialsUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleRatioUI.VisibleOverride = false;
@@ -47447,6 +48033,8 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.OpacityChannel = "transparency";
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
@@ -47577,6 +48165,8 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.OpacityChannel = "transparency";
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -47589,6 +48179,8 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.OpacityChannel = "transparency";
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -47835,6 +48427,9 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityCutoffUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelComponentUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
@@ -47858,6 +48453,8 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.OpacityChannel = "transparency";
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
@@ -47874,6 +48471,9 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityCutoffUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelComponentUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.MaintainLeafConnectionsUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.SeparateFoliageMaterialsUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleRatioUI.VisibleOverride = false;
@@ -47903,6 +48503,8 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 0;
                 BillboardCloudSettings.UpVectorZ = 1;
+                BillboardCloudSettings.OpacityChannel = "transparency";
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
@@ -48030,6 +48632,8 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
+                BillboardCloudSettings.OpacityChannel = "transparency";
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -48039,6 +48643,8 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "color";
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
+                BillboardCloudSettings.OpacityChannel = "transparency";
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -48285,6 +48891,9 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityCutoffUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelComponentUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
@@ -48305,6 +48914,8 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannel = "transparency";
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
@@ -48321,6 +48932,9 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityCutoffUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelComponentUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.MaintainLeafConnectionsUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.SeparateFoliageMaterialsUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleRatioUI.VisibleOverride = false;
@@ -48347,6 +48961,8 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannel = "transparency";
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Red;
                 AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
@@ -48484,6 +49100,10 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 1;
                 BillboardCloudSettings.UpVectorZ = 0;
+                BillboardCloudSettings.OpacityChannel = "Opacity";
+                BillboardCloudSettings.OpacityChannelUI.Visible = false;
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                BillboardCloudSettings.OpacityChannelComponentUI.Visible = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -48495,6 +49115,10 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 1;
                 BillboardCloudSettings.UpVectorZ = 0;
+                BillboardCloudSettings.OpacityChannel = "Opacity";
+                BillboardCloudSettings.OpacityChannelUI.Visible = false;
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                BillboardCloudSettings.OpacityChannelComponentUI.Visible = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -48727,6 +49351,9 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityCutoffUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelComponentUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
@@ -48750,6 +49377,10 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 1;
                 BillboardCloudSettings.UpVectorZ = 0;
+                BillboardCloudSettings.OpacityChannel = "Opacity";
+                BillboardCloudSettings.OpacityChannelUI.Visible = false;
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                BillboardCloudSettings.OpacityChannelComponentUI.Visible = false;
                 AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
@@ -48765,6 +49396,9 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityCutoffUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelComponentUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.MaintainLeafConnectionsUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.SeparateFoliageMaterialsUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleRatioUI.VisibleOverride = false;
@@ -48794,6 +49428,10 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorX = 0;
                 BillboardCloudSettings.UpVectorY = 1;
                 BillboardCloudSettings.UpVectorZ = 0;
+                BillboardCloudSettings.OpacityChannel = "Opacity";
+                BillboardCloudSettings.OpacityChannelUI.Visible = false;
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                BillboardCloudSettings.OpacityChannelComponentUI.Visible = false;
                 AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
@@ -48873,6 +49511,10 @@ namespace SimplygonUI
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
+                BillboardCloudSettings.OpacityChannel = "diffuseColor";
+                BillboardCloudSettings.OpacityChannelUI.Visible = false;
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                BillboardCloudSettings.OpacityChannelComponentUI.Visible = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -48883,6 +49525,10 @@ namespace SimplygonUI
                 BillboardCloudSettings.FoliageSettings.SeparateFoliageMaterialsUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardModeUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.Foliage;
+                BillboardCloudSettings.OpacityChannel = "diffuseColor";
+                BillboardCloudSettings.OpacityChannelUI.Visible = false;
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                BillboardCloudSettings.OpacityChannelComponentUI.Visible = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -49100,6 +49746,9 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityCutoffUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelComponentUI.VisibleOverride = false;
                 BillboardCloudSettings.BillboardMode = EBillboardMode.OuterShell;
                 BillboardCloudSettings.FoliageSettings.VisibleOverride = false;
                 MappingImageSettings.GenerateMappingImageUI.VisibleOverride = false;
@@ -49120,6 +49769,10 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannel = "diffuseColor";
+                BillboardCloudSettings.OpacityChannelUI.Visible = false;
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                BillboardCloudSettings.OpacityChannelComponentUI.Visible = false;
                 AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
@@ -49136,6 +49789,9 @@ namespace SimplygonUI
                 BillboardCloudSettings.UpVectorXUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorYUI.VisibleOverride = false;
                 BillboardCloudSettings.UpVectorZUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityCutoffUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannelComponentUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.MaintainLeafConnectionsUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.SeparateFoliageMaterialsUI.VisibleOverride = false;
                 BillboardCloudSettings.FoliageSettings.SeparateFoliageTriangleRatioUI.VisibleOverride = false;
@@ -49162,6 +49818,10 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.MultisamplingLevelUI.VisibleOverride = false;
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
+                BillboardCloudSettings.OpacityChannel = "diffuseColor";
+                BillboardCloudSettings.OpacityChannelUI.Visible = false;
+                BillboardCloudSettings.OpacityChannelComponent = EColorComponent.Alpha;
+                BillboardCloudSettings.OpacityChannelComponentUI.Visible = false;
                 AttributeTessellationSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }

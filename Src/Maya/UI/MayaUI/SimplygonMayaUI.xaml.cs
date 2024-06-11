@@ -16,7 +16,7 @@ namespace SimplygonUI.MayaUI
     public partial class SimplygonMayaUI : Window, SimplygonIntegrationCallback
     {
         // supported material channels for Maya std materials
-        readonly List<string> MaterialChannelNames = new List<string>() { "color", "transparency", "ambientColor", "incandescence", "normalCamera", "translucence", "translucenceDepth", "translucenceFocus", "specularColor", };
+        readonly List<string> MaterialChannelNames = new List<string>() { "color", "transparency", "ambientColor", "incandescence", "normalCamera", "translucence", "translucenceDepth", "translucenceFocus", "specularColor", "reflectivity", "reflectedColor", };
 
         // supported Maya std material types
         readonly List<MFn.Type> StandardMaterialTypes = new List<MFn.Type>() { MFn.Type.kAnisotropy, MFn.Type.kBlinn, MFn.Type.kPhong, MFn.Type.kLambert };
@@ -81,7 +81,16 @@ namespace SimplygonUI.MayaUI
             MainUI.IntegrationParent = this;
             MainUI.SetIntegrationType(SimplygonIntegrationType.Maya);
 
+            this.LostFocus += SimplygonMayaUI_RestoreFocusToMayaWindow;
+            this.MouseLeftButtonUp += SimplygonMayaUI_RestoreFocusToMayaWindow;
+            this.MouseLeave += SimplygonMayaUI_RestoreFocusToMayaWindow;
+
             Application.Current.Resources.MergedDictionaries.Add(this.Resources);
+        }
+
+        private void SimplygonMayaUI_RestoreFocusToMayaWindow(object sender, EventArgs e)
+        {
+            EnableShortcuts();
         }
 
         public void OnProcess(List<SimplygonSettingsProperty> integrationSettings)
@@ -383,7 +392,7 @@ namespace SimplygonUI.MayaUI
 
         public void EnableShortcuts()
         {
-
+            MGlobal.executeCommand("setFocus MayaWindow");
         }
 
         public void DisableShortcuts()

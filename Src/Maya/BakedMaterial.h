@@ -58,6 +58,7 @@ class StandardMaterial
 	StandardMaterialChannel* TranslucenceFocusChannel;
 	StandardMaterialChannel* IncandescenceChannel;
 	StandardMaterialChannel* ReflectedColorChannel;
+	StandardMaterialChannel* ReflectivityChannel;
 
 	MStatus CreatePhong( MDagPath mShape, MString mMeshName, MString mMaterialNameOverride, bool sentFromMeshLOD = false );
 	MStatus

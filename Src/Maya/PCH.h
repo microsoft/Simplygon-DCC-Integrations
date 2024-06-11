@@ -175,6 +175,10 @@ extern int MayaAPIVersion;
 #define MAYA_MATERIAL_CHANNEL_REFLECTEDCOLOR "reflectedColor"
 #endif // !MAYA_MATERIAL_CHANNEL_REFLECTEDCOLOR
 
+#ifndef MAYA_MATERIAL_CHANNEL_REFLECTIVITY
+#define MAYA_MATERIAL_CHANNEL_REFLECTIVITY "reflectivity"
+#endif // !MAYA_MATERIAL_CHANNEL_REFLECTIVITY
+
 #pragma endregion
 
 ////////////

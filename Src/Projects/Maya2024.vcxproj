@@ -11,66 +11,64 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{CAA21B12-4384-4C0B-BBAA-440DCBE7C41F}</ProjectGuid>
-    <RootNamespace>SimplygonMax2022</RootNamespace>
-    <ProjectName>SimplygonMax2022</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <ProjectGuid>{E0DAEEBA-0A79-44BC-82D0-47C53BA4652E}</ProjectGuid>
+    <RootNamespace>SimplygonMaya2024</RootNamespace>
+    <ProjectName>SimplygonMaya2024</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
     <VCToolsVersion />
     <VCToolsRedistVersion />
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
     <VCToolsVersion />
     <VCToolsRedistVersion />
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="C:\Program Files\Autodesk\3ds Max 2022 SDK\maxsdk\ProjectSettings\propertySheets\3dsmax.cpp.props" Condition="Exists('C:\Program Files\Autodesk\3ds Max 2022 SDK\maxsdk\ProjectSettings\propertySheets\3dsmax.cpp.props')" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <OutDir>$(ProjectDir)..\..\Build\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)..\..\Build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)$(Configuration)</TargetName>
-    <TargetExt>.dlu</TargetExt>
+    <TargetExt>.mll</TargetExt>
     <GenerateManifest>true</GenerateManifest>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
-    <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutDir>$(ProjectDir)..\..\Build\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)..\..\Build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
-    <TargetExt>.dlu</TargetExt>
+    <TargetExt>.mll</TargetExt>
     <GenerateManifest>false</GenerateManifest>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
-    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <Midl>
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>/bigobj %(AdditionalOptions) /ZH:SHA_256 /we4018 /we4244</AdditionalOptions>
+      <AdditionalOptions>/I "." /D "WIN32" /D "_DEBUG" /c %(AdditionalOptions) /ZH:SHA_256</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SIMPLYGON_10_PATH);$(ProjectDir)..\Common;$(ProjectDir)..\Simplygon;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Max;C:\Program Files\Autodesk\3ds Max 2022 SDK\maxsdk\include;$(DXSDK_DIR)\include;</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>MAX_INTEGRATION;WINVER=0x0602;_WIN32_WINNT=0x0602;_WIN32_WINDOWS=0x0602;_AMD64_;WIN32;WIN64;WINDOWS;_USRDLL;MAX_EXPORTS;_CRT_SECURE_NO_WARNINGS;DBG_ASSERT_ACTIVE_IN_RELEASE_BUILD;REDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SIMPLYGON_10_PATH);$(ProjectDir)..\Simplygon;$(ProjectDir)..\Maya;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Common;C:\Program Files\Autodesk\Maya2024\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>MAYA_INTEGRATION;WIN32;_DEBUG;_WINDOWS;_AFXDLL;_MBCS;NT_PLUGIN;REQUIRE_IOSTREAM;_CRT_SECURE_NO_DEPRECATE;SGCP;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <WarningLevel>Level3</WarningLevel>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <CompileAsManaged>false</CompileAsManaged>
       <SDLCheck>false</SDLCheck>
       <EnablePREfast>false</EnablePREfast>
@@ -78,16 +76,16 @@
       </MinimalRebuild>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Iphlpapi.lib;Shlwapi.lib;Crypt32.lib;Psapi.lib;comctl32.lib;paramblk2.lib;MNMath.lib;assetmanagement.lib;bmm.lib;core.lib;geom.lib;gfx.lib;mesh.lib;maxutil.lib;maxscrpt.lib;gup.lib;poly.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\3ds Max 2022 SDK\maxsdk\lib\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>Psapi.lib;Foundation.lib;OpenMaya.lib;OpenMayaUI.lib;OpenMayaAnim.lib;OpenMayaRender.lib;Shlwapi.lib;Crypt32.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\Maya2024\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)$(ProjectName).pdb</ProgramDatabaseFile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>$(OutDir)$(ProjectName).lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
-      <ModuleDefinitionFile>..\Max\SimplygonMax.def</ModuleDefinitionFile>
-      <SubSystem>Windows</SubSystem>
-      <StripPrivateSymbols>
-      </StripPrivateSymbols>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
@@ -95,40 +93,42 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>/bigobj %(AdditionalOptions) /we4018 /we4244 /ZH:SHA_256</AdditionalOptions>
+      <AdditionalOptions>/I "." /c %(AdditionalOptions) /ZH:SHA_256</AdditionalOptions>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>$(SIMPLYGON_10_PATH);$(ProjectDir)..\Common;$(ProjectDir)..\Simplygon;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Max;C:\Program Files\Autodesk\3ds Max 2022 SDK\maxsdk\include;$(DXSDK_DIR)\include;</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>MAX_INTEGRATION;WINVER=0x0602;_WIN32_WINNT=0x0602;_WIN32_WINDOWS=0x0602;_AMD64_;WIN32;WIN64;WINDOWS;_USRDLL;MAX_EXPORTS;_CRT_SECURE_NO_WARNINGS;DBG_ASSERT_ACTIVE_IN_RELEASE_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SIMPLYGON_10_PATH);$(ProjectDir)..\Simplygon;$(ProjectDir)..\Maya;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Common;C:\Program Files\Autodesk\Maya2024\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>MAYA_INTEGRATION;WIN32;NDEBUG;_WINDOWS;_AFXDLL;_MBCS;NT_PLUGIN;REQUIRE_IOSTREAM;_CRT_SECURE_NO_DEPRECATE;SGCP;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <WarningLevel>Level3</WarningLevel>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <CompileAsManaged>false</CompileAsManaged>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <SDLCheck>true</SDLCheck>
       <EnablePREfast>false</EnablePREfast>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Iphlpapi.lib;Shlwapi.lib;Crypt32.lib;Psapi.lib;comctl32.lib;paramblk2.lib;MNMath.lib;assetmanagement.lib;bmm.lib;core.lib;geom.lib;gfx.lib;mesh.lib;maxutil.lib;maxscrpt.lib;gup.lib;poly.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\3ds Max 2022 SDK\maxsdk\lib\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>Psapi.lib;Foundation.lib;OpenMaya.lib;OpenMayaUI.lib;OpenMayaAnim.lib;OpenMayaRender.lib;Shlwapi.lib;Crypt32.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\Maya2024\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)$(ProjectName).pdb</ProgramDatabaseFile>
       <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>$(OutDir)$(ProjectName).lib</ImportLibrary>
       <TargetMachine>MachineX64</TargetMachine>
-      <ModuleDefinitionFile>..\Max\SimplygonMax.def</ModuleDefinitionFile>
-      <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <StripPrivateSymbols>
-      </StripPrivateSymbols>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -140,17 +140,19 @@
     <ClCompile Include="..\Common\SimplygonInit.cpp" />
     <ClCompile Include="..\Common\Triangulator.cpp" />
     <ClCompile Include="..\Common\WorkDirectoryHandler.cpp" />
-    <ClCompile Include="..\Max\DllEntry.cpp" />
-    <ClCompile Include="..\Max\MaterialInfoHandler.cpp" />
-    <ClCompile Include="..\Max\MaxMaterialMap.cpp" />
-    <ClCompile Include="..\Max\MeshNode.cpp" />
-    <ClCompile Include="..\Max\NewMaterialMap.cpp" />
-    <ClCompile Include="..\Max\NormalCalculator.cpp" />
-    <ClCompile Include="..\Max\PCH.cpp" />
-    <ClCompile Include="..\Max\Scene.cpp" />
-    <ClCompile Include="..\Max\SimplygonMax.cpp" />
-    <ClCompile Include="..\Max\SimplygonMaxPerVertexData.cpp" />
-    <ClCompile Include="..\Max\SimplygonMaxScriptFuncs.cpp" />
+    <ClCompile Include="..\Maya\BakedMaterial.cpp" />
+    <ClCompile Include="..\Maya\BlindData.cpp" />
+    <ClCompile Include="..\Maya\DataCollection.cpp" />
+    <ClCompile Include="..\Maya\MaterialInfoHandler.cpp" />
+    <ClCompile Include="..\Maya\MaterialNode.cpp" />
+    <ClCompile Include="..\Maya\MeshNode.cpp" />
+    <ClCompile Include="..\Maya\PCH.cpp" />
+    <ClCompile Include="..\Maya\pluginMain.cpp" />
+    <ClCompile Include="..\Maya\Scene.cpp" />
+    <ClCompile Include="..\Maya\SimplygonCmd.cpp" />
+    <ClCompile Include="..\Maya\SimplygonNetworkCmd.cpp" />
+    <ClCompile Include="..\Maya\SimplygonPipelineCmd.cpp" />
+    <ClCompile Include="..\Maya\SimplygonQueryCmd.cpp" />
     <ClCompile Include="..\Simplygon\SimplygonProcessingModule.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -164,25 +166,21 @@
     <ClInclude Include="..\Common\SimplygonInit.h" />
     <ClInclude Include="..\Common\Triangulator.h" />
     <ClInclude Include="..\Common\WorkDirectoryHandler.h" />
-    <ClInclude Include="..\Max\ImportedTexture.h" />
-    <ClInclude Include="..\Max\MaterialChannelInfo.h" />
-    <ClInclude Include="..\Max\MaterialChannelTextureInfo.h" />
-    <ClInclude Include="..\Max\MaterialInfo.h" />
-    <ClInclude Include="..\Max\MaterialInfoHandler.h" />
-    <ClInclude Include="..\Max\MaxMaterialMap.h" />
-    <ClInclude Include="..\Max\MeshNode.h" />
-    <ClInclude Include="..\Max\NewMaterialMap.h" />
-    <ClInclude Include="..\Max\NormalCalculator.h" />
-    <ClInclude Include="..\Max\PCH.h" />
-    <ClInclude Include="..\Max\resource.h" />
-    <ClInclude Include="..\Max\resource_.h" />
-    <ClInclude Include="..\Max\Scene.h" />
-    <ClInclude Include="..\Max\SimplygonMax.h" />
-    <ClInclude Include="..\Max\SimplygonMaxPerVertexData.h" />
+    <ClInclude Include="..\Maya\BakedMaterial.h" />
+    <ClInclude Include="..\Maya\BlindData.h" />
+    <ClInclude Include="..\Maya\DataCollection.h" />
+    <ClInclude Include="..\Maya\MaterialInfoHandler.h" />
+    <ClInclude Include="..\Maya\MaterialNode.h" />
+    <ClInclude Include="..\Maya\MeshNode.h" />
+    <ClInclude Include="..\Maya\PCH.h" />
+    <ClInclude Include="..\Maya\Scene.h" />
+    <ClInclude Include="..\Maya\ShadingNodeTable.h" />
+    <ClInclude Include="..\Maya\SimplygonCmd.h" />
+    <ClInclude Include="..\Maya\SimplygonNetworkCmd.h" />
+    <ClInclude Include="..\Maya\SimplygonPipelineCmd.h" />
+    <ClInclude Include="..\Maya\SimplygonQueryCmd.h" />
     <ClInclude Include="..\Simplygon\SimplygonProcessingModule.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="..\Max\Panel.rc" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
