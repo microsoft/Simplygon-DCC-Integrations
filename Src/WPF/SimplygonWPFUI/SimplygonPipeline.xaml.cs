@@ -220,6 +220,8 @@ namespace SimplygonUI
                     {
                         UIMain.IntegrationParent.EnableShortcuts();
                     }
+
+                    Keyboard.ClearFocus();
                 }
             }
         }

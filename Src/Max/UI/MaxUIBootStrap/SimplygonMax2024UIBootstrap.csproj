@@ -3,11 +3,11 @@
   <Import Project="$(ProjectDir)..\..\..\..\packages\Costura.Fody.4.1.0\build\Costura.Fody.props" Condition="Exists('$(ProjectDir)..\..\..\..\packages\Costura.Fody.4.1.0\build\Costura.Fody.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <ProjectGuid>{E9776283-8EF6-4E83-9F53-7D8F547D3C1A}</ProjectGuid>
+    <ProjectGuid>{84386F47-38C7-4375-A4F7-3305CB0F2E25}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SimplygonUI.MaxUI</RootNamespace>
-    <AssemblyName>SimplygonMax2023UIIntermediate</AssemblyName>
+    <AssemblyName>SimplygonMax2024UI</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -15,9 +15,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>$(ProjectDir)..\..\..\..\Build\SimplygonMax2023UI\$(Platform)\$(Configuration)\</OutputPath>
-    <IntermediateOutputPath>obj\2023</IntermediateOutputPath>
-    <DefineConstants>TRACE;DEBUG;SIMPLYGONMAX2023UI</DefineConstants>
+    <OutputPath>$(ProjectDir)..\..\..\..\Build\SimplygonMax2024UI\$(Platform)\$(Configuration)\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;SIMPLYGONMAX2024UI</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <LangVersion>7.3</LangVersion>
@@ -25,9 +24,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>$(ProjectDir)..\..\..\..\Build\SimplygonMax2023UI\$(Platform)\$(Configuration)\</OutputPath>
-    <IntermediateOutputPath>obj\2023</IntermediateOutputPath>
-    <DefineConstants>TRACE;SIMPLYGONMAX2023UI</DefineConstants>
+    <OutputPath>$(ProjectDir)..\..\..\..\Build\SimplygonMax2024UI\$(Platform)\$(Configuration)\</OutputPath>
+    <DefineConstants>TRACE;SIMPLYGONMAX2024UI</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -37,56 +35,37 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Autodesk.Max">
-      <HintPath>C:\Program Files\Autodesk\3ds Max 2023\Autodesk.Max.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\3ds Max 2024\Autodesk.Max.dll</HintPath>
     </Reference>
     <Reference Include="Costura, Version=4.1.0.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
       <HintPath>$(ProjectDir)..\..\..\..\packages\Costura.Fody.4.1.0\lib\net40\Costura.dll</HintPath>
     </Reference>
     <Reference Include="CSharpUtilities">
-      <HintPath>C:\Program Files\Autodesk\3ds Max 2023\CSharpUtilities.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\3ds Max 2024\CSharpUtilities.dll</HintPath>
     </Reference>
     <Reference Include="ManagedServices">
-      <HintPath>C:\Program Files\Autodesk\3ds Max 2023\ManagedServices.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\3ds Max 2024\ManagedServices.dll</HintPath>
     </Reference>
     <Reference Include="MaxCustomControls">
-      <HintPath>C:\Program Files\Autodesk\3ds Max 2023\MaxCustomControls.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\3ds Max 2024\MaxCustomControls.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>$(ProjectDir)..\..\..\..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="SimplygonDotNetWrapper">
-      <HintPath>C:\Program Files\Simplygon\10\SimplygonDotNetWrapper.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Net.Http" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="UiViewModels">
-      <HintPath>C:\Program Files\Autodesk\3ds Max 2023\UiViewModels.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\3ds Max 2024\UiViewModels.dll</HintPath>
     </Reference>
-    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MaxSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SimplygonMaxUI.xaml.cs">
-      <DependentUpon>SimplygonMaxUI.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="SimplygonMaxUIPlugin.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Page Include="SimplygonMaxUI.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="FodyWeavers.xsd">
       <SubType>Designer</SubType>
@@ -102,6 +81,10 @@
     <ProjectReference Include="..\..\..\WPF\SimplygonWPFUI\SimplygonWPFUI.csproj">
       <Project>{cb949457-2014-4b66-a503-c481d3f0f317}</Project>
       <Name>SimplygonWPFUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MaxUI\SimplygonMax2024UI.csproj">
+      <Project>{843B9450-36C8-4E31-AB26-447C4D4FC06D}</Project>
+      <Name>Max2024UI</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

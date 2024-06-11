@@ -58,6 +58,13 @@ extern HINSTANCE hInstance;
 SimplygonMax* SimplygonMaxInstance = nullptr;
 extern SimplygonInitClass* SimplygonInitInstance;
 
+// clamp was deprecated in Max 2024, replacing it with std::clamp
+#if MAX_VERSION_MAJOR >= 26
+#define _CLAMP( val, min, max ) std::clamp( val, min, max )
+#else
+#define _CLAMP( val, min, max ) clamp( val, min, max )
+#endif
+
 #define TURBOSMOOTH_CLASS_ID       Class_ID( 225606462L, 1226647975L )
 #define MORPHER_CLASS_ID           Class_ID( 398157908L, 2781586083L )
 #define PHYSICAL_MATERIAL_CLASS_ID Class_ID( 1030429932L, 3735928833L )
@@ -1688,7 +1695,11 @@ MaterialNodes::RunBitmapNode( Texmap* mTexMap, MaterialNodes::MaterialChannelDat
 	// nodes with null/empty paths
 	else
 	{
+#if MAX_VERSION_MAJOR >= 26
+		MSTR nodeInfo = mTexMap->GetFullName( true );
+#else
 		MSTR nodeInfo = mTexMap->GetFullName();
+#endif
 
 		mMaterialChannel.mWarningMessage += _T("An empty (or unknown) material node with id: ");
 		mMaterialChannel.mWarningMessage += nodeInfo;
@@ -2776,8 +2787,7 @@ class PhysicalMaterial
 
 				// fit IOR of 0 - 50 into 0 - 1
 				float divisor = 50.0f;
-				float mCorrectedIOR = clamp( mTransIOR / divisor, 0.0f, 1.0f );
-
+				float mCorrectedIOR = _CLAMP( mTransIOR / divisor, 0.0f, 1.0f );
 				spShadingColorNode sgScaleColorNode = CreateColorShadingNetwork( mCorrectedIOR, mCorrectedIOR, mCorrectedIOR, 1.0f );
 
 				sgMaterial->SetShadingNetwork( cChannelName, sgScaleColorNode );
@@ -2966,8 +2976,7 @@ class PhysicalMaterial
 			float mTransDepth = this->GetFloat( _T("trans_depth") );
 
 			// fit depth of 0 - 1000 into 0 - 1
-			float convertedDepth = clamp( mTransDepth / 1000.f, 0.0f, 1.0f );
-
+			float convertedDepth = _CLAMP( mTransDepth / 1000.f, 0.0f, 1.0f );
 			spShadingColorNode sgScaleColorNode = CreateColorShadingNetwork( convertedDepth, convertedDepth, convertedDepth, 1.0f );
 
 			sgMaterial->SetShadingNetwork( cChannelName, sgScaleColorNode );
@@ -3133,7 +3142,7 @@ class PhysicalMaterial
 
 				// fit depth of 0 - 1000 into 0.0 - 1.0, truncate everything larger than 1000
 				// combine depth and scale into same texture
-				float correctedDepth = clamp( mSSSDepth / 1000.0f, 0.0f, 1.0f );
+				float correctedDepth = _CLAMP( mSSSDepth / 1000.0f, 0.0f, 1.0f );
 				float combinedScaleAndDepth = mSSSScale * correctedDepth;
 
 				sgScaleColorNode->SetColor( combinedScaleAndDepth, combinedScaleAndDepth, combinedScaleAndDepth, 1.0f );
@@ -3154,7 +3163,7 @@ class PhysicalMaterial
 
 				// fit depth of 0 - 1000 into 0.0 - 1.0, truncate everything larger than 1000
 				// combine depth and scale into same texture
-				float correctedDepth = clamp( mSSSDepth / 1000.0f, 0.0f, 1.0f );
+				float correctedDepth = _CLAMP( mSSSDepth / 1000.0f, 0.0f, 1.0f );
 				float combinedScaleAndDepth = mSSSScale * correctedDepth;
 
 				spShadingColorNode sgScaleColorNode = CreateColorShadingNetwork( combinedScaleAndDepth, combinedScaleAndDepth, combinedScaleAndDepth, 1.0f );
@@ -3233,7 +3242,7 @@ class PhysicalMaterial
 			float mEmitLuminance = this->GetFloat( _T("emit_luminance") );
 
 			// fit 0 - 10000 into 0.0 - 1.0, truncate everything larger than 10000
-			float correctedLuminance = clamp( mEmitLuminance / divisor, 0.0f, 1.0f );
+			float correctedLuminance = _CLAMP( mEmitLuminance / divisor, 0.0f, 1.0f );
 
 			spShadingColorNode sgColorNode = CreateColorShadingNetwork( mEmitLuminance, mEmitLuminance, mEmitLuminance, 1.0f );
 
@@ -3509,7 +3518,7 @@ class PhysicalMaterial
 			float mCoatIOR = this->GetFloat( _T("coat_ior") );
 
 			// fit IOR of value 0 - 5 into 0 - 1
-			float correctedCoatIOR = clamp( mCoatIOR / divisor, 0.0f, 1.0f );
+			float correctedCoatIOR = _CLAMP( mCoatIOR / divisor, 0.0f, 1.0f );
 
 			spShadingColorNode sgColorNode = CreateColorShadingNetwork( correctedCoatIOR, correctedCoatIOR, correctedCoatIOR, 1.0f );
 
@@ -3733,7 +3742,7 @@ class PhysicalMaterial
 
 				// fit IOR of 0 - 5 into 0 - 1
 				float divisor = 5.0f;
-				float mCorrectedIOR = clamp( mThinFilmIOR / divisor, 0.0f, 1.0f );
+				float mCorrectedIOR = _CLAMP( mThinFilmIOR / divisor, 0.0f, 1.0f );
 
 				spShadingColorNode sgScaleColorNode = CreateColorShadingNetwork( mCorrectedIOR, mCorrectedIOR, mCorrectedIOR, 1.0f );
 
@@ -4870,7 +4879,7 @@ bool SimplygonMax::IsMesh( INode* mMaxNode )
 		return false; // we have no object, skip it, go on
 	}
 
-	if( !mMaxObjectState.obj->CanConvertToType( triObjectClassID ) )
+	if( !ObjectStateIsValidAndCanConvertToType( mMaxObjectState, triObjectClassID ) )
 	{
 		return false; // this is not a tri-mesh object, skip it, go on
 	}
@@ -4888,7 +4897,7 @@ bool SimplygonMax::IsMesh_Quad( INode* mMaxNode )
 		return false; // we have no object, skip it, go on
 	}
 
-	if( !(PolyObject*)mMaxObjectState.obj->ConvertToType( this->CurrentTime, polyObjectClassID ) )
+	if( !ObjectStateIsValidAndCanConvertToType( mMaxObjectState, polyObjectClassID ) )
 	{
 		return false; // this is not a poly-mesh object, skip it, go on
 	}
@@ -4926,7 +4935,7 @@ bool SimplygonMax::IsCamera( INode* mMaxNode )
 		return false;
 	}
 
-	if( !mMaxObjectState.obj->CanConvertToType( mClassId ) && !dynamic_cast<MaxSDK::IPhysicalCamera*>( mMaxObjectState.obj ) )
+	if( !ObjectStateIsValidAndCanConvertToType( mMaxObjectState, mClassId ) && !dynamic_cast<MaxSDK::IPhysicalCamera*>( mMaxObjectState.obj ) )
 	{
 		return false;
 	}
@@ -4953,7 +4962,7 @@ spSceneNode SimplygonMax::AddCamera( INode* mMaxNode )
 	}
 
 	const bool bIsPhysical = mClassId == MaxSDK::IPhysicalCamera::GetClassID();
-	if( !mMaxObjectState.obj->CanConvertToType( mClassId ) && !bIsPhysical )
+	if( !ObjectStateIsValidAndCanConvertToType( mMaxObjectState, mClassId ) && !bIsPhysical )
 	{
 		return spSceneNode();
 	}
@@ -6395,7 +6404,9 @@ bool SimplygonMax::ExtractGeometry( size_t meshIndex )
 	}
 
 	ObjectState mMaxNodeObjectState = mMaxNode->EvalWorldState( this->CurrentTime );
-	TriObject* mMaxTriObject = (TriObject*)mMaxNodeObjectState.obj->ConvertToType( this->CurrentTime, triObjectClassID );
+	TriObject* mMaxTriObject = (TriObject*)SafeConvertToType( mMaxNodeObjectState, this->CurrentTime, triObjectClassID );
+	if( !mMaxTriObject )
+		return false;
 
 	meshNode->Objects = mMaxNodeObjectState.obj;
 	meshNode->TriObjects = mMaxTriObject;
@@ -6422,7 +6433,11 @@ bool SimplygonMax::ExtractGeometry( size_t meshIndex )
 
 		for( uint vid = 0; vid < vertexCount; ++vid )
 		{
+#if MAX_VERSION_MAJOR >= 26
+			sgVertexLocks->SetItem( vid, mMaxMesh.VertSel()[ vid ] > 0 );
+#else
 			sgVertexLocks->SetItem( vid, mMaxMesh.vertSel[ vid ] > 0 );
+#endif
 		}
 	}
 
@@ -6842,7 +6857,9 @@ bool SimplygonMax::ExtractGeometry_Quad( size_t meshIndex )
 	}
 
 	ObjectState mMaxNodeObjectState = mMaxNode->EvalWorldState( this->CurrentTime );
-	PolyObject* mMaxPolyObject = (PolyObject*)mMaxNodeObjectState.obj->ConvertToType( this->CurrentTime, polyObjectClassID );
+	PolyObject* mMaxPolyObject = (PolyObject*)SafeConvertToType( mMaxNodeObjectState, this->CurrentTime, polyObjectClassID );
+	if( !mMaxPolyObject )
+		return false;
 
 	meshNode->Objects = mMaxNodeObjectState.obj;
 	meshNode->PolyObjects = mMaxPolyObject;
@@ -10906,7 +10923,7 @@ bool SimplygonMax::WritebackMapping( size_t lodIndex, Mesh& newMaxMesh, spSceneM
 		{
 			const int mappingChannelInUse = atoi( cTexCoordName );
 			indexedTexCoordFieldMap.insert( std::pair<int, int>( mappingChannelInUse, texCoordIndex ) );
-			mappingChannelsInUse.insert( texCoordIndex );
+			mappingChannelsInUse.insert( mappingChannelInUse );
 		}
 		else
 		{
@@ -10942,7 +10959,7 @@ bool SimplygonMax::WritebackMapping( size_t lodIndex, Mesh& newMaxMesh, spSceneM
 		{
 			const int mappingChannelInUse = atoi( cVertexColorName );
 			indexedVertexColorFieldMap.insert( std::pair<int, int>( mappingChannelInUse, vertexColorIndex ) );
-			mappingChannelsInUse.insert( vertexColorIndex );
+			mappingChannelsInUse.insert( mappingChannelInUse );
 		}
 		else
 		{
@@ -12508,8 +12525,12 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
                                                       std::vector<MaterialColorOverride> materialColorOverrides )
 {
 	const long maxChannel = mMaxStdMaterial->StdIDToChannel( maxChannelId );
-
+#if MAX_VERSION_MAJOR >= 26
+	std::basic_string<TCHAR> tMappedChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel, true );
+#else
 	std::basic_string<TCHAR> tMappedChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel );
+#endif
+
 	ReplaceInvalidCharacters( tMappedChannelName, _T( '_' ) );
 
 	std::basic_string<TCHAR> tMaxMaterialName = mMaxStdMaterial->GetName();
@@ -13176,7 +13197,12 @@ void SimplygonMax::CreateSgMaterialSTDChannel( long maxChannelId, StdMat2* mMaxS
 
 	const long maxChannel = mMaxStdMaterial->StdIDToChannel( maxChannelId );
 
+#if MAX_VERSION_MAJOR >= 26
+	std::basic_string<TCHAR> tChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel, true );
+#else
 	std::basic_string<TCHAR> tChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel );
+#endif
+
 	ReplaceInvalidCharacters( tChannelName, _T( '_' ) );
 
 	const char* cChannelName = LPCTSTRToConstCharPtr( tChannelName.c_str() );
@@ -15278,7 +15304,11 @@ Mtl* SimplygonMax::SetupMaxStdMaterial( spScene sgProcessedScene, std::basic_str
 		const long maxChannel = mMaxStdMaterial->StdIDToChannel( maxChannelId );
 
 		// get standard Max material channel name
+#if MAX_VERSION_MAJOR >= 26
+		std::basic_string<TCHAR> tChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel, true );
+#else
 		std::basic_string<TCHAR> tChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel );
+#endif
 		ReplaceInvalidCharacters( tChannelName, _T( '_' ) );
 
 		bResult = this->ImportMaterialTexture(
@@ -15687,9 +15717,19 @@ double SimplygonMax::GetLODSwitchCameraDistance( int pixelSize )
 		}
 
 		ObjectState os = mNode->EvalWorldState( this->CurrentTime );
+		if( os.obj == nullptr )
+		{
+			LogMessageToScriptEditor( std::basic_string<TCHAR>( _T("Object state invalid.") ) );
+			return camera_distance;
+		}
 
 		// convert to trimesh, get the object
-		TriObject* tobj = (TriObject*)os.obj->ConvertToType( this->CurrentTime, triObjectClassID );
+		TriObject* tobj = (TriObject*)SafeConvertToType( os.obj, this->CurrentTime, triObjectClassID );
+		if( tobj == nullptr )
+		{
+			LogMessageToScriptEditor( std::basic_string<TCHAR>( _T("Could not convert to tri object.") ) );
+			return camera_distance;
+		}
 
 		int unitType = GetUnitDisplayType();
 		float scale = 1.0f;
@@ -15752,9 +15792,19 @@ double SimplygonMax::GetLODSwitchPixelSize( double distance )
 		}
 
 		ObjectState os = n->EvalWorldState( this->CurrentTime );
+		if( os.obj == nullptr )
+		{
+			LogMessageToScriptEditor( std::basic_string<TCHAR>( _T("Object state invalid, aborting.") ) );
+			return pixelsize;
+		}
 
 		// convert to trimesh, get the object
-		TriObject* tobj = (TriObject*)os.obj->ConvertToType( this->CurrentTime, triObjectClassID );
+		TriObject* tobj = (TriObject*)SafeConvertToType(os.obj, this->CurrentTime, triObjectClassID );
+		if( tobj == nullptr )
+		{
+			LogMessageToScriptEditor( std::basic_string<TCHAR>( _T("Could not convert to tri object.") ) );
+			return pixelsize;
+		}
 
 		int unitType = GetUnitDisplayType();
 		float scale = 1.0f;

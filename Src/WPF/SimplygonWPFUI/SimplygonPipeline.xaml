@@ -378,7 +378,7 @@ Licensed under the MIT License.
                                                 </MultiBinding>
                                             </TextBlock.Text>
                                         </TextBlock>
-                                        <Button Grid.Column="2" Click="DeleteMaterialCasterButton_Click" Tag="{Binding}">
+                                        <Button Name="DeleteMaterialCasterButton" Grid.Column="2" Click="DeleteMaterialCasterButton_Click" Tag="{Binding}">
                                             <Image Source="pack://application:,,,/Simplygon.WPFUI;component/Trash.png" Canvas.ZIndex="1" Margin="5"/>
                                         </Button>
                                     </Grid>

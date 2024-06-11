@@ -167,4 +167,37 @@ namespace SimplygonUI.MayaUI.Settings
             Value = Simplygon.ETangentSpaceMethod.MikkTSpace;
         }
     }
+
+    [System.Runtime.Serialization.DataContract]
+    public class UseCurrentPoseAsBindPose : SimplygonSettingsProperty
+    {
+        bool value;
+        [System.Runtime.Serialization.DataMember]
+        public bool Value { get { return value; } set { this.value = value; OnPropertyChanged(); } }
+
+        public UseCurrentPoseAsBindPose() : base("UseCurrentPoseAsBindPose")
+        {
+            Name = "UseCurrentPoseAsBindPose";
+            Type = "bool";
+            HelpText = "Enabled: Specifies that the skinning data will be extracted from the current pose rather than the bind pose. Please do not use this flag when in bind pose as synchronization issues might appear!";
+#if SIMPLYGONMAYA2024UI
+            Visible = false;
+#else
+            Visible = true;
+#endif
+
+            Reset();
+        }
+
+        public override void Reset()
+        {
+#if SIMPLYGONMAYA2024UI
+            Value = true;
+#else
+            Value = false;
+#endif
+        }
+    }
+
+    
 }

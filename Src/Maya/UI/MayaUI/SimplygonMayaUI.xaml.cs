@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
+#if DEBUG
+using IntegrationTests.TestFramework;
+#endif
 
 namespace SimplygonUI.MayaUI
 {
@@ -86,6 +89,15 @@ namespace SimplygonUI.MayaUI
             this.MouseLeave += SimplygonMayaUI_RestoreFocusToMayaWindow;
 
             Application.Current.Resources.MergedDictionaries.Add(this.Resources);
+
+#if DEBUG
+            MainUI.StartTestDriver();
+#endif
+        }
+
+        private void SimplygonMayaUI_RestoreFocusToMayaWindow(object sender, EventArgs e)
+        {
+            EnableShortcuts();
         }
 
         private void SimplygonMayaUI_RestoreFocusToMayaWindow(object sender, EventArgs e)
@@ -119,6 +131,7 @@ namespace SimplygonUI.MayaUI
                 SimplygonUI.MayaUI.Settings.MeshNameFormat meshNameFormatSetting = integrationSettings.Where(i => i.GetType() == typeof(SimplygonUI.MayaUI.Settings.MeshNameFormat)).Select(i => i as SimplygonUI.MayaUI.Settings.MeshNameFormat).FirstOrDefault();
                 SimplygonUI.MayaUI.Settings.SelectProcessedMeshes selectProcessedMeshesSetting = integrationSettings.Where(i => i.GetType() == typeof(SimplygonUI.MayaUI.Settings.SelectProcessedMeshes)).Select(i => i as SimplygonUI.MayaUI.Settings.SelectProcessedMeshes).FirstOrDefault();
                 SimplygonUI.MayaUI.Settings.TextureOutputDirectory textureOutputDirectorySetting = integrationSettings.Where(i => i.GetType() == typeof(SimplygonUI.MayaUI.Settings.TextureOutputDirectory)).Select(i => i as SimplygonUI.MayaUI.Settings.TextureOutputDirectory).FirstOrDefault();
+                SimplygonUI.MayaUI.Settings.UseCurrentPoseAsBindPose useCurrentPoseAsBindPose = integrationSettings.Where(i => i.GetType() == typeof(SimplygonUI.MayaUI.Settings.UseCurrentPoseAsBindPose)).Select(i => i as SimplygonUI.MayaUI.Settings.UseCurrentPoseAsBindPose).FirstOrDefault();
 
                 if (runModeSetting != null)
                 {
@@ -160,6 +173,11 @@ namespace SimplygonUI.MayaUI
                 if (hasQuadPipeline)
                 {
                     processCommand += $@" -QuadMode";
+                }
+
+                if (useCurrentPoseAsBindPose != null && useCurrentPoseAsBindPose.Value)
+                {
+                    processCommand += $@" -UseCurrentPoseAsBindPose";
                 }
 
                 MGlobal.executeCommand(processCommand);
@@ -228,6 +246,11 @@ namespace SimplygonUI.MayaUI
         public string GetIntegrationName()
         {
             return "Maya";
+        }
+
+        public string GetIntegrationVersion()
+        {
+            return MGlobal.mayaVersion;
         }
 
         public bool? IsColorManagementEnabled()
@@ -338,6 +361,7 @@ namespace SimplygonUI.MayaUI
             integrationSettings.Add(new SimplygonUI.MayaUI.Settings.TangentCalculatorType());
             integrationSettings.Add(new SimplygonUI.MayaUI.Settings.TextureOutputDirectory());
             integrationSettings.Add(new SimplygonUI.MayaUI.Settings.SelectProcessedMeshes());
+            integrationSettings.Add(new SimplygonUI.MayaUI.Settings.UseCurrentPoseAsBindPose());
 
             return integrationSettings;
         }
@@ -404,5 +428,119 @@ namespace SimplygonUI.MayaUI
         {
             MainUI.Log(category, message);
         }
+
+#if DEBUG
+        private int screenshotSelectionSetID { get; set; } = 0;
+
+        public void TestingRestorePristineState()
+        {
+            // Remove any existing pipelines from the UI
+            MainUI.Dispatcher.Invoke(() =>
+            {
+                // If we whave screenshots selection sets from previous test - delete them
+                for (var i = 0; i < screenshotSelectionSetID; i++)
+                    MGlobal.executeCommand($@"delete ""testingscreenshots{i}"";");
+                MGlobal.executeCommand("refresh;");
+
+                foreach (var pipeline in MainUI.Pipelines.ToArray())
+                    MainUI.OnDeletePipelineSelected(pipeline);
+
+                // Reset scene
+                MGlobal.executeCommand("file -new -f;");
+                MGlobal.executeCommand("refresh;");
+            });
+
+            screenshotSelectionSetID = 0;
+        }
+
+        public void TestingLoadScene(string scenePath)
+        {
+            MainUI.Dispatcher.Invoke(() =>
+            {
+                var fileType = Path.GetExtension(scenePath).Substring(1).ToUpper();
+                if (fileType == "MA")
+                    MGlobal.executeCommand($"file -import -pr \"{scenePath.Replace("\\", "/")}\"");
+                else
+                    MGlobal.executeCommand($"file -import -type \"{fileType}\" -pr \"{scenePath.Replace("\\", "/")}\"");
+
+                MGlobal.executeCommand("pause -seconds 1;");
+                MGlobal.executeCommand("refresh;");
+                MGlobal.executeCommand("string $geoms[] = `ls -geometry`; select `listRelatives -parent $geoms`;");
+                MGlobal.executeCommand("refresh;");
+            });
+        }
+
+        public void TestingTakeScreenshots(string screenshotsBaseName)
+        {
+            MainUI.Dispatcher.Invoke(() =>
+            {
+                // Add current selection to selection set
+                MGlobal.executeCommand($@"sets -n ""testingscreenshots{screenshotSelectionSetID}"";");
+
+                // Hide any previous screenshots selection sets
+                for (var i = 0; i < screenshotSelectionSetID; i++)
+                    MGlobal.executeCommand($@"hide ""testingscreenshots{i}"";");
+
+                // Finally show the current testingscreenshots selection set, since it is what
+                // we want to take screenshots of
+                MGlobal.executeCommand($@"showHidden ""testingscreenshots{screenshotSelectionSetID}"";");
+
+                // Take screenshots
+                MGlobal.executePythonCommand($"exec(open('Helpers/TakeScreenshotsMaya.py').read(), {{ 'screenshots_base_name': '{screenshotsBaseName}' }})");
+
+                // Show everything again
+                for (var i = 0; i < screenshotSelectionSetID; i++)
+                    MGlobal.executeCommand($@"showHidden ""testingscreenshots{i}"";");
+
+                // Up iterator for next screenshot round
+                screenshotSelectionSetID++;
+            });
+        }
+
+        public void TestingRunScript(string script, ScriptFlavor scriptFlavor)
+        {
+            MainUI.Dispatcher.Invoke(() =>
+            {
+                MGlobal.executeCommand("refresh");
+                if (scriptFlavor == ScriptFlavor.Default || scriptFlavor == ScriptFlavor.MEL)
+                    MGlobal.executeCommand(script);
+                else if (scriptFlavor == ScriptFlavor.Python)
+                    MGlobal.executePythonCommand(script);
+            });
+        }
+
+        public TestSceneData TestingGatherSceneData(SceneStatsScope sceneStatsScope)
+        {
+            var sceneData = new TestSceneData();
+            
+            MainUI.Dispatcher.Invoke(() =>
+            {
+                if (sceneStatsScope == SceneStatsScope.OnlySelected)
+                {
+                    var stats = MGlobal.executeCommandStringResult("polyEvaluate -vertex -face -edge -triangle -fmt", false, false);
+                    if (stats != null && stats.Contains("="))
+                    {
+                        var statsSplit = stats.Split(' ');
+                        sceneData.VertexCount = int.Parse(statsSplit[0].Split('=')[1]);
+                        sceneData.FaceCount = int.Parse(statsSplit[1].Split('=')[1]);
+                        sceneData.EdgeCount = int.Parse(statsSplit[2].Split('=')[1]);
+                        sceneData.TriangleCount = int.Parse(statsSplit[3].Split('=')[1]);
+                    }
+
+                    // Get mesh count
+                    MStringArray result = new MStringArray();
+                    MGlobal.executeCommand("ls -sl -type transform", result);
+                    sceneData.MeshNames = result.ToList();
+
+                    // Get materials for selected objects
+                    result = new MStringArray();
+                    MGlobal.executeCommand("GetMaterialNamesFromSelection()", result, true);
+                    sceneData.MaterialNames = result.ToList();
+                }
+            });
+
+            return sceneData;
+        }
+#endif
     }
 }

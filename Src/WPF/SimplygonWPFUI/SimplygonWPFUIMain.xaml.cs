@@ -15,6 +15,10 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+#if DEBUG
+using SimplygonUI.Testing;
+using IntegrationTests.TestFramework;
+#endif
 
 namespace SimplygonUI
 {
@@ -56,7 +60,11 @@ namespace SimplygonUI
             SelectionSets = new ObservableCollection<string>() { "" };
             integrationSettings = new List<SimplygonSettingsProperty>();
 
+#if DEBUG
+            SimplygonVersionInfo.Text = $"Simplygon v{SimplygonVersion.Build} (debug)";
+#else
             SimplygonVersionInfo.Text = $"Simplygon v{SimplygonVersion.Build}";
+#endif
 
             try
             {
@@ -690,5 +698,37 @@ namespace SimplygonUI
                 Log(Category.Warning, warningMessage);
             }));
         }
+
+#if DEBUG
+        // Testing
+        private TestSequenceWatcher tsw { get; set; }
+        public WPFDriver wpfDriver { get; set; }
+
+        public void StartTestDriver()
+        {
+            tsw = new TestSequenceWatcher(IntegrationParent.GetIntegrationName(), IntegrationParent.GetIntegrationVersion());
+            tsw.TestSequenceDetected += StartTestSequence;
+        }
+
+        private void StartTestSequence(object sender, TestSequence testSequence)
+        {
+            // Initiate wpfDriver if it's not initialized
+            if (wpfDriver == null)
+            {
+                var integration = $"{IntegrationParent.GetIntegrationName()}{IntegrationParent.GetIntegrationVersion()}";
+                // Special Max mappings
+                if (IntegrationParent.GetIntegrationName() == "3ds Max")
+                {
+                    // Max provides no interface to get the "year" version (e.g. Max 2022) of the product
+                    // through their SDK APIs (AFAI(Jeppe)K), so the commonly used approach to calculate this
+                    // is to take the integration version (e.g. 24 for Max 2022) and remove 2 from it.
+                    var parsedVersion = int.Parse(IntegrationParent.GetIntegrationVersion().Split('.')[0]);
+                    integration = $"Max20{parsedVersion - 2}";
+                }
+                wpfDriver = new WPFDriver(this, integration);
+            }
+            wpfDriver.AddTestSequenceToQueue(testSequence);
+        }
+#endif
     }
 }

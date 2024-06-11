@@ -3663,8 +3663,7 @@ MStatus MeshNode::WritebackGeometryData(
 	// apply normals, if any
 	if( !this->sgMeshData->GetNormals().IsNull() )
 	{
-		this->WritebackNormals();
-		// this->WritebackNormals_Deprecated();
+		MCheckStatus( this->WritebackNormals(), "Could not write normals and smoothing to mesh." );
 	}
 
 	this->MayaMesh.updateSurface();
@@ -4846,7 +4845,7 @@ MStatus MeshNode::WritebackGeometryData_Quad(
 	// apply normals, if any
 	if( !this->sgMeshData->GetNormals().IsNull() )
 	{
-		this->WritebackNormals_Quad( numPolygons, numVertexIds );
+		MCheckStatus( this->WritebackNormals(), "Could not write normals and smoothing to mesh." );
 	}
 
 	this->MayaMesh.updateSurface();
@@ -5384,280 +5383,223 @@ MStatus MeshNode::WritebackGeometryData_Quad(
 	return MStatus::kSuccess;
 }
 
-void MeshNode::WritebackNormals()
+// find the shared and matching corners of two triangles. up to 3 corners, returns the count
+inline uint findSharedCorners( uint tri0id, uint tri1id, const Simplygon::rid *vertexIds, uint tri0corners[3], uint tri1corners[3] )
 {
-	const uint vertexCount = this->sgMeshData->GetVertexCount();
-	const uint triangleCount = this->sgMeshData->GetTriangleCount();
-	const uint cornerCount = triangleCount * 3;
+	const uint start0 = tri0id*3;
+	const uint start1 = tri1id*3;
+	const uint end0 = start0+3;
+	const uint end1 = start1+3;
 
-	spRidArray sgVertexIds = this->sgMeshData->GetVertexIds();
-	spRealArray sgNormals = this->sgMeshData->GetNormals();
+	uint found = 0;
 
-	// collect all vertex normals
-	VertexNormal* vertexNormals = new VertexNormal[ vertexCount ];
-	for( uint vid = 0; vid < vertexCount; ++vid )
+	for( uint corner0 = start0; corner0 < end0 ; ++corner0 )
 	{
-		vertexNormals[ vid ].isInitialized = false;
-	}
-
-	// do all vertices of all triangles
-	for( uint tid = 0; tid < triangleCount; ++tid )
-	{
-		for( uint c = 0; c < 3; ++c )
+		for( uint corner1 = start1; corner1 < end1 ; ++corner1 )
 		{
-			const uint cid = tid * 3 + c;
-			const int vid = sgVertexIds->GetItem( cid );
-
-			// set the normal for the face-vertex
-			spRealData sgNormal = sgNormals->GetTuple( cid );
-
-			// if not initialized, set up
-			if( !vertexNormals[ vid ].isInitialized )
+			if( vertexIds[corner0] == vertexIds[corner1] )
 			{
-				vertexNormals[ vid ].isInitialized = true;
-				vertexNormals[ vid ].normal[ 0 ] = sgNormal[ 0 ];
-				vertexNormals[ vid ].normal[ 1 ] = sgNormal[ 1 ];
-				vertexNormals[ vid ].normal[ 2 ] = sgNormal[ 2 ];
-				vertexNormals[ vid ].isPerVertex = true;
-			}
-			else if( vertexNormals[ vid ].isPerVertex )
-			{
-				// compare normals
-				const double dot = vertexNormals[ vid ].normal[ 0 ] * sgNormal[ 0 ] + vertexNormals[ vid ].normal[ 1 ] * sgNormal[ 1 ] +
-				                   vertexNormals[ vid ].normal[ 2 ] * sgNormal[ 2 ];
-
-				if( dot < 0.99 || dot > 1.01 )
-				{
-					vertexNormals[ vid ].isPerVertex = false;
-				}
+				tri0corners[found] = corner0;
+				tri1corners[found] = corner1;
+				++found;
 			}
 		}
 	}
 
-	MVectorArray mNormals;  // all the normals
-	MIntArray mTriangleIds; // the triangle a specific normal should be placed in
-	MIntArray mVertexIds;   // the vertex a specific normal should be placed in
-
-	mNormals.setSizeIncrement( cornerCount );
-	mTriangleIds.setSizeIncrement( cornerCount );
-	mVertexIds.setSizeIncrement( cornerCount );
-
-	// do all vertices of all triangles
-	for( uint tid = 0; tid < triangleCount; ++tid )
-	{
-		for( uint c = 0; c < 3; ++c )
-		{
-			const uint cid = tid * 3 + c;
-			const int vid = sgVertexIds->GetItem( cid );
-
-			if( vertexNormals[ vid ].isInitialized && !vertexNormals[ vid ].isPerVertex )
-			{
-				// set the normal index of the triangle
-				mTriangleIds.append( tid );
-				mVertexIds.append( vid );
-
-				// set the normal for the face-vertex
-				spRealData sgNormal = sgNormals->GetTuple( cid );
-				mNormals.append( MVector( sgNormal ) );
-			}
-		}
-	}
-
-	if( mNormals.length() > 0 )
-	{
-		this->MayaMesh.setFaceVertexNormals( mNormals, mTriangleIds, mVertexIds );
-	}
-
-	mNormals.clear();
-	mTriangleIds.clear();
-	mVertexIds.clear();
-
-	mNormals.setSizeIncrement( vertexCount );
-	mTriangleIds.setSizeIncrement( vertexCount );
-	mVertexIds.setSizeIncrement( vertexCount );
-
-	// set all per-vertex normals
-	for( uint vid = 0; vid < vertexCount; ++vid )
-	{
-		if( vertexNormals[ vid ].isInitialized && vertexNormals[ vid ].isPerVertex )
-		{
-			mVertexIds.append( vid );
-			mNormals.append( MVector( vertexNormals[ vid ].normal ) );
-		}
-	}
-
-	if( mNormals.length() > 0 )
-	{
-		this->MayaMesh.setVertexNormals( mNormals, mVertexIds );
-	}
-
-	delete[] vertexNormals;
+	return found;
 }
 
-void MeshNode::WritebackNormals_Quad( uint numPolygons, uint numVertexIds )
+// assuming normals are normalized, this will do a fuzzy compare 
+inline bool equalNormals( const float *normal0 , const float *normal1 )
 {
+	return (normal0[0] * normal1[0]) + (normal0[1] * normal1[1]) + (normal0[2] * normal1[2]) > 0.999998f; // > cos(0.1 degrees)
+}
+
+// checks if the normals on the edge connecting the triangles are continuous
+inline bool isEdgeSmooth( uint tri0id, uint tri1id, const Simplygon::rid *vertexIds, const Simplygon::real *normals )
+{
+	// find the shared corners. only allow exactly 2 shared corners
+	uint tri0corners[3];
+	uint tri1corners[3];
+	if( findSharedCorners(tri0id, tri1id, vertexIds, tri0corners, tri1corners) != 2 )
+		return false;
+
+	// compare normals of the corner pairs
+	for( uint inx=0; inx<2; ++inx )
+		if( !equalNormals( &normals[tri0corners[inx]*3] , &normals[tri1corners[inx]*3] ) )
+			return false;
+
+	return true;
+}
+
+// checks if the normals of an edge between two polygons (any combination of triangles or quads) are continuous
+inline bool isEdgeSmooth( uint polygon0id, uint polygon1id, const uint *polygonSizes, const uint *polygonFirstTriangleIds, const Simplygon::rid *vertexIds, const Simplygon::real *normals )
+{
+	const uint tri0start = polygonFirstTriangleIds[polygon0id]; // first or only triangle of the poly
+	const uint tri0end = tri0start + polygonSizes[polygon0id] - 2; // 3 or 4 corners -> 1 or 2 triangles
+
+	const uint tri1start = polygonFirstTriangleIds[polygon1id]; // first or only triangle of the poly
+	const uint tri1end = tri1start + polygonSizes[polygon1id] - 2; // 3 or 4 corners -> 1 or 2 triangles
+
+	bool isSmooth = false;
+	for( uint tri0 = tri0start; tri0 < tri0end; ++tri0 )
+	{
+		for( uint tri1 = tri1start; tri1 < tri1end; ++tri1 )
+		{
+			if( isEdgeSmooth( tri0, tri1, vertexIds, normals ) )
+				return true; // found a smooth edge
+		}
+	}
+
+	// no smooth edge found
+	return false;
+}
+
+MStatus MeshNode::WritebackNormals()
+{
+	MStatus status;
+	 
 	const uint vertexCount = this->sgMeshData->GetVertexCount();
 	const uint triangleCount = this->sgMeshData->GetTriangleCount();
+	const uint polygonCount = this->MayaMesh.numPolygons( &status );
+	MCheckStatus( status, "Internal Maya MFnMesh error, could not retrieve numPolygons()" );
+	const uint faceVertexCount = this->MayaMesh.numFaceVertices( &status );
+	MCheckStatus( status, "Internal Maya MFnMesh error, could not retrieve numFaceVertices()" );
 
-	spRidArray sgVertexIds = this->sgMeshData->GetVertexIds();
-	spRealArray sgNormals = this->sgMeshData->GetNormals();
-	spCharArray sgQuadFlags = this->sgMeshData->GetQuadFlags();
+	// early out if the mesh is empty.
+	if( triangleCount == 0 )
+		return MStatus::kSuccess;
 
-	// collect all vertex normals
-	VertexNormal* vertexNormals = new VertexNormal[ vertexCount ];
-	for( uint vid = 0; vid < vertexCount; ++vid )
+	// get triangles and normal arrays
+	spRidData sgVertexIds = this->sgMeshData->GetVertexIds()->GetData();
+	const Simplygon::rid * const vertexIds = sgVertexIds.Data();
+	spRealData sgNormals = this->sgMeshData->GetNormals()->GetData();
+	const Simplygon::real * const normals = sgNormals.Data();
+
+	// set up polygon -> triangles mapping
+	std::vector<uint> polygonSizes(polygonCount);
+	std::vector<uint> polygonFirstTriangleIds(polygonCount);
+
+	// decode tris or quads/tris
+	if( spCharArray sgQuadFlagsArray = this->sgMeshData->GetQuadFlags() )
 	{
-		vertexNormals[ vid ].isInitialized = false;
+		// quads & tris: count up each polygon and map to triangles
+		spCharData sgQuadFlags = sgQuadFlagsArray->GetData();
+		MValidate( !sgQuadFlags.IsNullOrEmpty(), MStatus::kInvalidParameter, "The quad flags data field is invalid, either nullptr or empty." );
+		const char *quadFlags = sgQuadFlags.Data();
+
+		// set up all the polygons
+		uint destPolygonInx = 0;
+		for( uint tid = 0; tid < triangleCount; )
+		{
+			MSanityCheck( destPolygonInx < polygonCount ); 
+
+			const auto quadFlag = quadFlags[tid];
+			if( quadFlag == SG_QUADFLAG_TRIANGLE )
+			{
+				// step the dest 3 indices, and the source 1 triangle
+				polygonSizes[destPolygonInx] = 3;
+				polygonFirstTriangleIds[destPolygonInx] = tid;
+				++tid;
+			}
+			else if( quadFlag == SG_QUADFLAG_FIRST )
+			{
+				// step the dest 4 indices, and the source 2 triangles (because of quad)
+				polygonSizes[destPolygonInx] = 4;
+				polygonFirstTriangleIds[destPolygonInx] = tid;
+				tid += 2;
+			}
+			else
+			{
+				MValidate( false, MStatus::kInvalidParameter, "The quad flags have invalid formatting, or is out of sync.")
+			}
+
+			++destPolygonInx;
+		}
+
+		MValidate( destPolygonInx == polygonCount, MStatus::kInvalidParameter, "The input quad data does not match the expected data in the MFnMesh" );
+	}
+	else
+	{
+		// no quads, only tris: straight 1:1 mapping of the corners
+
+		// validate assumption about 1:1 mapping (all polys are tris, and number of face vtx must equal triangle corners)
+		MValidate( polygonCount == triangleCount, MStatus::kInvalidParameter, "No quad information exists in the returned mesh, but not all polygons are triangles." );
+
+		for( uint inx=0; inx<polygonCount; ++inx )
+		{
+			polygonSizes[inx] = 3;
+			polygonFirstTriangleIds[inx] = inx;
+		}
 	}
 
-	// do all vertices of all triangles
-	for( uint tid = 0; tid < triangleCount; ++tid )
+	MVectorArray mNormals( faceVertexCount );  // all the normals
+	MIntArray mPolygonIds( faceVertexCount ); // the polygon a specific normal should be placed in
+	MIntArray mVertexIds( faceVertexCount ); // the vertex a specific normal should be placed in
+	
+	// copy the normals to the polygons of the mesh 
+	for( uint pid = 0, faceVertexInx = 0; pid < polygonCount; ++pid )
 	{
-		for( uint c = 0; c < 3; ++c )
+		const auto polygonSize = polygonSizes[pid];
+		const auto polygonFirstTriangleId = polygonFirstTriangleIds[pid];
+		const auto baseCornerIndex = polygonFirstTriangleId*3;
+
+		// NOTE: the maya plugin seems to write out the quads rotated: (5-0-1-2), adhere to this order
+		static constexpr uint triangleIndices[3] = {0,1,2};
+		static constexpr uint quadIndices[4] = {5,0,1,2};
+		const uint * const polygonCornerIndices = ( polygonSize == 3 ) ? triangleIndices : quadIndices;
+
+		for( uint c = 0; c < polygonSize; ++c, ++faceVertexInx )
 		{
-			const uint cid = tid * 3 + c;
-			const int vid = sgVertexIds->GetItem( cid );
+			const uint cid = baseCornerIndex + polygonCornerIndices[c];
+			const Simplygon::rid vid = vertexIds[ cid ];
+	
+			// set the normal index of the triangle
+			mPolygonIds[faceVertexInx] = pid;
+			mVertexIds[faceVertexInx] = vid;
+			mNormals[faceVertexInx] = MVector( &normals[cid*3] );
+		}
+	}
+	MCheckStatus( this->MayaMesh.setFaceVertexNormals( mNormals, mPolygonIds, mVertexIds ), "could not apply face vertex normals" );
 
-			// set the normal for the face-vertex
-			spRealData sgNormal = sgNormals->GetTuple( cid );
+	// mark edges as smooth/hard
+	MItMeshEdge edgeIter( this->MayaMesh.object(), &status );
+	if( status )
+	{
+		const uint edgeCount = this->MayaMesh.numEdges();
+		MIntArray edgeIds( edgeCount );
+		MIntArray edgeSmooths( edgeCount );
+		MIntArray faceList;
+	
+		// iterate the edges, and mark all which are continuous as smooth
+		while( !edgeIter.isDone( &status ) && status )
+		{
+			const uint edgeIndex = edgeIter.index();
+			edgeIds[edgeIndex] = edgeIndex;
 
-			// if not initialized, set up
-			if( !vertexNormals[ vid ].isInitialized )
+			// assume hard edge
+			edgeSmooths[edgeIndex] = 0;
+
+			// get the connected faces, and check if the normals match
+			edgeIter.getConnectedFaces(faceList,&status);
+			if( status )
 			{
-				vertexNormals[ vid ].isInitialized = true;
-				vertexNormals[ vid ].normal[ 0 ] = sgNormal[ 0 ];
-				vertexNormals[ vid ].normal[ 1 ] = sgNormal[ 1 ];
-				vertexNormals[ vid ].normal[ 2 ] = sgNormal[ 2 ];
-				vertexNormals[ vid ].isPerVertex = true;
-			}
-			else if( vertexNormals[ vid ].isPerVertex )
-			{
-				// compare normals
-				const double dot = vertexNormals[ vid ].normal[ 0 ] * sgNormal[ 0 ] + vertexNormals[ vid ].normal[ 1 ] * sgNormal[ 1 ] +
-				                   vertexNormals[ vid ].normal[ 2 ] * sgNormal[ 2 ];
-
-				if( dot < 0.99 || dot > 1.01 )
+				// only consider manifold edges (an edge with exactly 2 polygons), these are the only one which can possibly be smooth
+				if( faceList.length() == 2 )
 				{
-					vertexNormals[ vid ].isPerVertex = false;
+					if( isEdgeSmooth( faceList[0], faceList[1], polygonSizes.data(), polygonFirstTriangleIds.data(), vertexIds, normals ) )
+						edgeSmooths[edgeIndex] = 1;
 				}
 			}
-		}
-	}
 
-	MVectorArray mNormals;     // all the normals
-	MIntArray mPolygonIndices; // the triangle a specific normal should be placed in
-	MIntArray mVertexIds;      // the vertex a specific normal should be placed in
-
-	mNormals.setSizeIncrement( numVertexIds );
-	mPolygonIndices.setSizeIncrement( numVertexIds );
-	mVertexIds.setSizeIncrement( numVertexIds );
-
-	// do all vertices of all polygons
-	int currentSimplygonCornerIndex = 0;
-	int currentMayaCornerIndex = 0;
-	int polygonIndex = 0;
-
-	const uint numQuadFlags = sgQuadFlags.GetItemCount();
-	for( uint tid = 0; tid < numQuadFlags; ++tid )
-	{
-		const char cQuadFlag = sgQuadFlags->GetItem( tid );
-
-		// per triangle
-		if( cQuadFlag == SG_QUADFLAG_TRIANGLE )
-		{
-			for( uint c = 0; c < 3; ++c )
-			{
-				const rid vid = sgVertexIds->GetItem( currentSimplygonCornerIndex );
-
-				if( vertexNormals[ vid ].isInitialized && !vertexNormals[ vid ].isPerVertex )
-				{
-					// set the normal index of the triangle
-					mPolygonIndices.append( polygonIndex );
-					mVertexIds.append( vid );
-
-					// set the normal for the face-vertex
-					spRealData sgNormal = sgNormals->GetTuple( currentSimplygonCornerIndex );
-					mNormals.append( MVector( sgNormal ) );
-
-					currentMayaCornerIndex++;
-				}
-
-				currentSimplygonCornerIndex++;
-			}
-
-			polygonIndex++;
+			edgeIter.next();
 		}
 
-		// per quad
-		else if( cQuadFlag == SG_QUADFLAG_FIRST )
-		{
-			rid triangleOneVertexIds[ 3 ] = { -1, -1, -1 };
-			triangleOneVertexIds[ 0 ] = sgVertexIds->GetItem( currentSimplygonCornerIndex + 0 );
-			triangleOneVertexIds[ 1 ] = sgVertexIds->GetItem( currentSimplygonCornerIndex + 1 );
-			triangleOneVertexIds[ 2 ] = sgVertexIds->GetItem( currentSimplygonCornerIndex + 2 );
-
-			rid triangleTwoVertexIds[ 3 ] = { -1, -1, -1 };
-			triangleTwoVertexIds[ 0 ] = sgVertexIds->GetItem( currentSimplygonCornerIndex + 3 );
-			triangleTwoVertexIds[ 1 ] = sgVertexIds->GetItem( currentSimplygonCornerIndex + 4 );
-			triangleTwoVertexIds[ 2 ] = sgVertexIds->GetItem( currentSimplygonCornerIndex + 5 );
-
-			int originalCornerIndices[ 4 ] = { 0, 0, 0, 0 };
-			int quadVertexIds[ 4 ] = { 0, 0, 0, 0 };
-			MergeTwoTrianglesIntoQuad( triangleOneVertexIds, triangleTwoVertexIds, quadVertexIds, originalCornerIndices );
-
-			for( uint c = 0; c < 4; ++c )
-			{
-				const rid vid = quadVertexIds[ c ];
-
-				if( vertexNormals[ vid ].isInitialized && !vertexNormals[ vid ].isPerVertex )
-				{
-					// set the normal index of the triangle
-					mPolygonIndices.append( polygonIndex );
-					mVertexIds.append( vid );
-
-					// set the normal for the face-vertex
-					const int originalCornerIndex = currentSimplygonCornerIndex + originalCornerIndices[ c ];
-					spRealData sgNormal = sgNormals->GetTuple( originalCornerIndex );
-					mNormals.append( MVector( sgNormal ) );
-
-					currentMayaCornerIndex++;
-				}
-			}
-
-			currentSimplygonCornerIndex += 6;
-			polygonIndex++;
-		}
+		MCheckStatus( this->MayaMesh.setEdgeSmoothings(edgeIds, edgeSmooths), "setEdgeSmoothings() failed" );
+		MCheckStatus( this->MayaMesh.cleanupEdgeSmoothing(), "cleanupEdgeSmoothing() failed." );
 	}
 
-	if( mNormals.length() > 0 )
-	{
-		this->MayaMesh.setFaceVertexNormals( mNormals, mPolygonIndices, mVertexIds );
-	}
-
-	mNormals.clear();
-	mPolygonIndices.clear();
-	mVertexIds.clear();
-
-	mNormals.setSizeIncrement( vertexCount );
-	mPolygonIndices.setSizeIncrement( vertexCount );
-	mVertexIds.setSizeIncrement( vertexCount );
-
-	// set all per-vertex normals
-	for( uint vid = 0; vid < vertexCount; ++vid )
-	{
-		if( vertexNormals[ vid ].isInitialized && vertexNormals[ vid ].isPerVertex )
-		{
-			mVertexIds.append( vid );
-			mNormals.append( MVector( vertexNormals[ vid ].normal ) );
-		}
-	}
-
-	if( mNormals.length() > 0 )
-	{
-		this->MayaMesh.setVertexNormals( mNormals, mVertexIds );
-	}
-
-	delete[] vertexNormals;
+	return MStatus::kSuccess;
 }
 
 void MeshNode::WritebackNormals_Deprecated()

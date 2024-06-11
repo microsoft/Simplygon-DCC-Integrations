@@ -225,7 +225,7 @@ extern int MayaAPIVersion;
 //
 #ifdef _DEBUG
 #define MAssert( state, message )              \
-	if( !state )                               \
+	if( !(state) )                             \
 	{                                          \
 		MString error( "Assertion failed: " ); \
 		error += "Function: ";                 \
@@ -241,13 +241,13 @@ extern int MayaAPIVersion;
 #define MAssert( state, message )
 #endif
 
-#define MSanityCheck( state ) MAssert( state, "" );
+#define MSanityCheck( state ) MAssert( (state), "" );
 
 // MStatusAssert (Debugging tool)
 //
 #ifdef _DEBUG
 #define MStatusAssert( state, message )        \
-	if( !state )                               \
+	if( !(state) )                             \
 	{                                          \
 		MString error( "Assertion failed: " ); \
 		error += "Function: ";                 \
@@ -263,6 +263,21 @@ extern int MayaAPIVersion;
 #else
 #define MStatusAssert( state, message )
 #endif
+
+#define MValidate( state, errorCode, message ) \
+	if( !(state) )                             \
+	{                                          \
+		MString error( "Validation failed: " );\
+		error += "Function: ";                 \
+		error += __FUNCTION__;                 \
+		error += "Message: ";                  \
+		error += message;                      \
+		MGlobal::displayError( error );        \
+		OutputDebugString( error.asChar() );   \
+		OutputDebugString( "\n" );             \
+		return errorCode;                      \
+	}
+
 
 #ifdef PRINT_DEBUG_INFO
 static MStatus executeGlobalCommand( const MString& command )

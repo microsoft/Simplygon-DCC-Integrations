@@ -97,6 +97,7 @@
     <Content Include="FodyWeavers.xml" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\..\..\WPF\SimplygonWPFUI\SimplygonWPFUI.csproj">
       <Project>{cb949457-2014-4b66-a503-c481d3f0f317}</Project>

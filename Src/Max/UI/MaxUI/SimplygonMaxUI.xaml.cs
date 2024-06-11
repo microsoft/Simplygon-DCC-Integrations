@@ -8,6 +8,9 @@ using System.IO;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Threading;
+#if DEBUG
+using IntegrationTests.TestFramework;
+#endif
 
 namespace SimplygonUI.MaxUI
 {
@@ -156,7 +159,7 @@ namespace SimplygonUI.MaxUI
 "(																																																\n" +
 "	local supportedMaterialChannels = #(\"base_weight\", \"base_color\", \"reflectivity\", \"refl_color\", \"roughness\", \"diff_rough\", \"metalness\", \"transparency\", 						\n" +
 "		\"trans_color\", \"trans_depth\", \"trans_rough\", \"sss_scatter\", \"sss_color\", \"sss_scatter_color\", \"sss_scale\", \"emission\", \"emit_color\", \"emit_luminance\",				\n" +
-"		\"emit_kelvin\", \"bump\", \"coat_bump\", \"displacement\", \"cutout\", \"coating\", \"coat_color\", \"coat_roughness\", \"coat_ior\" )                                                 \n" + 
+"		\"emit_kelvin\", \"bump\", \"coat_bump\", \"displacement\", \"cutout\", \"coating\", \"coat_color\", \"coat_roughness\", \"coat_ior\" )                                                 \n" +
 "																																																\n" +
 "	for channelName in supportedMaterialChannels do																																				\n" +
 "	(																																															\n" +
@@ -281,7 +284,7 @@ namespace SimplygonUI.MaxUI
             MainUI.Resources.MergedDictionaries.Add(this.Resources);
 #if SIMPLYGONMAX2021UI || SIMPLYGONMAX2022UI
             MainUI.SetIntegrationType(SimplygonIntegrationType.Max2021);
-#elif SIMPLYGONMAX2023UI
+#elif SIMPLYGONMAX2023UI || SIMPLYGONMAX2024UI
             MainUI.SetIntegrationType(SimplygonIntegrationType.Max2023);
 #else
             MainUI.SetIntegrationType(SimplygonIntegrationType.Max);
@@ -295,6 +298,10 @@ namespace SimplygonUI.MaxUI
             mGlobal.RegisterNotification(OnSelectionDelegate, null, SystemNotificationCode.NamedSelSetCreated);
             mGlobal.RegisterNotification(OnSelectionDelegate, null, SystemNotificationCode.NamedSelSetDeleted);
             mGlobal.RegisterNotification(OnSelectionDelegate, null, SystemNotificationCode.NamedSelSetRenamed);
+
+#if DEBUG
+            MainUI.StartTestDriver();
+#endif
         }
 
         public virtual void OnSelection(IntPtr param, INotifyInfo info)
@@ -502,6 +509,11 @@ namespace SimplygonUI.MaxUI
             return "3ds Max";
         }
 
+        public string GetIntegrationVersion()
+        {
+            return mGlobal?.UtilityInterface.CurrentVersion;
+        }
+
         public bool? IsColorManagementEnabled()
         {
             return null;
@@ -581,7 +593,7 @@ namespace SimplygonUI.MaxUI
 
 #if SIMPLYGONMAX2021UI || SIMPLYGONMAX2022UI
             maxRetVal = ExecuteMaxScript($@"GetPhysicalMaterialChannelNames()");
-#elif SIMPLYGONMAX2023UI
+#elif SIMPLYGONMAX2023UI || SIMPLYGONMAX2024UI
             maxRetVal = ExecuteMaxScript($@"GetPhysicalMaterialChannelNames_2023()");
 #else
             maxRetVal = ExecuteMaxScript($@"GetMaterialChannelNames()");
@@ -663,5 +675,136 @@ namespace SimplygonUI.MaxUI
         {
             MainUI.SendWarningToLog(warningMessage);
         }
+
+#if DEBUG
+        private int screenshotSelectionSetID { get; set; } = 0;
+
+        public void TestingRestorePristineState()
+        {
+            screenshotSelectionSetID = 0;
+
+            MainUI.Dispatcher.Invoke(() =>
+            {
+                // Remove any existing pipelines from the UI
+                foreach (var pipeline in MainUI.Pipelines.ToArray())
+                    MainUI.OnDeletePipelineSelected(pipeline);
+            });
+
+            // Reset scene (executed on main thread inside our helper function)
+            ExecuteMaxScript("resetMaxFile #noPrompt");
+        }
+
+        public void TestingLoadScene(string scenePath)
+        {
+            MainUI.Dispatcher.Invoke(() =>
+            {
+                mGlobal.COREInterface.ImportFromFile(scenePath, true, null);
+            });
+            // Select everything that isn't lights and cameras
+            ExecuteMaxScript("select (for o in objects where (superClassOf o != light and superClassOf o != camera) collect o);");
+        }
+
+        public void TestingTakeScreenshots(string screenshotsBaseName)
+        {
+            // Add current selection to selection set
+            ExecuteMaxScript($"selectionSets[\"testingscreenshots{screenshotSelectionSetID}\"] = selection;");
+
+            // Hide any previous screenshots selection sets
+            for (var i = 0; i < screenshotSelectionSetID; i++)
+                ExecuteMaxScript($"hide selectionSets[\"testingscreenshots{i}\"];");
+
+            // Finally show the current testingscreenshots selection set, since it is what
+            // we want to take screenshots of
+            ExecuteMaxScript($"unhide selectionSets[\"testingscreenshots{screenshotSelectionSetID}\"];");
+
+            // Take screenshots
+            ExecuteMaxScript($"python.Execute \"exec(open('Helpers/TakeScreenshotsMax.py').read(), {{ 'screenshots_base_name': '{screenshotsBaseName}' }})\"");
+
+            // Show everything again
+            for (var i = 0; i < screenshotSelectionSetID; i++)
+                ExecuteMaxScript($"unhide selectionSets[\"testingscreenshots{i}\"];");
+
+            // Up iterator for next screenshot round
+            screenshotSelectionSetID++;
+        }
+
+        public void TestingRunScript(string script, ScriptFlavor scriptFlavor)
+        {
+            if (scriptFlavor == ScriptFlavor.Default || scriptFlavor == ScriptFlavor.MaxScript)
+                ExecuteMaxScript(script);
+            else if (scriptFlavor == ScriptFlavor.Python)
+                ExecuteMaxScript($"python.Execute \"{script}\"");
+        }
+
+        public TestSceneData TestingGatherSceneData(SceneStatsScope sceneStatsScope)
+        {
+            var sceneData = new TestSceneData();
+
+            if (sceneStatsScope == SceneStatsScope.OnlySelected)
+            {
+                // Vertex count, face count, edge count and triangle count
+                var result = ExecuteMaxScript(@"verts = 0
+faces = 0
+edges = 0
+tris = 0
+for obj in selection do
+(
+    convertToPoly obj
+    polyop.CollapseDeadStructs obj
+    verts += (polyop.getNumVerts obj)
+    faces += (polyop.getNumFaces obj)
+    edges += (polyop.getNumEdges obj)
+    tMesh = snapshotAsMesh obj
+    tris += (getNumFaces tMesh)
+)
+""vertices="" + verts as string + "" faces="" + faces as string + "" edges="" + edges as string + "" tris="" + tris as string
+");
+
+                if (result.S != null && result.S.Contains("="))
+                {
+                    var statsSplit = result.S.Split(' ');
+                    sceneData.VertexCount = int.Parse(statsSplit[0].Split('=')[1]);
+                    sceneData.FaceCount = int.Parse(statsSplit[1].Split('=')[1]);
+                    sceneData.EdgeCount = int.Parse(statsSplit[2].Split('=')[1]);
+                    sceneData.TriangleCount = int.Parse(statsSplit[3].Split('=')[1]);
+                }
+
+                // Mesh names
+                result = ExecuteMaxScript(@"
+names = #()
+for obj in selection do
+(
+    append names obj.name
+)
+names
+");
+                if (result != null && result.STab.Count > 0)
+                {
+                    for (var i = 0; i < result.STab.Count; i++)
+                        sceneData.MeshNames.Add(result.STab[i]);
+                }
+
+                // Material names
+                result = ExecuteMaxScript(@"
+matNames = #()
+for obj in selection do
+(
+    if obj.material != undefined then
+    (
+        append matNames obj.material.name
+    )
+)
+matNames
+");
+                if (result != null && result.STab.Count > 0)
+                {
+                    for (var i = 0; i < result.STab.Count; i++)
+                        sceneData.MaterialNames.Add(result.STab[i]);
+                }
+            }
+
+            return sceneData;
+        }
+#endif
     }
 }

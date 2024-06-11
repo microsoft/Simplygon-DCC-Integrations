@@ -2,6 +2,9 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
+#if DEBUG
+using IntegrationTests.TestFramework;
+#endif
 
 namespace SimplygonUI
 {
@@ -10,6 +13,7 @@ namespace SimplygonUI
         void OnProcess(List<SimplygonSettingsProperty> integrationSettings);
         List<KeyValuePair<string, ESimplygonMaterialCaster>> GetMaterialChannelsFromSelection();
         string GetIntegrationName();
+        string GetIntegrationVersion();
         List<SimplygonSettingsProperty> GetIntegrationSettings();
         void SetTangentCalculatorTypeSetting(Simplygon.ETangentSpaceMethod tangentCalculatorType);
         void ResetTangentCalculatorTypeSetting();
@@ -21,6 +25,15 @@ namespace SimplygonUI
         void DisableShortcuts();
 
         void Log(Category category, string message);
+
+#if DEBUG
+        // Test specific interface methods
+        void TestingRestorePristineState();
+        void TestingLoadScene(string scenePath);
+        void TestingTakeScreenshots(string screenshotsBaseName);
+        void TestingRunScript(string script, ScriptFlavor scriptFlavor);
+        TestSceneData TestingGatherSceneData(SceneStatsScope sceneStatsScope);
+#endif
     }
 
     public interface SimplygonUIExternalAccess

@@ -188,9 +188,8 @@ class MeshNode
 	MStatus
 	WritebackGeometryData_Quad( spScene sgProcessedScene, size_t lodIndex, spSceneMesh sgMesh, MaterialHandler* material_handler, MDagPath& result_path );
 
-	// write back normals
-	void WritebackNormals();
-	void WritebackNormals_Quad( uint numPolygons, uint numVertexIds );
+	// write back normals (tris or quads)
+	MStatus WritebackNormals();
 
 	void WritebackNormals_Deprecated();
 
