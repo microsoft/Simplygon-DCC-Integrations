@@ -18,8 +18,8 @@ namespace SimplygonUI
     public class SimplygonVersion
     {
         public static readonly string Version = "10.3";
-        public static readonly string Build = "10.3.2100.0";
-        public static readonly string Commit = "956f48208be597631b72d42988c6a6fd25789ad0";
+        public static readonly string Build = "10.3.5200.0";
+        public static readonly string Commit = "04088b9c99670cb7cb53115261112ca150f62051";
     }
 
     public enum SimplygonIntegrationType
@@ -15300,6 +15300,7 @@ namespace SimplygonUI
                 {
                     bool needReload = Parent.SeparateOverlappingCharts != value;
                     Parent.SeparateOverlappingCharts = value;
+                    Parent.SplitMirroredChartsUI.Visible = Visible;
                     OnPropertyChanged();
                 }
 
@@ -15342,6 +15343,77 @@ namespace SimplygonUI
             public SimplygonSeparateOverlappingChartsEx DeepCopy()
             {
                 return (SimplygonSeparateOverlappingChartsEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool SplitMirroredCharts { get { return _SplitMirroredCharts; } set { _SplitMirroredCharts = value; OnPropertyChanged(); } }
+        private bool _SplitMirroredCharts;
+        public SimplygonSplitMirroredChartsEx SplitMirroredChartsUI { get; set; }
+        public class SimplygonSplitMirroredChartsEx : SimplygonSettingsProperty
+        {
+            public SimplygonChartAggregatorSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.SplitMirroredCharts;
+                }
+
+                set
+                {
+                    bool needReload = Parent.SplitMirroredCharts != value;
+                    Parent.SplitMirroredCharts = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+            public override bool Visible { get { if( Parent.SeparateOverlappingChartsUI != null ) { return Parent.SeparateOverlappingCharts; } else { return visible; } } set { OnPropertyChanged(); } }
+
+            public SimplygonSplitMirroredChartsEx() : base("SplitMirroredCharts")
+            {
+                Type = "bool";
+                HelpText = "If a chart contains triangles with different windings, for instance if the chart is mirrored, then split up the chart at the folding crease. The setting is only used if SeparateOverlappingCharts is enabled.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonSplitMirroredChartsEx(dynamic jsonData) : base("SplitMirroredCharts")
+            {
+                Type = "bool";
+                HelpText = "If a chart contains triangles with different windings, for instance if the chart is mirrored, then split up the chart at the folding crease. The setting is only used if SeparateOverlappingCharts is enabled.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonSplitMirroredChartsEx DeepCopy()
+            {
+                return (SimplygonSplitMirroredChartsEx)this.MemberwiseClone();
             }
 
             public JObject SaveJson()
@@ -15518,6 +15590,10 @@ namespace SimplygonUI
             SeparateOverlappingChartsUI.Parent = this;
             SeparateOverlappingCharts = SeparateOverlappingChartsUI.DefaultValue;
             Items.Add(SeparateOverlappingChartsUI);
+            SplitMirroredChartsUI = new SimplygonSplitMirroredChartsEx();
+            SplitMirroredChartsUI.Parent = this;
+            SplitMirroredCharts = SplitMirroredChartsUI.DefaultValue;
+            Items.Add(SplitMirroredChartsUI);
             OriginalChartProportionsChannelUI = new SimplygonOriginalChartProportionsChannelEx();
             OriginalChartProportionsChannelUI.Parent = this;
             OriginalChartProportionsChannel = OriginalChartProportionsChannelUI.DefaultValue;
@@ -15552,6 +15628,10 @@ namespace SimplygonUI
             SeparateOverlappingChartsUI.Parent = this;
             SeparateOverlappingCharts = SeparateOverlappingChartsUI.DefaultValue;
             Items.Add(SeparateOverlappingChartsUI);
+            SplitMirroredChartsUI = new SimplygonSplitMirroredChartsEx(jsonData != null && ((JObject)jsonData).GetValue("SplitMirroredChartsUI") != null ? jsonData.SplitMirroredChartsUI : null);
+            SplitMirroredChartsUI.Parent = this;
+            SplitMirroredCharts = SplitMirroredChartsUI.DefaultValue;
+            Items.Add(SplitMirroredChartsUI);
             OriginalChartProportionsChannelUI = new SimplygonOriginalChartProportionsChannelEx(jsonData != null && ((JObject)jsonData).GetValue("OriginalChartProportionsChannelUI") != null ? jsonData.OriginalChartProportionsChannelUI : null);
             OriginalChartProportionsChannelUI.Parent = this;
             OriginalChartProportionsChannel = OriginalChartProportionsChannelUI.DefaultValue;
@@ -15582,6 +15662,9 @@ namespace SimplygonUI
             copy.SeparateOverlappingChartsUI = this.SeparateOverlappingChartsUI.DeepCopy();
             copy.SeparateOverlappingChartsUI.Parent = copy;
             copy.Items.Add(copy.SeparateOverlappingChartsUI);
+            copy.SplitMirroredChartsUI = this.SplitMirroredChartsUI.DeepCopy();
+            copy.SplitMirroredChartsUI.Parent = copy;
+            copy.Items.Add(copy.SplitMirroredChartsUI);
             copy.OriginalChartProportionsChannelUI = this.OriginalChartProportionsChannelUI.DeepCopy();
             copy.OriginalChartProportionsChannelUI.Parent = copy;
             copy.Items.Add(copy.OriginalChartProportionsChannelUI);
@@ -15622,6 +15705,12 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.SeparateOverlappingChartsUI = SeparateOverlappingChartsUI.SaveJson();
+            }
+
+            jsonData.SplitMirroredCharts = SplitMirroredCharts;
+            if(serializeUIComponents)
+            {
+                jsonData.SplitMirroredChartsUI = SplitMirroredChartsUI.SaveJson();
             }
 
             jsonData.OriginalChartProportionsChannel = OriginalChartProportionsChannel;
@@ -15681,6 +15770,11 @@ namespace SimplygonUI
                 SeparateOverlappingCharts = (bool)jsonData.SeparateOverlappingCharts;
             }
 
+            if(jsonData.GetValue("SplitMirroredCharts") != null)
+            {
+                SplitMirroredCharts = (bool)jsonData.SplitMirroredCharts;
+            }
+
             if(jsonData.GetValue("OriginalChartProportionsChannel") != null)
             {
                 OriginalChartProportionsChannel = (string)jsonData.OriginalChartProportionsChannel;
@@ -15700,6 +15794,7 @@ namespace SimplygonUI
             OriginalTexCoordLevelUI.Reset();
             OriginalTexCoordNameUI.Reset();
             SeparateOverlappingChartsUI.Reset();
+            SplitMirroredChartsUI.Reset();
             OriginalChartProportionsChannelUI.Reset();
             LockUVRotationUI.Reset();
         }
@@ -15712,6 +15807,7 @@ namespace SimplygonUI
             OriginalTexCoordLevelUI.IsEditEnabled = isEditEnabled;
             OriginalTexCoordNameUI.IsEditEnabled = isEditEnabled;
             SeparateOverlappingChartsUI.IsEditEnabled = isEditEnabled;
+            SplitMirroredChartsUI.IsEditEnabled = isEditEnabled;
             OriginalChartProportionsChannelUI.IsEditEnabled = isEditEnabled;
             LockUVRotationUI.IsEditEnabled = isEditEnabled;
         }
@@ -23110,6 +23206,7 @@ namespace SimplygonUI
                 if(TextureWidthUI.Visible) return true;
                 if(TextureHeightUI.Visible) return true;
                 if(GutterSpaceUI.Visible) return true;
+                if(SourceTexCoordLevelUI.Visible) return true;
 
                 return false;
             }
@@ -23841,6 +23938,133 @@ namespace SimplygonUI
 
         }
 
+        public int SourceTexCoordLevel { get { return _SourceTexCoordLevel; } set { _SourceTexCoordLevel = value; OnPropertyChanged(); } }
+        private int _SourceTexCoordLevel;
+        public SimplygonSourceTexCoordLevelEx SourceTexCoordLevelUI { get; set; }
+        public class SimplygonSourceTexCoordLevelEx : SimplygonSettingsProperty
+        {
+            public SimplygonGenerateLightmapTexCoordSettings Parent { get; set; }
+            public int Value
+            {
+                get
+                {
+                    return Parent.SourceTexCoordLevel;
+                }
+
+                set
+                {
+                    bool needReload = Parent.SourceTexCoordLevel != value;
+                    Parent.SourceTexCoordLevel = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
+
+            public SimplygonSourceTexCoordLevelEx() : base("SourceTexCoordLevel")
+            {
+                Type = "rid";
+                HelpText = "The texture coordinate level used for fetching source texture coordinate.";
+                TypeOverride = "";
+                DefaultValue = 0;
+                MinValue = 0;
+                MaxValue = 255;
+                DefaultMinValue = 0;
+                DefaultMaxValue = 255;
+                TicksFrequencyValue = 1;
+                Visible = true;
+            }
+
+            public SimplygonSourceTexCoordLevelEx(dynamic jsonData) : base("SourceTexCoordLevel")
+            {
+                Type = "rid";
+                HelpText = "The texture coordinate level used for fetching source texture coordinate.";
+                TypeOverride = "";
+                DefaultValue = 0;
+                MinValue = 0;
+                DefaultMinValue = 0;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SourceTexCoordLevel: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 255;
+                DefaultMaxValue = 255;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"SourceTexCoordLevel: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonSourceTexCoordLevelEx DeepCopy()
+            {
+                return (SimplygonSourceTexCoordLevelEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
 
         public SimplygonGenerateLightmapTexCoordSettings() : base("GenerateLightmapTexCoordSettings")
         {
@@ -23873,6 +24097,10 @@ namespace SimplygonUI
             GutterSpaceUI.Parent = this;
             GutterSpace = GutterSpaceUI.DefaultValue;
             Items.Add(GutterSpaceUI);
+            SourceTexCoordLevelUI = new SimplygonSourceTexCoordLevelEx();
+            SourceTexCoordLevelUI.Parent = this;
+            SourceTexCoordLevel = SourceTexCoordLevelUI.DefaultValue;
+            Items.Add(SourceTexCoordLevelUI);
         }
 
         public SimplygonGenerateLightmapTexCoordSettings(dynamic jsonData) : base("GenerateLightmapTexCoordSettings")
@@ -23906,6 +24134,10 @@ namespace SimplygonUI
             GutterSpaceUI.Parent = this;
             GutterSpace = GutterSpaceUI.DefaultValue;
             Items.Add(GutterSpaceUI);
+            SourceTexCoordLevelUI = new SimplygonSourceTexCoordLevelEx(jsonData != null && ((JObject)jsonData).GetValue("SourceTexCoordLevelUI") != null ? jsonData.SourceTexCoordLevelUI : null);
+            SourceTexCoordLevelUI.Parent = this;
+            SourceTexCoordLevel = SourceTexCoordLevelUI.DefaultValue;
+            Items.Add(SourceTexCoordLevelUI);
             LoadJson(jsonData);
         }
 
@@ -23934,6 +24166,9 @@ namespace SimplygonUI
             copy.GutterSpaceUI = this.GutterSpaceUI.DeepCopy();
             copy.GutterSpaceUI.Parent = copy;
             copy.Items.Add(copy.GutterSpaceUI);
+            copy.SourceTexCoordLevelUI = this.SourceTexCoordLevelUI.DeepCopy();
+            copy.SourceTexCoordLevelUI.Parent = copy;
+            copy.Items.Add(copy.SourceTexCoordLevelUI);
             return copy;
         }
 
@@ -23980,6 +24215,12 @@ namespace SimplygonUI
             if(serializeUIComponents)
             {
                 jsonData.GutterSpaceUI = GutterSpaceUI.SaveJson();
+            }
+
+            jsonData.SourceTexCoordLevel = SourceTexCoordLevel;
+            if(serializeUIComponents)
+            {
+                jsonData.SourceTexCoordLevelUI = SourceTexCoordLevelUI.SaveJson();
             }
 
             return jsonData;
@@ -24067,6 +24308,21 @@ namespace SimplygonUI
 
             }
 
+            if(jsonData.GetValue("SourceTexCoordLevel") != null)
+            {
+                var newSourceTexCoordLevel = (int)jsonData.SourceTexCoordLevel;
+                if (newSourceTexCoordLevel >= SourceTexCoordLevelUI.DefaultMinValue && newSourceTexCoordLevel <= SourceTexCoordLevelUI.DefaultMaxValue)
+                {
+                    SourceTexCoordLevel = newSourceTexCoordLevel;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"SourceTexCoordLevel: Invalid value {newSourceTexCoordLevel}, using default value {SourceTexCoordLevel.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
         }
 
         public override void Reset()
@@ -24078,6 +24334,7 @@ namespace SimplygonUI
             TextureWidthUI.Reset();
             TextureHeightUI.Reset();
             GutterSpaceUI.Reset();
+            SourceTexCoordLevelUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
@@ -24090,6 +24347,7 @@ namespace SimplygonUI
             TextureWidthUI.IsEditEnabled = isEditEnabled;
             TextureHeightUI.IsEditEnabled = isEditEnabled;
             GutterSpaceUI.IsEditEnabled = isEditEnabled;
+            SourceTexCoordLevelUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -48864,8 +49122,8 @@ namespace SimplygonUI
             }
 
             jsonData.Version = "10.3";
-            jsonData.Build = "10.3.2100.0";
-            jsonData.Commit = "956f48208be597631b72d42988c6a6fd25789ad0";
+            jsonData.Build = "10.3.5200.0";
+            jsonData.Commit = "04088b9c99670cb7cb53115261112ca150f62051";
             jsonData.Settings.GlobalSettings = GlobalSettings.SaveJson(serializeUIComponents);
             jsonData.Settings.PipelineSettings = PipelineSettings.SaveJson(serializeUIComponents);
 
