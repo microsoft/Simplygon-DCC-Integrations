@@ -8,7 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Threading;
-#if DEBUG
+
+#if SIMPLYGON_INTEGRATION_TESTING
 using IntegrationTests.TestFramework;
 #endif
 
@@ -299,7 +300,7 @@ namespace SimplygonUI.MaxUI
             mGlobal.RegisterNotification(OnSelectionDelegate, null, SystemNotificationCode.NamedSelSetDeleted);
             mGlobal.RegisterNotification(OnSelectionDelegate, null, SystemNotificationCode.NamedSelSetRenamed);
 
-#if DEBUG
+#if SIMPLYGON_INTEGRATION_TESTING
             MainUI.StartTestDriver();
 #endif
         }
@@ -676,7 +677,7 @@ namespace SimplygonUI.MaxUI
             MainUI.SendWarningToLog(warningMessage);
         }
 
-#if DEBUG
+#if SIMPLYGON_INTEGRATION_TESTING
         private int screenshotSelectionSetID { get; set; } = 0;
 
         public void TestingRestorePristineState()

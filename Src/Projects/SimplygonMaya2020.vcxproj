@@ -1,0 +1,186 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{43856CDC-4C9F-4910-ACD3-7C3BF9081AE9}</ProjectGuid>
+    <RootNamespace>SimplygonMaya2020</RootNamespace>
+    <ProjectName>SimplygonMaya2020</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <VCToolsVersion />
+    <VCToolsRedistVersion />
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <VCToolsVersion />
+    <VCToolsRedistVersion />
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <OutDir>$(ProjectDir)..\..\Build\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)..\..\Build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)$(Configuration)</TargetName>
+    <TargetExt>.mll</TargetExt>
+    <GenerateManifest>true</GenerateManifest>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutDir>$(ProjectDir)..\..\Build\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)..\..\Build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)</TargetName>
+    <TargetExt>.mll</TargetExt>
+    <GenerateManifest>false</GenerateManifest>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <AdditionalOptions>/I "." /D "WIN32" /D "_DEBUG" /c %(AdditionalOptions) /ZH:SHA_256</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(SIMPLYGON_10_PATH);$(ProjectDir)..\Simplygon;$(ProjectDir)..\Maya;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Common;C:\Program Files\Autodesk\Maya2020\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>MAYA_INTEGRATION;WIN32;_DEBUG;_WINDOWS;_AFXDLL;_MBCS;NT_PLUGIN;REQUIRE_IOSTREAM;_CRT_SECURE_NO_DEPRECATE;SGCP;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
+      <WarningLevel>Level3</WarningLevel>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <CompileAsManaged>false</CompileAsManaged>
+      <SDLCheck>false</SDLCheck>
+      <EnablePREfast>false</EnablePREfast>
+      <MinimalRebuild>
+      </MinimalRebuild>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>Psapi.lib;Foundation.lib;OpenMaya.lib;OpenMayaUI.lib;OpenMayaAnim.lib;OpenMayaRender.lib;Shlwapi.lib;Crypt32.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\Maya2020\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(ProjectName).pdb</ProgramDatabaseFile>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>$(OutDir)$(ProjectName).lib</ImportLibrary>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <AdditionalOptions>/I "." /c %(AdditionalOptions) /ZH:SHA_256</AdditionalOptions>
+      <Optimization>Full</Optimization>
+      <AdditionalIncludeDirectories>$(SIMPLYGON_10_PATH);$(ProjectDir)..\Simplygon;$(ProjectDir)..\Maya;$(ProjectDir)..\CodeAnalysis;$(ProjectDir)..\Common;C:\Program Files\Autodesk\Maya2020\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>MAYA_INTEGRATION;WIN32;NDEBUG;_WINDOWS;_AFXDLL;_MBCS;NT_PLUGIN;REQUIRE_IOSTREAM;_CRT_SECURE_NO_DEPRECATE;SGCP;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
+      <WarningLevel>Level3</WarningLevel>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <CompileAsManaged>false</CompileAsManaged>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <SDLCheck>true</SDLCheck>
+      <EnablePREfast>false</EnablePREfast>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>Psapi.lib;Foundation.lib;OpenMaya.lib;OpenMayaUI.lib;OpenMayaAnim.lib;OpenMayaRender.lib;Shlwapi.lib;Crypt32.lib;Iphlpapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\Maya2020\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(ProjectName).pdb</ProgramDatabaseFile>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>$(OutDir)$(ProjectName).lib</ImportLibrary>
+      <TargetMachine>MachineX64</TargetMachine>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SIMPLYGON_10_PATH)\SimplygonLoader.cpp" />
+    <ClCompile Include="..\Common\Common.cpp" />
+    <ClCompile Include="..\Common\HelperFunctions.cpp" />
+    <ClCompile Include="..\Common\PipelineHelper.cpp" />
+    <ClCompile Include="..\Common\Shared.cpp" />
+    <ClCompile Include="..\Common\SimplygonInit.cpp" />
+    <ClCompile Include="..\Common\Triangulator.cpp" />
+    <ClCompile Include="..\Common\WorkDirectoryHandler.cpp" />
+    <ClCompile Include="..\Maya\BakedMaterial.cpp" />
+    <ClCompile Include="..\Maya\BlindData.cpp" />
+    <ClCompile Include="..\Maya\DataCollection.cpp" />
+    <ClCompile Include="..\Maya\MaterialInfoHandler.cpp" />
+    <ClCompile Include="..\Maya\MaterialNode.cpp" />
+    <ClCompile Include="..\Maya\MeshNode.cpp" />
+    <ClCompile Include="..\Maya\PCH.cpp" />
+    <ClCompile Include="..\Maya\pluginMain.cpp" />
+    <ClCompile Include="..\Maya\Scene.cpp" />
+    <ClCompile Include="..\Maya\SimplygonCmd.cpp" />
+    <ClCompile Include="..\Maya\SimplygonNetworkCmd.cpp" />
+    <ClCompile Include="..\Maya\SimplygonPipelineCmd.cpp" />
+    <ClCompile Include="..\Maya\SimplygonQueryCmd.cpp" />
+    <ClCompile Include="..\Simplygon\SimplygonProcessingModule.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(SIMPLYGON_10_PATH)\SimplygonLoader.h" />
+    <ClInclude Include="..\Common\Common.h" />
+    <ClInclude Include="..\Common\CriticalSection.h" />
+    <ClInclude Include="..\Common\HelperFunctions.h" />
+    <ClInclude Include="..\Common\PipelineHelper.h" />
+    <ClInclude Include="..\Common\Shared.h" />
+    <ClInclude Include="..\Common\SimplygonConvenienceTemplates.h" />
+    <ClInclude Include="..\Common\SimplygonInit.h" />
+    <ClInclude Include="..\Common\Triangulator.h" />
+    <ClInclude Include="..\Common\WorkDirectoryHandler.h" />
+    <ClInclude Include="..\Maya\BakedMaterial.h" />
+    <ClInclude Include="..\Maya\BlindData.h" />
+    <ClInclude Include="..\Maya\DataCollection.h" />
+    <ClInclude Include="..\Maya\MaterialInfoHandler.h" />
+    <ClInclude Include="..\Maya\MaterialNode.h" />
+    <ClInclude Include="..\Maya\MeshNode.h" />
+    <ClInclude Include="..\Maya\PCH.h" />
+    <ClInclude Include="..\Maya\Scene.h" />
+    <ClInclude Include="..\Maya\ShadingNodeTable.h" />
+    <ClInclude Include="..\Maya\SimplygonCmd.h" />
+    <ClInclude Include="..\Maya\SimplygonNetworkCmd.h" />
+    <ClInclude Include="..\Maya\SimplygonPipelineCmd.h" />
+    <ClInclude Include="..\Maya\SimplygonQueryCmd.h" />
+    <ClInclude Include="..\Simplygon\SimplygonProcessingModule.h" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

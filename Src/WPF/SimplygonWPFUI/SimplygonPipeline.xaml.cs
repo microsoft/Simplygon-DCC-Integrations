@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -23,6 +24,7 @@ namespace SimplygonUI
     /// <summary>
     /// Interaction logic for SimplygonPipeline.xaml
     /// </summary>
+    [SupportedOSPlatform("windows6.1")]
     public partial class SimplygonPipeline : UserControl, ISimplygonPipelineContextMenuCallback
     {
         public SimplygonWPFUIMain UIMain { get; set; }

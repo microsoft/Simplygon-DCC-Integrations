@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(ProjectDir)..\..\..\..\packages\Costura.Fody.4.1.0\build\Costura.Fody.props" Condition="Exists('$(ProjectDir)..\..\..\..\packages\Costura.Fody.4.1.0\build\Costura.Fody.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -78,9 +78,9 @@
   <ItemGroup />
   <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="..\..\..\WPF\SimplygonWPFUI\SimplygonWPFUI.csproj">
+    <ProjectReference Include="..\..\..\WPF\SimplygonWPFUI\Net4\SimplygonWPFUI.Net4.csproj">
       <Project>{cb949457-2014-4b66-a503-c481d3f0f317}</Project>
-      <Name>SimplygonWPFUI</Name>
+      <Name>SimplygonWPFUI.Net4</Name>
     </ProjectReference>
     <ProjectReference Include="..\MaxUI\SimplygonMax2018UI.csproj">
       <Project>{baca1f3d-63ed-4ca3-90f7-f272c92fcc83}</Project>

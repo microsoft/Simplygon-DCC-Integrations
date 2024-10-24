@@ -2,19 +2,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2019", "Projects\Max2019.vcxproj", "{35F75A41-9655-4EC0-82B5-3F5D7CF9D372}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2019", "Projects\SimplygonMax2019.vcxproj", "{35F75A41-9655-4EC0-82B5-3F5D7CF9D372}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2020", "Projects\Max2020.vcxproj", "{35F75A41-9655-4EC0-82B5-3F5D7CF9D374}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2020", "Projects\SimplygonMax2020.vcxproj", "{35F75A41-9655-4EC0-82B5-3F5D7CF9D374}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2018", "Projects\Max2018.vcxproj", "{35F75A41-9655-4EC0-82B5-3F5D7CF9D375}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2018", "Projects\SimplygonMax2018.vcxproj", "{35F75A41-9655-4EC0-82B5-3F5D7CF9D375}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2021", "Projects\Max2021.vcxproj", "{CAA21B12-4384-4C0B-BBAA-440DCBE7C41E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2021", "Projects\SimplygonMax2021.vcxproj", "{CAA21B12-4384-4C0B-BBAA-440DCBE7C41E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2022", "Projects\Max2022.vcxproj", "{CAA21B12-4384-4C0B-BBAA-440DCBE7C41F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2022", "Projects\SimplygonMax2022.vcxproj", "{CAA21B12-4384-4C0B-BBAA-440DCBE7C41F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2023", "Projects\Max2023.vcxproj", "{C8F4F513-A8AE-4398-B942-D0592A4CE4CC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2023", "Projects\SimplygonMax2023.vcxproj", "{C8F4F513-A8AE-4398-B942-D0592A4CE4CC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2024", "Projects\Max2024.vcxproj", "{95C9B2B2-B61E-415A-9043-EA1C5583D0FD}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplygonMax2024", "Projects\SimplygonMax2024.vcxproj", "{95C9B2B2-B61E-415A-9043-EA1C5583D0FD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMax2018UI", "Max\UI\MaxUI\SimplygonMax2018UI.csproj", "{BACA1F3D-63ED-4CA3-90F7-F272C92FCC83}"
 EndProject
@@ -44,7 +44,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMax2023UIBootstrap
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonMax2024UIBootstrap", "Max\UI\MaxUIBootstrap\SimplygonMax2024UIBootstrap.csproj", "{84386F47-38C7-4375-A4F7-3305CB0F2E25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonWPFUI", "WPF\SimplygonWPFUI\SimplygonWPFUI.csproj", "{CB949457-2014-4B66-A503-C481D3F0F317}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplygonWPFUI.Net4", "WPF\SimplygonWPFUI\Net4\SimplygonWPFUI.Net4.csproj", "{CB949457-2014-4B66-A503-C481D3F0F317}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimplygonWPFUI.Net8", "WPF\SimplygonWPFUI\Net8\SimplygonWPFUI.Net8.csproj", "{53358C62-12CA-4690-B577-A7F34DDCEB3D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

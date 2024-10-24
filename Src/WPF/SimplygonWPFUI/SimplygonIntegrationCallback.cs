@@ -2,7 +2,8 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
-#if DEBUG
+
+#if SIMPLYGON_INTEGRATION_TESTING
 using IntegrationTests.TestFramework;
 #endif
 
@@ -26,7 +27,7 @@ namespace SimplygonUI
 
         void Log(Category category, string message);
 
-#if DEBUG
+#if SIMPLYGON_INTEGRATION_TESTING
         // Test specific interface methods
         void TestingRestorePristineState();
         void TestingLoadScene(string scenePath);

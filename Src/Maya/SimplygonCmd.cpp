@@ -1296,9 +1296,9 @@ MStatus SimplygonCmd::ParseArguments( const MArgList& mArgs )
 		( *( flagValues[ index ] ) ) = mArgData.isFlagSet( cFlagNames[ index ] );
 	}
 
-	// Maya 2024 has a bug where dagPose command on models with 2 or more skinclusters
+	// Maya 2024 and 2025 has a bug where dagPose command on models with 2 or more skinclusters
 	// force currentbindpose
-#if MAYA_APP_VERSION == 2024
+#if MAYA_APP_VERSION >= 2024
 	*( flagValues[ 2 ] ) = true;
 #endif
 	return mStatus;

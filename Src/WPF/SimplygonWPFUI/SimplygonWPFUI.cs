@@ -12,14 +12,15 @@ using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using Simplygon;
 using System.Windows.Controls;
+using System.Runtime.Versioning;
 
 namespace SimplygonUI
 {
     public class SimplygonVersion
     {
         public static readonly string Version = "10.3";
-        public static readonly string Build = "10.3.5200.0";
-        public static readonly string Commit = "04088b9c99670cb7cb53115261112ca150f62051";
+        public static readonly string Build = "10.3.6400.0";
+        public static readonly string Commit = "62af6356fe7ba55189494974af3334956dd12015";
     }
 
     public enum SimplygonIntegrationType
@@ -37,6 +38,7 @@ namespace SimplygonUI
         public static SimplygonIntegrationType Type { get; set; }
     }
 
+    [SupportedOSPlatform("windows6.1")]
     public class SimplygonPipelineDatabase
     {
         public static string PipelineDirectory { get; protected set; }
@@ -49122,8 +49124,8 @@ namespace SimplygonUI
             }
 
             jsonData.Version = "10.3";
-            jsonData.Build = "10.3.5200.0";
-            jsonData.Commit = "04088b9c99670cb7cb53115261112ca150f62051";
+            jsonData.Build = "10.3.6400.0";
+            jsonData.Commit = "62af6356fe7ba55189494974af3334956dd12015";
             jsonData.Settings.GlobalSettings = GlobalSettings.SaveJson(serializeUIComponents);
             jsonData.Settings.PipelineSettings = PipelineSettings.SaveJson(serializeUIComponents);
 

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk='Microsoft.NET.Sdk'>
+  <PropertyGroup>
+    <ProjectGuid>{53358C62-12CA-4690-B577-A7F34DDCEB3D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SimplygonUI</RootNamespace>
+    <AssemblyName>Simplygon.WPFUI.Net8</AssemblyName>
+    <Platforms>x64</Platforms>
+    <TargetFramework>net8.0-windows8.0</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>true</AppendRuntimeIdentifierToOutputPath>
+    <BaseOutputPath>bin\</BaseOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" />
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>$(ProjectDir)..\..\..\..\packages\Newtonsoft.Json.13.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SimplygonDotNetWrapper">
+      <HintPath>C:\Program Files\Simplygon\10\SimplygonDotNetWrapper.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Logger\Logger.xaml.cs">
+      <DependentUpon>Logger.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="..\Logger\MiniLogger.xaml.cs">
+      <DependentUpon>MiniLogger.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="..\Logger\UILogger.cs">
+      <Link>UILogger.cs</Link>
+    </Compile>
+    <Compile Include="..\SimplygonImportSettingsDialog.xaml.cs">
+      <DependentUpon>SimplygonImportSettingsDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="..\SimplygonIntegrationCallback.cs">
+      <Link>SimplygonIntegrationCallback.cs</Link>
+    </Compile>
+    <Compile Include="..\SimplygonPipeline.xaml.cs">
+      <DependentUpon>SimplygonPipeline.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="..\SimplygonPipelineContextMenu.cs">
+      <Link>SimplygonPipelineContextMenu.cs</Link>
+    </Compile>
+    <Compile Include="..\SimplygonWPFUI.cs">
+      <Link>SimplygonWPFUI.cs</Link>
+    </Compile>
+    <Compile Include="..\SimplygonWPFUIHelper.cs">
+      <Link>SimplygonWPFUIHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\UserControls\TextBoxWithNoResize.cs">
+      <Link>TextBoxWithNoResize.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SimplygonWPFUIMain.xaml.cs">
+      <DependentUpon>SimplygonWPFUIMain.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="..\Logger\MiniLogger.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Logger\Logger.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SimplygonImportSettingsDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SimplygonPipeline.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SimplygonWPFUIMain.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="../sg_icon_128.ico">
+      <Link>sg_icon_128.ico</Link>
+    </Resource>
+    <Resource Include="..\Resources\Add.png">
+      <Link>Add.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\Settings.png">
+      <Link>Settings.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\simplygon_process_disabled.png">
+      <Link>simplygon_process_disabled.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\simplygon_process_enabled.png">
+      <Link>simplygon_process_enabled.png</Link>
+    </Resource>
+    <Resource Include="..\Resources\Trash.png">
+      <Link>Trash.png</Link>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup />
+</Project>

@@ -8,7 +8,7 @@ Licensed under the MIT License.
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SimplygonUI.MaxUI"
-             xmlns:localwpf="clr-namespace:SimplygonUI;assembly=Simplygon.WPFUI"
+             xmlns:localwpf="clr-namespace:SimplygonUI;assembly=Simplygon.WPFUI.Net4"
              mc:Ignorable="d" 
              d:DesignHeight="500" d:DesignWidth="800" MinHeight="500" MinWidth="315">
     <localwpf:SimplygonWPFUIMain Name="MainUI"/>

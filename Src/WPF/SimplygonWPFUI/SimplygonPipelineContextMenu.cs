@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -31,6 +32,7 @@ namespace SimplygonUI
         }
     }
 
+    [SupportedOSPlatform("windows6.1")]
     public class SimplygonPipelineContextMenu
     {
         bool isLODComponentDropdownEnabled;

@@ -5,6 +5,7 @@ using Autodesk.Maya;
 using Autodesk.Maya.OpenMaya;
 using System;
 using System.Collections.Generic;
+using System.Runtime.Versioning;
 
 [assembly: MPxCommandClass(typeof(SimplygonUI.MayaUI.SimplygonUICmd), "SimplygonUI", hasSyntax = true)]
 
@@ -14,6 +15,7 @@ namespace SimplygonUI.MayaUI
     [MPxCommandSyntaxFlag("-spf", "-SavePipelineToFile", Arg1=typeof(System.String))]
     [MPxCommandSyntaxFlag("-sel", "-SendErrorToLog", Arg1=typeof(System.String))]
     [MPxCommandSyntaxFlag("-swl", "-SendWarningToLog", Arg1=typeof(System.String))]
+    [SupportedOSPlatform("windows6.1")]
     public class SimplygonUICmd : MPxCommand, IMPxCommand
     {
         public static SimplygonMayaUI ui = null;

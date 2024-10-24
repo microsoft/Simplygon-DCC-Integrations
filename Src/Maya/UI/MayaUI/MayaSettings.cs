@@ -180,7 +180,7 @@ namespace SimplygonUI.MayaUI.Settings
             Name = "UseCurrentPoseAsBindPose";
             Type = "bool";
             HelpText = "Enabled: Specifies that the skinning data will be extracted from the current pose rather than the bind pose. Please do not use this flag when in bind pose as synchronization issues might appear!";
-#if SIMPLYGONMAYA2024UI
+#if SIMPLYGONMAYA2024UI || SIMPLYGONMAYA2025UI
             Visible = false;
 #else
             Visible = true;
@@ -191,7 +191,7 @@ namespace SimplygonUI.MayaUI.Settings
 
         public override void Reset()
         {
-#if SIMPLYGONMAYA2024UI
+#if SIMPLYGONMAYA2024UI || SIMPLYGONMAYA2025UI
             Value = true;
 #else
             Value = false;
