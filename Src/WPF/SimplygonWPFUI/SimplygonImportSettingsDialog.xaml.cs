@@ -19,12 +19,14 @@ using System.Windows.Navigation;
 using System.IO;
 using System.Threading;
 using Newtonsoft.Json.Linq;
+using System.Runtime.Versioning;
 
 namespace SimplygonUI
 {
     /// <summary>
     /// Interaction logic for SimplygonImportSettingsDialog.xaml
     /// </summary>
+    [SupportedOSPlatform("windows6.1")]
     public partial class SimplygonImportSettingsDialog : Window
     {
         public SimplygonWPFUIMain MainUI { get; set; }
@@ -63,7 +65,11 @@ namespace SimplygonUI
         {
             OpenFileDialog dialog = new OpenFileDialog()
             {
+#if LEGACYSETTINGSSUPPORT
                 Filter = "Simplygon Settings Files(*.json;*.spl;*.ini)|*.json;*.spl;*.ini",
+#else
+                Filter = "Simplygon Settings Files(*.json)|*.json",
+#endif
                 Title = "Import Simplygon settings",
                 Multiselect = true
             };

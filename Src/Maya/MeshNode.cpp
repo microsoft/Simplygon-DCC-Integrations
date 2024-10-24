@@ -881,6 +881,12 @@ MStatus MeshNode::ExtractTriangleData()
 		return MStatus::kFailure;
 	}
 
+	
+	// Checking if the normal is locked seems to trigger a recalculation which fixes potentially faulty tangents.
+	// No other call has achieved the same recalculation.
+	// It only works if it's called here before fields are extracted.
+	bool locked = MayaMesh.isNormalLocked( 0, &mStatus );
+
 	// we support a maximum of (SG_NUM_SUPPORTED_TEXTURE_CHANNELS-1) uv sets
 	size_t numUVSets = this->UVSets.size();
 	if( numUVSets > SG_NUM_SUPPORTED_TEXTURE_CHANNELS )
@@ -951,7 +957,7 @@ MStatus MeshNode::ExtractTriangleData()
 	this->sgMeshData->AddNormals();
 	spRealArray sgNormals = this->sgMeshData->GetNormals();
 	spRidArray sgVertexIds = this->sgMeshData->GetVertexIds();
-
+	
 	// step through the triangles
 	std::set<int> invalidColorChannels;
 	for( mMeshPolygonIterator.reset(); !mMeshPolygonIterator.isDone(); mMeshPolygonIterator.next() )
@@ -1018,7 +1024,7 @@ MStatus MeshNode::ExtractTriangleData()
 
 			// get tangents and bi-tangents as well
 			for( uint c = 0; c < 3; ++c )
-			{
+			{		
 				const uint tangentId = mMeshPolygonIterator.tangentIndex( c );
 				const uint desinationId = tid * 3 + c;
 
@@ -1026,9 +1032,8 @@ MStatus MeshNode::ExtractTriangleData()
 				{
 					const MFloatVector& mTan = mSrcTangents[ UVSetIndex ][ tangentId ];
 					const MFloatVector& mBiTan = mSrcBinormals[ UVSetIndex ][ tangentId ];
-
-					const real tanTuple[ 3 ] = { mTan[ 0 ], mTan[ 1 ], mTan[ 2 ] };
-					const real biTanTuple[ 3 ] = { mBiTan[ 0 ], mBiTan[ 1 ], mBiTan[ 2 ] };
+					const real tanTuple[ 3 ] = { (float)mTan[ 0 ], (float)mTan[ 1 ], (float)mTan[ 2 ] };
+					const real biTanTuple[ 3 ] = { (float)mBiTan[ 0 ], (float)mBiTan[ 1 ], (float)mBiTan[ 2 ] };
 
 					sgTangentField->SetTuple( desinationId, tanTuple );
 					sgBiTangentField->SetTuple( desinationId, biTanTuple );
@@ -1574,7 +1579,7 @@ MStatus MeshNode::ExtractTriangleData_Quad()
 					const int cid = targetPolygonindex * 3 + c;
 					const int nid = triangleNormalIds[ c ];
 
-					mTempVector = mSrcNormals[ nid ];
+					mTempVector = mSrcNormals[ nid ]; 
 
 					const real normal[ 3 ] = { (float)mTempVector[ 0 ], (float)mTempVector[ 1 ], (float)mTempVector[ 2 ] };
 					sgNormals->SetTuple( cid, normal );
@@ -5896,11 +5901,11 @@ MStatus MeshNode::AddSkinning( spScene sgProcessedScene )
 	if( !mStatus )
 		return mStatus;
 
-	// Maya 2024 has a bug where dagPose command on models with 2 or more skinclusters
-#if MAYA_APP_VERSION != 2024
+	// Maya 2024 and 2025 has a bug where dagPose command on models with 2 or more skinclusters
+#if MAYA_APP_VERSION != 2024 && MAYA_APP_VERSION != 2025
 	mStatus = ExecuteCommand( MString( "dagPose -restore -bindPose" ) );
 #else
-	std::string sWarningMessage = "AddSkinning - 'dagPose -restore -bindpose' is broken in Maya 2024, using current pose instead!";
+	std::string sWarningMessage = "AddSkinning - 'dagPose -restore -bindpose' is broken in Maya 2024 and 2025, using current pose instead!";
 	MGlobal::displayWarning( sWarningMessage.c_str() );
 #endif
 

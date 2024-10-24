@@ -6,8 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Windows;
-#if DEBUG
+
+#if SIMPLYGON_INTEGRATION_TESTING
 using IntegrationTests.TestFramework;
 #endif
 
@@ -16,6 +18,7 @@ namespace SimplygonUI.MayaUI
     /// <summary>
     /// Interaction logic for SimplygonMayaUI.xaml
     /// </summary>
+    [SupportedOSPlatform("windows6.1")]
     public partial class SimplygonMayaUI : Window, SimplygonIntegrationCallback
     {
         // supported material channels for Maya std materials
@@ -90,7 +93,7 @@ namespace SimplygonUI.MayaUI
 
             Application.Current.Resources.MergedDictionaries.Add(this.Resources);
 
-#if DEBUG
+#if SIMPLYGON_INTEGRATION_TESTING
             MainUI.StartTestDriver();
 #endif
         }
@@ -429,7 +432,7 @@ namespace SimplygonUI.MayaUI
             MainUI.Log(category, message);
         }
 
-#if DEBUG
+#if SIMPLYGON_INTEGRATION_TESTING
         private int screenshotSelectionSetID { get; set; } = 0;
 
         public void TestingRestorePristineState()
@@ -458,7 +461,7 @@ namespace SimplygonUI.MayaUI
             MainUI.Dispatcher.Invoke(() =>
             {
                 var fileType = Path.GetExtension(scenePath).Substring(1).ToUpper();
-                if (fileType == "MA")
+                if (fileType == "MA" || fileType == "MB")
                     MGlobal.executeCommand($"file -import -pr \"{scenePath.Replace("\\", "/")}\"");
                 else
                     MGlobal.executeCommand($"file -import -type \"{fileType}\" -pr \"{scenePath.Replace("\\", "/")}\"");

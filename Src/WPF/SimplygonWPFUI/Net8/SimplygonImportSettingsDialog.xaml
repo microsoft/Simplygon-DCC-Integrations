@@ -1,0 +1,96 @@
+﻿<!--
+Copyright (c) Microsoft Corporation.
+Licensed under the MIT License.
+-->
+<Window x:Class="SimplygonUI.SimplygonImportSettingsDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SimplygonUI"
+             mc:Ignorable="d" 
+             Height="350" Width="550"
+            Title="Simplygon - Batch import and update settings files" WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow" Icon="/Simplygon.WPFUI.Net8;component/sg_icon_128.ico">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="35"/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" BorderThickness="1" Margin="-2,0,-2,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="5,5,5,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Margin="5,0,0,0" Text="Source settings files/folders" HorizontalAlignment="Left" Foreground="#FFC8C8C8"></TextBlock>
+                        <Button Grid.Column="1" Name="AddSourceButton" Click="AddSourceButton_Click">
+                            <Image Source="pack://application:,,,/Simplygon.WPFUI.Net8;component/Add.png" Canvas.ZIndex="1" Margin="5"/>
+                            <Button.ContextMenu>
+                                <ContextMenu Name="AddSourceContextMenu">
+                                    <MenuItem Header="Add files" Click="AddSourceFiles_Click"/>
+                                    <MenuItem Header="Add folder" Click="AddSourceFolder_Click" />
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
+                    </Grid>
+                    <ListBox Grid.Row="1" Margin="5,5,5,5" Name="FileNamesListBox" Grid.Column="0"/>
+                </Grid>
+                <StackPanel Grid.Column="1" Name="SourceStackPanel" IsEnabled="false">
+                    <TextBlock VerticalAlignment="Center"  Margin="5,0,0,0" Name="SimplygonVersionInfo2" Text="Destination folder" HorizontalAlignment="Left" Foreground="#FFC8C8C8"></TextBlock>
+                    <Grid Margin="5,5,5,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" IsReadOnly="True" Name="DestinationFolderTextBox" />
+                        <Button Grid.Column="1" Visibility="Visible" Name="DestinationFolderButton" Click="DestinationFolder_Click" MinWidth="17" MaxHeight="20">...</Button>
+                    </Grid>
+                    <StackPanel Margin="5,10,0,0" Orientation="Horizontal">
+                        <CheckBox Name="KeepFolderStructureCheckBox" VerticalAlignment="Center" IsChecked="True" IsEnabled="False"/>
+                        <TextBlock VerticalAlignment="Center" Text="Keep folder structure from source" HorizontalAlignment="Left" Foreground="#FFC8C8C8"></TextBlock>
+                    </StackPanel>
+                    <StackPanel Margin="5,10,0,0" Orientation="Horizontal">
+                        <CheckBox Name="OverwriteFilesCheckBox" VerticalAlignment="Center" IsChecked="True"/>
+                        <TextBlock VerticalAlignment="Center" Text="Overwrite settings files at destination" HorizontalAlignment="Left" Foreground="#FFC8C8C8"></TextBlock>
+                    </StackPanel>
+                    <StackPanel Margin="5,10,0,0" Orientation="Horizontal">
+                        <CheckBox Name="includeUIMetadataCheckBox" VerticalAlignment="Center" IsChecked="True"/>
+                        <TextBlock VerticalAlignment="Center" Text="Include UI metadata in pipeline json" HorizontalAlignment="Left" Foreground="#FFC8C8C8"></TextBlock>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="5"/>
+            </Grid.ColumnDefinitions>
+            <Grid Name="ProgressBarGrid" Visibility="Hidden">
+                <ProgressBar Grid.Column="0" Margin="5,0,5,0" Minimum="0" Maximum="100" Name="ProgressBar" IsIndeterminate="False" />
+                <TextBlock Name="ProgressBarStatus" Text="" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#FFC8C8C8"/>
+            </Grid>
+            <Button x:Name="ImportButton" Grid.Column="2" Height="20" Click="Import_Click" IsEnabled="False">
+                Import
+            </Button>
+            <Button x:Name="CancelButton" Grid.Column="3" Height="20" Click="Cancel_Click">
+                Cancel
+            </Button>
+            <Button x:Name="CloseButton" Grid.Column="3" Height="20" Click="Close_Click" Visibility="Hidden">
+                Close
+            </Button>
+        </Grid>
+    </Grid>
+</Window>

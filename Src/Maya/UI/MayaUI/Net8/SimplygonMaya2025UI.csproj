@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk='Microsoft.NET.Sdk'>
+  <PropertyGroup>
+    <ProjectGuid>{4E1D1D52-3C5B-4593-AC6A-B4A48DE75117}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SimplygonUI.MayaUI</RootNamespace>
+    <AssemblyName>SimplygonMaya2025UI.nll</AssemblyName>
+    <Platforms>x64;x86</Platforms>
+    <TargetFramework>net8.0-windows8.0</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>$(ProjectDir)..\..\..\..\..\Build\SimplygonMaya2025UI\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\2025</IntermediateOutputPath>
+    <DefineConstants>TRACE;DEBUG;SIMPLYGONMAYA2025UI</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>$(ProjectDir)..\..\..\..\..\Build\SimplygonMaya2025UI\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\2025</IntermediateOutputPath>
+    <DefineConstants>TRACE;SIMPLYGONMAYA2025UI</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>$(ProjectDir)..\..\..\..\..\packages\Newtonsoft.Json.13.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="openmayacs">
+      <HintPath>C:\Program Files\Autodesk\Maya2025\bin\openmayacs.dll</HintPath>
+    </Reference>
+    <Reference Include="SimplygonDotNetWrapper">
+      <HintPath>C:\Program Files\Simplygon\10\SimplygonDotNetWrapper.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\MayaSettings.cs">
+      <Link>MayaSettings.cs</Link>
+    </Compile>
+    <Compile Include="..\PluginCallbacks.cs">
+      <Link>PluginCallbacks.cs</Link>
+    </Compile>
+    <Compile Include="..\Properties\AssemblyInfo.cs">
+      <Link>AssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\SimplygonMayaUI.xaml.cs">
+      <DependentUpon>SimplygonMayaUI.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="..\SimplygonMayaUIApplication.xaml.cs">
+      <DependentUpon>SimplygonMayaUIApplication.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="..\SimplygonMayaUICmd.cs">
+      <Link>SimplygonMayaUICmd.cs</Link>
+    </Compile>
+    <Compile Include="..\SimplygonMayaUIPlugin.cs">
+      <Link>SimplygonMayaUIPlugin.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="..\SimplygonMayaUIApplication.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SimplygonMayaUI.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup />
+  <ItemGroup />
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\WPF\SimplygonWPFUI\Net8\SimplygonWPFUI.Net8.csproj">
+      <Project>{cb949457-2014-4b66-a503-c481d3f0f317}</Project>
+      <Name>SimplygonWPFUI.Net8</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

@@ -2,12 +2,14 @@
 // Licensed under the MIT License.
 
 using Autodesk.Maya.OpenMaya;
+using System.Runtime.Versioning;
 using System.Windows;
 
 [assembly: ExtensionPlugin(typeof(SimplygonUI.MayaUI.SimplygonMayaUIPlugin))]
 
 namespace SimplygonUI.MayaUI
 {
+    [SupportedOSPlatform("windows6.1")]
     public class SimplygonMayaUIPlugin : IExtensionPlugin
     {
         public static Application app = null;

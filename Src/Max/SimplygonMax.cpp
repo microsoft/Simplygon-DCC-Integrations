@@ -4491,7 +4491,7 @@ void SimplygonMax::WriteMaterialMappingAttribute()
 		MaxMaterialMap* materialMap = this->GlobalExportedMaterialMap[ materialIndex ];
 
 		// sgMaterialName
-		const size_t numSubMaterials = materialMap->SGToMaxMapping.size();
+		const size_t numSubMaterials = materialMap->MaxToSGMapping.size();
 		const char* cMaterialName = LPCTSTRToConstCharPtr( materialMap->sgMaterialName.c_str() );
 		const size_t numMaterialNameChars = strlen( cMaterialName ) + 1; // trailing zero is always included in string
 
@@ -4505,10 +4505,10 @@ void SimplygonMax::WriteMaterialMappingAttribute()
 		attributeDataSize += sizeof( size_t );                                                 // materialName length
 		attributeDataSize += sizeof( char ) * (uint)numMaterialNameChars;                      // materialName
 		attributeDataSize += sizeof( size_t );                                                 // numSubMaterials
-		attributeDataSize += (uint)materialMap->SGToMaxMapping.size() * ( sizeof( int ) * 2 ); // numSubMaterials * <int, int>
+		attributeDataSize += (uint)materialMap->MaxToSGMapping.size() * ( sizeof( int ) * 2 ); // numSubMaterials * <int, int>
 	}
 
-	// write data to attibute memory
+	// write data to attribute memory
 	uchar* attributeData = new uchar[ attributeDataSize ];
 	uint attributeDataOffset = 0;
 
@@ -4520,7 +4520,7 @@ void SimplygonMax::WriteMaterialMappingAttribute()
 	for( size_t materialIndex = 0; materialIndex < numMaterials; ++materialIndex )
 	{
 		MaxMaterialMap* mMap = this->GlobalExportedMaterialMap[ materialIndex ];
-		const size_t numSubMaterials = mMap->SGToMaxMapping.size();
+		const size_t numSubMaterials = mMap->MaxToSGMapping.size();
 
 		// write uniqueHandle
 		const AnimHandle uniqueHandle = mMap->mMaxMaterialHandle;
