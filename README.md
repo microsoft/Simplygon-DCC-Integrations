@@ -26,7 +26,7 @@ You can only build the integrations using Windows with the following Visual stud
 | Maya 2022     | Visual studio 2019 (v142) |
 | Maya 2023     | Visual studio 2019 (v142) |
 | Maya 2024     | Visual studio 2019 (v142) |
-| Maya 2025     | Visual studio 2019 (v143) |
+| Maya 2025     | Visual studio 2022 (v143) |
 
 All Visual studio projects are available in a Visual studio solution for each DCC tool.  
 [Max.sln](Src/Max.sln)  
