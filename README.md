@@ -18,12 +18,15 @@ You can only build the integrations using Windows with the following Visual stud
 | 3ds Max 2021  | Visual studio 2017 (v141) |
 | 3ds Max 2022  | Visual studio 2017 (v141) |
 | 3ds Max 2023  | Visual studio 2017 (v141) |
+| 3ds Max 2024  | Visual studio 2019 (v142) |
 | Maya 2017     | Visual studio 2015 (v140) |
 | Maya 2018     | Visual studio 2015 (v140) |
 | Maya 2019     | Visual studio 2015 (v140) |
 | Maya 2020     | Visual studio 2017 (v141) |
 | Maya 2022     | Visual studio 2019 (v142) |
 | Maya 2023     | Visual studio 2019 (v142) |
+| Maya 2024     | Visual studio 2019 (v142) |
+| Maya 2025     | Visual studio 2019 (v143) |
 
 All Visual studio projects are available in a Visual studio solution for each DCC tool.  
 [Max.sln](Src/Max.sln)  
