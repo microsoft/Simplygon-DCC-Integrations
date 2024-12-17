@@ -60,7 +60,7 @@ SimplygonCmd::SimplygonCmd()
 	this->listSettings = false;
 	this->creaseValues = false;
 	this->skipBlendShapePostfix = false;
-	this->useCurrentPoseAsBindPose = true;
+	this->useCurrentPoseAsBindPose = false;
 	this->useOldSkinningMethod = false;
 
 	this->runInternally = false;

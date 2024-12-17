@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using Autodesk.Maya.OpenMaya;
@@ -96,11 +96,6 @@ namespace SimplygonUI.MayaUI
 #if SIMPLYGON_INTEGRATION_TESTING
             MainUI.StartTestDriver();
 #endif
-        }
-
-        private void SimplygonMayaUI_RestoreFocusToMayaWindow(object sender, EventArgs e)
-        {
-            EnableShortcuts();
         }
 
         private void SimplygonMayaUI_RestoreFocusToMayaWindow(object sender, EventArgs e)
@@ -451,7 +446,7 @@ namespace SimplygonUI.MayaUI
                 // Reset scene
                 MGlobal.executeCommand("file -new -f;");
                 MGlobal.executeCommand("refresh;");
-            });
+            }, System.Windows.Threading.DispatcherPriority.ContextIdle);
 
             screenshotSelectionSetID = 0;
         }
@@ -470,7 +465,7 @@ namespace SimplygonUI.MayaUI
                 MGlobal.executeCommand("refresh;");
                 MGlobal.executeCommand("string $geoms[] = `ls -geometry`; select `listRelatives -parent $geoms`;");
                 MGlobal.executeCommand("refresh;");
-            });
+            }, System.Windows.Threading.DispatcherPriority.ContextIdle);
         }
 
         public void TestingTakeScreenshots(string screenshotsBaseName)
@@ -497,7 +492,7 @@ namespace SimplygonUI.MayaUI
 
                 // Up iterator for next screenshot round
                 screenshotSelectionSetID++;
-            });
+            }, System.Windows.Threading.DispatcherPriority.ContextIdle);
         }
 
         public void TestingRunScript(string script, ScriptFlavor scriptFlavor)
@@ -509,7 +504,7 @@ namespace SimplygonUI.MayaUI
                     MGlobal.executeCommand(script);
                 else if (scriptFlavor == ScriptFlavor.Python)
                     MGlobal.executePythonCommand(script);
-            });
+            }, System.Windows.Threading.DispatcherPriority.ContextIdle);
         }
 
         public TestSceneData TestingGatherSceneData(SceneStatsScope sceneStatsScope)
@@ -540,7 +535,7 @@ namespace SimplygonUI.MayaUI
                     MGlobal.executeCommand("GetMaterialNamesFromSelection()", result, true);
                     sceneData.MaterialNames = result.ToList();
                 }
-            });
+            }, System.Windows.Threading.DispatcherPriority.ContextIdle);
 
             return sceneData;
         }

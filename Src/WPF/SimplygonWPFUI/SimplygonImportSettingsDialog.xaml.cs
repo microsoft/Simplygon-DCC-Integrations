@@ -65,11 +65,7 @@ namespace SimplygonUI
         {
             OpenFileDialog dialog = new OpenFileDialog()
             {
-#if LEGACYSETTINGSSUPPORT
-                Filter = "Simplygon Settings Files(*.json;*.spl;*.ini)|*.json;*.spl;*.ini",
-#else
                 Filter = "Simplygon Settings Files(*.json)|*.json",
-#endif
                 Title = "Import Simplygon settings",
                 Multiselect = true
             };
@@ -220,26 +216,11 @@ namespace SimplygonUI
             {
                 SimplygonPipeline pipeline = null;
 
-                if (System.IO.Path.GetExtension(fileName).ToLower() == ".spl")
+                dynamic jsonData = JObject.Parse(System.IO.File.ReadAllText(fileName));
+                this.Dispatcher.Invoke(new Action(() =>
                 {
-#if LEGACYSETTINGSSUPPORT
-                    pipeline = SimplygonUI.SPL.Importer.Import(fileName);
-#endif
-                }
-                else if (System.IO.Path.GetExtension(fileName).ToLower() == ".ini")
-                {
-#if LEGACYSETTINGSSUPPORT
-                    pipeline = SimplygonUI.INI.Importer.Import(fileName);
-#endif
-                }
-                else
-                {
-                    dynamic jsonData = JObject.Parse(System.IO.File.ReadAllText(fileName));
-                    this.Dispatcher.Invoke(new Action(() =>
-                    {
-                        pipeline = new SimplygonPipeline(fileName, jsonData);
-                    }));
-                }
+                    pipeline = new SimplygonPipeline(fileName, jsonData);
+                }));
 
                 if (pipeline != null)
                 {
@@ -299,12 +280,8 @@ namespace SimplygonUI
 
             try
             {
-                var iniFiles = Directory.EnumerateFiles(folderName, "*.ini");
-                var splFiles = Directory.EnumerateFiles(folderName, "*.spl");
                 var jsonFiles = Directory.EnumerateFiles(folderName, "*.json");
                 var files = new List<string>();
-                files.AddRange(iniFiles);
-                files.AddRange(splFiles);
                 files.AddRange(jsonFiles);
                 foreach (var file in files)
                 {

@@ -18,9 +18,9 @@ namespace SimplygonUI
 {
     public class SimplygonVersion
     {
-        public static readonly string Version = "10.3";
-        public static readonly string Build = "10.3.6400.0";
-        public static readonly string Commit = "62af6356fe7ba55189494974af3334956dd12015";
+        public static readonly string Version = "10.4";
+        public static readonly string Build = "10.4.117.0";
+        public static readonly string Commit = "1b9adada16dec455b20dfc626d8911f8ad279951";
     }
 
     public enum SimplygonIntegrationType
@@ -12890,6 +12890,519 @@ namespace SimplygonUI
             WeightsFromColorComponentUI.IsEditEnabled = isEditEnabled;
             WeightsFromColorMultiplierUI.IsEditEnabled = isEditEnabled;
             WeightsFromColorModeUI.IsEditEnabled = isEditEnabled;
+        }
+
+    }
+
+    public class SimplygonPartRemoverSettings : SimplygonSettings
+    {
+        public override bool Visible
+        {
+            get
+            {
+                if (!VisibleOverride) return false;
+                if (Name == "InputMaterialSettings") return false;
+                if(PartRemoverThresholdTypeUI.Visible) return true;
+                if(ThresholdUI.Visible) return true;
+                if(UseSurfaceAreaUI.Visible) return true;
+                if(UseVertexLocksUI.Visible) return true;
+
+                return false;
+            }
+
+            set
+            {
+                OnPropertyChanged();
+            }
+
+        }
+
+        public SimplygonTreeViewItem Parent { get; set; }
+        public EPartRemoverThresholdType PartRemoverThresholdType { get { return _PartRemoverThresholdType; } set { _PartRemoverThresholdType = value; OnPropertyChanged(); } }
+        private EPartRemoverThresholdType _PartRemoverThresholdType;
+        public SimplygonPartRemoverThresholdTypeEx PartRemoverThresholdTypeUI { get; set; }
+        public class SimplygonPartRemoverThresholdTypeEx : SimplygonSettingsProperty
+        {
+            public SimplygonPartRemoverSettings Parent { get; set; }
+            public EPartRemoverThresholdType Value
+            {
+                get
+                {
+                    return Parent.PartRemoverThresholdType;
+                }
+
+                set
+                {
+                    bool needReload = Parent.PartRemoverThresholdType != value;
+                    Parent.PartRemoverThresholdType = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public EPartRemoverThresholdType DefaultValue { get; set; }
+            public Array EnumValues { get { return Enum.GetValues(typeof(EPartRemoverThresholdType)); } }
+
+            public SimplygonPartRemoverThresholdTypeEx() : base("PartRemoverThresholdType")
+            {
+                Type = "enum";
+                HelpText = "Determines which kind of size threshold will be used.";
+                TypeOverride = "";
+                DefaultValue = EPartRemoverThresholdType.PhysicalSize;
+                Visible = true;
+            }
+
+            public SimplygonPartRemoverThresholdTypeEx(dynamic jsonData) : base("PartRemoverThresholdType")
+            {
+                Type = "enum";
+                HelpText = "Determines which kind of size threshold will be used.";
+                TypeOverride = "";
+                DefaultValue = EPartRemoverThresholdType.PhysicalSize;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonPartRemoverThresholdTypeEx DeepCopy()
+            {
+                return (SimplygonPartRemoverThresholdTypeEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public float Threshold { get { return _Threshold; } set { _Threshold = value; OnPropertyChanged(); } }
+        private float _Threshold;
+        public SimplygonThresholdEx ThresholdUI { get; set; }
+        public class SimplygonThresholdEx : SimplygonSettingsProperty
+        {
+            public SimplygonPartRemoverSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.Threshold;
+                }
+
+                set
+                {
+                    bool needReload = Parent.Threshold != value;
+                    Parent.Threshold = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+
+            public SimplygonThresholdEx() : base("Threshold")
+            {
+                Type = "real";
+                HelpText = "The threshold value. How it is interpreted depends on the ThresholdType Enum.";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = 0f;
+                MaxValue = 100000f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 100000f;
+                TicksFrequencyValue = 0.1f;
+                Visible = true;
+            }
+
+            public SimplygonThresholdEx(dynamic jsonData) : base("Threshold")
+            {
+                Type = "real";
+                HelpText = "The threshold value. How it is interpreted depends on the ThresholdType Enum.";
+                TypeOverride = "";
+                DefaultValue = 0f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Threshold: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 100000f;
+                DefaultMaxValue = 100000f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Threshold: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 0.1f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonThresholdEx DeepCopy()
+            {
+                return (SimplygonThresholdEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public bool UseSurfaceArea { get { return _UseSurfaceArea; } set { _UseSurfaceArea = value; OnPropertyChanged(); } }
+        private bool _UseSurfaceArea;
+        public SimplygonUseSurfaceAreaEx UseSurfaceAreaUI { get; set; }
+        public class SimplygonUseSurfaceAreaEx : SimplygonSettingsProperty
+        {
+            public SimplygonPartRemoverSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.UseSurfaceArea;
+                }
+
+                set
+                {
+                    bool needReload = Parent.UseSurfaceArea != value;
+                    Parent.UseSurfaceArea = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonUseSurfaceAreaEx() : base("UseSurfaceArea")
+            {
+                Type = "bool";
+                HelpText = "If set, objects with small surface area but big diameter will also be removed.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonUseSurfaceAreaEx(dynamic jsonData) : base("UseSurfaceArea")
+            {
+                Type = "bool";
+                HelpText = "If set, objects with small surface area but big diameter will also be removed.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonUseSurfaceAreaEx DeepCopy()
+            {
+                return (SimplygonUseSurfaceAreaEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public bool UseVertexLocks { get { return _UseVertexLocks; } set { _UseVertexLocks = value; OnPropertyChanged(); } }
+        private bool _UseVertexLocks;
+        public SimplygonUseVertexLocksEx UseVertexLocksUI { get; set; }
+        public class SimplygonUseVertexLocksEx : SimplygonSettingsProperty
+        {
+            public SimplygonPartRemoverSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.UseVertexLocks;
+                }
+
+                set
+                {
+                    bool needReload = Parent.UseVertexLocks != value;
+                    Parent.UseVertexLocks = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+
+            public SimplygonUseVertexLocksEx() : base("UseVertexLocks")
+            {
+                Type = "bool";
+                HelpText = "If set, objects containing locked vertices will not be removed.";
+                TypeOverride = "";
+                DefaultValue = true;
+                Visible = true;
+            }
+
+            public SimplygonUseVertexLocksEx(dynamic jsonData) : base("UseVertexLocks")
+            {
+                Type = "bool";
+                HelpText = "If set, objects containing locked vertices will not be removed.";
+                TypeOverride = "";
+                DefaultValue = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonUseVertexLocksEx DeepCopy()
+            {
+                return (SimplygonUseVertexLocksEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+
+        public SimplygonPartRemoverSettings() : base("PartRemoverSettings")
+        {
+            Visible = true;
+            PartRemoverThresholdTypeUI = new SimplygonPartRemoverThresholdTypeEx();
+            PartRemoverThresholdTypeUI.Parent = this;
+            PartRemoverThresholdType = PartRemoverThresholdTypeUI.DefaultValue;
+            Items.Add(PartRemoverThresholdTypeUI);
+            ThresholdUI = new SimplygonThresholdEx();
+            ThresholdUI.Parent = this;
+            Threshold = ThresholdUI.DefaultValue;
+            Items.Add(ThresholdUI);
+            UseSurfaceAreaUI = new SimplygonUseSurfaceAreaEx();
+            UseSurfaceAreaUI.Parent = this;
+            UseSurfaceArea = UseSurfaceAreaUI.DefaultValue;
+            Items.Add(UseSurfaceAreaUI);
+            UseVertexLocksUI = new SimplygonUseVertexLocksEx();
+            UseVertexLocksUI.Parent = this;
+            UseVertexLocks = UseVertexLocksUI.DefaultValue;
+            Items.Add(UseVertexLocksUI);
+        }
+
+        public SimplygonPartRemoverSettings(dynamic jsonData) : base("PartRemoverSettings")
+        {
+            Visible = true;
+            PartRemoverThresholdTypeUI = new SimplygonPartRemoverThresholdTypeEx(jsonData != null && ((JObject)jsonData).GetValue("PartRemoverThresholdTypeUI") != null ? jsonData.PartRemoverThresholdTypeUI : null);
+            PartRemoverThresholdTypeUI.Parent = this;
+            PartRemoverThresholdType = PartRemoverThresholdTypeUI.DefaultValue;
+            Items.Add(PartRemoverThresholdTypeUI);
+            ThresholdUI = new SimplygonThresholdEx(jsonData != null && ((JObject)jsonData).GetValue("ThresholdUI") != null ? jsonData.ThresholdUI : null);
+            ThresholdUI.Parent = this;
+            Threshold = ThresholdUI.DefaultValue;
+            Items.Add(ThresholdUI);
+            UseSurfaceAreaUI = new SimplygonUseSurfaceAreaEx(jsonData != null && ((JObject)jsonData).GetValue("UseSurfaceAreaUI") != null ? jsonData.UseSurfaceAreaUI : null);
+            UseSurfaceAreaUI.Parent = this;
+            UseSurfaceArea = UseSurfaceAreaUI.DefaultValue;
+            Items.Add(UseSurfaceAreaUI);
+            UseVertexLocksUI = new SimplygonUseVertexLocksEx(jsonData != null && ((JObject)jsonData).GetValue("UseVertexLocksUI") != null ? jsonData.UseVertexLocksUI : null);
+            UseVertexLocksUI.Parent = this;
+            UseVertexLocks = UseVertexLocksUI.DefaultValue;
+            Items.Add(UseVertexLocksUI);
+            LoadJson(jsonData);
+        }
+
+        public override SimplygonSettings DeepCopy()
+        {
+            var copy = new SimplygonPartRemoverSettings();
+            copy.Items.Clear();
+            copy.PartRemoverThresholdTypeUI = this.PartRemoverThresholdTypeUI.DeepCopy();
+            copy.PartRemoverThresholdTypeUI.Parent = copy;
+            copy.Items.Add(copy.PartRemoverThresholdTypeUI);
+            copy.ThresholdUI = this.ThresholdUI.DeepCopy();
+            copy.ThresholdUI.Parent = copy;
+            copy.Items.Add(copy.ThresholdUI);
+            copy.UseSurfaceAreaUI = this.UseSurfaceAreaUI.DeepCopy();
+            copy.UseSurfaceAreaUI.Parent = copy;
+            copy.Items.Add(copy.UseSurfaceAreaUI);
+            copy.UseVertexLocksUI = this.UseVertexLocksUI.DeepCopy();
+            copy.UseVertexLocksUI.Parent = copy;
+            copy.Items.Add(copy.UseVertexLocksUI);
+            return copy;
+        }
+
+        public override JObject SaveJson(bool serializeUIComponents)
+        {
+            dynamic jsonData = new JObject();
+            jsonData.PartRemoverThresholdType = (int)PartRemoverThresholdType;
+            if(serializeUIComponents)
+            {
+                jsonData.PartRemoverThresholdTypeUI = PartRemoverThresholdTypeUI.SaveJson();
+            }
+
+            jsonData.Threshold = Threshold;
+            if(serializeUIComponents)
+            {
+                jsonData.ThresholdUI = ThresholdUI.SaveJson();
+            }
+
+            jsonData.UseSurfaceArea = UseSurfaceArea;
+            if(serializeUIComponents)
+            {
+                jsonData.UseSurfaceAreaUI = UseSurfaceAreaUI.SaveJson();
+            }
+
+            jsonData.UseVertexLocks = UseVertexLocks;
+            if(serializeUIComponents)
+            {
+                jsonData.UseVertexLocksUI = UseVertexLocksUI.SaveJson();
+            }
+
+            return jsonData;
+        }
+
+        protected void LoadJson(dynamic jsonData)
+        {
+            if(jsonData == null)
+            {
+                return;
+            }
+
+            if(jsonData.GetValue("PartRemoverThresholdType") != null)
+            {
+                PartRemoverThresholdType = (EPartRemoverThresholdType)jsonData.PartRemoverThresholdType;
+            }
+
+            if(jsonData.GetValue("Threshold") != null)
+            {
+                float newThreshold = (float)jsonData.Threshold;
+                if (newThreshold >= ThresholdUI.DefaultMinValue && newThreshold <= ThresholdUI.DefaultMaxValue)
+                {
+                    Threshold = newThreshold;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"Threshold: Invalid value {newThreshold.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {Threshold.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("UseSurfaceArea") != null)
+            {
+                UseSurfaceArea = (bool)jsonData.UseSurfaceArea;
+            }
+
+            if(jsonData.GetValue("UseVertexLocks") != null)
+            {
+                UseVertexLocks = (bool)jsonData.UseVertexLocks;
+            }
+
+        }
+
+        public override void Reset()
+        {
+            PartRemoverThresholdTypeUI.Reset();
+            ThresholdUI.Reset();
+            UseSurfaceAreaUI.Reset();
+            UseVertexLocksUI.Reset();
+        }
+
+        public override void SetEditMode(bool isEditEnabled)
+        {
+            IsEditEnabled = isEditEnabled;
+            PartRemoverThresholdTypeUI.IsEditEnabled = isEditEnabled;
+            ThresholdUI.IsEditEnabled = isEditEnabled;
+            UseSurfaceAreaUI.IsEditEnabled = isEditEnabled;
+            UseVertexLocksUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -41482,7 +41995,7 @@ namespace SimplygonUI
             public SimplygonGeometryDataFieldTypeEx() : base("GeometryDataFieldType")
             {
                 Type = "enum";
-                HelpText = "The GeometryDataFieldType setting, which specifies what field type to cast in the GeometryDataCaster.";
+                HelpText = "The GeometryDataFieldType setting, which specifies what field type to cast in the GeometryDataCaster. The VertexId field, user field and custom field types are not supported. They are however supported in the ComputeCaster.";
                 TypeOverride = "";
                 DefaultValue = EGeometryDataFieldType.Coords;
                 Visible = true;
@@ -41491,7 +42004,7 @@ namespace SimplygonUI
             public SimplygonGeometryDataFieldTypeEx(dynamic jsonData) : base("GeometryDataFieldType")
             {
                 Type = "enum";
-                HelpText = "The GeometryDataFieldType setting, which specifies what field type to cast in the GeometryDataCaster.";
+                HelpText = "The GeometryDataFieldType setting, which specifies what field type to cast in the GeometryDataCaster. The VertexId field, user field and custom field types are not supported. They are however supported in the ComputeCaster.";
                 TypeOverride = "";
                 DefaultValue = EGeometryDataFieldType.Coords;
                 if (jsonData != null && jsonData.GetValue("Visible") != null)
@@ -41557,7 +42070,7 @@ namespace SimplygonUI
             public SimplygonGeometryDataFieldIndexEx() : base("GeometryDataFieldIndex")
             {
                 Type = "uint";
-                HelpText = "The GeometryDataFieldIndex setting, which specifies what field index to cast in the GeometryDataCaster, for fields where it is applicable (TexCoords, Tangents, Bitangents and Colors). The setting is ignored for other field types.";
+                HelpText = "The GeometryDataFieldIndex setting, which specifies what field index to cast in the GeometryDataCaster, for fields where it is applicable (Coords, TexCoords, Normals, Tangents, Bitangents and Colors, TriangleId and MaterialIds). The setting is ignored for other field types.";
                 TypeOverride = "";
                 DefaultValue = 0;
                 MinValue = 0;
@@ -41571,7 +42084,7 @@ namespace SimplygonUI
             public SimplygonGeometryDataFieldIndexEx(dynamic jsonData) : base("GeometryDataFieldIndex")
             {
                 Type = "uint";
-                HelpText = "The GeometryDataFieldIndex setting, which specifies what field index to cast in the GeometryDataCaster, for fields where it is applicable (TexCoords, Tangents, Bitangents and Colors). The setting is ignored for other field types.";
+                HelpText = "The GeometryDataFieldIndex setting, which specifies what field index to cast in the GeometryDataCaster, for fields where it is applicable (Coords, TexCoords, Normals, Tangents, Bitangents and Colors, TriangleId and MaterialIds). The setting is ignored for other field types.";
                 TypeOverride = "";
                 DefaultValue = 0;
                 MinValue = 0;
@@ -48648,13 +49161,27 @@ namespace SimplygonUI
 
         }
 
+        public SimplygonPartRemoverSettings PartRemoverSettings
+        {
+            get
+            {
+                if (PipelineType == ESimplygonPipeline.ReductionPipeline)
+                {
+                    return (SimplygonPartRemoverSettings)Settings[6];
+                }
+
+                return null;
+            }
+
+        }
+
         public SimplygonAttributeTessellationSettings AttributeTessellationSettings
         {
             get
             {
                 if (PipelineType == ESimplygonPipeline.ReductionPipeline)
                 {
-                    return (SimplygonAttributeTessellationSettings)Settings[6];
+                    return (SimplygonAttributeTessellationSettings)Settings[7];
                 }
 
                 if (PipelineType == ESimplygonPipeline.RemeshingPipeline)
@@ -48734,7 +49261,7 @@ namespace SimplygonUI
             {
                 if (PipelineType == ESimplygonPipeline.ReductionPipeline)
                 {
-                    return (SimplygonMappingImageSettings)Settings[7];
+                    return (SimplygonMappingImageSettings)Settings[8];
                 }
 
                 if (PipelineType == ESimplygonPipeline.RemeshingPipeline)
@@ -48950,6 +49477,7 @@ namespace SimplygonUI
                 Settings.Add(new SimplygonVisibilitySettings());
                 Settings.Add(new SimplygonBoneSettings());
                 Settings.Add(new SimplygonVertexWeightSettings());
+                Settings.Add(new SimplygonPartRemoverSettings());
                 Settings.Add(new SimplygonAttributeTessellationSettings());
                 Settings.Add(new SimplygonMappingImageSettings());
             }
@@ -49123,9 +49651,9 @@ namespace SimplygonUI
                 jsonData.Pipeline = "HighDensityMeshReduction";
             }
 
-            jsonData.Version = "10.3";
-            jsonData.Build = "10.3.6400.0";
-            jsonData.Commit = "62af6356fe7ba55189494974af3334956dd12015";
+            jsonData.Version = "10.4";
+            jsonData.Build = "10.4.117.0";
+            jsonData.Commit = "1b9adada16dec455b20dfc626d8911f8ad279951";
             jsonData.Settings.GlobalSettings = GlobalSettings.SaveJson(serializeUIComponents);
             jsonData.Settings.PipelineSettings = PipelineSettings.SaveJson(serializeUIComponents);
 
@@ -49203,6 +49731,7 @@ namespace SimplygonUI
             jsonData.VisibilitySettings = VisibilitySettings.SaveJson(serializeUIComponents);
             jsonData.BoneSettings = BoneSettings.SaveJson(serializeUIComponents);
             jsonData.VertexWeightSettings = VertexWeightSettings.SaveJson(serializeUIComponents);
+            jsonData.PartRemoverSettings = PartRemoverSettings.SaveJson(serializeUIComponents);
             jsonData.AttributeTessellationSettings = AttributeTessellationSettings.SaveJson(serializeUIComponents);
             jsonData.MappingImageSettings = MappingImageSettings.SaveJson(serializeUIComponents);
             return jsonData;
@@ -49320,9 +49849,9 @@ namespace SimplygonUI
                 PipelineType = ESimplygonPipeline.Passthrough;
             }
 
-            if ((string)jsonData.Version != "10.3")
+            if ((string)jsonData.Version != "10.4")
             {
-                UILogger.Instance.Log(Category.Warning, $"Pipeline '{FilePath}' updated to version 10.3. Please save the updated pipeline so it can be used with the Simplygon 10.3 API.");
+                UILogger.Instance.Log(Category.Warning, $"Pipeline '{FilePath}' updated to version 10.4. Please save the updated pipeline so it can be used with the Simplygon 10.4 API.");
             }
 
             if ((string)jsonData.Pipeline == "Reduction")
@@ -49477,6 +50006,7 @@ namespace SimplygonUI
             Settings.Add(new SimplygonVisibilitySettings(jsonData.VisibilitySettings));
             Settings.Add(new SimplygonBoneSettings(jsonData.BoneSettings));
             Settings.Add(new SimplygonVertexWeightSettings(jsonData.VertexWeightSettings));
+            Settings.Add(new SimplygonPartRemoverSettings(jsonData.PartRemoverSettings));
             Settings.Add(new SimplygonAttributeTessellationSettings(jsonData.AttributeTessellationSettings));
             Settings.Add(new SimplygonMappingImageSettings(jsonData.MappingImageSettings));
         }
@@ -50031,6 +50561,7 @@ namespace SimplygonUI
                 AttributeTessellationSettings.VisibleOverride = false;
                 ReductionSettings.LimitMaxEdgeLengthUI.VisibleOverride = false;
                 ReductionSettings.MaxEdgeLengthUI.VisibleOverride = false;
+                PartRemoverSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -50090,6 +50621,7 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 ReductionSettings.LimitMaxEdgeLengthUI.VisibleOverride = false;
                 ReductionSettings.MaxEdgeLengthUI.VisibleOverride = false;
+                PartRemoverSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -50507,6 +51039,7 @@ namespace SimplygonUI
                 AttributeTessellationSettings.VisibleOverride = false;
                 ReductionSettings.LimitMaxEdgeLengthUI.VisibleOverride = false;
                 ReductionSettings.MaxEdgeLengthUI.VisibleOverride = false;
+                PartRemoverSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -50566,6 +51099,7 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 ReductionSettings.LimitMaxEdgeLengthUI.VisibleOverride = false;
                 ReductionSettings.MaxEdgeLengthUI.VisibleOverride = false;
+                PartRemoverSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -50985,6 +51519,7 @@ namespace SimplygonUI
                 AttributeTessellationSettings.VisibleOverride = false;
                 ReductionSettings.LimitMaxEdgeLengthUI.VisibleOverride = false;
                 ReductionSettings.MaxEdgeLengthUI.VisibleOverride = false;
+                PartRemoverSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -51044,6 +51579,7 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 ReductionSettings.LimitMaxEdgeLengthUI.VisibleOverride = false;
                 ReductionSettings.MaxEdgeLengthUI.VisibleOverride = false;
+                PartRemoverSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.Autodesk3dsMax;
             }
 
@@ -51457,6 +51993,7 @@ namespace SimplygonUI
                 AttributeTessellationSettings.VisibleOverride = false;
                 ReductionSettings.LimitMaxEdgeLengthUI.VisibleOverride = false;
                 ReductionSettings.MaxEdgeLengthUI.VisibleOverride = false;
+                PartRemoverSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -51516,6 +52053,7 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 ReductionSettings.LimitMaxEdgeLengthUI.VisibleOverride = false;
                 ReductionSettings.MaxEdgeLengthUI.VisibleOverride = false;
+                PartRemoverSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -51923,6 +52461,7 @@ namespace SimplygonUI
                 AttributeTessellationSettings.VisibleOverride = false;
                 ReductionSettings.LimitMaxEdgeLengthUI.VisibleOverride = false;
                 ReductionSettings.MaxEdgeLengthUI.VisibleOverride = false;
+                PartRemoverSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
                 ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
                 BoneSettings.LockBoneSelectionSetNameUI.VisibleOverride = false;
@@ -51986,6 +52525,7 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 ReductionSettings.LimitMaxEdgeLengthUI.VisibleOverride = false;
                 ReductionSettings.MaxEdgeLengthUI.VisibleOverride = false;
+                PartRemoverSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
                 ReductionSettings.KeepUnprocessedSceneMeshesUI.VisibleOverride = false;
                 BoneSettings.LockBoneSelectionSetNameUI.VisibleOverride = false;
@@ -52230,6 +52770,7 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "AlbedoMap";
                 MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 VisibilitySettings.HemisphereUpVector = EUpVector.PositiveY;
+                BoneSettings.RemoveUnusedBones = true;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -52245,6 +52786,7 @@ namespace SimplygonUI
                 MappingImageSettings.ChartAggregatorSettings.OriginalChartProportionsChannel = "AlbedoMap";
                 MappingImageSettings.ChartAggregatorSettings.LockUVRotation = true;
                 VisibilitySettings.HemisphereUpVector = EUpVector.PositiveY;
+                BoneSettings.RemoveUnusedBones = true;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -52343,6 +52885,7 @@ namespace SimplygonUI
                 AttributeTessellationSettings.VisibleOverride = false;
                 ReductionSettings.LimitMaxEdgeLengthUI.VisibleOverride = false;
                 ReductionSettings.MaxEdgeLengthUI.VisibleOverride = false;
+                PartRemoverSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 
@@ -52402,6 +52945,7 @@ namespace SimplygonUI
                 MappingImageSettings.OutputMaterialSettings.GutterSpaceUI.VisibleOverride = false;
                 ReductionSettings.LimitMaxEdgeLengthUI.VisibleOverride = false;
                 ReductionSettings.MaxEdgeLengthUI.VisibleOverride = false;
+                PartRemoverSettings.VisibleOverride = false;
                 GlobalSettings.DefaultTangentCalculatorType = ETangentSpaceMethod.MikkTSpace;
             }
 

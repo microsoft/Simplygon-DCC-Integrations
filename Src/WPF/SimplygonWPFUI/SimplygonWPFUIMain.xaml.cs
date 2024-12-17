@@ -10,12 +10,14 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.Versioning;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-#if DEBUG
+
+#if SIMPLYGON_INTEGRATION_TESTING
 using SimplygonUI.Testing;
 using IntegrationTests.TestFramework;
 #endif
@@ -25,6 +27,7 @@ namespace SimplygonUI
     /// <summary>
     /// Interaction logic for SimplygonWPFUIMain.xaml
     /// </summary>
+    [SupportedOSPlatform("windows6.1")]
     public partial class SimplygonWPFUIMain : UserControl, ISimplygonPipelineContextMenuCallback, INotifyPropertyChanged, SimplygonUIExternalAccess
     {
         public UILogger uiLogger { get { return UILogger.Instance; } }
@@ -262,26 +265,24 @@ namespace SimplygonUI
             ContextMenu cm = new ContextMenu();
             var editPipelineCM = new MenuItem() { Header = "Edit pipeline", ToolTip = "Customize the pipeline by hiding UI elements and changing default values." };
             var savePipelineCM = new MenuItem() { Header = "Save pipeline", ToolTip = @"If you save the pipeline to the default location (%USERPROFILE%\Documents\Simplygon\10\Pipelines) it will be available as a LOD component automatically." };
-            var importSPLCM = new MenuItem() { Header = "Import legacy settings", ToolTip = "Import legacy .SPL and .ini settings." };
-            var batchImportLegacyCM = new MenuItem() { Header = "Batch import settings", ToolTip = @"Batch import and update .JSON, .SPL and .ini settings to the default location (%USERPROFILE%\Documents\Simplygon\10\Pipelines)." };
             var loadPipelineCM = new MenuItem() { Header = "Load pipeline", ToolTip = @"Load pipeline not in the default location (%USERPROFILE%\Documents\Simplygon\10\Pipelines)." };
             var exportPipelineCM = new MenuItem() { Header = "Export pipeline", ToolTip = "Export pipeline and remove all UI metadata from the JSON file. Recommended if you plan to use the pipeline without using the Simplygon UI." };
+            var batchImportLegacyCM = new MenuItem() { Header = "Batch import settings", ToolTip = @"Batch import and update .JSON settings to the default location (%USERPROFILE%\Documents\Simplygon\10\Pipelines)." };
             editPipelineCM.IsCheckable = true;
             editPipelineCM.IsEnabled = Pipelines.Count > 0;
             editPipelineCM.IsChecked = IsInEditMode;
             editPipelineCM.Click += EditPipelineContextMenuItem_Click;
             savePipelineCM.IsEnabled = Pipelines.Count > 0;
             savePipelineCM.Click += SavePipelineContextMenuItem_Click;
-            importSPLCM.Click += ImportSPLContextMenuItem_Click;
             batchImportLegacyCM.Click += BatchImportContextMenuItem_Click;
             loadPipelineCM.Click += LoadPipelineContextMenuItem_Click;
             exportPipelineCM.IsEnabled = Pipelines.Count > 0;
             exportPipelineCM.Click += ExportPipelineContextMenuItem_Click;
+
             cm.Items.Add(editPipelineCM);
             cm.Items.Add(savePipelineCM);
             cm.Items.Add(loadPipelineCM);
             cm.Items.Add(new Separator());
-            cm.Items.Add(importSPLCM);
             cm.Items.Add(batchImportLegacyCM);
             cm.Items.Add(exportPipelineCM);
             cm.Items.Add(new Separator());
@@ -339,64 +340,6 @@ namespace SimplygonUI
             SavePipeline(null, true);
         }
 
-        private void ImportSPLContextMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog dialog = new OpenFileDialog()
-            {
-                Filter = "Simplygon Settings Files(*.spl;*.ini)|*.spl;*.ini",
-                Title = "Import legacy Simplygon settings"
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                try
-                {
-                    SimplygonPipeline pipeline = null;
-#if LEGACYSETTINGSSUPPORT
-                    if (System.IO.Path.GetExtension(dialog.FileName).ToLower() == ".spl")
-                    {
-                        pipeline = SimplygonUI.SPL.Importer.Import(dialog.FileName);
-                    }
-                    else if (System.IO.Path.GetExtension(dialog.FileName).ToLower() == ".ini")
-                    {
-                        pipeline = SimplygonUI.INI.Importer.Import(dialog.FileName);
-                    }
-#endif
-                    if (pipeline != null)
-                    {
-                        Pipelines.Clear();
-                        PipelinesStackPanel.Children.Clear();
-                        if (pipeline.PipelineType == ESimplygonPipeline.Passthrough)
-                        {
-                            foreach (var cascadedPipeline in pipeline.CascadedPipelines)
-                            {
-                                AddPipeline(cascadedPipeline);
-                            }
-
-                            if (pipeline.CascadedPipelines.Count > 0)
-                            {
-                                IntegrationParent.SetTangentCalculatorTypeSetting(pipeline.CascadedPipelines.First().GlobalSettings.DefaultTangentCalculatorType);
-                            }
-                        }
-                        else
-                        {
-                            AddPipeline(pipeline);
-                            IntegrationParent.SetTangentCalculatorTypeSetting(pipeline.GlobalSettings.DefaultTangentCalculatorType);
-                        }
-                    }
-                    else
-                    {
-                        Log(Category.Error, $"Failed to import {dialog.FileName}");
-                    }
-
-                }
-                catch (Exception ex)
-                {
-                    Log(Category.Error, $"Failed to import {dialog.FileName}: {ex.Message}");
-                }
-            }
-        }
-
         private void BatchImportContextMenuItem_Click(object sender, RoutedEventArgs e)
         {
             SimplygonImportSettingsDialog importDialog = new SimplygonImportSettingsDialog();
@@ -419,23 +362,8 @@ namespace SimplygonUI
             {
                 SimplygonPipeline pipeline = null;
 
-                if (System.IO.Path.GetExtension(fileName).ToLower() == ".spl")
-                {
-#if LEGACYSETTINGSSUPPORT
-                    pipeline = SimplygonUI.SPL.Importer.Import(fileName);
-#endif
-                }
-                else if (System.IO.Path.GetExtension(fileName).ToLower() == ".ini")
-                {
-#if LEGACYSETTINGSSUPPORT
-                    pipeline = SimplygonUI.INI.Importer.Import(fileName);
-#endif
-                }
-                else
-                {
-                    dynamic jsonData = JObject.Parse(System.IO.File.ReadAllText(fileName));
-                    pipeline = new SimplygonPipeline(fileName, jsonData);
-                }
+                dynamic jsonData = JObject.Parse(System.IO.File.ReadAllText(fileName));
+                pipeline = new SimplygonPipeline(fileName, jsonData);
 
                 if (pipeline != null)
                 {
@@ -699,7 +627,7 @@ namespace SimplygonUI
             }));
         }
 
-#if DEBUG
+#if SIMPLYGON_INTEGRATION_TESTING
         // Testing
         private TestSequenceWatcher tsw { get; set; }
         public WPFDriver wpfDriver { get; set; }

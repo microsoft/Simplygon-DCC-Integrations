@@ -4971,7 +4971,9 @@ spSceneNode SimplygonMax::AddCamera( INode* mMaxNode )
 	    bIsPhysical ? dynamic_cast<GenCamera*>( mMaxObjectState.obj ) : (GenCamera*)mMaxObjectState.obj->ConvertToType( this->CurrentTime, mClassId );
 
 	const int mCamType = mMaxGeneralCamera->Type();
-	if( mCamType == FREE_CAMERA ) {}
+	if( mCamType == FREE_CAMERA )
+	{
+	}
 	else if( mCamType == TARGETED_CAMERA )
 	{
 	}
@@ -8056,7 +8058,7 @@ TSTR SimplygonMax::GetUniqueMaterialName( TSTR tMaterialName )
 		bMaterialExists = GetExistingMaterial( tMaterialNameStream.str() ) != nullptr;
 		if( !bMaterialExists )
 		{
-			tTempMaterialName = ( TSTR )( tMaterialNameStream.str().c_str() );
+			tTempMaterialName = (TSTR)( tMaterialNameStream.str().c_str() );
 		}
 	}
 
@@ -11938,19 +11940,19 @@ void SimplygonMax::LogToWindow( std::basic_string<TCHAR> tMessage, ErrorType err
 			this->MaxInterface->Log()->LogEntry( errorType == Error ? SYSLOG_ERROR : SYSLOG_WARN, NO_DIALOG, _M( "Simplygon Max Plugin" ), tMessage.c_str() );
 		}
 
-//		Send log message to Simplygon UI.
-//		Disabled due to Safe Scene Script Execution in 3ds Max
-// 		Todo: Detect Script execution mode and enable when allowed.
-//		std::wstring logMethod = errorType == ErrorType::Error ? L"SendErrorToLog" : L"SendWarningToLog";
-//		TCHAR tExecuteSendLogToUIScript[ MAX_PATH ] = { 0 };
-//		_stprintf_s( tExecuteSendLogToUIScript, MAX_PATH, _T("ui = dotNetObject \"SimplygonUI.UIAccessor\"\nui.%s \"%s\""), logMethod.c_str(), tMessage.c_str() );
-//		const TSTR wExecuteSendLogToUIScript( tExecuteSendLogToUIScript );
-//
-//#if MAX_VERSION_MAJOR < 24
-//		ExecuteMAXScriptScript( wExecuteSendLogToUIScript.data(), TRUE );
-//#else
-//		ExecuteMAXScriptScript( wExecuteSendLogToUIScript.data(), MAXScript::ScriptSource::NotSpecified, TRUE );
-//#endif
+		//		Send log message to Simplygon UI.
+		//		Disabled due to Safe Scene Script Execution in 3ds Max
+		// 		Todo: Detect Script execution mode and enable when allowed.
+		//		std::wstring logMethod = errorType == ErrorType::Error ? L"SendErrorToLog" : L"SendWarningToLog";
+		//		TCHAR tExecuteSendLogToUIScript[ MAX_PATH ] = { 0 };
+		//		_stprintf_s( tExecuteSendLogToUIScript, MAX_PATH, _T("ui = dotNetObject \"SimplygonUI.UIAccessor\"\nui.%s \"%s\""), logMethod.c_str(),
+		//tMessage.c_str() ); 		const TSTR wExecuteSendLogToUIScript( tExecuteSendLogToUIScript );
+		//
+		// #if MAX_VERSION_MAJOR < 24
+		//		ExecuteMAXScriptScript( wExecuteSendLogToUIScript.data(), TRUE );
+		// #else
+		//		ExecuteMAXScriptScript( wExecuteSendLogToUIScript.data(), MAXScript::ScriptSource::NotSpecified, TRUE );
+		// #endif
 	}
 
 	// if info, only output to log
@@ -12103,7 +12105,7 @@ bool SimplygonMax::ProcessScene()
 		bProcessingSucceeded = false;
 	}
 
-	//Write errors and warnings to log.
+	// Write errors and warnings to log.
 	if( errorMessages.size() > 0 )
 	{
 		for( const auto& error : errorMessages )
@@ -14856,7 +14858,15 @@ void SetParameterValue( PB2Value& object, float value )
 }
 void SetParameterValue( PB2Value& object, float value[ 4 ] )
 {
-	object.p4 = new Point4( value );
+	if( object.p4 )
+	{
+		object.p4->x = value[ 0 ];
+		object.p4->y = value[ 1 ];
+		object.p4->z = value[ 2 ];
+		object.p4->w = value[ 3 ];
+	}
+	// TODO: When we rewrite this code, add error handling for set paramenter value object.p4.
+	// We assume that p4 is allocated but if it is not we will ignore updating the values since we cant new points.
 }
 
 void SetParameterValue( PB2Value& object, std::basic_string<TCHAR> value )
@@ -15799,7 +15809,7 @@ double SimplygonMax::GetLODSwitchPixelSize( double distance )
 		}
 
 		// convert to trimesh, get the object
-		TriObject* tobj = (TriObject*)SafeConvertToType(os.obj, this->CurrentTime, triObjectClassID );
+		TriObject* tobj = (TriObject*)SafeConvertToType( os.obj, this->CurrentTime, triObjectClassID );
 		if( tobj == nullptr )
 		{
 			LogMessageToScriptEditor( std::basic_string<TCHAR>( _T("Could not convert to tri object.") ) );

@@ -80,7 +80,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\WPF\SimplygonWPFUI\Net4\SimplygonWPFUI.Net4.csproj">
       <Project>{cb949457-2014-4b66-a503-c481d3f0f317}</Project>
-      <Name>SimplygonWPFUI.Net4</Name>
+      <Name>SimplygonWPFUI</Name>
     </ProjectReference>
     <ProjectReference Include="..\MaxUI\SimplygonMax2018UI.csproj">
       <Project>{baca1f3d-63ed-4ca3-90f7-f272c92fcc83}</Project>

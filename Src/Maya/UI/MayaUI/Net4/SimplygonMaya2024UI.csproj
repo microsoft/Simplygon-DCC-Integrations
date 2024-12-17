@@ -86,11 +86,11 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="..\SimplygonMayaUIApplication.xaml">
+    <Page Include="..\SimplygonMayaUI.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SimplygonMayaUI.xaml">
+    <Page Include="..\SimplygonMayaUIApplication.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation.
+// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
 using Autodesk.Maya;
@@ -226,22 +226,6 @@ SimplygonUI -SavePipelineToFile ""<file path>""
                         }
                     }
                     catch { }
-                }
-                else if (scriptCommand == "-senderrortolog")
-                {
-                    if (argl.length > 1)
-                    {
-                        string errorMessage = argl.asString(1);
-                        ui.MainUI.SendErrorToLog(errorMessage);
-                    }
-                }
-                else if (scriptCommand == "-sendwarningtolog")
-                {
-                    if (argl.length > 1)
-                    {
-                        string warningMessage = argl.asString(1);
-                        ui.MainUI.SendWarningToLog(warningMessage);
-                    }
                 }
                 else
                 {

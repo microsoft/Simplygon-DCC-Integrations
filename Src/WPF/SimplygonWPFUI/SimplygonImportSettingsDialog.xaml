@@ -10,7 +10,7 @@ Licensed under the MIT License.
              xmlns:local="clr-namespace:SimplygonUI"
              mc:Ignorable="d" 
              Height="350" Width="550"
-            Title="Simplygon - Batch import and update settings files" WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow" Icon="/Simplygon.WPFUI;component/sg_icon_128.ico">
+            Title="Simplygon - Batch import and update settings files" WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow" Icon="pack://application:,,,/Simplygon.WPFUI;component/sg_icon_128.ico">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
