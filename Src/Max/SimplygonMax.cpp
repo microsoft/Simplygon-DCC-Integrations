@@ -41,6 +41,10 @@
 #include <algorithm>
 #include "IColorCorrectionMgr.h"
 
+#if MAX_VERSION_MAJOR >= 27
+#include "ColorManagement/IColorPipeline.h"
+#endif
+
 using namespace Simplygon;
 
 #if( VERSION_INT < 420 )
@@ -1645,6 +1649,24 @@ MaterialNodes::RunBitmapNode( Texmap* mTexMap, MaterialNodes::MaterialChannelDat
 
 		if( bIsSRGB )
 		{
+#if MAX_VERSION_MAJOR >= 27
+
+			MaxSDK::ColorManagement::IColorPipelineMgr* pColorPipelineMgr =
+			    (MaxSDK::ColorManagement::IColorPipelineMgr*)GetCOREInterface( COLORPIPELINEMGR_INTERFACE );
+			if( pColorPipelineMgr )
+			{
+				// force texture srgb settings
+				switch( pColorPipelineMgr->GetColorPipelineMode() )
+				{
+					case MaxSDK::ColorManagement::ColorPipelineMode::kUNMANAGED: bIsSRGB = false; break;
+					case MaxSDK::ColorManagement::ColorPipelineMode::kGAMMA:; break;
+					case MaxSDK::ColorManagement::ColorPipelineMode::kOCIO_DEFAULT:; break;
+					case MaxSDK::ColorManagement::ColorPipelineMode::kOCIO_CUSTOM:; break;
+					default: break;
+				}
+			}
+
+#else
 			IColorCorrectionMgr* idispGamMgr = (IColorCorrectionMgr*)GetCOREInterface( COLORCORRECTIONMGR_INTERFACE );
 			if( idispGamMgr )
 			{
@@ -1663,6 +1685,7 @@ MaterialNodes::RunBitmapNode( Texmap* mTexMap, MaterialNodes::MaterialChannelDat
 					}
 				}
 			}
+#endif
 		}
 
 		mTextureData.mTexturePathWithName = SimplygonMaxInstance->ImportTexture( tTexturePath );
@@ -2136,7 +2159,7 @@ class PhysicalMaterial
 
 	Texmap* GetMap( std::basic_string<TCHAR> tMapName )
 	{
-		std::map<std::basic_string<TCHAR>, Texmap*>::const_iterator& mTexMap = this->texmapProps.find( tMapName );
+		std::map<std::basic_string<TCHAR>, Texmap*>::const_iterator mTexMap = this->texmapProps.find( tMapName );
 		if( mTexMap != this->texmapProps.end() )
 		{
 			return mTexMap->second;
@@ -2147,7 +2170,7 @@ class PhysicalMaterial
 
 	Point4* GetColor4( std::basic_string<TCHAR> tColor4Name )
 	{
-		std::map<std::basic_string<TCHAR>, Point4*>::const_iterator& mTexMap = this->point4Props.find( tColor4Name );
+		std::map<std::basic_string<TCHAR>, Point4*>::const_iterator mTexMap = this->point4Props.find( tColor4Name );
 		if( mTexMap != this->point4Props.end() )
 		{
 			return mTexMap->second;
@@ -2158,7 +2181,7 @@ class PhysicalMaterial
 
 	float GetFloat( std::basic_string<TCHAR> tFloatName, bool& bValueFound )
 	{
-		std::map<std::basic_string<TCHAR>, float>::const_iterator& mTexMap = this->floatProps.find( tFloatName );
+		std::map<std::basic_string<TCHAR>, float>::const_iterator mTexMap = this->floatProps.find( tFloatName );
 
 		bValueFound = mTexMap != this->floatProps.end();
 		if( bValueFound )
@@ -2177,7 +2200,7 @@ class PhysicalMaterial
 
 	bool GetBool( std::basic_string<TCHAR> tBoolName, bool& bValueFound )
 	{
-		std::map<std::basic_string<TCHAR>, bool>::const_iterator& mTexMap = this->boolProps.find( tBoolName );
+		std::map<std::basic_string<TCHAR>, bool>::const_iterator mTexMap = this->boolProps.find( tBoolName );
 
 		bValueFound = mTexMap != this->boolProps.end();
 		if( bValueFound )
@@ -2297,7 +2320,7 @@ class PhysicalMaterial
 			MaxReference->SetupMaterialWithCustomShadingNetwork( sgMaterial, materialProxy );
 
 			// for all channels in the override material
-			for( std::map<std::basic_string<TCHAR>, int>::iterator& channelIterator = materialProxy->ShadingNodeToSGChannel.begin();
+			for( std::map<std::basic_string<TCHAR>, int>::iterator channelIterator = materialProxy->ShadingNodeToSGChannel.begin();
 			     channelIterator != materialProxy->ShadingNodeToSGChannel.end();
 			     channelIterator++ )
 			{
@@ -2309,7 +2332,7 @@ class PhysicalMaterial
 					MaxReference->GetSpShadingNodesFromTable( ShadingTextureNode, tChannelName, materialProxy, textureNodeProxies );
 
 					// for each texture node, read original file path, mapping channel and sRGB
-					for( std::map<int, NodeProxy*>::iterator& textureProxyIterator = textureNodeProxies.begin();
+					for( std::map<int, NodeProxy*>::iterator textureProxyIterator = textureNodeProxies.begin();
 					     textureProxyIterator != textureNodeProxies.end();
 					     textureProxyIterator++ )
 					{
@@ -2430,7 +2453,7 @@ class PhysicalMaterial
 									spTexture sgTexture;
 
 									// do lookup in case this texture is already in use
-									std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
+									std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator tTextureIterator =
 									    MaxReference->LoadedTexturePathToID.find( tTexturePathWithName );
 									const bool bTextureInUse = ( tTextureIterator != MaxReference->LoadedTexturePathToID.end() );
 
@@ -2466,7 +2489,7 @@ class PhysicalMaterial
 					MaxReference->GetSpShadingNodesFromTable( ShadingColorNode, tChannelName, materialProxy, colorNodeProxies );
 
 					// for each color node, read original color
-					for( std::map<int, NodeProxy*>::iterator& colorProxyIterator = colorNodeProxies.begin(); colorProxyIterator != colorNodeProxies.end();
+					for( std::map<int, NodeProxy*>::iterator colorProxyIterator = colorNodeProxies.begin(); colorProxyIterator != colorNodeProxies.end();
 					     colorProxyIterator++ )
 					{
 						const NodeProxy* nodeProxy = colorProxyIterator->second;
@@ -4210,7 +4233,7 @@ bool SimplygonMax::SetIsVertexColorChannel( int maxChannel, BOOL bIsVertexColor 
 		return false;
 
 	// already exists in list?
-	for( std::vector<int>::const_iterator& vertexColorIterator = this->MaxVertexColorOverrides.begin();
+	for( std::vector<int>::const_iterator vertexColorIterator = this->MaxVertexColorOverrides.begin();
 	     vertexColorIterator != this->MaxVertexColorOverrides.end();
 	     vertexColorIterator++ )
 	{
@@ -4274,11 +4297,11 @@ std::set<std::basic_string<TCHAR>> SimplygonMax::GetSetsForNode( INode* mMaxNode
 
 	// search all sets for the specific handle,
 	// and populate the list if present
-	for( std::map<std::basic_string<TCHAR>, std::set<unsigned long>>::const_iterator& setIterator = this->SelectionSetObjectsMap.begin();
+	for( std::map<std::basic_string<TCHAR>, std::set<unsigned long>>::const_iterator setIterator = this->SelectionSetObjectsMap.begin();
 	     setIterator != this->SelectionSetObjectsMap.end();
 	     setIterator++ )
 	{
-		std::set<unsigned long>::const_iterator& handleIterator = setIterator->second.find( meshHandle );
+		std::set<unsigned long>::const_iterator handleIterator = setIterator->second.find( meshHandle );
 		if( handleIterator != setIterator->second.end() )
 		{
 			sNodeSelectionSets.insert( setIterator->first );
@@ -4298,12 +4321,12 @@ bool SimplygonMax::NodeExistsInActiveSets( INode* mMaxNode )
 	if( sMeshSelectionSets.size() > 0 )
 	{
 		// for all sets that this node is present in
-		for( std::set<std::basic_string<TCHAR>>::const_iterator& setIterator = sMeshSelectionSets.begin(); setIterator != sMeshSelectionSets.end();
+		for( std::set<std::basic_string<TCHAR>>::const_iterator setIterator = sMeshSelectionSets.begin(); setIterator != sMeshSelectionSets.end();
 		     setIterator++ )
 		{
 			// match the set with the active sets in the pipeline,
 			// and return true if there's a match
-			std::set<std::basic_string<TCHAR>>::const_iterator& sActiveSetsIterator = this->SelectionSetsActiveInPipeline.find( setIterator->c_str() );
+			std::set<std::basic_string<TCHAR>>::const_iterator sActiveSetsIterator = this->SelectionSetsActiveInPipeline.find( setIterator->c_str() );
 			if( sActiveSetsIterator != this->SelectionSetsActiveInPipeline.end() )
 			{
 				bExistsInActiveSet = true;
@@ -4554,7 +4577,7 @@ void SimplygonMax::WriteMaterialMappingAttribute()
 		attributeDataOffset += sizeof( size_t );
 
 		// write subMaterial mapping indices
-		for( std::map<int, int>::const_iterator& subIndexmap = mMap->MaxToSGMapping.begin(); subIndexmap != mMap->MaxToSGMapping.end(); subIndexmap++ )
+		for( std::map<int, int>::const_iterator subIndexmap = mMap->MaxToSGMapping.begin(); subIndexmap != mMap->MaxToSGMapping.end(); subIndexmap++ )
 		{
 			// first
 			memcpy_s( &attributeData[ attributeDataOffset ], sizeof( int ), &subIndexmap->first, sizeof( int ) );
@@ -4909,7 +4932,7 @@ bool SimplygonMax::IsMesh_Quad( INode* mMaxNode )
 bool SimplygonMax::IsCamera( INode* mMaxNode )
 {
 	const TCHAR* tNodeName = mMaxNode->GetName();
-	const TCHAR* tClassName = mMaxNode->ClassName();
+	const TCHAR* tClassName = mMaxNode->ClassName().ToMCHAR();
 
 	Object* mMaxObject = mMaxNode->GetObjectRef();
 	if( !mMaxObject )
@@ -4946,7 +4969,7 @@ bool SimplygonMax::IsCamera( INode* mMaxNode )
 spSceneNode SimplygonMax::AddCamera( INode* mMaxNode )
 {
 	const TCHAR* tNodeName = mMaxNode->GetName();
-	const TCHAR* tClassName = mMaxNode->ClassName();
+	const TCHAR* tClassName = mMaxNode->ClassName().ToMCHAR();
 
 	Object* mMaxObject = mMaxNode->GetObjectRef();
 	if( !mMaxObject )
@@ -5389,7 +5412,7 @@ Matrix3 SimplygonMax::GetRelativeTransformation( INode* mMaxNode )
 // Add node to Simplygon selection set, if it matches any selection set
 void SimplygonMax::AddToObjectSelectionSet( INode* mMaxNode )
 {
-	std::map<INode*, std::string>::const_iterator& maxToSgNodeMap = this->MaxSgNodeMap.find( mMaxNode );
+	std::map<INode*, std::string>::const_iterator maxToSgNodeMap = this->MaxSgNodeMap.find( mMaxNode );
 	if( maxToSgNodeMap == this->MaxSgNodeMap.end() )
 		return;
 
@@ -5403,7 +5426,7 @@ void SimplygonMax::AddToObjectSelectionSet( INode* mMaxNode )
 
 	spSelectionSetTable sgSelectionSetTable = this->SceneHandler->sgScene->GetSelectionSetTable();
 
-	for( std::map<std::basic_string<TCHAR>, std::set<unsigned long>>::const_iterator& setIterator = this->SelectionSetObjectsMap.begin();
+	for( std::map<std::basic_string<TCHAR>, std::set<unsigned long>>::const_iterator setIterator = this->SelectionSetObjectsMap.begin();
 	     setIterator != this->SelectionSetObjectsMap.end();
 	     setIterator++ )
 	{
@@ -7323,7 +7346,7 @@ void SimplygonMax::AddEdgeCollapse_Quad( INode* mMaxNode, spGeometryData sgMeshD
 	TCHAR tSelectionSetNameBuffer[ MAX_PATH ] = { 0 };
 	uint numSelectionSets = 0;
 
-	std::map<std::basic_string<TCHAR>, SelectionSetEdgePair>::const_iterator& selectionSetIterator = this->SelectionSetEdgesMap.begin();
+	std::map<std::basic_string<TCHAR>, SelectionSetEdgePair>::const_iterator selectionSetIterator = this->SelectionSetEdgesMap.begin();
 	while( !( selectionSetIterator == this->SelectionSetEdgesMap.end() ) )
 	{
 		const SelectionSetEdgePair& tempSelectionSetPair = selectionSetIterator->second;
@@ -7393,7 +7416,7 @@ void SimplygonMax::AddEdgeCollapse( INode* mMaxNode, spGeometryData sgMeshData )
 	TCHAR tSelectionSetNameBuffer[ MAX_PATH ] = { 0 };
 	uint numSelectionSets = 0;
 
-	std::map<std::basic_string<TCHAR>, SelectionSetEdgePair>::const_iterator& selectionSetIterator = this->SelectionSetEdgesMap.begin();
+	std::map<std::basic_string<TCHAR>, SelectionSetEdgePair>::const_iterator selectionSetIterator = this->SelectionSetEdgesMap.begin();
 	while( !( selectionSetIterator == this->SelectionSetEdgesMap.end() ) )
 	{
 		const SelectionSetEdgePair& tempSelectionSetPair = selectionSetIterator->second;
@@ -7903,7 +7926,7 @@ bool SimplygonMax::ImportProcessedScenes()
 		}
 
 		// for unmapped meshes, copy transformation and link parent(s)
-		for( std::map<std::string, INode*>::const_iterator& meshIterator = meshNodesThatNeedsParents.begin(); meshIterator != meshNodesThatNeedsParents.end();
+		for( std::map<std::string, INode*>::const_iterator meshIterator = meshNodesThatNeedsParents.begin(); meshIterator != meshNodesThatNeedsParents.end();
 		     meshIterator++ )
 		{
 			spSceneNode sgMesh = sgProcessedScene->GetNodeByGUID( meshIterator->first.c_str() );
@@ -7916,7 +7939,7 @@ bool SimplygonMax::ImportProcessedScenes()
 				continue;
 
 			// fetch mesh map for parent mesh
-			std::map<std::string, INode*>::const_iterator& parentMeshMap = meshNodesThatNeedsParents.find( sgParent->GetNodeGUID().c_str() );
+			std::map<std::string, INode*>::const_iterator parentMeshMap = meshNodesThatNeedsParents.find( sgParent->GetNodeGUID().c_str() );
 			if( parentMeshMap == meshNodesThatNeedsParents.end() )
 				continue;
 
@@ -8067,7 +8090,7 @@ TSTR SimplygonMax::GetUniqueMaterialName( TSTR tMaterialName )
 
 Mtl* SimplygonMax::GetExistingMappedMaterial( std::string sMaterialId )
 {
-	std::map<std::string, Mtl*>::const_iterator& mIt = this->GlobalSgToMaxMaterialMap.find( sMaterialId );
+	std::map<std::string, Mtl*>::const_iterator mIt = this->GlobalSgToMaxMaterialMap.find( sMaterialId );
 	if( mIt == this->GlobalSgToMaxMaterialMap.end() )
 		return nullptr;
 
@@ -8101,7 +8124,7 @@ Mtl* SimplygonMax::GetExistingMaterial( std::basic_string<TCHAR> tMaterialName )
 					if( !mMaxSubMaterial )
 						continue;
 
-					std::basic_string<TCHAR> tMaxMaterialName = mMaxSubMaterial->GetName();
+					std::basic_string<TCHAR> tMaxMaterialName = mMaxSubMaterial->GetName().ToMCHAR();
 					if( tMaxMaterialName == tMaterialName )
 					{
 						return (Mtl*)mMaxSubMaterial;
@@ -8175,7 +8198,7 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 
 	// try to find mesh map via global lookup
 	const std::map<std::string, GlobalMeshMap>::const_iterator& globalMeshMap = this->GlobalGuidToMaxNodeMap.find( cSgMeshId );
-	bool bHasGlobalMeshMap = ( this->mapMeshes || this->extractionType == BATCH_PROCESSOR ) ? globalMeshMap != this->GlobalGuidToMaxNodeMap.end() : nullptr;
+	bool bHasGlobalMeshMap = ( this->mapMeshes || this->extractionType == BATCH_PROCESSOR ) ? globalMeshMap != this->GlobalGuidToMaxNodeMap.end() : false;
 
 	// try to find original Max mesh from map handle
 	INode* mMappedMaxNode = bHasGlobalMeshMap ? this->MaxInterface->GetINodeByHandle( globalMeshMap->second.GetMaxId() ) : nullptr;
@@ -8647,7 +8670,7 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 			mOriginalMaxMaterial->SetName( tIndexedMaterialName );
 			( (MultiMtl*)mOriginalMaxMaterial )->SetNumSubMtls( 0 );
 
-			for( std::set<int>::const_iterator& mIterator = sgMIds.begin(); mIterator != sgMIds.end(); mIterator++ )
+			for( std::set<int>::const_iterator mIterator = sgMIds.begin(); mIterator != sgMIds.end(); mIterator++ )
 			{
 				const int mid = *mIterator;
 
@@ -8706,7 +8729,7 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 		// add mesh and materials to material info handler, if any
 		if( mOriginalMaxMaterial != nullptr )
 		{
-			std::basic_string<TCHAR> tMaterialName = mOriginalMaxMaterial->GetName();
+			std::basic_string<TCHAR> tMaterialName = mOriginalMaxMaterial->GetName().ToMCHAR();
 
 			for( int subMaterialIndex = 0; subMaterialIndex < mOriginalMaxMaterial->NumSubMtls(); ++subMaterialIndex )
 			{
@@ -8714,7 +8737,7 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 
 				if( mMaxSubMaterial != nullptr )
 				{
-					std::basic_string<TCHAR> tSubMaterialName = mMaxSubMaterial->GetName();
+					std::basic_string<TCHAR> tSubMaterialName = mMaxSubMaterial->GetName().ToMCHAR();
 					this->materialInfoHandler->Add( std::basic_string<TCHAR>( tIndexedNodeName ), tMaterialName, tSubMaterialName, subMaterialIndex, false );
 				}
 			}
@@ -8744,7 +8767,7 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 				mOriginalMaxMaterial->SetName( tIndexedMaterialName );
 				( (MultiMtl*)mOriginalMaxMaterial )->SetNumSubMtls( maximumMaterialIndex + 1 );
 
-				for( std::set<int>::const_iterator& mIterator = sgMIds.begin(); mIterator != sgMIds.end(); mIterator++ )
+				for( std::set<int>::const_iterator mIterator = sgMIds.begin(); mIterator != sgMIds.end(); mIterator++ )
 				{
 					const int mid = *mIterator;
 
@@ -8759,8 +8782,9 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 					globalMaterialMap = this->GetGlobalMaterialMap( sMaterialId );
 					if( !globalMaterialMap )
 					{
+						std::basic_string<TCHAR> tIndexedMatName = tIndexedMaterialName.ToMCHAR();
 						std::basic_string<TCHAR> tWarningMessage = _T("Multi-material '");
-						tWarningMessage += tIndexedMaterialName + _T( "', sub-material '" );
+						tWarningMessage += tIndexedMatName + _T( "', sub-material '" );
 						tWarningMessage += tMaterialName;
 						tWarningMessage += _T("' - Could not find a material map between Simplygon and 3ds Max, ignoring material.");
 						this->LogToWindow( tWarningMessage, Warning );
@@ -8778,8 +8802,9 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 						mGlobalMaxMaterial = GetExistingMaterial( globalMaterialMap->sgMaterialName );
 						if( !mGlobalMaxMaterial )
 						{
+							std::basic_string<TCHAR> tIndexedMatName = tIndexedMaterialName.ToMCHAR();
 							std::basic_string<TCHAR> tWarningMessage = _T("Multi-material '");
-							tWarningMessage += tIndexedMaterialName + _T( "', sub-material '" );
+							tWarningMessage += tIndexedMatName + _T( "', sub-material '" );
 							tWarningMessage += tMaterialName;
 							tWarningMessage +=
 							    _T("' - There is mapping data that indicates that the current scene should contain original materials, are you importing the ")
@@ -8799,7 +8824,7 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 				// remove material-slots that are not in use
 				for( int mid = maximumMaterialIndex; mid >= 0; mid-- )
 				{
-					std::set<int>::const_iterator& midIterator = sgMIds.find( mid );
+					std::set<int>::const_iterator midIterator = sgMIds.find( mid );
 					if( midIterator == sgMIds.end() )
 					{
 						( (MultiMtl*)mOriginalMaxMaterial )->RemoveMtl( mid );
@@ -8861,7 +8886,7 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 		// add original mesh and materials to material info handler, if any
 		if( mOriginalMaxMaterial != nullptr )
 		{
-			std::basic_string<TCHAR> tMaterialName = mOriginalMaxMaterial->GetName();
+			std::basic_string<TCHAR> tMaterialName = mOriginalMaxMaterial->GetName().ToMCHAR();
 
 			bool bHasActiveSubMaterials = false;
 			for( int subMaterialIndex = 0; subMaterialIndex < mOriginalMaxMaterial->NumSubMtls(); ++subMaterialIndex )
@@ -8870,7 +8895,7 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 
 				if( mMaxSubMaterial != nullptr )
 				{
-					std::basic_string<TCHAR> tSubMaterialName = mMaxSubMaterial->GetName();
+					std::basic_string<TCHAR> tSubMaterialName = mMaxSubMaterial->GetName().ToMCHAR();
 					this->materialInfoHandler->Add( std::basic_string<TCHAR>( tIndexedNodeName ), tMaterialName, tSubMaterialName, subMaterialIndex, true );
 				}
 			}
@@ -9134,7 +9159,7 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 			boneToIdInUseMap.clear();
 			boneIdToBoneInUseMap.clear();
 
-			std::basic_string<TCHAR> tWarningMessage = tIndexedNodeName;
+			std::basic_string<TCHAR> tWarningMessage = tIndexedNodeName.ToMCHAR();
 			tWarningMessage +=
 			    _T(" - Mapping data indicates reuse of existing bone hierarchy but was unable to get a valid bone reference. Ignoring skinning...");
 
@@ -9189,7 +9214,7 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 			else
 			{
 				// copy bone transformations for every bone
-				for( std::map<std::string, GlobalMeshMap>::const_iterator& nodeIterator = this->GlobalGuidToMaxNodeMap.begin();
+				for( std::map<std::string, GlobalMeshMap>::const_iterator nodeIterator = this->GlobalGuidToMaxNodeMap.begin();
 				     nodeIterator != this->GlobalGuidToMaxNodeMap.end();
 				     nodeIterator++ )
 				{
@@ -9240,7 +9265,7 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 					{
 						INode* mBone = mSkin->GetBone( boneIndex );
 
-						std::map<INode*, int>::iterator& boneInUseIterator = boneToIdInUseMap.find( mBone );
+						std::map<INode*, int>::iterator boneInUseIterator = boneToIdInUseMap.find( mBone );
 						if( boneInUseIterator != boneToIdInUseMap.end() )
 						{
 							mSkinImportData->AddBoneEx( mBone, FALSE );
@@ -9302,7 +9327,7 @@ bool SimplygonMax::WritebackGeometry_Quad( spScene sgProcessedScene,
 				const bool bWeightAdded = mSkinImportData->AddWeights( mNewMaxNode, vid, mBonesArray, mWeightsArray ) == TRUE;
 				if( !bWeightAdded )
 				{
-					std::basic_string<TCHAR> tWarningMessage = tIndexedNodeName;
+					std::basic_string<TCHAR> tWarningMessage = tIndexedNodeName.ToMCHAR();
 					tWarningMessage += _T(" - Could not add bone weights to the given node, ignoring weights.");
 
 					this->LogToWindow( tWarningMessage, Warning );
@@ -9370,7 +9395,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 
 	// try to find mesh map via global lookup
 	const std::map<std::string, GlobalMeshMap>::const_iterator& globalMeshMap = this->GlobalGuidToMaxNodeMap.find( cSgMeshId );
-	bool bHasGlobalMeshMap = ( this->mapMeshes || this->extractionType == BATCH_PROCESSOR ) ? globalMeshMap != this->GlobalGuidToMaxNodeMap.end() : nullptr;
+	bool bHasGlobalMeshMap = ( this->mapMeshes || this->extractionType == BATCH_PROCESSOR ) ? globalMeshMap != this->GlobalGuidToMaxNodeMap.end() : false;
 
 	// try to find original Max mesh from map handle
 	INode* mMappedMaxNode = bHasGlobalMeshMap ? this->MaxInterface->GetINodeByHandle( globalMeshMap->second.GetMaxId() ) : nullptr;
@@ -9719,7 +9744,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 			mOriginalMaxMaterial->SetName( tIndexedMaterialName );
 			( (MultiMtl*)mOriginalMaxMaterial )->SetNumSubMtls( 0 );
 
-			for( std::set<int>::const_iterator& mIterator = sgMIds.begin(); mIterator != sgMIds.end(); mIterator++ )
+			for( std::set<int>::const_iterator mIterator = sgMIds.begin(); mIterator != sgMIds.end(); mIterator++ )
 			{
 				const int mid = *mIterator;
 
@@ -9778,7 +9803,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 		// add mesh and materials to material info handler, if any
 		if( mOriginalMaxMaterial != nullptr )
 		{
-			std::basic_string<TCHAR> tMaterialName = mOriginalMaxMaterial->GetName();
+			std::basic_string<TCHAR> tMaterialName = mOriginalMaxMaterial->GetName().ToMCHAR();
 
 			for( int subMaterialIndex = 0; subMaterialIndex < mOriginalMaxMaterial->NumSubMtls(); ++subMaterialIndex )
 			{
@@ -9786,7 +9811,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 
 				if( mMaxSubMaterial != nullptr )
 				{
-					std::basic_string<TCHAR> tSubMaterialName = mMaxSubMaterial->GetName();
+					std::basic_string<TCHAR> tSubMaterialName = mMaxSubMaterial->GetName().ToMCHAR();
 					this->materialInfoHandler->Add( std::basic_string<TCHAR>( tIndexedNodeName ), tMaterialName, tSubMaterialName, subMaterialIndex, false );
 				}
 			}
@@ -9816,7 +9841,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 				mOriginalMaxMaterial->SetName( tIndexedMaterialName );
 				( (MultiMtl*)mOriginalMaxMaterial )->SetNumSubMtls( maximumMaterialIndex + 1 );
 
-				for( std::set<int>::const_iterator& mIterator = sgMIds.begin(); mIterator != sgMIds.end(); mIterator++ )
+				for( std::set<int>::const_iterator mIterator = sgMIds.begin(); mIterator != sgMIds.end(); mIterator++ )
 				{
 					const int mid = *mIterator;
 
@@ -9831,8 +9856,9 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 					globalMaterialMap = this->GetGlobalMaterialMap( sMaterialId );
 					if( !globalMaterialMap )
 					{
+						std::basic_string<TCHAR> tIndexedMatName = tIndexedMaterialName.ToMCHAR();
 						std::basic_string<TCHAR> tWarningMessage = _T("Multi-material '");
-						tWarningMessage += tIndexedMaterialName + _T( "', sub-material '" );
+						tWarningMessage += tIndexedMatName + _T( "', sub-material '" );
 						tWarningMessage += tMaterialName;
 						tWarningMessage += _T("' - Could not find a material map between Simplygon and 3ds Max, ignoring material.");
 						this->LogToWindow( tWarningMessage, Warning );
@@ -9850,8 +9876,9 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 						mGlobalMaxMaterial = GetExistingMaterial( globalMaterialMap->sgMaterialName );
 						if( !mGlobalMaxMaterial )
 						{
+							std::basic_string<TCHAR> tIndexedMatName = tIndexedMaterialName.ToMCHAR();
 							std::basic_string<TCHAR> tWarningMessage = _T("Multi-material '");
-							tWarningMessage += tIndexedMaterialName + _T( "', sub-material '" );
+							tWarningMessage += tIndexedMatName + _T( "', sub-material '" );
 							tWarningMessage += tMaterialName;
 							tWarningMessage +=
 							    _T("' - There is mapping data that indicates that the current scene should contain original materials, are you importing the ")
@@ -9871,7 +9898,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 				// remove material-slots that are not in use
 				for( int mid = maximumMaterialIndex; mid >= 0; mid-- )
 				{
-					std::set<int>::const_iterator& midIterator = sgMIds.find( mid );
+					std::set<int>::const_iterator midIterator = sgMIds.find( mid );
 					if( midIterator == sgMIds.end() )
 					{
 						( (MultiMtl*)mOriginalMaxMaterial )->RemoveMtl( mid );
@@ -9933,7 +9960,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 		// add original mesh and materials to material info handler, if any
 		if( mOriginalMaxMaterial != nullptr )
 		{
-			std::basic_string<TCHAR> tMaterialName = mOriginalMaxMaterial->GetName();
+			std::basic_string<TCHAR> tMaterialName = mOriginalMaxMaterial->GetName().ToMCHAR();
 
 			bool bHasActiveSubMaterials = false;
 			for( int subMaterialIndex = 0; subMaterialIndex < mOriginalMaxMaterial->NumSubMtls(); ++subMaterialIndex )
@@ -9942,7 +9969,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 
 				if( mMaxSubMaterial != nullptr )
 				{
-					std::basic_string<TCHAR> tSubMaterialName = mMaxSubMaterial->GetName();
+					std::basic_string<TCHAR> tSubMaterialName = mMaxSubMaterial->GetName().ToMCHAR();
 					this->materialInfoHandler->Add( std::basic_string<TCHAR>( tIndexedNodeName ), tMaterialName, tSubMaterialName, subMaterialIndex, true );
 				}
 			}
@@ -10181,7 +10208,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 			boneToIdInUseMap.clear();
 			boneIdToBoneInUseMap.clear();
 
-			std::basic_string<TCHAR> tWarningMessage = tIndexedNodeName;
+			std::basic_string<TCHAR> tWarningMessage = tIndexedNodeName.ToMCHAR();
 			tWarningMessage +=
 			    _T(" - Mapping data indicates reuse of existing bone hierarchy but was unable to get a valid bone reference. Ignoring skinning...");
 
@@ -10236,7 +10263,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 			else
 			{
 				// copy bone transformations for every bone
-				for( std::map<std::string, GlobalMeshMap>::const_iterator& nodeIterator = this->GlobalGuidToMaxNodeMap.begin();
+				for( std::map<std::string, GlobalMeshMap>::const_iterator nodeIterator = this->GlobalGuidToMaxNodeMap.begin();
 				     nodeIterator != this->GlobalGuidToMaxNodeMap.end();
 				     nodeIterator++ )
 				{
@@ -10287,7 +10314,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 					{
 						INode* mBone = mSkin->GetBone( boneIndex );
 
-						std::map<INode*, int>::iterator& boneInUseIterator = boneToIdInUseMap.find( mBone );
+						std::map<INode*, int>::iterator boneInUseIterator = boneToIdInUseMap.find( mBone );
 						if( boneInUseIterator != boneToIdInUseMap.end() )
 						{
 							mSkinImportData->AddBoneEx( mBone, FALSE );
@@ -10349,7 +10376,7 @@ bool SimplygonMax::WritebackGeometry( spScene sgProcessedScene,
 				const bool bWeightAdded = mSkinImportData->AddWeights( mNewMaxNode, vid, mBonesArray, mWeightsArray ) == TRUE;
 				if( !bWeightAdded )
 				{
-					std::basic_string<TCHAR> tWarningMessage = tIndexedNodeName;
+					std::basic_string<TCHAR> tWarningMessage = tIndexedNodeName.ToMCHAR();
 					tWarningMessage += _T(" - Could not add bone weights to the given node, ignoring weights.");
 
 					this->LogToWindow( tWarningMessage, Warning );
@@ -10596,7 +10623,7 @@ bool SimplygonMax::WritebackMapping_Quad( size_t lodIndex, uint faceCount, const
 	}
 
 	// write texcoords with valid index
-	for( std::map<int, int>::const_iterator& texIterator = indexedTexCoordFieldMap.begin(); texIterator != indexedTexCoordFieldMap.end(); texIterator++ )
+	for( std::map<int, int>::const_iterator texIterator = indexedTexCoordFieldMap.begin(); texIterator != indexedTexCoordFieldMap.end(); texIterator++ )
 	{
 		const int maxChannel = texIterator->first;
 		const int texCoordIndex = texIterator->second;
@@ -10620,7 +10647,7 @@ bool SimplygonMax::WritebackMapping_Quad( size_t lodIndex, uint faceCount, const
 	}
 
 	// write vertex colors with valid index
-	for( std::map<int, int>::const_iterator& vertexColorIterator = indexedVertexColorFieldMap.begin(); vertexColorIterator != indexedVertexColorFieldMap.end();
+	for( std::map<int, int>::const_iterator vertexColorIterator = indexedVertexColorFieldMap.begin(); vertexColorIterator != indexedVertexColorFieldMap.end();
 	     vertexColorIterator++ )
 	{
 		const int maxChannel = vertexColorIterator->first;
@@ -10635,8 +10662,7 @@ bool SimplygonMax::WritebackMapping_Quad( size_t lodIndex, uint faceCount, const
 
 	// write unmapped texcoords
 	uint targetTexCoordMaxChannel = 1;
-	for( std::map<std::string, int>::const_iterator& texIterator = unNamedTexCoordFieldMap.begin(); texIterator != unNamedTexCoordFieldMap.end();
-	     texIterator++ )
+	for( std::map<std::string, int>::const_iterator texIterator = unNamedTexCoordFieldMap.begin(); texIterator != unNamedTexCoordFieldMap.end(); texIterator++ )
 	{
 		const std::string sTexCoordName = texIterator->first;
 		const int texCoordIndex = texIterator->second;
@@ -10670,7 +10696,7 @@ bool SimplygonMax::WritebackMapping_Quad( size_t lodIndex, uint faceCount, const
 
 	// write unmapped vertex colors
 	int targetVertexColorMaxChannel = 0;
-	for( std::map<std::string, int>::const_iterator& vertexColorIterator = unNamedVertexColorFieldMap.begin();
+	for( std::map<std::string, int>::const_iterator vertexColorIterator = unNamedVertexColorFieldMap.begin();
 	     vertexColorIterator != unNamedVertexColorFieldMap.end();
 	     vertexColorIterator++ )
 	{
@@ -10970,7 +10996,7 @@ bool SimplygonMax::WritebackMapping( size_t lodIndex, Mesh& newMaxMesh, spSceneM
 	}
 
 	// write texcoords with valid index
-	for( std::map<int, int>::const_iterator& texIterator = indexedTexCoordFieldMap.begin(); texIterator != indexedTexCoordFieldMap.end(); texIterator++ )
+	for( std::map<int, int>::const_iterator texIterator = indexedTexCoordFieldMap.begin(); texIterator != indexedTexCoordFieldMap.end(); texIterator++ )
 	{
 		const int maxChannel = texIterator->first;
 		const int texCoordIndex = texIterator->second;
@@ -10994,7 +11020,7 @@ bool SimplygonMax::WritebackMapping( size_t lodIndex, Mesh& newMaxMesh, spSceneM
 	}
 
 	// write vertex colors with valid index
-	for( std::map<int, int>::const_iterator& vertexColorIterator = indexedVertexColorFieldMap.begin(); vertexColorIterator != indexedVertexColorFieldMap.end();
+	for( std::map<int, int>::const_iterator vertexColorIterator = indexedVertexColorFieldMap.begin(); vertexColorIterator != indexedVertexColorFieldMap.end();
 	     vertexColorIterator++ )
 	{
 		const int maxChannel = vertexColorIterator->first;
@@ -11009,8 +11035,7 @@ bool SimplygonMax::WritebackMapping( size_t lodIndex, Mesh& newMaxMesh, spSceneM
 
 	// write unmapped texcoords
 	uint targetTexCoordMaxChannel = 1;
-	for( std::map<std::string, int>::const_iterator& texIterator = unNamedTexCoordFieldMap.begin(); texIterator != unNamedTexCoordFieldMap.end();
-	     texIterator++ )
+	for( std::map<std::string, int>::const_iterator texIterator = unNamedTexCoordFieldMap.begin(); texIterator != unNamedTexCoordFieldMap.end(); texIterator++ )
 	{
 		const std::string sTexCoordName = texIterator->first;
 		const int texCoordIndex = texIterator->second;
@@ -11044,7 +11069,7 @@ bool SimplygonMax::WritebackMapping( size_t lodIndex, Mesh& newMaxMesh, spSceneM
 
 	// write unmapped vertex colors
 	int targetVertexColorMaxChannel = 0;
-	for( std::map<std::string, int>::const_iterator& vertexColorIterator = unNamedVertexColorFieldMap.begin();
+	for( std::map<std::string, int>::const_iterator vertexColorIterator = unNamedVertexColorFieldMap.begin();
 	     vertexColorIterator != unNamedVertexColorFieldMap.end();
 	     vertexColorIterator++ )
 	{
@@ -11136,7 +11161,7 @@ Mtl* SimplygonMax::CreateMaterial( spScene sgProcessedScene,
 			Mtl* mMaxMaterial = nullptr;
 
 			// mtl reference was not setup during export to Simplygon
-			std::map<std::basic_string<TCHAR>, Mtl*>::const_iterator& tShaderIterator = this->UsedShaderReferences.find( tNewMaterialName );
+			std::map<std::basic_string<TCHAR>, Mtl*>::const_iterator tShaderIterator = this->UsedShaderReferences.find( tNewMaterialName );
 			if( tShaderIterator != UsedShaderReferences.end() )
 			{
 				mMaxMaterial = tShaderIterator->second;
@@ -11144,7 +11169,7 @@ Mtl* SimplygonMax::CreateMaterial( spScene sgProcessedScene,
 			else
 			{
 				// get unique material name
-				std::basic_string<TCHAR> tNewUniqueMaterialName = GetUniqueMaterialName( tNewMaterialName );
+				std::basic_string<TCHAR> tNewUniqueMaterialName = GetUniqueMaterialName( tNewMaterialName ).ToMCHAR();
 
 				// create a DirectX shader material
 				Mtl* mMaxMaterialInstance = (Mtl*)this->MaxInterface->CreateInstance( SClass_ID( MATERIAL_CLASS_ID ), Class_ID( 249140708, 1630788338 ) );
@@ -11171,7 +11196,7 @@ Mtl* SimplygonMax::CreateMaterial( spScene sgProcessedScene,
 
 				// set DirectX material to use custom HLSL shader file
 				const bool bEffectFileSet =
-				    effectFileParamBlock->SetValue( kEffectFileParamID, this->MaxInterface->GetTime(), mShaderFilePath.GetString() ) == TRUE;
+				    effectFileParamBlock->SetValue( kEffectFileParamID, this->MaxInterface->GetTime(), mShaderFilePath.GetString().ToMCHAR() ) == TRUE;
 				if( !bEffectFileSet )
 				{
 					return nullptr;
@@ -11386,7 +11411,8 @@ bool SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
                                           std::basic_string<TCHAR> tMaterialNameOverride )
 {
 	const IPathConfigMgr* mPathManager = IPathConfigMgr::GetPathConfigMgr();
-	const std::basic_string<TCHAR> tMaxBitmapDirectory = mPathManager->GetDir( APP_IMAGE_DIR );
+	MSTR mstr = mPathManager->GetDir( APP_IMAGE_DIR );
+	const std::basic_string<TCHAR> tMaxBitmapDirectory = mstr.ToMCHAR();
 
 	const char* cChannelName = LPCTSTRToConstCharPtr( tChannelName );
 
@@ -11595,7 +11621,7 @@ bool SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 					spString rTexCoordName = sgTextureNode->GetTexCoordName();
 					const char* cTexCoordName = rTexCoordName.c_str();
 
-					std::map<std::string, int>::const_iterator& texCoordMap = this->ImportedUvNameToMaxIndex.find( cTexCoordName );
+					std::map<std::string, int>::const_iterator texCoordMap = this->ImportedUvNameToMaxIndex.find( cTexCoordName );
 					if( texCoordMap != this->ImportedUvNameToMaxIndex.end() )
 					{
 						maxMappingChannel = texCoordMap->second;
@@ -11621,7 +11647,8 @@ PBBitmap* SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
                                                std::basic_string<TCHAR> tMaterialNameOverride )
 {
 	const IPathConfigMgr* mPathManager = IPathConfigMgr::GetPathConfigMgr();
-	const std::basic_string<TCHAR> tMaxBitmapDirectory = mPathManager->GetDir( APP_IMAGE_DIR );
+	MSTR mstr = mPathManager->GetDir( APP_IMAGE_DIR );
+	const std::basic_string<TCHAR> tMaxBitmapDirectory = mstr.ToMCHAR();
 
 	const char* cChannelName = LPCTSTRToConstCharPtr( tChannelName );
 
@@ -11676,7 +11703,7 @@ PBBitmap* SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 					tErrorMessage += _T(" channel.\n");
 
 					this->LogMessageToScriptEditor( tErrorMessage );
-					return false;
+					return nullptr;
 				}
 
 				// empty tex coord level check
@@ -11690,7 +11717,7 @@ PBBitmap* SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 					tErrorMessage += _T(" channel.\n");
 
 					this->LogMessageToScriptEditor( tErrorMessage );
-					return false;
+					return nullptr;
 				}
 
 				// use texture
@@ -11708,7 +11735,7 @@ PBBitmap* SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 					tErrorMessage += _T( " channel.\n" );
 
 					this->LogMessageToScriptEditor( tErrorMessage );
-					return false;
+					return nullptr;
 				}
 
 				std::basic_string<TCHAR> tTextureName = ConstCharPtrToLPCTSTR( sgTexture->GetName() );
@@ -11774,7 +11801,7 @@ PBBitmap* SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 
 						this->LogMessageToScriptEditor( tErrorMessage );
 
-						return false;
+						return nullptr;
 					}
 				}
 
@@ -11795,7 +11822,7 @@ PBBitmap* SimplygonMax::ImportMaterialTexture( spScene sgProcessedScene,
 					spString rTexCoordName = sgTextureNode->GetTexCoordName();
 					const char* cTexCoordName = rTexCoordName.c_str();
 
-					std::map<std::string, int>::const_iterator& texCoordMap = this->ImportedUvNameToMaxIndex.find( cTexCoordName );
+					std::map<std::string, int>::const_iterator texCoordMap = this->ImportedUvNameToMaxIndex.find( cTexCoordName );
 					if( texCoordMap != this->ImportedUvNameToMaxIndex.end() )
 					{
 						maxChannel = texCoordMap->second;
@@ -11946,7 +11973,7 @@ void SimplygonMax::LogToWindow( std::basic_string<TCHAR> tMessage, ErrorType err
 		//		std::wstring logMethod = errorType == ErrorType::Error ? L"SendErrorToLog" : L"SendWarningToLog";
 		//		TCHAR tExecuteSendLogToUIScript[ MAX_PATH ] = { 0 };
 		//		_stprintf_s( tExecuteSendLogToUIScript, MAX_PATH, _T("ui = dotNetObject \"SimplygonUI.UIAccessor\"\nui.%s \"%s\""), logMethod.c_str(),
-		//tMessage.c_str() ); 		const TSTR wExecuteSendLogToUIScript( tExecuteSendLogToUIScript );
+		// tMessage.c_str() ); 		const TSTR wExecuteSendLogToUIScript( tExecuteSendLogToUIScript );
 		//
 		// #if MAX_VERSION_MAJOR < 24
 		//		ExecuteMAXScriptScript( wExecuteSendLogToUIScript.data(), TRUE );
@@ -12248,7 +12275,7 @@ void SimplygonMax::CleanUp()
 // Gets the material map for the given Max material
 MaxMaterialMap* SimplygonMax::GetGlobalMaterialMap( Mtl* mMaxMaterial )
 {
-	std::basic_string<TCHAR> tMaterialName = mMaxMaterial->GetName();
+	std::basic_string<TCHAR> tMaterialName = mMaxMaterial->GetName().ToMCHAR();
 	AnimHandle mMaxMaterialHandle = Animatable::GetHandleByAnim( mMaxMaterial );
 
 	for( size_t materialIndex = 0; materialIndex < this->GlobalExportedMaterialMap.size(); ++materialIndex )
@@ -12267,7 +12294,7 @@ MaxMaterialMap* SimplygonMax::GetGlobalMaterialMap( Mtl* mMaxMaterial )
 // Gets the material map for the given Max material
 MaxMaterialMap* SimplygonMax::GetGlobalMaterialMapUnsafe( Mtl* mMaxMaterial )
 {
-	std::basic_string<TCHAR> tMaterialName = mMaxMaterial->GetName();
+	std::basic_string<TCHAR> tMaterialName = mMaxMaterial->GetName().ToMCHAR();
 	for( size_t materialIndex = 0; materialIndex < this->GlobalExportedMaterialMap.size(); ++materialIndex )
 	{
 		MaxMaterialMap* mMap = this->GlobalExportedMaterialMap[ materialIndex ];
@@ -12304,7 +12331,7 @@ MaxMaterialMap* SimplygonMax::AddMaterial( Mtl* mMaxMaterial, spGeometryData sgM
 		return nullptr;
 	}
 
-	std::basic_string<TCHAR> mMaterialName = mMaxMaterial->GetName();
+	std::basic_string<TCHAR> mMaterialName = mMaxMaterial->GetName().ToMCHAR();
 
 	// look for the material
 	MaxMaterialMap* materialMap = this->GetGlobalMaterialMap( mMaxMaterial );
@@ -12348,7 +12375,7 @@ MaxMaterialMap* SimplygonMax::AddMaterial( Mtl* mMaxMaterial, spGeometryData sgM
 			// if no mapping, create mapping
 			if( subMaterialMap == nullptr )
 			{
-				std::basic_string<TCHAR> mSubMaterialName = mMaxSubMaterial->GetName();
+				std::basic_string<TCHAR> mSubMaterialName = mMaxSubMaterial->GetName().ToMCHAR();
 
 				subMaterialMap = new MaxMaterialMap();
 				subMaterialMap->SetupFromMaterial( mMaxSubMaterial );
@@ -12373,7 +12400,7 @@ MaxMaterialMap* SimplygonMax::AddMaterial( Mtl* mMaxMaterial, spGeometryData sgM
 			// if mapping, reuse mapping
 			else
 			{
-				std::basic_string<TCHAR> mSubMaterialName = mMaxSubMaterial->GetName();
+				std::basic_string<TCHAR> mSubMaterialName = mMaxSubMaterial->GetName().ToMCHAR();
 
 				int sgMaterialIndex = 0;
 				const std::map<Mtl*, int>::const_iterator& mMtlIterator = this->GlobalMaxToSgMaterialMap.find( mMaxSubMaterial );
@@ -12457,7 +12484,8 @@ void GetImageFullFilePath( const TCHAR* tFilePath, TCHAR* tDestinationPath )
 	for( int dirIndex = 0; dirIndex < numDirectories; ++dirIndex )
 	{
 		TCHAR tTestPath[ MAX_PATH ] = { 0 };
-		_stprintf_s( tTestPath, MAX_PATH, _T("%s\\%s"), TheManager->GetMapDir( dirIndex ), tFileName );
+		MSTR mstr = TheManager->GetMapDir( dirIndex );
+		_stprintf_s( tTestPath, MAX_PATH, _T("%s\\%s"), mstr.ToMCHAR(), tFileName );
 		if( GetFileAttributes( tTestPath ) != INVALID_FILE_ATTRIBUTES )
 		{
 			_tcscpy( tDestinationPath, tTestPath );
@@ -12528,14 +12556,14 @@ spShadingColorNode AssignMaxColorToSgMaterialChannel( spMaterial sgMaterial,
 {
 	const long maxChannel = mMaxStdMaterial->StdIDToChannel( maxChannelId );
 #if MAX_VERSION_MAJOR >= 26
-	std::basic_string<TCHAR> tMappedChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel, true );
+	std::basic_string<TCHAR> tMappedChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel, true ).ToMCHAR();
 #else
-	std::basic_string<TCHAR> tMappedChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel );
+	std::basic_string<TCHAR> tMappedChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel ).ToMCHAR();
 #endif
 
 	ReplaceInvalidCharacters( tMappedChannelName, _T( '_' ) );
 
-	std::basic_string<TCHAR> tMaxMaterialName = mMaxStdMaterial->GetName();
+	std::basic_string<TCHAR> tMaxMaterialName = mMaxStdMaterial->GetName().ToMCHAR();
 
 	// assign color
 	switch( maxChannelId )
@@ -12910,7 +12938,7 @@ void SimplygonMax::CreateAndLinkTexture( MaterialNodes::TextureData& rTextureDat
 		spTexture sgTexture;
 
 		// do lookup in case this texture is already in use
-		std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& tTextureIterator =
+		std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator tTextureIterator =
 		    this->LoadedTexturePathToID.find( rTextureData.mTexturePathWithName );
 		const bool bTextureInUse = ( tTextureIterator != this->LoadedTexturePathToID.end() );
 
@@ -12942,7 +12970,7 @@ void SimplygonMax::ApplyChannelSpecificModifiers(
     long maxChannelId, StdMat2* mMaxStdMaterial, std::basic_string<TCHAR> tMaterialName, Color* outColor, float* outAlpha )
 {
 	std::basic_string<TCHAR> tChannelName;
-	std::basic_string<TCHAR> tMaxMaterialName = mMaxStdMaterial->GetName();
+	std::basic_string<TCHAR> tMaxMaterialName = mMaxStdMaterial->GetName().ToMCHAR();
 
 	MaterialColorOverride* colorOverride = HasMaterialColorOverrideForChannel( &MaterialColorOverrides, tMaxMaterialName, tChannelName );
 
@@ -13200,9 +13228,9 @@ void SimplygonMax::CreateSgMaterialSTDChannel( long maxChannelId, StdMat2* mMaxS
 	const long maxChannel = mMaxStdMaterial->StdIDToChannel( maxChannelId );
 
 #if MAX_VERSION_MAJOR >= 26
-	std::basic_string<TCHAR> tChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel, true );
+	std::basic_string<TCHAR> tChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel, true ).ToMCHAR();
 #else
-	std::basic_string<TCHAR> tChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel );
+	std::basic_string<TCHAR> tChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel ).ToMCHAR();
 #endif
 
 	ReplaceInvalidCharacters( tChannelName, _T( '_' ) );
@@ -13458,7 +13486,7 @@ std::pair<std::string, int> SimplygonMax::AddMaxMaterialToSgScene( Mtl* mMaxMate
 	spMaterial sgMaterial = sg->CreateMaterial();
 	sgMaterial->SetBlendMode( EMaterialBlendMode::Blend );
 
-	std::basic_string<TCHAR> tMaterialName = mMaxMaterial->GetName();
+	std::basic_string<TCHAR> tMaterialName = mMaxMaterial->GetName().ToMCHAR();
 	const char* cMaterialName = LPCTSTRToConstCharPtr( tMaterialName.c_str() );
 	sgMaterial->SetName( cMaterialName );
 
@@ -13702,7 +13730,7 @@ std::pair<std::string, int> SimplygonMax::AddMaxMaterialToSgScene( Mtl* mMaxMate
 							sgTextureNode->SetColorSpaceOverride( bIsSRGB ? Simplygon::EImageColorSpace::sRGB : Simplygon::EImageColorSpace::Linear );
 
 						// add extra mapping for post processing of data
-						std::map<spShadingTextureNode, std::basic_string<TCHAR>>::const_iterator& shadingNodeIterator =
+						std::map<spShadingTextureNode, std::basic_string<TCHAR>>::const_iterator shadingNodeIterator =
 						    this->ShadingTextureNodeToPath.find( sgTextureNode );
 						if( shadingNodeIterator == this->ShadingTextureNodeToPath.end() )
 						{
@@ -13762,7 +13790,7 @@ std::pair<std::string, int> SimplygonMax::AddMaxMaterialToSgScene( Mtl* mMaxMate
 					std::basic_string<TCHAR> tTexturePath = ConstCharPtrToLPCTSTR( rTextureName.c_str() );
 
 					// if full path found, use it
-					std::map<spShadingTextureNode, std::basic_string<TCHAR>>::const_iterator& sgTextureToPathIterator =
+					std::map<spShadingTextureNode, std::basic_string<TCHAR>>::const_iterator sgTextureToPathIterator =
 					    this->ShadingTextureNodeToPath.find( sgTextureNode );
 					if( sgTextureToPathIterator != this->ShadingTextureNodeToPath.end() )
 					{
@@ -13781,7 +13809,7 @@ std::pair<std::string, int> SimplygonMax::AddMaxMaterialToSgScene( Mtl* mMaxMate
 					spTexture sgTexture;
 
 					// do lookup in case this texture is already in use
-					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator& textureIterator =
+					std::map<std::basic_string<TCHAR>, std::basic_string<TCHAR>>::const_iterator textureIterator =
 					    this->LoadedTexturePathToID.find( tTexturePath );
 					const bool bTextureInUse = ( textureIterator != this->LoadedTexturePathToID.end() );
 
@@ -14233,7 +14261,7 @@ bool SimplygonMax::SetSRGB( int nodeId, bool isSRGB )
 // overrides tangent space for the given material
 bool SimplygonMax::SetUseTangentSpaceNormals( std::basic_string<TCHAR> tMaterialName, bool bTangentSpace )
 {
-	for( std::vector<ShadingNetworkProxy*>::iterator& proxyIterator = this->materialProxyTable.begin(); proxyIterator != this->materialProxyTable.end();
+	for( std::vector<ShadingNetworkProxy*>::iterator proxyIterator = this->materialProxyTable.begin(); proxyIterator != this->materialProxyTable.end();
 	     proxyIterator++ )
 	{
 		if( CompareStrings( ( *proxyIterator )->GetName(), tMaterialName ) )
@@ -14518,7 +14546,7 @@ spShadingNode SimplygonMax::CreateSgNodeNetwork( int nodeId, int materialId )
 // create shading-network proxy
 int SimplygonMax::CreateProxyShadingNetworkMaterial( std::basic_string<TCHAR> tMaterialName, MaxMaterialType materialType )
 {
-	for( std::vector<ShadingNetworkProxy*>::const_iterator& proxyIterator = this->materialProxyTable.begin(); proxyIterator != this->materialProxyTable.end();
+	for( std::vector<ShadingNetworkProxy*>::const_iterator proxyIterator = this->materialProxyTable.begin(); proxyIterator != this->materialProxyTable.end();
 	     proxyIterator++ )
 	{
 		if( CompareStrings( ( *proxyIterator )->GetName(), tMaterialName ) )
@@ -14536,7 +14564,7 @@ int SimplygonMax::CreateProxyShadingNetworkMaterial( std::basic_string<TCHAR> tM
 // create shading-network proxy
 int SimplygonMax::CreateProxyShadingNetworkWritebackMaterial( std::basic_string<TCHAR> tEffectFilePath, MaxMaterialType materialType )
 {
-	for( std::vector<ShadingNetworkProxyWriteBack*>::const_iterator& proxyIterator = this->materialProxyWritebackTable.begin();
+	for( std::vector<ShadingNetworkProxyWriteBack*>::const_iterator proxyIterator = this->materialProxyWritebackTable.begin();
 	     proxyIterator != this->materialProxyWritebackTable.end();
 	     proxyIterator++ )
 	{
@@ -14557,7 +14585,7 @@ int SimplygonMax::CreateProxyShadingNetworkWritebackMaterial( std::basic_string<
 int SimplygonMax::GetMaterialId( ShadingNetworkProxy* materialProxy )
 {
 	int proxyIndex = 0;
-	for( std::vector<ShadingNetworkProxy*>::const_iterator& proxyIterator = materialProxyTable.begin(); proxyIterator != materialProxyTable.end();
+	for( std::vector<ShadingNetworkProxy*>::const_iterator proxyIterator = materialProxyTable.begin(); proxyIterator != materialProxyTable.end();
 	     proxyIterator++ )
 	{
 		if( CompareStrings( ( *proxyIterator )->GetName(), materialProxy->GetName() ) )
@@ -14574,7 +14602,7 @@ int SimplygonMax::GetMaterialId( ShadingNetworkProxy* materialProxy )
 // gets shading-network proxy by name
 ShadingNetworkProxy* SimplygonMax::GetProxyShadingNetworkMaterial( std::basic_string<TCHAR> tMaterialName )
 {
-	for( std::vector<ShadingNetworkProxy*>::const_iterator& proxyIterator = materialProxyTable.begin(); proxyIterator != materialProxyTable.end();
+	for( std::vector<ShadingNetworkProxy*>::const_iterator proxyIterator = materialProxyTable.begin(); proxyIterator != materialProxyTable.end();
 	     proxyIterator++ )
 	{
 		if( CompareStrings( ( *proxyIterator )->GetName(), tMaterialName ) )
@@ -14588,7 +14616,7 @@ ShadingNetworkProxy* SimplygonMax::GetProxyShadingNetworkMaterial( std::basic_st
 
 ShadingNetworkProxyWriteBack* SimplygonMax::GetProxyShadingNetworkWritebackMaterial()
 {
-	for( std::vector<ShadingNetworkProxyWriteBack*>::const_iterator& proxyIterator = materialProxyWritebackTable.begin();
+	for( std::vector<ShadingNetworkProxyWriteBack*>::const_iterator proxyIterator = materialProxyWritebackTable.begin();
 	     proxyIterator != materialProxyWritebackTable.end();
 	     proxyIterator++ )
 	{
@@ -14666,7 +14694,7 @@ void SimplygonMax::GetSpShadingNodesFromTable( NodeProxyType nodeType,
                                                ShadingNetworkProxy* materialProxy,
                                                std::map<int, NodeProxy*>& nodeProxies )
 {
-	std::map<std::basic_string<TCHAR>, int>::const_iterator& channelIterator = materialProxy->ShadingNodeToSGChannel.find( tChannel );
+	std::map<std::basic_string<TCHAR>, int>::const_iterator channelIterator = materialProxy->ShadingNodeToSGChannel.find( tChannel );
 	if( channelIterator != materialProxy->ShadingNodeToSGChannel.end() )
 	{
 		const int nodeIndex = channelIterator->second;
@@ -14703,7 +14731,7 @@ spShadingNode SimplygonMax::GetSpShadingNodeFromTable( std::basic_string<TCHAR> 
 {
 	const int materialId = this->GetMaterialId( materialProxy );
 
-	for( std::vector<NodeProxy*>::const_iterator& proxyIterator = this->nodeTable.begin(); proxyIterator != this->nodeTable.end(); proxyIterator++ )
+	for( std::vector<NodeProxy*>::const_iterator proxyIterator = this->nodeTable.begin(); proxyIterator != this->nodeTable.end(); proxyIterator++ )
 	{
 		if( CompareStrings( ( *proxyIterator )->NodeName, tNodeName ) == true && ( *proxyIterator )->MaterialId == materialId )
 		{
@@ -14742,7 +14770,7 @@ AttributeData* SimplygonMax::GetNodeAttribute( std::basic_string<TCHAR> tAttribu
 {
 	const int materialId = GetMaterialId( materialProxy );
 
-	for( std::vector<NodeProxy*>::const_iterator& proxyiterator = this->nodeTable.begin(); proxyiterator != this->nodeTable.end(); proxyiterator++ )
+	for( std::vector<NodeProxy*>::const_iterator proxyiterator = this->nodeTable.begin(); proxyiterator != this->nodeTable.end(); proxyiterator++ )
 	{
 		if( ( *proxyiterator )->Attributes.find( tAttributeName ) != ( *proxyiterator )->Attributes.end() && ( *proxyiterator )->MaterialId == materialId )
 		{
@@ -14933,7 +14961,8 @@ void SimplygonMax::SetupMaxDXTexture( spScene sgProcessedScene,
                                       std::basic_string<TCHAR> tMaterialNameOverride )
 {
 	IPathConfigMgr* mPathManager = IPathConfigMgr::GetPathConfigMgr();
-	const std::basic_string<TCHAR> tMaxBitmapDirectory = mPathManager->GetDir( APP_IMAGE_DIR );
+	MSTR mstr = mPathManager->GetDir( APP_IMAGE_DIR );
+	const std::basic_string<TCHAR> tMaxBitmapDirectory = mstr.ToMCHAR();
 
 	spTextureTable sgTextureTable = sgProcessedScene->GetTextureTable();
 	spTexture sgTexture = Simplygon::NullPtr;
@@ -15031,7 +15060,7 @@ void SimplygonMax::SetupMaxDXTexture( spScene sgProcessedScene,
 		const char* cTexCoordName = rTexCoordName.c_str();
 
 		int maxChannel = 1;
-		std::map<std::string, int>::const_iterator& texCoordMap = this->ImportedUvNameToMaxIndex.find( cTexCoordName );
+		std::map<std::string, int>::const_iterator texCoordMap = this->ImportedUvNameToMaxIndex.find( cTexCoordName );
 		if( texCoordMap != this->ImportedUvNameToMaxIndex.end() )
 		{
 			maxChannel = texCoordMap->second;
@@ -15302,7 +15331,7 @@ Mtl* SimplygonMax::SetupMaxStdMaterial( spScene sgProcessedScene, std::basic_str
 	const char* cMaterialName = tMaterialName.c_str();
 
 	// get unique material name
-	std::basic_string<TCHAR> tStandardMaterialName = GetUniqueMaterialName( ConstCharPtrToLPCTSTR( cMaterialName ) );
+	std::basic_string<TCHAR> tStandardMaterialName = GetUniqueMaterialName( ConstCharPtrToLPCTSTR( cMaterialName ) ).ToMCHAR();
 
 	StdMat2* mMaxStdMaterial = NewDefaultStdMat();
 	mMaxStdMaterial->SetName( tStandardMaterialName.c_str() );
@@ -15315,9 +15344,9 @@ Mtl* SimplygonMax::SetupMaxStdMaterial( spScene sgProcessedScene, std::basic_str
 
 		// get standard Max material channel name
 #if MAX_VERSION_MAJOR >= 26
-		std::basic_string<TCHAR> tChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel, true );
+		std::basic_string<TCHAR> tChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel, true ).ToMCHAR();
 #else
-		std::basic_string<TCHAR> tChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel );
+		std::basic_string<TCHAR> tChannelName = mMaxStdMaterial->GetSubTexmapSlotName( maxChannel ).ToMCHAR();
 #endif
 		ReplaceInvalidCharacters( tChannelName, _T( '_' ) );
 
@@ -15424,7 +15453,7 @@ Mtl* SimplygonMax::SetupPhysicalMaterial( spScene sgProcessedScene, std::basic_s
 	const char* cPhysicalMaterialName = rPhysicalMaterialName.c_str();
 
 	// get unique material name
-	std::basic_string<TCHAR> tPhysicalMaterialName = GetUniqueMaterialName( ConstCharPtrToLPCTSTR( cPhysicalMaterialName ) );
+	std::basic_string<TCHAR> tPhysicalMaterialName = GetUniqueMaterialName( ConstCharPtrToLPCTSTR( cPhysicalMaterialName ) ).ToMCHAR();
 
 	bool bLegacyPhysical = false;
 	Mtl* mMaxPhysicalMaterial = NewPhysicalMaterial( nullptr, &bLegacyPhysical );

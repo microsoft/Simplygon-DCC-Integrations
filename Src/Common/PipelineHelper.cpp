@@ -1453,7 +1453,7 @@ int PipelineHelper::AddMaterialCaster( const INT64 pipelineId, std::basic_string
 
 bool PipelineHelper::AddCascadedPipeline( const INT64 pipelineId, const INT64 cascadedPipelineId )
 {
-	std::map<INT64, spPipeline>::const_iterator& pipelineIterator = this->nameToSettingsPipeline.find( pipelineId );
+	std::map<INT64, spPipeline>::const_iterator pipelineIterator = this->nameToSettingsPipeline.find( pipelineId );
 	if( pipelineIterator == this->nameToSettingsPipeline.end() )
 	{
 		throw std::exception( "The first pipeline id was not found." );
@@ -1567,7 +1567,7 @@ PipelineHelper* PipelineHelper::Instance()
 std::vector<INT64> PipelineHelper::GetPipelines()
 {
 	std::vector<INT64> pipelineIds;
-	for( std::map<INT64, spPipeline>::const_iterator& pipelineIterator = this->nameToSettingsPipeline.begin();
+	for( std::map<INT64, spPipeline>::const_iterator pipelineIterator = this->nameToSettingsPipeline.begin();
 	     pipelineIterator != this->nameToSettingsPipeline.end();
 	     pipelineIterator++ )
 	{
@@ -1579,7 +1579,7 @@ std::vector<INT64> PipelineHelper::GetPipelines()
 
 std::basic_string<TCHAR> PipelineHelper::GetPipelineType( const INT64 pipelineId )
 {
-	const std::map<INT64, spPipeline>::const_iterator& pipelineIterator = this->nameToSettingsPipeline.find( pipelineId );
+	const std::map<INT64, spPipeline>::const_iterator pipelineIterator = this->nameToSettingsPipeline.find( pipelineId );
 	if( pipelineIterator == this->nameToSettingsPipeline.end() )
 	{
 		throw std::exception( "The pipeline id was not found." );

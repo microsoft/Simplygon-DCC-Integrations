@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(ProjectDir)..\..\..\..\packages\Costura.Fody.4.1.0\build\Costura.Fody.props" Condition="Exists('$(ProjectDir)..\..\..\..\packages\Costura.Fody.4.1.0\build\Costura.Fody.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <ProjectGuid>{B410434F-4AEF-4416-95B2-585752B70255}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SimplygonUI.MaxUI</RootNamespace>
+    <AssemblyName>SimplygonMax2025UI</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>$(ProjectDir)..\..\..\..\Build\SimplygonMax2025UI\$(Platform)\$(Configuration)\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;SIMPLYGONMAX2025UI</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>$(ProjectDir)..\..\..\..\Build\SimplygonMax2025UI\$(Platform)\$(Configuration)\</OutputPath>
+    <DefineConstants>TRACE;SIMPLYGONMAX2025UI</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Autodesk.Max">
+      <HintPath>C:\Program Files\Autodesk\3ds Max 2025\Autodesk.Max.dll</HintPath>
+    </Reference>
+    <Reference Include="Costura, Version=4.1.0.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
+      <HintPath>$(ProjectDir)..\..\..\..\packages\Costura.Fody.4.1.0\lib\net40\Costura.dll</HintPath>
+    </Reference>
+    <Reference Include="CSharpUtilities">
+      <HintPath>C:\Program Files\Autodesk\3ds Max 2025\CSharpUtilities.dll</HintPath>
+    </Reference>
+    <Reference Include="ManagedServices">
+      <HintPath>C:\Program Files\Autodesk\3ds Max 2025\ManagedServices.dll</HintPath>
+    </Reference>
+    <Reference Include="MaxCustomControls">
+      <HintPath>C:\Program Files\Autodesk\3ds Max 2025\MaxCustomControls.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="UiViewModels">
+      <HintPath>C:\Program Files\Autodesk\3ds Max 2025\UiViewModels.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SimplygonMaxUIPlugin.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <None Include="FodyWeavers.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="FodyWeavers.xml" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\WPF\SimplygonWPFUI\Net4\SimplygonWPFUI.Net4.csproj">
+      <Project>{cb949457-2014-4b66-a503-c481d3f0f317}</Project>
+      <Name>SimplygonWPFUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MaxUI\SimplygonMax2025UI.csproj">
+      <Project>{843B9450-36C8-4E31-AB26-447C4D4FC06D}</Project>
+      <Name>Max2025UI</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(ProjectDir)..\..\..\..\packages\Fody.6.1.1\build\Fody.targets" Condition="Exists('$(ProjectDir)..\..\..\..\packages\Fody.6.1.1\build\Fody.targets')" />
+</Project>

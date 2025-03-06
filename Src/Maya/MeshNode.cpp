@@ -3244,6 +3244,22 @@ MStatus MeshNode::WritebackGeometryData(
 	const uint vertexCount = this->sgMeshData->GetVertexCount();
 	const uint triangleCount = this->sgMeshData->GetTriangleCount();
 	const uint cornerCount = triangleCount * 3;
+	
+	spRidArray sgVertexIds = this->sgMeshData->GetVertexIds();
+	spRealArray sgCoords = this->sgMeshData->GetCoords();
+
+	// Create a new field data object, since we don't have a create function, we copy a pre-existing one and empty it
+	spFieldData cornerFieldData = this->sgMeshData->GetCorners();
+	spFieldData fieldDataBase;
+	if( !cornerFieldData.IsNull() )
+	{
+		fieldDataBase = cornerFieldData->NewCopy( false );
+		fieldDataBase->Clear();
+		fieldDataBase->RemoveAllFields();
+		spRealArray cornerCoords = spRealArray::SafeCast( fieldDataBase->AddBaseTypeField( EBaseTypes::TYPES_ID_REAL, 3, "CornerCoords" ) );
+		cornerCoords->SetTupleCount( cornerCount );
+		cornerCoords->IndexedCopy( sgCoords, sgVertexIds, 0 );
+	}
 
 	spString rProcessedMeshName = sgProcessedMesh->GetName();
 	const char* cProcessedMeshName = rProcessedMeshName.c_str();
@@ -3261,9 +3277,6 @@ MStatus MeshNode::WritebackGeometryData(
 	MFloatPointArray mMeshVertices; // the vertices
 	MIntArray mMeshPolygonsCount;   // the number of vertices per polygon (always 3 in our case)
 	MIntArray mMeshTriangles;       // the vertices used by each triangle
-
-	spRidArray sgVertexIds = this->sgMeshData->GetVertexIds();
-	spRealArray sgCoords = this->sgMeshData->GetCoords();
 
 	// copy vertices
 	mMeshVertices.setLength( vertexCount );
@@ -3513,9 +3526,12 @@ MStatus MeshNode::WritebackGeometryData(
 		MFloatArray mMeshUArray;    // the u-coords
 		MFloatArray mMeshVArray;    // the v-coords
 
-		// make an indexed, packed copy
+		// make an indexed, packed copy based on both the UV and 3d Coord, to avoid referencing the same UVs if the coords are not the same
 		spRidArray sgIndices = sg->CreateRidArray();
-		spRealArray sgIndicedTexCoords = spRealArray::SafeCast( sgTexCoords->NewPackedCopy( sgIndices ) );
+		auto fieldDataPerUV = fieldDataBase->NewCopy( true );
+		fieldDataPerUV->AddField( sgTexCoords );
+		auto fieldDataPerUVPackedCopy = fieldDataPerUV->NewPackedCopy( sgIndices );
+		spRealArray sgIndicedTexCoords = spRealArray::SafeCast( fieldDataPerUVPackedCopy->GetField( sgTexCoords->GetName() ) );
 
 		if( !sgIndicedTexCoords.IsNull() )
 		{

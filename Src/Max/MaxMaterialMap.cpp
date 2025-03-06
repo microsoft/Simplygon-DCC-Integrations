@@ -21,7 +21,7 @@ void MaxMaterialMap::SetupFromMaterial( Mtl* mMaxMaterial )
 
 int MaxMaterialMap::GetMaxMaterialId( int sgMaterialId )
 {
-	std::map<int, int>::const_iterator& materialIterator = this->SGToMaxMapping.find( sgMaterialId );
+	std::map<int, int>::const_iterator materialIterator = this->SGToMaxMapping.find( sgMaterialId );
 	if( materialIterator != this->SGToMaxMapping.end() )
 	{
 		return materialIterator->second;
@@ -39,7 +39,7 @@ int MaxMaterialMap::GetSimplygonMaterialId( int maxMaterialId ) const
 		maxMaterialId = 0;
 	}
 
-	std::map<int, int>::const_iterator& materialIterator = this->MaxToSGMapping.find( maxMaterialId );
+	std::map<int, int>::const_iterator materialIterator = this->MaxToSGMapping.find( maxMaterialId );
 	if( materialIterator != MaxToSGMapping.end() )
 	{
 		return materialIterator->second;
@@ -54,7 +54,7 @@ int MaxMaterialMap::GetSimplygonMaterialId( int maxMaterialId ) const
 	// if the lookup for some reason is empty, default to material index 0, as earlier
 	else if( this->NumSubMaterials == 0 )
 	{
-		std::map<int, int>::const_iterator& firstMaterialIterator = this->MaxToSGMapping.begin();
+		std::map<int, int>::const_iterator firstMaterialIterator = this->MaxToSGMapping.begin();
 		if( firstMaterialIterator != MaxToSGMapping.end() )
 		{
 			return firstMaterialIterator->second;

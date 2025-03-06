@@ -285,7 +285,7 @@ namespace SimplygonUI.MaxUI
             MainUI.Resources.MergedDictionaries.Add(this.Resources);
 #if SIMPLYGONMAX2021UI || SIMPLYGONMAX2022UI
             MainUI.SetIntegrationType(SimplygonIntegrationType.Max2021);
-#elif SIMPLYGONMAX2023UI || SIMPLYGONMAX2024UI
+#elif SIMPLYGONMAX2023UI || SIMPLYGONMAX2024UI || SIMPLYGONMAX2025UI
             MainUI.SetIntegrationType(SimplygonIntegrationType.Max2023);
 #else
             MainUI.SetIntegrationType(SimplygonIntegrationType.Max);
@@ -594,7 +594,7 @@ namespace SimplygonUI.MaxUI
 
 #if SIMPLYGONMAX2021UI || SIMPLYGONMAX2022UI
             maxRetVal = ExecuteMaxScript($@"GetPhysicalMaterialChannelNames()");
-#elif SIMPLYGONMAX2023UI || SIMPLYGONMAX2024UI
+#elif SIMPLYGONMAX2023UI || SIMPLYGONMAX2024UI || SIMPLYGONMAX2025UI
             maxRetVal = ExecuteMaxScript($@"GetPhysicalMaterialChannelNames_2023()");
 #else
             maxRetVal = ExecuteMaxScript($@"GetMaterialChannelNames()");

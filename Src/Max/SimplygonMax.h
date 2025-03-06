@@ -868,21 +868,6 @@ const bool GetData( IParamBlock2* mParamBlock, const ParamID paramId, const Time
 
 const bool GetData( IParamBlock2* mParamBlock, const ParamID paramId, const TimeValue time, std::vector<eMaxBlendMode>* outValue );
 
-template <typename T> bool GetTexMapProperty( Texmap* mTexMap, std::basic_string<TCHAR> tPropertyName, TimeValue time, T* outValue )
-{
-	const int numParamBlocks = mTexMap->NumParamBlocks();
-	for( int paramBlockIndex = 0; paramBlockIndex < numParamBlocks; ++paramBlockIndex )
-	{
-		IParamBlock2* paramBlock = mTexMap->GetParamBlock( paramBlockIndex );
-		if( paramBlock )
-		{
-			return GetStdMaterialProperty<T>( paramBlock, tPropertyName, time, outValue );
-		}
-	}
-
-	return false;
-}
-
 template <typename T> bool GetStdMaterialProperty( IParamBlock2* mParamBlock, std::basic_string<TCHAR> tPropertyName, TimeValue time, T* outValue )
 {
 	if( !mParamBlock )
@@ -937,20 +922,19 @@ template <typename T> bool GetStdMaterialProperty( IParamBlock2* mParamBlock, st
 	return false;
 }
 
-template <typename T> bool GetTexMapProperties( Texmap* mTexMap, std::basic_string<TCHAR> tPropertyName, TimeValue time, std::vector<T>* outValue )
+template <typename T> bool GetTexMapProperty( Texmap* mTexMap, std::basic_string<TCHAR> tPropertyName, TimeValue time, T* outValue )
 {
 	const int numParamBlocks = mTexMap->NumParamBlocks();
 	for( int paramBlockIndex = 0; paramBlockIndex < numParamBlocks; ++paramBlockIndex )
 	{
 		IParamBlock2* paramBlock = mTexMap->GetParamBlock( paramBlockIndex );
-
 		if( paramBlock )
 		{
-			return GetStdMaterialProperties<T>( paramBlock, tPropertyName, time, outValue );
+			return GetStdMaterialProperty<T>( paramBlock, tPropertyName, time, outValue );
 		}
 	}
 
-	return true;
+	return false;
 }
 
 template <typename T>
@@ -1006,6 +990,23 @@ bool GetStdMaterialProperties( IParamBlock2* mParamBlock, std::basic_string<TCHA
 
 	return false;
 }
+
+template <typename T> bool GetTexMapProperties( Texmap* mTexMap, std::basic_string<TCHAR> tPropertyName, TimeValue time, std::vector<T>* outValue )
+{
+	const int numParamBlocks = mTexMap->NumParamBlocks();
+	for( int paramBlockIndex = 0; paramBlockIndex < numParamBlocks; ++paramBlockIndex )
+	{
+		IParamBlock2* paramBlock = mTexMap->GetParamBlock( paramBlockIndex );
+
+		if( paramBlock )
+		{
+			return GetStdMaterialProperties<T>( paramBlock, tPropertyName, time, outValue );
+		}
+	}
+
+	return true;
+}
+
 
 spShadingNode GetColorCorrectionLightSettings( ColorCorrectionData& sgColorCorrectionData,
                                                spShadingNode sgInputColor,

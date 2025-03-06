@@ -337,7 +337,7 @@ bool OverridePipelineParameters( spPipeline sgPipeline, const char* cTextureOutp
 	if( !sgPipelineSettings.IsNull() )
 	{
 		// override TexCoordName if it is not set (required for processing)
-		std::string sPipelineType = sgPipeline->GetClass();
+		std::string sPipelineType = sgPipeline->GetClass().c_str();
 		if( std::string( "IReductionPipeline" ) == sPipelineType )
 		{
 			spString rTexCoordName = sgPipeline->GetStringParameter( "ReductionProcessor/MappingImageSettings/TexCoordName" );

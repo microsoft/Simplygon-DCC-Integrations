@@ -532,7 +532,7 @@ Value* sgsdk_GetProcessedMeshes_cf( Value** arg_list, int count )
 	one_typed_value_local( Array * result );
 
 	MaterialInfoHandler* materialInfoHandler = SimplygonMaxInstance->GetMaterialInfoHandler();
-	std::vector<std::basic_string<TCHAR>>& tMeshList = materialInfoHandler->GetMeshes();
+	std::vector<std::basic_string<TCHAR>> tMeshList = materialInfoHandler->GetMeshes();
 
 	const int listSize = (int)tMeshList.size();
 	vl.result = new Array( listSize );
@@ -552,7 +552,7 @@ Value* sgsdk_GetMaterials_cf( Value** arg_list, int count )
 	one_typed_value_local( Array * result );
 
 	MaterialInfoHandler* materialInfoHandler = SimplygonMaxInstance->GetMaterialInfoHandler();
-	std::vector<std::basic_string<TCHAR>>& tMaterialList = materialInfoHandler->GetMaterialsWithCustomChannels();
+	std::vector<std::basic_string<TCHAR>> tMaterialList = materialInfoHandler->GetMaterialsWithCustomChannels();
 
 	const int listSize = (int)tMaterialList.size();
 	vl.result = new Array( listSize );
@@ -574,7 +574,7 @@ Value* sgsdk_GetChannelsForMaterial_cf( Value** arg_list, int count )
 	std::basic_string<TCHAR> tMaterial = arg_list[ 0 ]->to_string();
 
 	MaterialInfoHandler* materialInfoHandler = SimplygonMaxInstance->GetMaterialInfoHandler();
-	std::vector<std::basic_string<TCHAR>>& tChannelList = materialInfoHandler->GetCustomChannelsForMaterial( tMaterial );
+	std::vector<std::basic_string<TCHAR>> tChannelList = materialInfoHandler->GetCustomChannelsForMaterial( tMaterial );
 
 	const int listSize = (int)tChannelList.size();
 	vl.result = new Array( listSize );
@@ -638,7 +638,7 @@ Value* sgsdk_GetSubMaterials_cf( Value** arg_list, int count )
 	const int listSize = (int)tSubMaterials.size();
 	vl.result = new Array( listSize );
 
-	for( std::map<std::basic_string<TCHAR>, std::pair<int, std::basic_string<TCHAR>>>::const_iterator& subMaterialIterator = tSubMaterials.begin();
+	for( std::map<std::basic_string<TCHAR>, std::pair<int, std::basic_string<TCHAR>>>::const_iterator subMaterialIterator = tSubMaterials.begin();
 	     subMaterialIterator != tSubMaterials.end();
 	     subMaterialIterator++ )
 	{
@@ -960,7 +960,7 @@ Value* sgsdk_GetMaterialsWithCustomChannels_cf( Value** arg_list, int count )
 	one_typed_value_local( Array * result );
 
 	MaterialInfoHandler* materialInfoHandler = SimplygonMaxInstance->GetMaterialInfoHandler();
-	std::vector<std::basic_string<TCHAR>>& tMaterialList = materialInfoHandler->GetMaterialsWithCustomChannels();
+	std::vector<std::basic_string<TCHAR>> tMaterialList = materialInfoHandler->GetMaterialsWithCustomChannels();
 
 	const int listSize = (int)tMaterialList.size();
 	vl.result = new Array( listSize );
@@ -980,7 +980,7 @@ Value* sgsdk_GetCustomChannelsForMaterial_cf( Value** arg_list, int count )
 	one_typed_value_local( Array * result );
 
 	MaterialInfoHandler* materialInfoHandler = SimplygonMaxInstance->GetMaterialInfoHandler();
-	std::vector<std::basic_string<TCHAR>>& tChannelList = materialInfoHandler->GetCustomChannelsForMaterial( arg_list[ 0 ]->to_string() );
+	std::vector<std::basic_string<TCHAR>> tChannelList = materialInfoHandler->GetCustomChannelsForMaterial( arg_list[ 0 ]->to_string() );
 
 	const int listSize = (int)tChannelList.size();
 	vl.result = new Array( listSize );
@@ -1175,7 +1175,7 @@ Value* sgsdk_GetPipelines_cf( Value** arg_list, int count )
 	check_arg_count( "sgsdk_GetPipelines", 0, count );
 	one_typed_value_local( Array * result );
 
-	std::vector<INT64>& pipelineIds = PipelineHelper::Instance()->GetPipelines();
+	std::vector<INT64> pipelineIds = PipelineHelper::Instance()->GetPipelines();
 
 	const int listSize = (int)pipelineIds.size();
 	vl.result = new Array( listSize );
