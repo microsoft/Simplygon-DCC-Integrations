@@ -62,7 +62,7 @@ namespace SimplygonUI
                 cascadedPipeline.InitializeUI();
             }
 
-            if (PipelineName == "OcclusionMeshPipeline")
+            if (PipelineName == "OcclusionMeshPipeline" || PipelineName == "QuadReductionPipeline" || PipelineName == "HighDensityMeshReductionPipeline")
             {
                 MaterialCasterGroupBox.Visibility = Visibility.Collapsed;
             }

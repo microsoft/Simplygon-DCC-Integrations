@@ -19,8 +19,8 @@ namespace SimplygonUI
     public class SimplygonVersion
     {
         public static readonly string Version = "10.4";
-        public static readonly string Build = "10.4.148.0";
-        public static readonly string Commit = "2e4b2ed3587ebe3975ed1dd80653683577f130a3";
+        public static readonly string Build = "10.4.199.0";
+        public static readonly string Commit = "9f2a073064b8910020ba2be8a576e219f66d715c";
     }
 
     public enum SimplygonIntegrationType
@@ -32507,7 +32507,12 @@ namespace SimplygonUI
                 if(OnScreenSizeUI.Visible) return true;
                 if(MaxDeviationEnabledUI.Visible) return true;
                 if(MaxDeviationUI.Visible) return true;
+                if(TriangleCountEnabledUI.Visible) return true;
+                if(TriangleCountUI.Visible) return true;
+                if(TriangleRatioEnabledUI.Visible) return true;
+                if(TriangleRatioUI.Visible) return true;
                 if(StopConditionUI.Visible) return true;
+                if(IsotropicityUI.Visible) return true;
 
                 return false;
             }
@@ -32930,6 +32935,416 @@ namespace SimplygonUI
 
         }
 
+        public bool TriangleCountEnabled { get { return _TriangleCountEnabled; } set { _TriangleCountEnabled = value; OnPropertyChanged(); } }
+        private bool _TriangleCountEnabled;
+        public SimplygonTriangleCountEnabledEx TriangleCountEnabledUI { get; set; }
+        public class SimplygonTriangleCountEnabledEx : SimplygonSettingsProperty
+        {
+            public SimplygonHighDensityMeshReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.TriangleCountEnabled;
+                }
+
+                set
+                {
+                    bool needReload = Parent.TriangleCountEnabled != value;
+                    Parent.TriangleCountEnabled = value;
+                    Parent.TriangleCountUI.Visible = Visible;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+            public override bool Visible { get { return false; } set { OnPropertyChanged(); } }
+            public override bool IsEditEnabled { get { return false; } set { OnPropertyChanged(); } }
+            public bool DependencyVisible { get { return true; } set { OnPropertyChanged(); } }
+
+            public SimplygonTriangleCountEnabledEx() : base("TriangleCountEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable on triangle count as a reduction target. The reducer will stop when the number of triangles has been reached.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonTriangleCountEnabledEx(dynamic jsonData) : base("TriangleCountEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable on triangle count as a reduction target. The reducer will stop when the number of triangles has been reached.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonTriangleCountEnabledEx DeepCopy()
+            {
+                return (SimplygonTriangleCountEnabledEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public int TriangleCount { get { return _TriangleCount; } set { _TriangleCount = value; OnPropertyChanged(); } }
+        private int _TriangleCount;
+        public SimplygonTriangleCountEx TriangleCountUI { get; set; }
+        public class SimplygonTriangleCountEx : SimplygonSettingsProperty
+        {
+            public SimplygonHighDensityMeshReductionSettings Parent { get; set; }
+            public int Value
+            {
+                get
+                {
+                    return Parent.TriangleCount;
+                }
+
+                set
+                {
+                    bool needReload = Parent.TriangleCount != value;
+                    Parent.TriangleCount = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public int DefaultValue { get; set; }
+            public int MinValue { get; set; }
+            public int MaxValue { get; set; }
+            public int DefaultMinValue { get; set; }
+            public int DefaultMaxValue { get; set; }
+            public int TicksFrequencyValue { get; set; }
+            public bool DependencyObject { get { return Parent.TriangleCountEnabled; } set { Parent.TriangleCountEnabled = value; OnPropertyChanged(); } }
+            public override bool Visible { get { if( Parent.TriangleCountEnabledUI != null ) { return Parent.TriangleCountEnabledUI.DependencyVisible; } else { return visible; } } set { OnPropertyChanged(); } }
+
+            public SimplygonTriangleCountEx() : base("TriangleCount")
+            {
+                Type = "int";
+                HelpText = "The TriangleCount value, the target to number of triangles to reduce to.";
+                TypeOverride = "";
+                DefaultValue = 2147483647;
+                MinValue = 1;
+                MaxValue = 2147483647;
+                DefaultMinValue = 1;
+                DefaultMaxValue = 2147483647;
+                TicksFrequencyValue = 1;
+                HasDependencyObject = true;
+                Visible = true;
+            }
+
+            public SimplygonTriangleCountEx(dynamic jsonData) : base("TriangleCount")
+            {
+                Type = "int";
+                HelpText = "The TriangleCount value, the target to number of triangles to reduce to.";
+                TypeOverride = "";
+                DefaultValue = 2147483647;
+                MinValue = 1;
+                DefaultMinValue = 1;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (int)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TriangleCount: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 2147483647;
+                DefaultMaxValue = 2147483647;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (int)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TriangleCount: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (int)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 1;
+                }
+
+                HasDependencyObject = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonTriangleCountEx DeepCopy()
+            {
+                return (SimplygonTriangleCountEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
+        public bool TriangleRatioEnabled { get { return _TriangleRatioEnabled; } set { _TriangleRatioEnabled = value; OnPropertyChanged(); } }
+        private bool _TriangleRatioEnabled;
+        public SimplygonTriangleRatioEnabledEx TriangleRatioEnabledUI { get; set; }
+        public class SimplygonTriangleRatioEnabledEx : SimplygonSettingsProperty
+        {
+            public SimplygonHighDensityMeshReductionSettings Parent { get; set; }
+            public bool Value
+            {
+                get
+                {
+                    return Parent.TriangleRatioEnabled;
+                }
+
+                set
+                {
+                    bool needReload = Parent.TriangleRatioEnabled != value;
+                    Parent.TriangleRatioEnabled = value;
+                    Parent.TriangleRatioUI.Visible = Visible;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public bool DefaultValue { get; set; }
+            public override bool Visible { get { return false; } set { OnPropertyChanged(); } }
+            public override bool IsEditEnabled { get { return false; } set { OnPropertyChanged(); } }
+            public bool DependencyVisible { get { return true; } set { OnPropertyChanged(); } }
+
+            public SimplygonTriangleRatioEnabledEx() : base("TriangleRatioEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable triangle ratio as a reduction target. The reducer will stop when the set ratio of triangles has been reached.";
+                TypeOverride = "";
+                DefaultValue = false;
+                Visible = true;
+            }
+
+            public SimplygonTriangleRatioEnabledEx(dynamic jsonData) : base("TriangleRatioEnabled")
+            {
+                Type = "bool";
+                HelpText = "Enable triangle ratio as a reduction target. The reducer will stop when the set ratio of triangles has been reached.";
+                TypeOverride = "";
+                DefaultValue = false;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonTriangleRatioEnabledEx DeepCopy()
+            {
+                return (SimplygonTriangleRatioEnabledEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                return jsonData;
+            }
+
+        }
+
+        public float TriangleRatio { get { return _TriangleRatio; } set { _TriangleRatio = value; OnPropertyChanged(); } }
+        private float _TriangleRatio;
+        public SimplygonTriangleRatioEx TriangleRatioUI { get; set; }
+        public class SimplygonTriangleRatioEx : SimplygonSettingsProperty
+        {
+            public SimplygonHighDensityMeshReductionSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.TriangleRatio;
+                }
+
+                set
+                {
+                    bool needReload = Parent.TriangleRatio != value;
+                    Parent.TriangleRatio = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+            public bool DependencyObject { get { return Parent.TriangleRatioEnabled; } set { Parent.TriangleRatioEnabled = value; OnPropertyChanged(); } }
+            public override bool Visible { get { if( Parent.TriangleRatioEnabledUI != null ) { return Parent.TriangleRatioEnabledUI.DependencyVisible; } else { return visible; } } set { OnPropertyChanged(); } }
+
+            public SimplygonTriangleRatioEx() : base("TriangleRatio")
+            {
+                Type = "real";
+                HelpText = "The TriangleRatio value, the target to number of triangles to reduce to, defined as a ratio vs the original triangle count.";
+                TypeOverride = "";
+                DefaultValue = 1f;
+                MinValue = 0f;
+                MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
+                TicksFrequencyValue = 0.1f;
+                HasDependencyObject = true;
+                Visible = true;
+            }
+
+            public SimplygonTriangleRatioEx(dynamic jsonData) : base("TriangleRatio")
+            {
+                Type = "real";
+                HelpText = "The TriangleRatio value, the target to number of triangles to reduce to, defined as a ratio vs the original triangle count.";
+                TypeOverride = "";
+                DefaultValue = 1f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TriangleRatio: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"TriangleRatio: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 0.1f;
+                }
+
+                HasDependencyObject = true;
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonTriangleRatioEx DeepCopy()
+            {
+                return (SimplygonTriangleRatioEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
         public EStopCondition StopCondition { get { return _StopCondition; } set { _StopCondition = value; OnPropertyChanged(); } }
         private EStopCondition _StopCondition;
         public SimplygonStopConditionEx StopConditionUI { get; set; }
@@ -33001,6 +33416,133 @@ namespace SimplygonUI
 
         }
 
+        public float Isotropicity { get { return _Isotropicity; } set { _Isotropicity = value; OnPropertyChanged(); } }
+        private float _Isotropicity;
+        public SimplygonIsotropicityEx IsotropicityUI { get; set; }
+        public class SimplygonIsotropicityEx : SimplygonSettingsProperty
+        {
+            public SimplygonHighDensityMeshReductionSettings Parent { get; set; }
+            public float Value
+            {
+                get
+                {
+                    return Parent.Isotropicity;
+                }
+
+                set
+                {
+                    bool needReload = Parent.Isotropicity != value;
+                    Parent.Isotropicity = value;
+                    OnPropertyChanged();
+                }
+
+            }
+
+            public float DefaultValue { get; set; }
+            public float MinValue { get; set; }
+            public float MaxValue { get; set; }
+            public float DefaultMinValue { get; set; }
+            public float DefaultMaxValue { get; set; }
+            public float TicksFrequencyValue { get; set; }
+
+            public SimplygonIsotropicityEx() : base("Isotropicity")
+            {
+                Type = "real";
+                HelpText = "The Isotropicity value is a measure of how isotropic the triangles will be in the processed mesh. A low value will create more sliver triangles, but adapts tighter to the mesh. A high value requires more triangles to adapt to the original mesh, but creates more evenly spaced triangles which are closer to being equilateral.";
+                TypeOverride = "";
+                DefaultValue = 0.3f;
+                MinValue = 0f;
+                MaxValue = 1f;
+                DefaultMinValue = 0f;
+                DefaultMaxValue = 1f;
+                TicksFrequencyValue = 0.1f;
+                Visible = true;
+            }
+
+            public SimplygonIsotropicityEx(dynamic jsonData) : base("Isotropicity")
+            {
+                Type = "real";
+                HelpText = "The Isotropicity value is a measure of how isotropic the triangles will be in the processed mesh. A low value will create more sliver triangles, but adapts tighter to the mesh. A high value requires more triangles to adapt to the original mesh, but creates more evenly spaced triangles which are closer to being equilateral.";
+                TypeOverride = "";
+                DefaultValue = 0.3f;
+                MinValue = 0f;
+                DefaultMinValue = 0f;
+                if (jsonData != null && jsonData.GetValue("MinValue") != null)
+                {
+                    var newMinValue = (float)jsonData.MinValue;
+                    if (newMinValue >= MinValue)
+                    {
+                        MinValue = newMinValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Isotropicity: Invalid MinValue {newMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMinValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                MaxValue = 1f;
+                DefaultMaxValue = 1f;
+                if (jsonData != null && jsonData.GetValue("MaxValue") != null)
+                {
+                    var newMaxValue = (float)jsonData.MaxValue;
+                    if (newMaxValue <= MaxValue)
+                    {
+                        MaxValue = newMaxValue;
+                    }
+
+                    else
+                    {
+                        UILogger.Instance.Log(Category.Warning, $"Isotropicity: Invalid MaxValue {newMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {DefaultMaxValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                    }
+
+                }
+
+                if (jsonData != null && jsonData.GetValue("TicksFrequencyValue") != null)
+                {
+                    TicksFrequencyValue = (float)jsonData.TicksFrequencyValue;
+                }
+
+                else
+                {
+                    TicksFrequencyValue = 0.1f;
+                }
+
+                if (jsonData != null && jsonData.GetValue("Visible") != null)
+                {
+                    Visible = Convert.ToBoolean(jsonData.Visible);
+                }
+
+                else
+                {
+                    Visible = true;
+                }
+
+            }
+
+            public override void Reset()
+            {
+                Value = DefaultValue;
+            }
+
+            public SimplygonIsotropicityEx DeepCopy()
+            {
+                return (SimplygonIsotropicityEx)this.MemberwiseClone();
+            }
+
+            public JObject SaveJson()
+            {
+                dynamic jsonData = new JObject();
+                jsonData.Visible = Visible;
+                jsonData.MinValue = MinValue;
+                jsonData.MaxValue = MaxValue;
+                jsonData.TicksFrequencyValue = TicksFrequencyValue;
+                return jsonData;
+            }
+
+        }
+
 
         public SimplygonHighDensityMeshReductionSettings() : base("HighDensityMeshReductionSettings")
         {
@@ -33021,10 +33563,30 @@ namespace SimplygonUI
             MaxDeviationUI.Parent = this;
             MaxDeviation = MaxDeviationUI.DefaultValue;
             Items.Add(MaxDeviationUI);
+            TriangleCountEnabledUI = new SimplygonTriangleCountEnabledEx();
+            TriangleCountEnabledUI.Parent = this;
+            TriangleCountEnabled = TriangleCountEnabledUI.DefaultValue;
+            Items.Add(TriangleCountEnabledUI);
+            TriangleCountUI = new SimplygonTriangleCountEx();
+            TriangleCountUI.Parent = this;
+            TriangleCount = TriangleCountUI.DefaultValue;
+            Items.Add(TriangleCountUI);
+            TriangleRatioEnabledUI = new SimplygonTriangleRatioEnabledEx();
+            TriangleRatioEnabledUI.Parent = this;
+            TriangleRatioEnabled = TriangleRatioEnabledUI.DefaultValue;
+            Items.Add(TriangleRatioEnabledUI);
+            TriangleRatioUI = new SimplygonTriangleRatioEx();
+            TriangleRatioUI.Parent = this;
+            TriangleRatio = TriangleRatioUI.DefaultValue;
+            Items.Add(TriangleRatioUI);
             StopConditionUI = new SimplygonStopConditionEx();
             StopConditionUI.Parent = this;
             StopCondition = StopConditionUI.DefaultValue;
             Items.Add(StopConditionUI);
+            IsotropicityUI = new SimplygonIsotropicityEx();
+            IsotropicityUI.Parent = this;
+            Isotropicity = IsotropicityUI.DefaultValue;
+            Items.Add(IsotropicityUI);
         }
 
         public SimplygonHighDensityMeshReductionSettings(dynamic jsonData) : base("HighDensityMeshReductionSettings")
@@ -33046,10 +33608,30 @@ namespace SimplygonUI
             MaxDeviationUI.Parent = this;
             MaxDeviation = MaxDeviationUI.DefaultValue;
             Items.Add(MaxDeviationUI);
+            TriangleCountEnabledUI = new SimplygonTriangleCountEnabledEx(jsonData != null && ((JObject)jsonData).GetValue("TriangleCountEnabledUI") != null ? jsonData.TriangleCountEnabledUI : null);
+            TriangleCountEnabledUI.Parent = this;
+            TriangleCountEnabled = TriangleCountEnabledUI.DefaultValue;
+            Items.Add(TriangleCountEnabledUI);
+            TriangleCountUI = new SimplygonTriangleCountEx(jsonData != null && ((JObject)jsonData).GetValue("TriangleCountUI") != null ? jsonData.TriangleCountUI : null);
+            TriangleCountUI.Parent = this;
+            TriangleCount = TriangleCountUI.DefaultValue;
+            Items.Add(TriangleCountUI);
+            TriangleRatioEnabledUI = new SimplygonTriangleRatioEnabledEx(jsonData != null && ((JObject)jsonData).GetValue("TriangleRatioEnabledUI") != null ? jsonData.TriangleRatioEnabledUI : null);
+            TriangleRatioEnabledUI.Parent = this;
+            TriangleRatioEnabled = TriangleRatioEnabledUI.DefaultValue;
+            Items.Add(TriangleRatioEnabledUI);
+            TriangleRatioUI = new SimplygonTriangleRatioEx(jsonData != null && ((JObject)jsonData).GetValue("TriangleRatioUI") != null ? jsonData.TriangleRatioUI : null);
+            TriangleRatioUI.Parent = this;
+            TriangleRatio = TriangleRatioUI.DefaultValue;
+            Items.Add(TriangleRatioUI);
             StopConditionUI = new SimplygonStopConditionEx(jsonData != null && ((JObject)jsonData).GetValue("StopConditionUI") != null ? jsonData.StopConditionUI : null);
             StopConditionUI.Parent = this;
             StopCondition = StopConditionUI.DefaultValue;
             Items.Add(StopConditionUI);
+            IsotropicityUI = new SimplygonIsotropicityEx(jsonData != null && ((JObject)jsonData).GetValue("IsotropicityUI") != null ? jsonData.IsotropicityUI : null);
+            IsotropicityUI.Parent = this;
+            Isotropicity = IsotropicityUI.DefaultValue;
+            Items.Add(IsotropicityUI);
             LoadJson(jsonData);
         }
 
@@ -33069,9 +33651,24 @@ namespace SimplygonUI
             copy.MaxDeviationUI = this.MaxDeviationUI.DeepCopy();
             copy.MaxDeviationUI.Parent = copy;
             copy.Items.Add(copy.MaxDeviationUI);
+            copy.TriangleCountEnabledUI = this.TriangleCountEnabledUI.DeepCopy();
+            copy.TriangleCountEnabledUI.Parent = copy;
+            copy.Items.Add(copy.TriangleCountEnabledUI);
+            copy.TriangleCountUI = this.TriangleCountUI.DeepCopy();
+            copy.TriangleCountUI.Parent = copy;
+            copy.Items.Add(copy.TriangleCountUI);
+            copy.TriangleRatioEnabledUI = this.TriangleRatioEnabledUI.DeepCopy();
+            copy.TriangleRatioEnabledUI.Parent = copy;
+            copy.Items.Add(copy.TriangleRatioEnabledUI);
+            copy.TriangleRatioUI = this.TriangleRatioUI.DeepCopy();
+            copy.TriangleRatioUI.Parent = copy;
+            copy.Items.Add(copy.TriangleRatioUI);
             copy.StopConditionUI = this.StopConditionUI.DeepCopy();
             copy.StopConditionUI.Parent = copy;
             copy.Items.Add(copy.StopConditionUI);
+            copy.IsotropicityUI = this.IsotropicityUI.DeepCopy();
+            copy.IsotropicityUI.Parent = copy;
+            copy.Items.Add(copy.IsotropicityUI);
             return copy;
         }
 
@@ -33102,10 +33699,40 @@ namespace SimplygonUI
                 jsonData.MaxDeviationUI = MaxDeviationUI.SaveJson();
             }
 
+            jsonData.TriangleCountEnabled = TriangleCountEnabled;
+            if(serializeUIComponents)
+            {
+                jsonData.TriangleCountEnabledUI = TriangleCountEnabledUI.SaveJson();
+            }
+
+            jsonData.TriangleCount = TriangleCount;
+            if(serializeUIComponents)
+            {
+                jsonData.TriangleCountUI = TriangleCountUI.SaveJson();
+            }
+
+            jsonData.TriangleRatioEnabled = TriangleRatioEnabled;
+            if(serializeUIComponents)
+            {
+                jsonData.TriangleRatioEnabledUI = TriangleRatioEnabledUI.SaveJson();
+            }
+
+            jsonData.TriangleRatio = TriangleRatio;
+            if(serializeUIComponents)
+            {
+                jsonData.TriangleRatioUI = TriangleRatioUI.SaveJson();
+            }
+
             jsonData.StopCondition = (int)StopCondition;
             if(serializeUIComponents)
             {
                 jsonData.StopConditionUI = StopConditionUI.SaveJson();
+            }
+
+            jsonData.Isotropicity = Isotropicity;
+            if(serializeUIComponents)
+            {
+                jsonData.IsotropicityUI = IsotropicityUI.SaveJson();
             }
 
             return jsonData;
@@ -33158,9 +33785,64 @@ namespace SimplygonUI
 
             }
 
+            if(jsonData.GetValue("TriangleCountEnabled") != null)
+            {
+                TriangleCountEnabled = (bool)jsonData.TriangleCountEnabled;
+            }
+
+            if(jsonData.GetValue("TriangleCount") != null)
+            {
+                var newTriangleCount = (int)jsonData.TriangleCount;
+                if (newTriangleCount >= TriangleCountUI.DefaultMinValue && newTriangleCount <= TriangleCountUI.DefaultMaxValue)
+                {
+                    TriangleCount = newTriangleCount;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"TriangleCount: Invalid value {newTriangleCount}, using default value {TriangleCount.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
+            if(jsonData.GetValue("TriangleRatioEnabled") != null)
+            {
+                TriangleRatioEnabled = (bool)jsonData.TriangleRatioEnabled;
+            }
+
+            if(jsonData.GetValue("TriangleRatio") != null)
+            {
+                float newTriangleRatio = (float)jsonData.TriangleRatio;
+                if (newTriangleRatio >= TriangleRatioUI.DefaultMinValue && newTriangleRatio <= TriangleRatioUI.DefaultMaxValue)
+                {
+                    TriangleRatio = newTriangleRatio;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"TriangleRatio: Invalid value {newTriangleRatio.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {TriangleRatio.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
+            }
+
             if(jsonData.GetValue("StopCondition") != null)
             {
                 StopCondition = (EStopCondition)jsonData.StopCondition;
+            }
+
+            if(jsonData.GetValue("Isotropicity") != null)
+            {
+                float newIsotropicity = (float)jsonData.Isotropicity;
+                if (newIsotropicity >= IsotropicityUI.DefaultMinValue && newIsotropicity <= IsotropicityUI.DefaultMaxValue)
+                {
+                    Isotropicity = newIsotropicity;
+                }
+
+                else
+                {
+                    UILogger.Instance.Log(Category.Warning, $"Isotropicity: Invalid value {newIsotropicity.ToString(System.Globalization.CultureInfo.InvariantCulture)}, using default value {Isotropicity.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+                }
+
             }
 
         }
@@ -33171,7 +33853,12 @@ namespace SimplygonUI
             OnScreenSizeUI.Reset();
             MaxDeviationEnabledUI.Reset();
             MaxDeviationUI.Reset();
+            TriangleCountEnabledUI.Reset();
+            TriangleCountUI.Reset();
+            TriangleRatioEnabledUI.Reset();
+            TriangleRatioUI.Reset();
             StopConditionUI.Reset();
+            IsotropicityUI.Reset();
         }
 
         public override void SetEditMode(bool isEditEnabled)
@@ -33181,7 +33868,12 @@ namespace SimplygonUI
             OnScreenSizeUI.IsEditEnabled = isEditEnabled;
             MaxDeviationEnabledUI.IsEditEnabled = isEditEnabled;
             MaxDeviationUI.IsEditEnabled = isEditEnabled;
+            TriangleCountEnabledUI.IsEditEnabled = isEditEnabled;
+            TriangleCountUI.IsEditEnabled = isEditEnabled;
+            TriangleRatioEnabledUI.IsEditEnabled = isEditEnabled;
+            TriangleRatioUI.IsEditEnabled = isEditEnabled;
             StopConditionUI.IsEditEnabled = isEditEnabled;
+            IsotropicityUI.IsEditEnabled = isEditEnabled;
         }
 
     }
@@ -49652,8 +50344,8 @@ namespace SimplygonUI
             }
 
             jsonData.Version = "10.4";
-            jsonData.Build = "10.4.148.0";
-            jsonData.Commit = "2e4b2ed3587ebe3975ed1dd80653683577f130a3";
+            jsonData.Build = "10.4.199.0";
+            jsonData.Commit = "9f2a073064b8910020ba2be8a576e219f66d715c";
             jsonData.Settings.GlobalSettings = GlobalSettings.SaveJson(serializeUIComponents);
             jsonData.Settings.PipelineSettings = PipelineSettings.SaveJson(serializeUIComponents);
 

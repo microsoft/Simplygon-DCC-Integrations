@@ -1458,7 +1458,7 @@ spScene SimplygonProcessingModule::RunReductionTest_1( const spScene sgInputScen
 	sgReductionSettings->SetCreateGeomorphGeometry( false );
 	sgReductionSettings->SetDataCreationPreferences( EDataCreationPreferences::PreferOriginalData );
 	sgReductionSettings->SetEdgeSetImportance( 1.0f );
-	sgReductionSettings->SetGenerateGeomorphData( false );
+	sgReductionSettings->SetCreateGeomorphGeometry( false );
 	sgReductionSettings->SetGeometryImportance( 8.0f );
 	sgReductionSettings->SetGroupImportance( 1.0f );
 	sgReductionSettings->SetInwardMoveMultiplier( 1.0f );
