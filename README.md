@@ -58,9 +58,8 @@ This is a C#/WPF project and the [WPF-DarkScheme](https://github.com/ADN-DevTech
 
 ## Support
 
-Please use the Simplygon zendesk portal when you want to submit a support request.  
-[Commercial customers](https://simplygon.zendesk.com/hc/en-us/requests/new)  
-[Free users](https://simplygon.zendesk.com/hc/en-us/community/topics)
+Please use the [Simplygon zendesk portal](https://simplygon.zendesk.com/hc/en-us/requests/new) when you want to submit a support request.  
+
 
 ## Data Collection
 
